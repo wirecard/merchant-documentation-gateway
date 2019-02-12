@@ -14,7 +14,7 @@ standards.
 SEPA can be used for every kind of business inside the SEPA area.
 Transactions are processed only in Euro.Member countries include the 28
 EU Member States as well as Iceland, Liechtenstein, Monaco, Norway, and
-Switzerland
+Switzerland.
 
 For information about SEPA timelines, please refer to the European
 Payments Council:
@@ -53,11 +53,14 @@ Gateway_ for processing and the time the transaction will
 be forwarded for processing to the bank. Once the payment was processed
 by the bank and settled, it is no longer possible to void a transaction.
 
+[NOTE]
+====
 To void an existing pending SEPA _Direct Debit_ or SEPA _Credit
 Transfer_ transaction, a merchant must
 
 * send a _void-pending-debit_ or _void-pending-credit_ request.
 * include the parent-transaction-ID.
+====
 
 ====== Restrictions
 
@@ -67,9 +70,9 @@ following restrictions for SEPA _Void_ transactions:
 * A _pending-debit_ or _pending-credit_ transaction may only be voided
 *before* the transaction is batched into a file and sent to the bank for
 processing.
-+
 
-Batch processing starts at around 10:00 UTC.
+NOTE: Batch processing starts at around 10:00 UTC.
+
 * If a _void_ request is sent after the transaction has been sent to the
 bank, a _Failed_ response will be returned.
 * Once a corresponding _debit_ or _credit_ transaction exists for the
@@ -79,12 +82,10 @@ void a transaction.
 ID referring to the _pending-debit_ or _pending-credit_ transaction
 that should be voided.
 
-[[SEPA-Fields]]
-Fields
-^^^^^^
+====== Fields
 
 The fields used for SEPA _Void_ requests, responses and notifications
-are the same as the REST API Fields. Please refer
+are the same as the REST API Fields. Please refer to
 https://document-center.wirecard.com/display/PTD/Fields[API field list]
 or the request example for the fields required in a
 __https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-void-pending-debit[void-pending-debit]__
@@ -92,7 +93,7 @@ or
 _https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer#SEPACreditTransfer-void-pending-credit[void-pending-credit]_
 transaction.
 
-If the amount is sent within the request for the _void_ transaction it
+IMPORTANT: If the amount is sent within the request for the _void_ transaction it
 will be checked if it is the same amount as in the previous
 _pending-debit_ or _pending-credit_ request. Partial cancellations are
 currently *not* possible.   
@@ -109,78 +110,18 @@ field is disregarded or not sent.
 |requested-amount | O        | M        | M | This is the amount of the transaction. The amount of the decimal place
 is dependent of the currency. Min amount €0.01. Max amount
 €999,999,999.99.
-
-|===
-
-*Field*
-
-*Request*
-
-*Response*
-
-*Notification*
-
-*Description*
-
-requested-amount
-
-O
-
-M
-
-M
-
-
-
-If it is sent within the request it will be validated if it is the same
-amount like in the _pending-debit_ or _pending-credit_ request.
-
-requested-currency
-
-O
-
-M
-
-M
-
-This is the currency of the requested-amount. Only EUR is accepted.
-
-payment-methods.payment-method-Name
-
-M
-
-M
-
-M
-
-This is the name of the payment method ‚sepadirectdebit‘ or
+|requested-currency |O      | M         | M | This is the currency of the requested-amount. Only EUR is accepted.
+|payment-methods.payment-method-Name | M | M | M | This is the name of the payment method ‚sepadirectdebit‘ or
 'sepacredit'.
-
-parent-transaction-id
-
-M
-
-M
-
-M
-
-Transaction ID of the transaction that needs to be voided.
-
-transaction-type
-
-M
-
-M
-
-M
-
-This is the type for a transaction. For a SEPA _Void_ request, only
+|parent-transaction-id | M | M | M | Transaction ID of the transaction that needs to be voided.
+|transaction-type | M | M  | M | This is the type for a transaction. For a SEPA _Void_ request, only
 _void-pending-debit_, _void-debit_, _void-pending-credit_ or
 _void-credit_ are allowed.
 
-[[SEPA-SEPAdeposit]]
-SEPA _deposit_
-~~~~~~~~~~~~~~
+|===
+
+[#SEPA_TransactionType_Deposit]
+====== SEPA _deposit_
 
 Occasionally, a consumer send funds back to the merchant, either at the
 request of the merchant or through his/her own initiative. There are
@@ -199,38 +140,20 @@ SEPA __Credit Transfer __transaction. If the PTRID is not provided or it
 is simply not possible to match the transaction, the transaction will
 remain unmatched.
 
-[[SEPA-Fields.1]]
-Fields
-^^^^^^
+====== Fields
 
 The following elements are submitted in the IPN
 <<InstantPaymentNotification,Instant Payment Notification>> either mandatory (M) or optional (O):
 
-Field
-
-Notification
-
-Description
-
-request-id
-
-M
-
-This is the identification number of the request on the merchant’s side.
+|===
+|Field           	| Notification | Description
+|request-id | M | This is the identification number of the request on the merchant’s side.
 *It must be unique for each request.*
-
-transaction-type
-
-M
-
-This is the type for a transaction. For SEPA Deposit, it is always
+|transaction-type | M | This is the type for a transaction. For SEPA Deposit, it is always
 _deposit_.
+|payment-methods.payment-method-Name | M | This is the name of the payment method ‚*wiretransfer*‘
 
-payment-methods.payment-method-Name
-
-M
-
-This is the name of the payment method ‚*wiretransfer*‘
+|===
 
 [#SEPA_Samples_DepositNotification]
 ===== Sample
@@ -284,9 +207,9 @@ This is the name of the payment method ‚*wiretransfer*‘
 </payment>
 ----
 
-[[SEPA-debit-returnandcredit-return]]
-_debit-return_ and _credit-return_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#SEPA_TransactionType_debitReturnandcreditReturn]
+====== SEPA _debit-return_ and _credit-return_
+
 
 A _debit-return_ reverses a _debit_ transaction. It is initiated by the
 consumer bank 
@@ -328,9 +251,9 @@ Wirecard Bank.
 _credit_ transaction.
 //-
 
-. If successful, WPG maps the _debit-return_ to _a debit_ or
+.. If successful, WPG maps the _debit-return_ to _a debit_ or
 _credit-return_ to a _credit._
-. if not successful, WPG creates _a debit-return_ or _credit-return_
+.. if not successful, WPG creates _a debit-return_ or _credit-return_
 without reference.
 . WPG sends a notification about _the debit-return_ or _credit-return_
 to the merchant.
