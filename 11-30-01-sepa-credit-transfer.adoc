@@ -1,0 +1,741 @@
+[[page]]
+[[main]]
+[[main-header]]
+[[breadcrumb-section]]
+1.  link:index.html[API merchant specification]
+2.  link:API-merchant-specification_1146901.html[API merchant
+specification]
+3.  link:Payment-Methods_786790.html[Payment Methods]
+4.  link:Non-Credit-Card_786796.html[Non Credit Card]
+5.  link:SEPA_3703410.html[SEPA]
+
+[[title-heading]]
+[[title-text]] API merchant specification : SEPA Credit Transfer
+-----------------------------------------------------------------
+
+[[content]]
+Created by Volker Hauss, last modified by Claudia Fruhmann on Jan 09,
+2019
+
+[[main-content]]
+* link:#SEPACreditTransfer-Introduction[Introduction]
+* link:#SEPACreditTransfer-GeneralInformation[General Information]
+** link:#SEPACreditTransfer-PaymentMode,CountriesandCurrencies[Payment
+Mode, Countries and Currencies]
+** link:#SEPACreditTransfer-CommunicationFormats[Communication Formats]
+* link:#SEPACreditTransfer-Transactions[Transactions]
+** link:#SEPACreditTransfer-TransactionTypes[Transaction Types]
+*** link:#SEPACreditTransfer-refund[refund]
+*** link:#SEPACreditTransfer-void[void]
+** link:#SEPACreditTransfer-ExecutionDate[Execution Date]
+* link:#SEPACreditTransfer-TestCredentials[Test Credentials]
+* link:#SEPACreditTransfer-Workflow[Workflow]
+* link:#SEPACreditTransfer-Fields[Fields]
+* #SEPACreditTransfer-Samples:Request,ResponseandNotification[Samples:
+Request, Response and Notification]
+** link:#SEPACreditTransfer-pending-credit[pending-credit]
+*** link:#SEPACreditTransfer-XML[XML]
+*** link:#SEPACreditTransfer-JSON[JSON]
+** link:#SEPACreditTransfer-void-pending-credit[void-pending-credit]
+*** link:#SEPACreditTransfer-XML.1[XML]
+
+ 
+
+[[SEPACreditTransfer-Introduction]]
+Introduction
+------------
+
+SEPA ** _Credit Transfer_ is used when a merchant would like to *send
+money to the consumer's* bank account. For example, when a product or
+service was returned.
+
+_Wirecard Payment Gateway_ supports referenced and non-referenced SEPA
+_Credit Transfer_ options.
+
+[[SEPACreditTransfer-GeneralInformation]]
+General Information
+-------------------
+
+[[SEPACreditTransfer-PaymentMode,CountriesandCurrencies]]
+Payment Mode, Countries and Currencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This table illustrates which payment mode _SEPA Credit Transfer_ belongs
+to. It also provides detailed information about the countries and
+currencies which are relevant for _SEPA Credit Transfer_.
+
+[cols=",",]
+|=======================================================================
+|*Payment Mode*
+|https://document-center.wirecard.com/display/PTD/Non+Credit+Card#NonCreditCard-OfflineBankTransfer[Offline
+Bank Transfer]
+
+|*Countries*
+|Please https://document-center.wirecard.com/display/PTD/Contact+Us[contact
+merchant support] for Countries.
+
+|*Currencies*
+|Please https://document-center.wirecard.com/display/PTD/Contact+Us[contact
+merchant support] for Currencies.
+|=======================================================================
+
+[[SEPACreditTransfer-CommunicationFormats]]
+Communication Formats
+~~~~~~~~~~~~~~~~~~~~~
+
+This table illustrates how _SEPA Credit Transfer_ notifications are
+encoded and which formats and methods can be used for requests and
+responses.
+
+*Requests/Responses*
+
+Format
+
+XML
+
+Methods
+
+POST
+
+*IPN Encodement*
+
+Please follow the instructions given
+at https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-instant_payment_notificationInstantPaymentNotification[Instant
+Payment Notification] to set up IPN.
+
+[[SEPACreditTransfer-Transactions]]
+Transactions
+------------
+
+[[SEPACreditTransfer-TransactionTypes]]
+Transaction Types
+~~~~~~~~~~~~~~~~~
+
+For https://document-center.wirecard.com/display/PTD/Glossary#Glossary-TransactionType[transaction
+type] details which are not given here look
+at https://document-center.wirecard.com/display/PTD/Appendix+B%3A+Transaction+Types[Appendix
+B: Transaction Types].
+
+[width="100%",cols="34%,33%,33%",options="header",]
+|=======================================================================
+|Transaction Type |Description |Link to the Samples
+|_authorization_ |Verifies payment details for structural validity and /
+or generates a reference ID for the merchant (not mandatory) | 
+
+|_pending-credit_ |Transaction is processed in the Wirecard system
+|https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer#SEPACreditTransfer-pending-credit[_pending-credit_
+sample]
+
+|_void-pending-credit_ a|
+Voids a _pending-credit_.
+
+Only available when the
+https://document-center.wirecard.com/display/PTD/SEPA#SEPA-Restrictions[restrictions]
+are met +
+
+
+|https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer#SEPACreditTransfer-void-pending-credit[_void-pending-credit_
+sample]
+
+|_credit_ |Transaction is processed by Wirecard Bank | 
+
+|_credit-return_ |The payment is returned by the consumer bank. See
+https://document-center.wirecard.com/display/PTD/SEPA#SEPA-ReturnCodes[Return
+Codes] | 
+|=======================================================================
+
+Recurring Transactions are not supported for SEPA _Credit Transfer_.
+
+The transaction type within the request must be _credit or
+pending-credit._ A __ _credit_ will be transformed into a
+__pending-credit__ by default._ +
+_
+
+[[SEPACreditTransfer-refund]]
+_refund_
+^^^^^^^^
+
+SEPA _Credit Transfer_ may be used as a method for merchants to return
+funds to consumers. If it is being used as a way for the merchant to
+refund a specific _debit_ transaction, it is recommended that a
+_parent-transaction ID_ (i.e. the _transaction ID_ of the successful
+_Debit_) is included in the request in order to be able to match the
+_refund_ to the original transaction.
+
+[[SEPACreditTransfer-void]]
+_void_
+^^^^^^
+
+https://document-center.wirecard.com/display/PTD/SEPA#SEPA-SEPAVoid[SEPA
+_Void_] __ can be used with both SEPA payment methods: SEPA _Credit
+Transfer_ and SEPA _Direct Debit._
+
+[[SEPACreditTransfer-ExecutionDate]]
+Execution Date
+~~~~~~~~~~~~~~
+
+This is the date on which the transfer will be executed. According to
+SEPA regulations, it is required to be one (1) business day after it has
+entered the banking system. This date is set by Wirecard during
+processing and is not part of the request or the response.
+
+[[SEPACreditTransfer-TestCredentials]]
+Test Credentials
+----------------
+
+*URLs (Endpoints)*
+
+https://api-test.wirecard.com/engine/rest/paymentmethods/
+
+*Merchant Account ID (MAID)*
+
+59a01668-693b-49f0-8a1f-f3c1ba025d45
+
+*Username*
+
+16390-testing
+
+*Password*
+
+3!3013=D3fD8X7
+
+*Secret Key*
+
+Please https://document-center.wirecard.com/display/PTD/Contact+Us[contact
+merchant support] for complete test credentials.
+
+[[SEPACreditTransfer-Workflow]]
+Workflow
+--------
+
+image:attachments/3703420/3703417.png[image,height=250]
+
+* The transaction type within the request must be _credit or
+pending-credit._
+* If the request is successful, a response will be returned with status
+_Success_. This response means that the transaction has entered the
+Wirecard system successfully. The transaction itself is in a _pending_
+status, waiting to be sent to the merchant’s bank.
+* If the request is not successful, a response will be returned with
+status _Failed_. *The response always contains a status code and a
+description.* Please read this description carefully as it will help to
+understand why the transaction request has failed and what needs to be
+fixed in order to send a successful transaction request.
+* Once the transaction has been successfully sent to and processed by
+the bank, a new transaction with type _credit_ will be created in status
+_Success_. This process usually takes up to 2 business days. The
+transaction will then be forwarded the Central Bank for processing.
+* If the transaction has been rejected by the merchant’s bank, a
+_credit_ transaction on status _Failed_ will be created and the
+transaction will not be sent to the Central Bank.
+* The merchant will receive a notification of the _credit_ transaction.
+
+Although a transaction has been successfully processed by the merchant’s
+bank, the transaction may still be reversed by the consumer’s bank for
+reasons such as insufficient funds, account owner deceased, bank account
+closed, etc. In this case, a _credit-return_ transaction will be created
+and matched to the original _credit_ transaction to ensure the merchant
+has a complete overview for his debtor management. For a full list of
+_credit-return_ reasons, please refer to
+https://document-center.wirecard.com/display/PTD/SEPA#SEPA-ReturnCodes[the
+list of SEPA Return Codes].
+
+The merchant can request the status of the transaction at any time by
+sending a
+“https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RetrieveTransactionbyTransaction-ID[Retrieve
+Transaction by Transaction ID]” or
+“https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-Retrieve_by_Request-IDRetrieveTransactionbyRequest-ID[Retrieve
+Transaction by Request ID]”.
+
+[[SEPACreditTransfer-Fields]]
+Fields
+------
+
+The fields used for SEPA _Credit Transfer_ requests, responses and
+notifications are the same as the REST API Fields. Please refer to:
+https://document-center.wirecard.com/display/PTD/Fields[REST API
+Fields].
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory (M), optional (O) or conditional
+(C) for a request/response/notification.
+
+Field
+
+Request
+
+Response
+
+Notification
+
+Datatype
+
+Size
+
+Description
+
+descriptor
+
+O
+
+O
+
+O
+
+String
+
+100
+
+Description on the settlement of the account holder’s account about a
+transaction.  
+
+For SEPA Credit Transfer transactions, it will be combined with the
+Provider Transaction Reference ID and the merchant’s static
+descriptor and will appear on the consumer’s bank account statement.
+
+payment-methods.payment-method-Name
+
+M
+
+M
+
+M
+
+String
+
+15
+
+This is the name of the payment method ‚sepacredit‘
+
+api-id
+
+ 
+
+ 
+
+M
+
+api-id
+
+25
+
+The API id is always returned in the notification. For SEPA it is
+"---" +
+
+bank-account.bic
+
+O
+
+O
+
+O
+
+String
+
+8 or 11
+
+This is the Business Identifier Code of the bank of the end-consumer. In
+SEPA Area
+where https://document-center.wirecard.com/display/PTD/SEPA#SEPA-SEPAIBANOnly[IBAN
+Only] is enabled, BIC is an optional field.
+
+bank-account.iban
+
+C
+
+C
+
+C
+
+String
+
+34
+
+This is the International Bank Account Number of the end-consumer.
+
+If no parent-transaction-id is provided it remains mandatory.
+
+provider-transaction-reference-id
+
+ 
+
+M
+
+ M
+
+String
+
+10
+
+This ID provides a reference for the complete end-to-end lifecycle of a
+SEPA Credit Transfer transaction. It is used as a reference within the
+banking system to ensure all transactions referencing each other (eg: a
+_credit_ and a _debit-return_) are matched and that the complete
+lifecycle of a payment is identifiable. Wirecard generates this ID for
+the merchant.
+
+[[SEPACreditTransfer-Samples:Request,ResponseandNotification]]
+Samples: Request, Response and Notification
+-------------------------------------------
+
+Go to
+https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-NotificationExamples[Notification
+Examples], if you want to see corresponding notification samples.
+
+[[SEPACreditTransfer-pending-credit]]
+_pending-credit_
+~~~~~~~~~~~~~~~~
+
+[[SEPACreditTransfer-XML]]
+XML
+^^^
+
+*XML Pending-Credit Request (Successful)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>pending-credit</transaction-type>
+    <!-- optional  <parent-transaction-id>a31d8dcc-fedc-11e4-8671-005056a97162</parent-transaction-id> -->
+    <requested-amount currency="EUR">0.11</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@example.com</email>
+        <address>
+            <street1>Example Street 1</street1>
+            <city>Example City</city>
+            <country>DE</country>
+        </address>
+    </account-holder>
+    <!-- optional  <order-number>4509334</order-number> -->
+    <!-- optional   <descriptor>test</descriptor> -->
+    <payment-methods>
+        <payment-method name="sepacredit" />
+    </payment-methods>
+    <bank-account>
+        <iban>HU29117080012054779400000000</iban>
+        <bic>GENODEF1OGK</bic>
+    </bank-account>
+    <!-- optional  <cancel-redirect-url>http://sandbox-engine.thesolution.com/shop_urlViaRequest/cancel.html</cancel-redirect-url> --></payment>
+----
+
+*XML Pending-Credit Response (Successful)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+  <transaction-id>d1bb484a-2d12-4f2c-91fa-138b34197497</transaction-id>
+  <request-id>cca8ea3c-6203-459f-9cbf-8705fd0f3800</request-id>
+  <transaction-type>pending-credit</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-04-13T08:39:19.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="EUR">0.11</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+    <email>john.doe@example.com</email>
+    <address>
+      <street1>Example Street 1</street1>
+      <city>Example City</city>
+      <country>DE</country>
+    </address>
+  </account-holder>
+  <payment-methods>
+    <payment-method name="sepacredit" />
+  </payment-methods>
+  <bank-account>
+    <iban>HU29117080012054779400000000</iban>
+    <bic>GENODEF1OGK</bic>
+  </bank-account>
+  <provider-transaction-reference-id>BA89E3BADC</provider-transaction-reference-id>
+</payment>
+----
+
+*XML Pending-Credit Request (Failure)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>pending-credit</transaction-type>
+    <requested-amount currency="EUR">10.01</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+    </account-holder>
+    <payment-methods>
+        <payment-method name="sepacredit" />
+    </payment-methods>
+    <bank-account>
+        <bic>WIREDEMMXXX</bic>
+    </bank-account></payment>
+----
+
+*XML Pending-Credit Response (Failure)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+ <transaction-id>c9d5f0c2-9331-4c7e-afd6-e1eb407243ad</transaction-id>
+ <request-id>54d9d8fd-f33b-43b7-8f0e-753ba16991f0</request-id>
+ <transaction-type>pending-credit</transaction-type>
+ <transaction-state>failed</transaction-state>
+ <completion-time-stamp>2018-04-13T08:42:39.000Z</completion-time-stamp>
+ <statuses>
+  <status code="400.1081" description="The Bank Account IBAN information has not been provided.  Please check your input and try again." severity="error" />
+ </statuses>
+ <requested-amount currency="EUR">10.01</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="sepacredit" />
+ </payment-methods>
+ <bank-account>
+  <bic>WIREDEMMXXX</bic>
+ </bank-account>
+</payment>
+----
+
+[[SEPACreditTransfer-JSON]]
+JSON
+^^^^
+
+*JSON Pending-Credit Request (Successful)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+{
+  "payment" : {
+    "merchant-account-id" : {
+      "value" : "4c901196-eff7-411e-82a3-5ef6b6860d64"
+    },
+    "request-id" : "${unique for each request}",
+    "transaction-type" : "pending-credit",
+    "requested-amount" : {
+      "value" : 0.11,
+      "currency" : "EUR"
+    },
+    "account-holder" : {
+      "first-name" : "John",
+      "last-name" : "Doe",
+      "email" : "daemonize@yahoo.co.uk",
+      "address" : {
+        "street1" : "Tiefstraße 3",
+        "city" : "München",
+        "country" : "DE"
+      }
+    },
+    "payment-methods" : {
+      "payment-method" : [ {
+        "name" : "sepacredit"
+      } ]
+    },
+    "bank-account" : {
+      "iban" : "HU29117080012054779400000000",
+      "bic" : "GENODEF1OGK"
+    },
+    "mandate" : {
+      "mandate-id" : "12345678",
+      "signed-date" : "2014-05-06"
+    },
+    "consumer" : {
+      "first-name" : "",
+      "last-name" : ""
+    }
+  }
+}
+----
+
+*JSON Pending-Credit Response (Successful)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+ {
+  "payment" : {
+    "merchant-account-id" : {
+      "value" : "4c901196-eff7-411e-82a3-5ef6b6860d64"
+    },
+    "transaction-id" : "7c55532a-34f9-11e5-b074-005056a96a54",
+    "request-id" : "${request}",
+    "transaction-type" : "pending-credit",
+    "transaction-state" : "success",
+    "completion-time-stamp" : 1438068184000,
+    "statuses" : {
+      "status" : [ {
+        "value" : "",
+        "code" : "201.0000",
+        "description" : "The resource was successfully created.",
+        "severity" : "information"
+      } ]
+    },
+    "requested-amount" : {
+      "value" : 0.11,
+      "currency" : "EUR"
+    },
+    "account-holder" : {
+      "first-name" : "John",
+      "last-name" : "Doe",
+      "email" : "daemonize@yahoo.co.uk",
+      "address" : {
+        "street1" : "Tiefstraße 3",
+        "city" : "München",
+        "country" : "DE"
+      }
+    },
+    "payment-methods" : {
+      "payment-method" : [ {
+        "name" : "sepacredit"
+      } ]
+    },
+    "bank-account" : {
+      "iban" : "HU29117080012054779400000000",
+      "bic" : "GENODEF1OGK"
+    },
+    "mandate" : {
+      "mandate-id" : "12345678",
+      "signed-date" : "2014-05-06"
+    },
+    "consumer" : {
+      "first-name" : "",
+      "last-name" : ""
+    },
+    "provider-transaction-reference-id" : "FD787FBC69"
+  }
+}
+----
+
+[[SEPACreditTransfer-void-pending-credit]]
+_void-pending-credit_
+~~~~~~~~~~~~~~~~~~~~~
+
+Void-Pending-Credit Restrictions
+
+_void-pending-credit_ transactions can be sent until the transaction is
+not sent to the bank.
+
+[[SEPACreditTransfer-XML.1]]
+XML
+^^^
+
+*XML Void-Pending-Credit Request (Successful)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>void-pending-credit</transaction-type>
+    <requested-amount currency="EUR">0.15</requested-amount>
+    <parent-transaction-id>${derived from former pending-credit transaction}</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="sepacredit" />
+    </payment-methods>
+</payment>
+----
+
+*XML Void-Pending-Credit Response (Successful)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+ <transaction-id>75abb31d-30fc-472e-97d8-67081dbd9e6c</transaction-id>
+ <request-id>cf9fddf3-97e8-4fef-989d-0b0274ceab17</request-id>
+ <transaction-type>void-pending-credit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-13T08:45:05.000Z</completion-time-stamp>
+ <statuses>
+  <status code="200.0000" description="The request completed successfully." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">0.15</requested-amount>
+ <parent-transaction-id>8938d389-6575-4467-95e4-ca9cf89266b9</parent-transaction-id>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+  <email>john.doe@example.com</email>
+  <address>
+   <street1>Example Street 1</street1>
+   <city>Example City</city>
+   <country>DE</country>
+  </address>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="sepacredit" />
+ </payment-methods>
+ <bank-account>
+  <iban>HU29117080012054779400000000</iban>
+  <bic>GENODEF1OGK</bic>
+ </bank-account>
+ <api-id>---</api-id>
+</payment>
+----
+
+*XML Void-Pending-Credit Request (Failed)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>void-pending-credit</transaction-type>
+    <requested-amount currency="EUR">10.00</requested-amount>
+    <payment-methods>
+        <payment-method name="sepacredit" />
+    </payment-methods></payment>
+----
+
+*XML Void-Pending-Credit Response (Failed)*  Expand source
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id ref="unknown">59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>
+ <request-id>41595b1c-8994-4c2e-ae05-d48c00471b29</request-id>
+ <transaction-type>void-pending-credit</transaction-type>
+ <transaction-state>failed</transaction-state>
+ <completion-time-stamp>2018-04-13T08:47:59.131Z</completion-time-stamp>
+ <statuses>
+  <status code="400.1021" description="The Parent Transaction Id is required, and not provided.  Please check your input and try again." severity="error" />
+ </statuses>
+ <requested-amount currency="EUR">10.00</requested-amount>
+ <payment-methods>
+  <payment-method name="sepacredit" />
+ </payment-methods>
+</payment>
+----
+
+Attachments:
+~~~~~~~~~~~~
+
+image:images/icons/bullet_blue.gif[image,width=8,height=8]
+link:attachments/3703420/3703416.png[20171020_SEPA
+DirectDebit_Workflow.png] (image/png) +
+image:images/icons/bullet_blue.gif[image,width=8,height=8]
+link:attachments/3703420/3703417.png[20171019_SEPA
+CreditTransfer_Workflow_vhauss.png] (image/png) +
+
+[[footer]]
+Document generated by Confluence on Feb 06, 2019 10:34
+
+[[footer-logo]]
+http://www.atlassian.com/[Atlassian]
