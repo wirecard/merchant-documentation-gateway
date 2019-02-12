@@ -2086,37 +2086,20 @@ It is possible to set up conditional notifications based on the state of
 the transaction.  For example, it is possible to instruct a notification
 to only occur on ‘failed’ or ‘successful’ transactions.
 
+[cols="10,10,10,10,50"]
 |===
 |Notification Type  | Notification Tag in Request     | Possible Extensions of URL  | Ports         | Possible Extensions of ``transaction-state``
+
 |HTTP(S)            | ``URL``, ``transaction-state``  | any configured URL          | 80, 443, 5500 | if _URL_ <> empty and _`transaction-state`_ = empty all notifications go to that URL or if _URL_ <> empty and _`transaction-state`_ <> empty depending on the _transaction-state_ (success, failed, in-progress, etc) the notification goes to the corresponding _URL_.
+|SMTP               | ``URL``, ``transaction-state``  |                             |               | if _URL_ <> empty and ``transaction-state`` = empty all notifications go to that URL (Email address prefixed with ‘mailto’). OR if _URL_ <> empty and ``transaction-state`` <> empty depending on the ``transaction-state`` (success, failed, in-progress, etc) the notification goes to the corresponding _URL_ (Email address prefixed with ‘mailto’).
+|===
 
 
 
+A request, which defines a URL to be used, when the payment process will fail:
 
-|SMTP a|
-`URL, transaction-state`
-
- |any valid email address |  a|
-if _URL_ <> empty and _`transaction-state`_ = empty
-
-all notifications go to that URL (Email address prefixed with ‘mailto’).
-
-or
-
-if _URL_ <> empty and _`transaction-state`_ <> empty
-
-depending on the _transaction-state_ (success, failed, in-progress, etc)
-the notification goes to the corresponding _URL_ (Email address prefixed
-with ‘mailto’).
-
-|=======================================================================
-
-A request, which defines a URL to be used, when the payment process will
-fail:
-
-*XML Request with different URL for failed transactions*  Expand source
-
-[source,syntaxhighlighter-pre]
+.XML Request with different URL for failed transactions
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -2140,17 +2123,11 @@ fail:
 </payment>
 ----
 
-[[GeneralPlatformFeatures-NotificationExamples]]
-Notification Examples
-^^^^^^^^^^^^^^^^^^^^^
+[#GeneralPlatformFeatures_IPN_NotificationExamples]
+===== Notification Examples
 
-[[GeneralPlatformFeatures-CreditCardPayment]]
-Credit Card Payment
-+++++++++++++++++++
-
-*XML Notification Credit Card*  Expand source
-
-[source,syntaxhighlighter-pre]
+.Credit Card Payment
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -2194,13 +2171,8 @@ Credit Card Payment
 </payment>
 ----
 
-[[GeneralPlatformFeatures-AlternativePaymentMethods]]
-Alternative Payment Methods
-+++++++++++++++++++++++++++
-
-*XML Notification Alternative Payment Method*  Expand source
-
-[source,syntaxhighlighter-pre]
+.Alternative Payment Methods
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -2286,19 +2258,17 @@ hvXVMX/EVZt5y1Ip3v0YW7qUaRH0dW/q84OISg==</X509Certificate>
 </payment>
 ----
 
-Note that the “amount” value for some alternative payment notifications
+NOTE: Note that the “amount” value for some alternative payment notifications
 contains 6 minor digits.
 
-[[GeneralPlatformFeatures-ContentoftheNotification]]
-Content of the Notification
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#GeneralPlatformFeatures_IPN_Content]
+==== Content of the Notification
 
 The content of the notification depends on the status of the response
-_Wirecard Payment Gateway_ (WPG) receives from the provider.
+_Wirecard Payment Processing Gateway_ receives from the provider.
 
-[cols=",",options="header",]
-|=======================================================================
-|WPG receives... |WPG sends notification:...
+|====
+|WPPG receives... |WPPG sends notification:...
 |a successful response
 |_Success_ https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[Return
 Codes and Transaction Status]
@@ -2311,9 +2281,9 @@ Codes and Transaction Status]
 
 |no info from provider |_Failure_ with error code 500.1052, if WPG runs
 in its internal timeout
-|=======================================================================
+|====
 
-Credit Card IPN´s are not encoded and non Credit Card IPN´s are mostly
+Credit Card IPNs are not encoded and non Credit Card IPNs are mostly
 Base64 encoded, but there are variations possible. The variations depend
 on the payment methods.
 
@@ -2323,7 +2293,7 @@ recipient. Simply copy the tag and add a different URL.
 In the following example, the transaction will notify the merchant’s
 site for a failed transaction and send all results to an email address.
 
-[[GeneralPlatformFeatures-NotificationTransactionTypes]]
+[#GeneralPlatformFeatures-NotificationTransactionTypes]]
 Notification Transaction Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
