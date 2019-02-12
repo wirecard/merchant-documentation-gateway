@@ -623,6 +623,7 @@ the supported online banking payment methods:
 * iDEAL
 * giropay
 * eps-Überweisung
+//-
 
 If the initial transaction is successful, the bank details IBAN and BIC
 are saved in the database, but not returned in the response.
@@ -1809,96 +1810,100 @@ use as reference for SEPA transactions.
 </payment>
 ----
 
-[[GeneralPlatformFeatures-instant_payment_notificationInstantPaymentNotification]]
-[[GeneralPlatformFeatures-instant_payment_notification]]Instant Payment
-Notification
-------------------------------------------------------------------------------------
+[#GeneralPlatformFeatures_IPN]
+=== Instant Payment Notification
 
-[[GeneralPlatformFeatures-Introduction]]
-Introduction
-~~~~~~~~~~~~
 
-The _Wirecard Payment Gateway_ has a built-in _notification_ capability.
+[#GeneralPlatformFeatures_IPN_Introduction]
+==== Introduction
+
+The _Wirecard Payment Processing Gateway_ has a built-in _notification_ capability.
 An _Instant Payment Notification_ (IPN) informs the merchant about the
 final status of a transaction.
 
 There are two types of notifications:
 
-* *HTTP(S)* (Web Server POST)
-* *SMTP* (Email prefixed with ‘mailto’)
+- *HTTP(S)* (Web Server POST)
+- *SMTP* (Email prefixed with ‘mailto’)
+//-
 
 The following formats are currently supported:
 
-* *application/x-www-form-urlencoded *
-* *application/xml *
-* *application/json*
-* **application/json-signed**
+- *application/x-www-form-urlencoded*
+- *application/xml*
+- *application/json*
+- *application/json-signed*
+//-
 
-[[GeneralPlatformFeatures-IPNConfiguration]]
-IPN Configuration
-~~~~~~~~~~~~~~~~~
+[#GeneralPlatformFeatures_IPN_Configuration]
+==== Configuration
 
 When the merchant wants to receive a notification, he can either
 
-* specify a URL as part the merchant account setup; or 
-* include either an email address or a URL as part of each transaction
+- specify a URL as part the merchant account setup; or 
+- include either an email address or a URL as part of each transaction
 request
 
-* The definition of URL and format type in the transaction request
+[NOTE]
+====
+- The definition of URL and format type in the transaction request
 overwrites the configured definition in the merchant account setup.
-* Only those notifications sent via URL contain a signature.
+- Only those notifications sent via URL contain a signature.
+====
 
 For request based IPN configuration, the request should contain the IPN
 notifications element.
 
-* Please note that configuring an IPN is not a Mandatory setup but
+[WARNING]
+====
+- Please note that configuring an IPN is not a Mandatory setup but
 recommended.
-* In case a notification address has changed, it is the responsibility
+- In case a notification address has changed, it is the responsibility
 of the merchant 
-** to keep the address up to date
-** to request a Firewall Change Request on the merchant's system so that
+* to keep the address up to date
+* to request a Firewall Change Request on the merchant's system so that
 the firewall will accept the new address. The new notification addresses
 can be called up at our mailto:support@wirecard.com[Merchant Support].
-* The IPN is using XML Digital Signatures, as defined here:
+- The IPN is using XML Digital Signatures, as defined here:
 https://www.w3.org/TR/xmldsig-core/
-** The possibility of using this is already integrated in Java as
+* The possibility of using this is already integrated in Java as
 described here:
 https://docs.oracle.com/javase/8/docs/technotes/guides/security/xmldsig/XMLDigitalSignature.html
-** Oracle also provides a sample code in Java to validate a signed XML
+* Oracle also provides a sample code in Java to validate a signed XML
 here:
 https://docs.oracle.com/javase/8/docs/technotes/guides/security/xmldsig/Validate.java
+====
 
+[NOTE]
+====
 In case there is no format specified in the request then the format
 specified in the merchant configuration is used. If there is no IPN
-format in the configuration then NVP response is used for
-link:Redirect-URLs-and-IPNs_786603.html[HPP/EPP requests] or
+format in the configuration then NVP response is used for <<PP_RedirectUrlsIPNs, HPP/EPP requests>> or
 application/xml for others by default.
 
 Be aware that just *one* notification format can be set for all
 notifications sent to the specified URLs.
+====
 
-[[GeneralPlatformFeatures-RequestaNotificationinJSONFormat]]
-Request a Notification in JSON Format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#GeneralPlatformFeatures_IPN_JSON]
+===== Request a Notification in JSON Format
 
 The following example shows how the _Wirecard Payment Gateway_ can be
 configured to send notifications as JSON format:
 
-Signed JSON Notifications
-
-To request an `application/json-signed `notification, simply switch the
+.Signed JSON Notifications
+NOTE: To request an ``application/json-signed`` notification, simply switch the
 format value. Compared to the default JSON notification, signed
 notifications are base64 encoded and include a security signature: this
 means you can verify that the notification comes from Wirecard, but need
 to decode it before you can see its content.
 
-....
-<notifications format="application/json">
-....
+``<notifications format="application/json>``
 
-*XML Request (determines notification in JSON format)*  Expand source
 
-[source,syntaxhighlighter-pre]
+.XML Request (determines notification in JSON format)
+
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1924,9 +1929,9 @@ to decode it before you can see its content.
 
 The notification will look like this:
 
-*JSON Notification*  Expand source
+.JSON Notification
 
-[source,syntaxhighlighter-pre]
+[source, json]
 ----
 {
     "payment": {
@@ -1979,13 +1984,7 @@ The notification will look like this:
 }
 ----
 
-[[GeneralPlatformFeatures-SignedJSONNotificationExample]]
-Signed JSON Notification Example
-++++++++++++++++++++++++++++++++
-
-*application/json-signed Notification Example*  Expand source
-
-[source,syntaxhighlighter-pre]
+.application/JSON-signed Notification Example
 ----
 response-signature-base64: RfEJZDauGzMIvyzbR6n6qjjqhwDk9yUTKECdhWtPAiw=
 response-signature-algorithm: HmacSHA256
@@ -2005,16 +2004,12 @@ gIkVVUiIKICAgICAgfSwKICAgICAgImRlc2NyaXB0aW9uIiA6ICIoT1MxMTIpIHwgMWggMTBtaW4iLAo
 EyMzQiCn0=
 ----
 
-[[GeneralPlatformFeatures-VerifyingtheNotification]]
-Verifying the Notification
-++++++++++++++++++++++++++
+.Verifying the Notification Signature
 
 To verify a signed notification, check the signature data against the
 Secret Key you received during merchant configuration:
 
-*Verifying the Notification Signature (Java)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source, java]
 ----
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -2031,27 +2026,22 @@ public boolean isValidSignature(String responseBase64, String responseBase64Sign
 }
 ----
 
-[[GeneralPlatformFeatures-NotificationwhenrequestedinHTMLFormat]]
-Notification when requested in HTML Format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#GeneralPlatformFeatures_IPN_Html]
+===== Request a Notification in HTML Format
 
-....
-<notifications format="application/html">
-....
+``<notifications format="application/html">``
 
-image:attachments/1671307/3703458.png[image,height=250]
+image:images/08-general-platform-features/HTML-Notification.png[image,height=250]
 
-[[GeneralPlatformFeatures-NotificationwhenrequestedinXMLFormat]]
-Notification when requested in XML Format
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#GeneralPlatformFeatures_IPN_Xml]
+===== Request a Notification in XML Format
 
-....
-<notifications format="application/xml">
-....
+``<notifications format="application/xml">``
 
-*Notification in XML Format*  Expand source
 
-[source,syntaxhighlighter-pre]
+.Notification in XML Format
+
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -2096,32 +2086,12 @@ It is possible to set up conditional notifications based on the state of
 the transaction.  For example, it is possible to instruct a notification
 to only occur on ‘failed’ or ‘successful’ transactions.
 
-[width="100%",cols="20%,20%,20%,20%,20%",options="header",]
-|=======================================================================
-|Notification Type |Notification Tag in Request a|
-possible extensions
+|===
+|Notification Type  | Notification Tag in Request     | Possible Extensions of URL  | Ports         | Possible Extensions of ``transaction-state``
+|HTTP(S)            | ``URL``, ``transaction-state``  | any configured URL          | 80, 443, 5500 | if _URL_ <> empty and _`transaction-state`_ = empty all notifications go to that URL or if _URL_ <> empty and _`transaction-state`_ <> empty depending on the _transaction-state_ (success, failed, in-progress, etc) the notification goes to the corresponding _URL_.
 
-of URL
 
- |Ports a|
-possible extensions
 
-of transaction-state
-
-|HTTP(S) a|
-_`URL, transaction-state`_
-
- |any configured URL |80, 443, 5500 a|
-if _URL_ <> empty and _`transaction-state`_ = empty
-
-all notifications go to that URL
-
-or
-
-if _URL_ <> empty and _`transaction-state`_ <> empty
-
-depending on the _transaction-state_ (success, failed, in-progress, etc)
-the notification goes to the corresponding _URL_.
 
 |SMTP a|
 `URL, transaction-state`
