@@ -2269,12 +2269,13 @@ _Wirecard Payment Processing Gateway_ receives from the provider.
 
 |====
 |WPPG receives... |WPPG sends notification:...
+
 |a successful response
 |_Success_ https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[Return
 Codes and Transaction Status]
 
-|a failure response |_Failure_
-https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[Return
+|a failure response
+|_Failure_ https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[Return
 Codes and Transaction Status]
 
 |a timeout from provider |_Failure_ with error code (e.g. 500.1051)
@@ -2293,78 +2294,64 @@ recipient. Simply copy the tag and add a different URL.
 In the following example, the transaction will notify the merchant’s
 site for a failed transaction and send all results to an email address.
 
-[#GeneralPlatformFeatures-NotificationTransactionTypes]]
-Notification Transaction Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#GeneralPlatformFeatures_IPN_Transaction]
+===== Notification Transaction Types
 
 The table below defines the expected transaction type in the
 notification after a specific request / response.
 
-[cols=",",options="header",]
-|=======================================================================
-|Request/Response Transaction Type |Possible Notification Transaction
-Type
+|====
+|Request/Response Transaction Type |Possible Notification Transaction Type
+
 |authorization |deposit 
-
 |get-url |debit, debit-return
-
 |pending-credit |credit, credit-return, deposit
-
 |pending-debit |debit, debit-return, deposit
-
 |refund-request |refund-debit
-|=======================================================================
+|====
 
-[[GeneralPlatformFeatures-NotificationDelay]]
-Notification Delay +
-~~~~~~~~~~~~~~~~~~~~
+
+[#GeneralPlatformFeatures_IPN_Delay]
+==== Notification Delay
 
 In some cases the _Wirecard Payment Gateway_ (WPG) may send a delayed
 IPN.
 
 This may occur due to one of the following reasons:
 
-* Some payment method providers have longer processing periods than
+- Some payment method providers have longer processing periods than
 others
-* Communication delays caused by: +
-** downtime of the provider's system
-** a workflow which has a fixed waiting time, at the _Wirecard Payment
+- Communication delays caused by:
+* downtime of the provider's system
+* a workflow which has a fixed waiting time, at the _Wirecard Payment
 Gateway_ as well as the provider.
-** the merchant has sent an incorrect ID. In that case _Wirecard Payment
+* the merchant has sent an incorrect ID. In that case _Wirecard Payment
 Gateway_ will send a 404 message, stating that the transaction is not
 available.
 
-[[GeneralPlatformFeatures-IPValidation]]
-IP Validation
--------------
+[#GeneralPlatformFeatures_IpValidation]
+=== IP Validation
 
 A merchant can send his consumer's IP address via an API request to the
-_Wirecard Payment Gateway_.
+_Wirecard Payment Processing Gateway_.
 
-_Wirecard Payment Gateway_ then validates this IP address. This IP
+_Wirecard Payment Processing Gateway_ then validates this IP address. This IP
 validation process can be enabled and disabled in the merchant's setup.
 
-[cols=",",]
-|=======================================================================
+
+|====
 |Loopback Address, "127.0.0.1" |Loopback Address: "::1"
-
-|Private IP: "192.168.0.1" |Regular IP:
-"32b1:953e:207a:1d36:24bf:9244:20a0:7cea"
-
+|Private IP: "192.168.0.1" |Regular IP:"32b1:953e:207a:1d36:24bf:9244:20a0:7cea"
 |Public IP: "8.8.8.8" |Compressed IP: "2001:4860:4860::8888"
-
 |  |Expanded IP: "2001:4860:4860:0000:0000:0000:0000:8888"
-
 |  |IPv4 Compatible (or compat): "::8.8.8.8"
-
 |  |IPv4 Mapped IP: "::ffff:8.8.8.8"
-|=======================================================================
+|====
 
-[[GeneralPlatformFeatures-RedirectURL]]
-Redirect URL
-------------
+[#GeneralPlatformFeatures_RedirectURL]
+=== Redirect-URL
 
-A payment process needs a redirect URL. If no redirect URL is defined at
+A payment process needs a redirect-URL. If no redirect-URL is defined at
 all, the transaction will not be processed.
 
 The merchant can send a redirect URL in case of a successful, a
@@ -2372,32 +2359,29 @@ cancelled or a failed transaction. Depending on the result of the
 transaction the consumer will be redirected to the corresponding page of
 the merchant's environment.
 
-The redirect URLs can be configured either on MAID level or they can be
+The redirect-URLs can be configured either on MAID level or they can be
 sent individually with each request.
 
-When the merchant configures the Redirect URLs in the MAID, they don't
-have to be present in the request. The redirect URLs are automatically
+When the merchant configures the redirect-URLs in the MAID, they don't
+have to be present in the request. The redirect-URLs are automatically
 loaded from the MAID configuration. 
 
-When the merchant determines the Redirect URLs in the request, the
-request's redirect URLs overwrite the MAID configuration for that
+When the merchant determines the redirect-URLs in the request, the
+request's redirect-URLs overwrite the MAID configuration for that
 particular transaction.
 
-The merchant can determine up to
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RedirectURLsDeterminedinRequest[three
-different __redirect URL__s in one request]. In that case the merchant
-can determine one success URL, one for failure and one cancellation
-URL. +
+The merchant can determine up to three different redirect-URLs in one request.
+In that case the merchant can determine one success-URL, one for failure and
+one cancellation-URL.
 
-[[GeneralPlatformFeatures-RedirectURLsconfiguredinMAID]]
-Redirect URLs configured in MAID
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#GeneralPlatformFeatures_RedirectURL_MAID]
+==== Redirect URLs Configured in MAID
 
-In this request the redirect URLs are configured on MAID level.
+In this request the redirect-URLs are configured on MAID level.
 
-*General Request Sample for Redirect URL*  Expand source
+.General Request Sample for Redirect-URL
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
 
@@ -2420,16 +2404,15 @@ In this request the redirect URLs are configured on MAID level.
 * = The payment method can be any payment method that provides the redirect feature.
 ----
 
-[[GeneralPlatformFeatures-RedirectURLsDeterminedinRequest]]
-Redirect URLs Determined in Request
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#GeneralPlatformFeatures_RedirectURL_Request]]
+==== Redirect URLs Determined in Request
 
 In this request the redirect URL overwrites the redirect configuration
 in the MAID.
 
-*General Request Sample for Redirect URL*  Expand source
+.General Request Sample for Redirect URL
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
 
@@ -2458,7 +2441,7 @@ in the MAID.
 * = The payment method can be any payment method that provides the redirect feature.
 ----
 
-[[GeneralPlatformFeatures-InstrumentCountryBounceback]]
+[GeneralPlatformFeatures_InstrumentCountryBounceback]
 Instrument Country Bounceback
 -----------------------------
 
