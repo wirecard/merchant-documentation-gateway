@@ -4,9 +4,9 @@
 [#CreditCard_TransactionTypes_Introduction]
 ===== Introduction
 
-
-This section describes _Credit Card_ transaction types that can be used with the _Wirecard Payment Processing Gateway_.
-For each transaction type we provide a _Credit Card_ specific introduction. We explain the transaction
+This section describes _Credit Card_ transaction types that can be used
+with the _Wirecard Payment Processing Gateway_. For each transaction type we
+provide a _Credit Card_ specific introduction. We explain the transaction
 type's availability and restrictions. We look at the conditions or
 preconditions required to process this transaction type.
 
@@ -20,18 +20,60 @@ response that can be expected. Where applicable we set up a flow of
 subsequent transaction types (e.g. _authorization_ > _capture-authorization_). Refer to the
 <<CreditCard_Fields, complete field list>> for credit card transactions.
 
-In ``<statuses>`` of the response you will find a number that represents a
-<<ReturnCodes, status code>>.
+In ``<statuses>`` of the response you will find a number that represents a <<StatusCodes, status code>>.
 
 [#CreditCard_TransactionTypes_List]
 ===== List of Transaction Types
 
-Please read about details for the transaction types <<CreditCard_TransactionTypes_Authorization, authorization>>,
-<<CreditCard_TransactionTypes_CaptureAuthorization, capture-authorization>> and <<CreditCard_TransactionTypes_Purchase, purchase>>.
+Please read about details for the transaction types _<<CreditCard_TransactionTypes_Authorization, authorization>>, <<CreditCard_TransactionTypes_CaptureAuthorization, capture-authorization>>_ and _<<CreditCard_TransactionTypes_Purchase, purchase>>._
+
+
+[cols="1,2a"]
+|===
+| _<<CreditCard_TransactionTypes_Authorization, authorization>>_ | Reserves funds from the cardholder's account. Typically, the limit ranges from three to thirty days to conduct a _capture-authorization,_ depending on the acquirer and card brand.
+| _authorization-only_ | Verifies the card's validity without leaving an authorized amount.
+| _authorization-supplementary_ | Reserves additional funds from the cardholder's account following an _authorization_. Typically, the limit ranges from three to thirty days to conduct a _capture-authorization_, depending on the acquirer and card brand.
+
+[NOTE]
+This transaction type *is not included in default configuration.* +
+For further information please contact: support@wirecard.com
+
+| _<<CreditCard_TransactionTypes_Authorization, prauthorization>>_ | Reserves funds from the cardholder's account. Typically, the limit ranges from three to thirty days to conduct a _capture-preauthorization_, depending on the acquirer and card brand.
+
+[NOTE]
+Mastercard allows up to 30 days to conduct a _capture-preauthorization_
+depending on the configuration.
+
+| _<<CreditCard_TransactionTypes_CaptureAuthorization, capture-authorization>>_ | Takes funds from the cardholder's account. Must follow an _authorization_ or _authorization-supplementary_ chain.
+| _check-enrollment_ | _check-enrollment_ consists of a single request/response communication that verifies, if the card number is eligible and participates in the 3-D program.
+| _check-payer-response_ | _check-payer-response_ forwards the PARes, which is a digitally signed XML document to Wirecard for validation.
+| _check-risk_ | Checks the risk profile of the transaction information, without submitting a payment.
+
+[NOTE]
+This transaction type *is not included in default configuration*. +
+For further information please contact: support@wirecard.com
+
+| _credit_ | Moves funds from the merchant account to the cardholder's account.
+| _original-credit_ |Moves funds to the cardholder's account, *without* referring to an eligible _purchase_ or _capture_ (i.e.: non-referenced). This transaction type can be used for gambling and non-gambling processes.
+| _<<CreditCard_TransactionTypes_Purchase, purchase>>_ |Takes funds from the cardholder's account. A one-step process to conduct two Transaction Types: _authorization_ and _capture_.
+| _referenced-authorization_ | Reserves funds from the cardholder's account. Identical to a _authorization_ except for the fact that it refers to a previous _authorization_ in the context of recurring transactions. See details for <<GeneralPlatformFeatures_Transactions_Referencing, referencing a transaction>>.
+| _<<CreditCard_TransactionTypes_Purchase, referenced-purchase>>>_ | Takes funds from the cardholder's account. Identical to a _purchase_ except for the fact that it refers to a previous _purchase_ in the context of recurring transactions.
+| _<<CreditCard_TransactionTypes_CaptureAuthorization, refund-capture>>_ | Moves funds to the cardholder's account, referring to an eligible _capture._
+| _<<CreditCard_TransactionTypes_Purchase, refund-purchase>>_ | Moves funds to the cardholder's account, referring to an eligible _purchase._
+| _<<CreditCard_TransactionTypes_Authorization, void-authorization>>_ | Frees reserved funds from the cardholder's account due to an _authorization_ or a chain of _authorization-supplementary._
+| _void-authorization-supplementary_ |Voids an upwardly adjustment of an existing _authorization._
+| _<<CreditCard_TransactionTypes_CaptureAuthorization, void-capture>>_ | Frees reserved funds from the cardholder's account due to a _capture._
+|_void-credit_ | Frees reserved funds from the cardholder's account due to a _credit._
+| _void-original-credit_ | Frees reserved funds from the cardholder's account due to an _original-credit._
+| _<<CreditCard_TransactionTypes_Authorization, void-preauthorization>>_ | Frees reserved funds from the cardholder's account due to a _preauthorization._
+| _<<CreditCard_TransactionTypes_Purchase, void-purchase>>_ | Frees reserved funds from the cardholder's account due to a _purchase._
+| _void-refund_ | Frees reserved funds from the cardholder's account due to a _refund._
+|_void-refund-capture_ | Frees reserved funds from the cardholder's account due to a _refund-capture._
+| _<<CreditCard_TransactionTypes_Purchase, void-refund-purchase>>_ | Frees reserved funds from the cardholder's account due to a _refund-purchase._
+|===
 
 [#CreditCard_TransactionTypes_VoidRefund]
 ===== void vs. refund
-
 
 It is often the case that the merchants must withdraw an online shopping
 process. When the consumer wants to buy a product or service online,
@@ -43,110 +85,80 @@ A void is only possible as long as no money transfer has been initiated.
 As soon as WPPG has initiated the payment flow to the acquirer the
 merchants must return the funds to the consumer via a refund process.
 
-[#CreditCard_TransactionTypes]
+[#CreditCard_TransactionTypes__VoidRefund_Void]
 ====== void
 
+image::images/11-02-01-credit-card_transaction-types/CC_void_refund_void.png[void]
 
-image:attachments/5406737/5406739.png[image,height=250]
-
-[[TransactionTypes-Workflow]]
-Workflow
-++++++++
+[#CreditCard_TransactionTypes_VoidRefund_Void_Workflow]
+.Workflow
 
 Voiding a transaction requires a reference to the transaction that shall
 be voided.
 
-The void transaction contains a <`parent-transaction-id`> that refers to
-the <`transaction-id`> of the transaction that shall be voided.
+The void transaction contains a ``<parent-transaction-id>`` that refers to
+the ``<transaction-id>`` of the transaction that shall be voided.
 
 Here is an example how to void a _capture_.
 
-image:attachments/5406737/5406740.png[image,height=250]
+image::images/11-02-01-credit-card_transaction-types/CC_void-capture_flow.png[void_workflow]
 
-[[TransactionTypes-refund]]
-refund
-^^^^^^
+[#CreditCard_TransactionTypes__VoidRefund_Refund]
+====== refund
 
-image:attachments/5406737/5406741.png[image,width=650]
+image::images/11-02-01-credit-card_transaction-types/CC_void_refund_refund.png[refund]
 
-[[TransactionTypes-Workflow.1]]
-Workflow
-++++++++
+[#CreditCard_TransactionTypes_VoidRefund_Refund_Workflow]
+.Workflow
 
 Refunding a transaction requires a reference to the transaction that
 shall be refunded.
 
-The refund transaction contains a <`parent-transaction-id`> that refers
-to the <`transaction-id`> of the transaction that shall be refunded.
+The refund transaction contains a ``<parent-transaction-id>`` that refers
+to the ``<transaction-id>`` of the transaction that shall be refunded.
 
 Here is an example how to refund a _capture_.
 
-image:attachments/5406737/5406742.png[image,height=250]
+image::images/11-02-01-credit-card_transaction-types/CC_refund-capture_flow.png[refund_workflow]
 
-[[TransactionTypes-RunningtheTestSamples]]
-Running the Test Samples
-~~~~~~~~~~~~~~~~~~~~~~~~
 
-_
+[#CreditCard_TransactionTypes_OctEligibility]
+===== OCT Eligibility Check
+
+
+_Wirecard Payment Processing Gateway_ uses the transaction type
+_authorization-only_, to find out whether the card in use is eligible
+for original credit transactions (OCT). If you want to use this
+eligibility check contact mailto:support@wirecard.com[merchant support]
+for details.
+
+[#CreditCard_TransactionTypes_RunningTestSamples]
+===== Running the Test Samples
+
 https://www.programmableweb.com/news/review-postman-client-makes-restful-api-exploration-breeze/brief/2014/01/27[Postman]_
 is a handy tool to send a request to our endpoints. We optimized our
 samples assuming you are using _Postman_.
 
-[[TransactionTypes-1)TheHeader]]
-1) The Header
-^^^^^^^^^^^^^
+[#CreditCard_TransactionTypes_RunningTestSamples_Header]
+.1) The Header
 
 In __Postman__ you can authorize to the endpoint using the _Basic_ value
-given in the
-https://document-center.wirecard.com/display/PTD/purchase#purchase-purchaseUsingCardData[_Request
-Header_ box] at each request sample. Open the "Headers" section in
-_Postman_ and enter the values for the keys "Authorization" and
-"Content-Type" as you can find them in the corresponding _Request
-Header_ box.
+given in the <<CreditCard_TransactionTypes_Purchase_Sending_UsingCardData, Request Header box>> at each request sample.
+Open the "Headers" section in _Postman_ and enter the values for the keys "Authorization" and
+"Content-Type" as you can find them in the corresponding _Request Header_ box.
 
-image:attachments/5406737/5406743.png[image,width=900] +
+image:images/11-02-01-credit-card_transaction-types/Postman_Headers.png[Postman_Header, title="Postman Headers section"]
 
-~^_Postman_ Headers section^~ +
+[#CreditCard_TransactionTypes_RunningTestSamples_Body]
+.2) The Body
 
-[[TransactionTypes-2)TheBody]]
-2) The Body
-^^^^^^^^^^^
-
-image:attachments/5406737/5406744.png[image,width=900] +
-
-~^_Postman_ Body section^~
+image:images/11-02-01-credit-card_transaction-types/Postman_Body.png[Postman_Body, title="Postman Body section"]
 
 Open _Postman_'s body section, select the option "raw" and copy the
 _Request_ sample into the body field. Click _Send_ and our API will
-return a response. +
+return a response.
 
 If you don't use _Postman_, use the test credentials as provided in the
 corresponding transaction type sample and make sure you replace
-\{\{`$guid`}} with a unique value in <`request-id`>. This value has to
+``{{$guid}}`` with a unique value in ``<request-id>``. This value has to
 be replaced each time before you are sending the request.
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406737/5406739.png[CC_void_refund_void.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406737/5406740.png[CC_void-capture_flow.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406737/5406741.png[CC_void_refund_refund.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406737/5406742.png[CC_refund-capture_flow.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406737/5406743.png[Postman_Headers.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406737/5406744.png[Postman_Body.png] (image/png) +
-
-[[footer]]
-Document generated by Confluence on Feb 06, 2019 10:33
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
