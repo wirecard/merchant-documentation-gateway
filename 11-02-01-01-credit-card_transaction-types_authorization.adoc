@@ -1,0 +1,494 @@
+[#CreditCard_TransactionTypes_Authorization]
+===== authorization
+
+[#CreditCard_TransactionTypes_Authorization_Introduction]
+====== Introduction
+
+_authorization_ checks the consumer's account for credibility and
+reserves a fixed amount of funds. Reservation means that _Wirecard Payment Processing Gateway_ informs the card holder’s issuer about the upcoming
+transaction. The reservation lasts from three to thirty days, depending
+on the acquirer and card brand. Within that time the merchants can
+prepare the selected products or services for shipping. Once the
+merchants initiate the shipping, they also initiate a
+<<CreditCard_TransactionTypes_CaptureAuthorization, _capture-authorization_>>
+which will transfer the authorized amount from the issuer to the
+acquirer.
+
+NOTE: *authorization, preauthorization or final-authorization* +
+The functionality of an _authorization_ as described in this section can
+also be configured as _preauthorization_ or _final-authorization_. Which
+one shall be your choice, strongly depends on your business case, the
+acquirer and the credit card brand. Please consult your sales
+representative for details.
+
+[#CreditCard_TransactionTypes_Authorization_Introduction_RealLife]
+.Real-Life Example
+
+Consumers order a dishwasher for 500 EUR online. _authorization_ checks
+the consumers' account immediately and reserves 500 EUR. When the
+merchants start the shipping process,
+a <<CreditCard_TransactionTypes_CaptureAuthorization, _capture-authorization_>>
+will transfer the 500 EUR from the consumers' to the merchants' account.
+
+[#CreditCard_TransactionTypes_Authorization_AvailabilityRestrictions]
+====== Availability and Restrictions
+
+_authorization_ is generally available.
+
+Every _authorization_ request has a time limit depending on the card
+schemes. The limit refers to the period of time from sending an
+_authorization_ to sending a _capture-authorization_. Typically, the
+limit ranges from three to thirty days, depending on the acquirer and
+card brand. It is recommended to check the card schemes for details. An
+__authorization__ may be denied. Some reasons (among others) for the
+denial are:
+
+- The consumer‘s credit limit is reached.
+- The card was blocked.
+- A fraud case is suspected by the issuer.
+- The card itself expired.
+//-
+
+
+[#CreditCard_TransactionTypes_Authorization_AvailabilityRestrictions_Sequence]
+.Sequence
+
+An _authorization_ reserves funds on the card holder's account. It may
+be followed by a <<CreditCard_TransactionTypes_Authorization_Sending_VoidAuthorization, _void-authorization_>> or a <<CreditCard_TransactionTypes_CaptureAuthorization, _capture-authorization_>>.
+As an _authorization_ merely reserves funds there is only a
+<<CreditCard_TransactionTypes_VoidRefund, void possible but no refund>>.
+
+A _capture-authorization_ may be followed by either a
+<<CreditCard_TransactionTypes_CaptureAuthorization_Sending_VoidCapture, _void-capture_>> or a
+<<CreditCard_TransactionTypes_CaptureAuthorization_Sending_RefundCapture, _refund-capture_>>.
+
+image:attachments/5406809/5406821.png[image,height=250] +
+
+See details for
+https://document-center.wirecard.com/display/PTD/Transaction+Types#TransactionTypes-voidvs.refund[void
+and refund].
+
+[[authorization-AccessTestEnvironment]]
+Access Test Environment
+-----------------------
+
+Access data see
+https://document-center.wirecard.com/display/PTD/Credit+Card#CreditCard-TestCredentials[_credit
+card_ test credentials].
+
+[[authorization-SendingData]]
+Sending Data
+------------
+
+We only list samples for requests and responses. Notifications follow
+the general structure described
+in _https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-CreditCardPayment[General
+Platform Features]_.
+
+Are you
+using __https://document-center.wirecard.com/display/PTD/Transaction+Types#TransactionTypes-RunningtheTestSamples[Postman]__ to
+send the requests?
+
+* If yes, you can use the samples as provided below (_Request Header_
+and _Request Sample_). +
+* If no, please replace `{{$guid}}` with a globally unique ID in
+<`request-id`>.  +
+
+[[authorization-StatusCodes]]
+Status Codes
+~~~~~~~~~~~~
+
+In <`statuses`> of the response you will find a number that represents a
+https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[status
+code].
+
+[[authorization-authorizationUsingCardData]]
+_authorization_ Using Card Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Request*
+
+If the credit card is used for the first time, the _authorization_
+request will contain the clear card data. The first response immediately
+replaces the explicit card data with a token. The token will be used
+from then on.
+
+Read how a
+https://document-center.wirecard.com/display/PTD/Payment+Features#PaymentFeatures-Tokenization[token
+replaces the clear credit card data].
+
+Handling clear card data requires a strong degree of PCI DSS compliance.
+If your PCI DSS compliance is not sufficient, you can use our
+https://document-center.wirecard.com/display/PTD/Wirecard+Payment+Page[Wirecard
+Payment Page].
+
+_Fields_
+
+We provide detailed descriptions of all
+https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
+card_ fields]. +
+
+_Sample_
+
+*Request Header*
+
+[source,syntaxhighlighter-pre]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+*XML authorization Request (Successful)*
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <account-holder>
+        <device>
+            <fingerprint>D205933_it27sqacgghmsvge83790ocrj7_16432733</fingerprint>
+        </device>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card>
+        <account-number>4271149787014678</account-number>
+        <expiration-month>12</expiration-month>
+        <expiration-year>2020</expiration-year>
+        <card-security-code>123</card-security-code>
+        <card-type>visa</card-type>
+    </card>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+</payment>
+----
+
+*Response* +
+
+_Fields_
+
+We provide detailed descriptions of all
+https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
+card_ fields].
+
+<`card-token`> data replaces the <`card`> data in the initial response
+when using the credit card for the first time.
+
+_Sample_
+
+*XML authorization Response (Successful)*
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/3d01299c-c28b-471b-976f-18249cc9d544">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>3d01299c-c28b-471b-976f-18249cc9d544</transaction-id>
+    <request-id>0a58d654-d0b0-40ca-bb19-f1eb4933d7cd</request-id>
+    <transaction-type>authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-06T15:18:55.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <csc-code>P</csc-code>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4127352795354678</token-id>
+        <masked-account-number>427114******4678</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <descriptor></descriptor>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <authorization-code>570549</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
+
+[[authorization-authorizationUsingaToken]]
+_authorization_ Using a Token
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Request** +
+
+If the credit card is already known to the merchant, the _authorization_
+request will not contain the clear card data. It will contain the token
+data instead. +
+
+Read how a
+https://document-center.wirecard.com/display/PTD/Payment+Features#PaymentFeatures-Tokenization[token
+replaces the clear credit card data].
+
+_Fields_
+
+We provide detailed descriptions of all
+https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
+card_ fields].
+
+_Sample_
+
+*Request Header*
+
+[source,syntaxhighlighter-pre]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+ +
+
+*XML authorization Request (Successful)*
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <account-holder>
+        <device>
+            <fingerprint>D205933_it27sqacgghmsvge83790ocrj7_16432733</fingerprint>
+        </device>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+</payment>
+----
+
+*Response*
+
+_Fields_
+
+We provide detailed descriptions of all
+https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
+card_ fields].
+
+_Sample_
+
+*XML authorization Response (Successful)*
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/0036ec58-3011-4b9f-acf3-2f6f8b3f9753">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>0036ec58-3011-4b9f-acf3-2f6f8b3f9753</transaction-id>
+    <request-id>3aedafa7-21c7-4620-b1b1-620e81107b6d</request-id>
+    <transaction-type>authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-10T11:07:05.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <descriptor></descriptor>
+    <custom-fields>
+        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <authorization-code>967507</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
+
+A successful _authorization_ response can be followed by a
+_void-authorization_ (details see
+https://document-center.wirecard.com/display/PTD/Transaction+Types#TransactionTypes-void[void])._ +
+_
+
+[[authorization-void-authorization]]
+_void-authorization_
+~~~~~~~~~~~~~~~~~~~~
+
+A _void-authorization_ request must reference a
+https://document-center.wirecard.com/display/PTD/authorization#authorization-authorizationUsingaToken[successful
+_authorization_ response]. __ __   __ +
+__
+
+*Request*
+
+_Fields_
+
+We provide detailed descriptions of all
+https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
+card_ fields].
+
+_Sample_
+
+*Request Header*
+
+[source,syntaxhighlighter-pre]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+_ +
+_
+
+*XML void-authorization Request (Successful)*
+
+[source,syntaxhighlighter-pre]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>void-authorization</transaction-type>
+    <parent-transaction-id>0036ec58-3011-4b9f-acf3-2f6f8b3f9753</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+</payment>
+----
+
+*Response*
+
+_Fields_
+
+We provide detailed descriptions of
+all __ __https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
+card_ fields].
+
+_Sample +
+_
+
+*XML void-authorization Response (Successful)*
+
+[source,syntaxhighlighter-pre]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/242f9dc0-04ec-450c-8246-489d32e3590e">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>242f9dc0-04ec-450c-8246-489d32e3590e</transaction-id>
+    <request-id>a99a9b2b-ad21-4233-bab0-d6a2c0bf3517</request-id>
+    <transaction-type>void-authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-17T14:59:43.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <parent-transaction-id>878d86d2-f85e-43da-8305-4dcaa347b36f</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <custom-fields>
+        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <parent-transaction-amount currency="USD">2.500000</parent-transaction-amount>
+    <authorization-code>106806</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
+
+Attachments:
+~~~~~~~~~~~~
+
+image:images/icons/bullet_blue.gif[image,width=8,height=8]
+link:attachments/5406809/5406821.png[CC_authorization_capture_sequence.png]
+(image/png) +
+
+[[footer]]
+Document generated by Confluence on Feb 12, 2019 16:42
+
+[[footer-logo]]
+http://www.atlassian.com/[Atlassian]
