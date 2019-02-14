@@ -1,7 +1,7 @@
 [#SEPA]
 === SEPA
 
-image::images/11-30-Sepa/SepaLogoEN.jpg[SEPA Logo]
+image::images/11-30-Sepa/SepaLogoEN.jpg[SEPA Logo, 200, align="right"]
 
 The Single Euro Payments Area (SEPA) is an initiative of the European
 banking industry that makes electronic payments across the euro area as
@@ -12,7 +12,7 @@ Commission and the European Central Bank. It is based on ISO 20022
 standards.
 
 SEPA can be used for every kind of business inside the SEPA area.
-Transactions are processed only in Euro.Member countries include the 28
+Transactions are processed only in Euro. Member countries include the 28
 EU Member States as well as Iceland, Liechtenstein, Monaco, Norway, and
 Switzerland.
 
@@ -25,8 +25,8 @@ https://www.europeanpaymentscouncil.eu/what-we-do/sepa-payment-scheme-management
 
 Wirecard offers two SEPA payment methods.
 
-* <<SEPA_CreditTransfer, SEPA Credit Transfer>>
-* <<SEPA_DirectDebit, SEPA Direct Debit>>
+* <<SEPACreditTransfer, SEPA Credit Transfer>>
+* <<SEPADirectDebit, SEPA Direct Debit>>
 
 SEPA _Direct Debit_ is very popular in Germany, Austria and the
 Netherlands.
@@ -43,13 +43,13 @@ method pages.
 [#SEPA_TransactionType_Void]
 ===== SEPA _void_
 
-_Wirecard Payment Gateway_ allows merchants to void SEPA _Direct Debit_
+_Wirecard Payment Processing Gateway_ allows merchants to void SEPA _Direct Debit_
 and SEPA _Credit Transfer_ transactions *before* they are forwarded to
 the bank for settlement.
 
 This means: It is only possible to void a transaction between the
-time the transaction request has been received by the _Wirecard Payment
-Gateway_ for processing and the time the transaction will
+time the transaction request has been received by the _Wirecard Payment Processing Gateway_
+for processing and the time the transaction will
 be forwarded for processing to the bank. Once the payment was processed
 by the bank and settled, it is no longer possible to void a transaction.
 
@@ -62,6 +62,7 @@ Transfer_ transaction, a merchant must
 * include the parent-transaction-ID.
 ====
 
+[#SEPA_TransactionType_Void_Restrictions]
 ====== Restrictions
 
 To ensure proper processing, please take into consideration the
@@ -85,13 +86,10 @@ that should be voided.
 ====== Fields
 
 The fields used for SEPA _Void_ requests, responses and notifications
-are the same as the REST API Fields. Please refer to
-https://document-center.wirecard.com/display/PTD/Fields[API field list]
+are the same as the REST API fields. Please refer to <<RestApi_Fields, REST API Fields>>
 or the request example for the fields required in a
-__https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-void-pending-debit[void-pending-debit]__
-or
-_https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer#SEPACreditTransfer-void-pending-credit[void-pending-credit]_
-transaction.
+<<SEPADirectDebit_Samples_VoidPendingDebit, _void-pending-debit_>> or
+<<SEPACreditTransfer_Samples_VoidPendingCredit, _void-pending-credit_>> transaction.
 
 IMPORTANT: If the amount is sent within the request for the _void_ transaction it
 will be checked if it is the same amount as in the previous
@@ -112,8 +110,8 @@ field is disregarded or not sent.
 is dependent of the currency. Min amount €0.01. Max amount
 €999,999,999.99.
 |requested-currency |O      | M         | M | This is the currency of the requested-amount. Only EUR is accepted.
-|payment-methods.payment-method-Name | M | M | M | This is the name of the payment method ‚sepadirectdebit‘ or
-'sepacredit'.
+|payment-methods.payment-method-Name | M | M | M | This is the name of the payment method *sepadirectdebit* or
+*sepacredit*.
 |parent-transaction-id | M | M | M | Transaction ID of the transaction that needs to be voided.
 |transaction-type | M | M  | M | This is the type for a transaction. For a SEPA _Void_ request, only
 _void-pending-debit_, _void-debit_, _void-pending-credit_ or
@@ -130,12 +128,12 @@ several reasons for this such as a re-payment or a subsequent /
 supplementary payment for an already existing SEPA _Direct Debit_
 transaction. 
 
-These supplementary payments enter the _Wirecard Payment Gateway_ as
-transactions with transaction type “Deposit” and with the payment method
-“wire transfer”.
+These supplementary payments enter the _Wirecard Payment Processing Gateway_ as
+transactions with transaction type _deposit_ and with the payment method
+*wiretransfer*.
 
 If the consumer provides the PTRID (Provider Transaction Reference ID)
-in the descriptor of his transfer, the _Wirecard Payment Gateway_ will
+in the descriptor of his transfer, the _Wirecard Payment Processing Gateway_ will
 attempt to match the deposit with the original SEPA _Direct Debit_ or
 SEPA __Credit Transfer __transaction. If the PTRID is not provided or it
 is simply not possible to match the transaction, the transaction will
@@ -144,16 +142,16 @@ remain unmatched.
 ====== Fields
 
 The following elements are submitted in the IPN
-<<InstantPaymentNotification,Instant Payment Notification>> either mandatory (M) or optional (O):
+(<<GeneralPlatformFeatures_IPN, Instant Payment Notification>>) either mandatory (M) or optional (O):
 
 .Field Table
 |===
 |Field           	| Notification | Description
-|request-id | M | This is the identification number of the request on the merchant’s side.
+|request-id | M | This is the identification number of the request on the merchant's side.
 *It must be unique for each request.*
 |transaction-type | M | This is the type for a transaction. For SEPA Deposit, it is always
 _deposit_.
-|payment-methods.payment-method-Name | M | This is the name of the payment method ‚*wiretransfer*‘
+|payment-methods.payment-method-Name | M | This is the name of the payment method *wiretransfer*.
 
 |===
 
@@ -217,47 +215,43 @@ A _debit-return_ reverses a _debit_ transaction. It is initiated by the
 consumer bank 
 
 * if the consumer disputes the transaction
-* if there is a problem with the consumer bank account (eg: bank account
+* if there is a problem with the consumer bank account (e.g. bank account
 closed)
 
 A _credit-return_ reverses a _credit_ transaction. It is initiated
 either by
 
-* the merchant's bank (eg: insufficient funds)
-* the consumer's bank (eg: bank account closed)
+* the merchant's bank (e.g. insufficient funds)
+* the consumer's bank (e.g. bank account closed)
 
 All __debit-return__s and __credit-return__s are included in
-reconciliation files provided by Wirecard Bank and sent to the Wirecard
-Payment Gateway (WPG). The transaction types _debit-return_ and
-_credit-return_ are then initiated by the WPG. It is not possible for a
+reconciliation files provided by Wirecard Bank and sent to the _Wirecard Payment Processing Gateway._ The transaction types _debit-return_ and
+_credit-return_ are then initiated by the _Wirecard Payment Processing Gateway_. It is not possible for a
 merchant to request these transaction types.
 
-If possible, a _debit-return_ or _credit-return_ is matched by the _WPG_
-to its original debit/credit, based on the provider transaction
+If possible, a _debit-return_ or _credit-return_ is matched by the _Wirecard Payment Processing Gateway (WPPG)_ to its original debit/credit, based on the provider transaction
 reference ID (PTRID) and the merchant account.
 
-Possible return codes are documented within
-https://document-center.wirecard.com/display/PTD/SEPA#SEPA-ReturnCodes[Return
-Codes].
+Possible return codes are documented within <<SEPA_ReturnCodes, Return Codes>>.
 
 [#SEPA_Workflow]
 ====== Workflow
 
-image:images/11-30-Sepa/3704722.png[image,height=250]
+image:images/11-30-Sepa/3704722.png[SEPA Workflow]
 
-. _Consumer's bank sends a debit-return_ _or _credit_-return_ to
+. _Consumer's bank sends a debit-return_ or _credit-return_ to
 Wirecard Bank.
-. Wirecard Bank forwards the transaction to WPG.
-. WPG receives the transaction.
-. WPG uses the PTRID to find an initial parent _debit_ or parent
+. Wirecard Bank forwards the transaction to the WPPG.
+. WPPG receives the transaction.
+. WPPG uses the PTRID to find an initial parent _debit_ or parent
 _credit_ transaction.
 //-
 
-.. If successful, WPG maps the _debit-return_ to _a debit_ or
+.. If successful, WPPG maps the _debit-return_ to _a debit_ or
 _credit-return_ to a _credit._
-.. if not successful, WPG creates _a debit-return_ or _credit-return_
+.. if not successful, WPPG creates _a debit-return_ or _credit-return_
 without reference.
-. WPG sends a notification about _the debit-return_ or _credit-return_
+. WPPG sends a notification about the _debit-return_ or _credit-return_
 to the merchant.
 //-
 
@@ -341,14 +335,14 @@ more information about the reconciliation file see chapter
 [#SEPA_Reporting_BankDataValidation]
 ===== Bank Data Validation
 
-The _Wirecard Payment Gateway_ validates the consumer’s bank data, to
+The _Wirecard Payment Processing Gateway_ validates the consumer's bank data, to
 ensure transactions with faulty bank data are not forwarded to the bank
 for processing.
 
 [#SEPA_Reporting_IBANValidation]
 ===== IBAN Validation
 
-_Wirecard Payment Gateway_ validates the consumer’s IBAN in the
+_Wirecard Payment Processing Gateway_ validates the consumer's IBAN in the
 following manner:
 
 * The validity of the country code within the IBAN
@@ -363,7 +357,7 @@ following manner:
 [#SEPA_Reporting_BICValidation]
 ===== BIC Validation
 
-_Wirecard Payment Gateway_ validates the consumer’s BIC in the following
+_Wirecard Payment Processing Gateway_ validates the consumer's BIC in the following
 manner:
 
 * The length of the BIC may only be either 8 or 11 characters
