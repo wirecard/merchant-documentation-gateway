@@ -49,62 +49,49 @@ denial are:
 - The card itself expired.
 //-
 
-
 [#CreditCard_TransactionTypes_Authorization_AvailabilityRestrictions_Sequence]
 .Sequence
 
 An _authorization_ reserves funds on the card holder's account. It may
-be followed by a <<CreditCard_TransactionTypes_Authorization_Sending_VoidAuthorization, _void-authorization_>> or a <<CreditCard_TransactionTypes_CaptureAuthorization, _capture-authorization_>>.
+be followed by a <<CreditCard_TransactionTypes_Authorization_SendingData_VoidAuthorization, _void-authorization_>> or a <<CreditCard_TransactionTypes_CaptureAuthorization, _capture-authorization_>>.
 As an _authorization_ merely reserves funds there is only a
 <<CreditCard_TransactionTypes_VoidRefund, void possible but no refund>>.
 
 A _capture-authorization_ may be followed by either a
-<<CreditCard_TransactionTypes_CaptureAuthorization_Sending_VoidCapture, _void-capture_>> or a
-<<CreditCard_TransactionTypes_CaptureAuthorization_Sending_RefundCapture, _refund-capture_>>.
+<<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_VoidCapture, _void-capture_>> or a
+<<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_RefundCapture, _refund-capture_>>.
 
-image:attachments/5406809/5406821.png[image,height=250] +
+image::images/11-02-01-01-credit-card_transaction-types_authorization/CC_authorization_capture_sequence.png[authorization sequence]
 
-See details for
-https://document-center.wirecard.com/display/PTD/Transaction+Types#TransactionTypes-voidvs.refund[void
-and refund].
+See details for <<CreditCard_TransactionTypes_VoidRefund, void and refund>>.
 
-[[authorization-AccessTestEnvironment]]
-Access Test Environment
------------------------
+[#CreditCard_TransactionTypes_Authorization_AccessTestEnvironment]
+====== Access Test Environment
+Access data see <<CreditCard_TestCredentials, credit card test credentials>>.
 
-Access data see
-https://document-center.wirecard.com/display/PTD/Credit+Card#CreditCard-TestCredentials[_credit
-card_ test credentials].
-
-[[authorization-SendingData]]
-Sending Data
-------------
+[#CreditCard_TransactionTypes_Authorization_SendingData]
+====== Sending Data
 
 We only list samples for requests and responses. Notifications follow
-the general structure described
-in _https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-CreditCardPayment[General
-Platform Features]_.
+the general structure described in 
+<<GeneralPlatformFeatures_IPN_NotificationExamples, General Platform Features>>.
 
-Are you
-using __https://document-center.wirecard.com/display/PTD/Transaction+Types#TransactionTypes-RunningtheTestSamples[Postman]__ to
-send the requests?
+Are you using 
+<<CreditCard_TransactionTypes_RunningTestSamples, Postman>> to send the requests?
 
-* If yes, you can use the samples as provided below (_Request Header_
-and _Request Sample_). +
-* If no, please replace `{{$guid}}` with a globally unique ID in
-<`request-id`>.  +
+- If yes, you can use the samples as provided below (_Request Header_
+and _Request Sample_).
+- If no, please replace ``{{$guid}}`` with a globally unique ID in ``<request-id>``. 
+//-
 
-[[authorization-StatusCodes]]
-Status Codes
-~~~~~~~~~~~~
+[#CreditCard_TransactionTypes_Authorization_SendingData_StatusCodes]
+.Status Codes
 
-In <`statuses`> of the response you will find a number that represents a
-https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[status
-code].
+In ``<statuses>`` of the response you will find a number that represents a
+<<StatusCode, status code>>.
 
-[[authorization-authorizationUsingCardData]]
-_authorization_ Using Card Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#CreditCard_TransactionTypes_Authorization_SendingData_AuthorizationUsingCardData]
+._authorization_ Using Card Data
 
 *Request*
 
@@ -114,33 +101,28 @@ replaces the explicit card data with a token. The token will be used
 from then on.
 
 Read how a
-https://document-center.wirecard.com/display/PTD/Payment+Features#PaymentFeatures-Tokenization[token
-replaces the clear credit card data].
+<<CreditCard_PaymentFeatures_Tokenization, token replaces the clear credit card data>>.
 
 Handling clear card data requires a strong degree of PCI DSS compliance.
 If your PCI DSS compliance is not sufficient, you can use our
-https://document-center.wirecard.com/display/PTD/Wirecard+Payment+Page[Wirecard
-Payment Page].
+<<WPP, Wirecard Payment Page>>.
 
 _Fields_
 
 We provide detailed descriptions of all
-https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
-card_ fields]. +
+<<CreditCard_Fields, _credit card_ fields>>.
 
 _Sample_
 
-*Request Header*
-
-[source,syntaxhighlighter-pre]
+.Request Header
+[source]
 ----
 Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
 Content-Type: application/xml
 ----
 
-*XML authorization Request (Successful)*
-
-[source,syntaxhighlighter-pre]
+.XML authorization Request (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -180,22 +162,20 @@ Content-Type: application/xml
 </payment>
 ----
 
-*Response* +
+*Response*
 
 _Fields_
 
 We provide detailed descriptions of all
-https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
-card_ fields].
+<<CreditCard_Fields, _credit card_ fields>>.
 
-<`card-token`> data replaces the <`card`> data in the initial response
+NOTE: ``<card-token>`` data replaces the ``<card>`` data in the initial response
 when using the credit card for the first time.
 
 _Sample_
 
-*XML authorization Response (Successful)*
-
-[source,syntaxhighlighter-pre]
+.XML authorization Response (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/3d01299c-c28b-471b-976f-18249cc9d544">
@@ -240,41 +220,34 @@ _Sample_
 </payment>
 ----
 
-[[authorization-authorizationUsingaToken]]
-_authorization_ Using a Token
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#CreditCard_TransactionTypes_Authorization_SendingData_AuthorizationUsingToken]
+._authorization_ Using a Token
 
-**Request** +
+**Request**
 
 If the credit card is already known to the merchant, the _authorization_
 request will not contain the clear card data. It will contain the token
-data instead. +
+data instead.
 
 Read how a
-https://document-center.wirecard.com/display/PTD/Payment+Features#PaymentFeatures-Tokenization[token
-replaces the clear credit card data].
+<<CreditCard_PaymentFeatures_Tokenization, token replaces the clear credit card data>>.
 
 _Fields_
 
 We provide detailed descriptions of all
-https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
-card_ fields].
+<<CreditCard_Fields, _credit card_ fields>>.
 
 _Sample_
 
-*Request Header*
-
-[source,syntaxhighlighter-pre]
+.Request Header
+[source]
 ----
 Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
 Content-Type: application/xml
 ----
 
- +
-
-*XML authorization Request (Successful)*
-
-[source,syntaxhighlighter-pre]
+.XML authorization Request (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -316,14 +289,12 @@ Content-Type: application/xml
 _Fields_
 
 We provide detailed descriptions of all
-https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
-card_ fields].
+<<CreditCard_Fields, _credit card_ fields>>.
 
 _Sample_
 
-*XML authorization Response (Successful)*
-
-[source,syntaxhighlighter-pre]
+.XML authorization Response (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/0036ec58-3011-4b9f-acf3-2f6f8b3f9753">
@@ -372,42 +343,32 @@ _Sample_
 
 A successful _authorization_ response can be followed by a
 _void-authorization_ (details see
-https://document-center.wirecard.com/display/PTD/Transaction+Types#TransactionTypes-void[void])._ +
-_
+<<CreditCard_TransactionTypes__VoidRefund_Void, void>>).
 
-[[authorization-void-authorization]]
-_void-authorization_
-~~~~~~~~~~~~~~~~~~~~
+[#CreditCard_TransactionTypes_Authorization_SendingData_VoidAuthorization]
+._void-authorization_
 
 A _void-authorization_ request must reference a
-https://document-center.wirecard.com/display/PTD/authorization#authorization-authorizationUsingaToken[successful
-_authorization_ response]. __ __   __ +
-__
+<<CreditCard_TransactionTypes_Authorization_SendingData_AuthorizationUsingToken, _authorization_ response>>.
 
 *Request*
 
 _Fields_
 
 We provide detailed descriptions of all
-https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
-card_ fields].
+<<CreditCard_Fields, _credit card_ fields>>.
 
 _Sample_
 
-*Request Header*
-
-[source,syntaxhighlighter-pre]
+.Request Header
+[source]
 ----
 Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
 Content-Type: application/xml
 ----
 
-_ +
-_
-
-*XML void-authorization Request (Successful)*
-
-[source,syntaxhighlighter-pre]
+.XML void-authorization Request (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -423,16 +384,13 @@ _
 
 _Fields_
 
-We provide detailed descriptions of
-all __ __https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633[_credit
-card_ fields].
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
 
-_Sample +
-_
+Sample
 
-*XML void-authorization Response (Successful)*
-
-[source,syntaxhighlighter-pre]
+.XML void-authorization Response (Successful)
+[source,xml]
 ----
  <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/242f9dc0-04ec-450c-8246-489d32e3590e">
@@ -479,16 +437,3 @@ _
     <provider-account-id>70001</provider-account-id>
 </payment>
 ----
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/5406809/5406821.png[CC_authorization_capture_sequence.png]
-(image/png) +
-
-[[footer]]
-Document generated by Confluence on Feb 12, 2019 16:42
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
