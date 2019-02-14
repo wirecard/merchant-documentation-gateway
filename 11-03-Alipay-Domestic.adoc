@@ -1,0 +1,196 @@
+[#API_AlipayDomestic]
+=== Alipay Domestic
+
+image::images/11-03-Alipay-Domestic/AlipayDomestic_logo.jpg[Alipay Domestic Logo,height=1]
+
+[#API_AlipayDomestic_Introduction]
+==== Introduction
+
+Alipay is China's leading third-party online payment solution, providing
+an easy, safe, and secure way for millions of individuals and businesses
+to make and receive payments on the Internet. Alipay provides an escrow
+payment service that reduces transaction risk for online consumers.
+Shoppers have the ability to verify whether they are happy with goods
+they have purchased before releasing funds to the seller.
+
+[#API_AlipayDomestic_General]
+==== General Information
+
+[#API_AlipayDomestic_General_PaymentMode]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _Alipay_ _Domestic_ belongs
+to. It also provides detailed information about the countries and
+currencies which are relevant for _Alipay Domestic_.
+
+.Payment Mode, Countries and Currencies
+[width="100%",cols="20%,80%",]
+|===
+|*Payment Mode* |link:#PaymentMethods_Overview[Wallet]
+|*Countries* |China
+|*Currencies* |CNY
+|===
+
+[#API_AlipayDomestic_General_CommunicationFormats]
+===== Communication Formats
+
+This table illustrates how _Alipay Domestic_ notifications are encoded
+and which languages and methods can be used for requests and responses.
+
+.Communication Formats
+[width="100%",cols="20%,40%,40%"]
+|===
+.2+|*Requests/Responses* |Format |XML
+|Methods |POST
+|*IPN Encodements* 2+|Please follow the instructions given at
+link:#GeneralPlatfromFeatures_IPN_NotificatonExample_Alternative[Instant Payment Notification] to set up IPN.
+|===
+
+[#API_AlipayDomestic_TransactionTypes]
+==== Transaction Types
+
+For transaction type details which are not given here look at 
+link:#AppendixB[Appendix B: Transaction Types].
+
+.Transaction Types
+[width="100%",cols="50%,50%",]
+|===
+|Transaction Type |Link to the Sample
+|_check-signature_ | 
+
+|_get-url_ | 
+
+|_debit_ |link:#API_AlipayDomestic_Samples_debit[_debit_ samples]
+
+|_refund-debit_ | 
+|===
+
+[#API_AlipayDomestic_TestCredentials]
+==== Test Credentials
+
+[width="100%",cols="15%,55%,30%"]
+|===
+.2+|*URL(s) Endpoints*
+|For the transaction type _debit._
+|``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+|For the transaction types _refund-debit_ and _refund-request_.
+|``\https://api-test.wirecard.com/engine/rest/payments/``
+
+|*Merchant Account ID (MAiD)*
+2+|Please contact link:#ContactUs[merchant support] for complete test credentials.
+
+|*Username*
+2+|Please contact link:#ContactUs[merchant support] for complete test credentials.
+
+|*Password*
+2+|Please contact link:#ContactUs[merchant support] for complete test credentials.
+|===
+
+[#API_AlipayDomestic_TestCredentials_Additional]
+===== Additional Test Credentials on _Alipay Domestic_ Environment
+
+[cols=",",]
+|===
+|*Account Name* |``\alipaytest20091@gmail.com``
+|*Password* |111111
+|===
+
+[#API_AlipayDomestic_Workflow]
+==== Workflow
+
+._debit_ Workflow
+image::images/11-03-Alipay-Domestic/AlipayDom_Workflow_debit.png[Alipay Domestic _debit_ Workflow,height=250]
+
+. Consumer adds items to shopping basket.
+. Consumer selects Payment Method _Alipay Domestic_.
+. Merchant initiates a _debit_ transaction.
+. _Alipay Domestic_ responds with a redirection URL to the merchant.
+. Merchant redirects consumer to _Alipay _Domestic__.
+. Consumer enters his account data and confirms the payment.
+. _Alipay _Domestic__ processes the transaction
+. _WPG_ receives transaction status.
+. _WPG_ sends transaction status to merchant and redirects the
+consumer to the merchant.
+. Merchant receives the transaction's status and displays the
+completion of the payment process to the consumer.
+
+[#API_AlipayDomestic_Fields]
+==== Fields
+
+The fields required for Alipay are the same fields as
+the link:#RestApi_Fields[REST API Fields].  
+
+[#API_AlipayDomestic_Samples]
+==== Samples: Requests and Responses
+
+[#API_AlipayDomestic_Samples_debit]
+===== _debit_
+
+*XML Debit Request (Successful)*  Expand source
+
+[source,xml]
+----
+POST https://sandbox-engine.thesolution.com/engine/rest/paymentmethods/ HTTP/1.1Accept-Encoding: gzip,deflate
+Content-Type: application/xml
+Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+Content-Length: 672
+Host: sandbox-engine.thesolution.com
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <payment-methods>
+    <payment-method name="alipay"/>
+  </payment-methods>
+  <merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id>
+  <request-id>demo-00000000010</request-id>
+  <transaction-type>debit</transaction-type>
+  <requested-amount currency="CNY">1.01</requested-amount>
+  <order-number>37530</order-number>
+  <order-detail>Test product 001</order-detail>
+  <ip-address>127.0.0.1</ip-address>
+  <locale>en</locale>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+    <email>john.doe@wirecard.com</email>
+  </account-holder>
+</payment>
+----
+
+*XML Debit Response (Successful)*  Expand source
+
+[source,xml]
+----
+HTTP/1.1 201 CreatedServer: nginx
+Date: Wed, 10 Jun 2015 15:25:03 GMT
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 1559
+Connection: keep-alive
+Content-Language: en-US
+
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id>
+   <transaction-id>ddae2fed-0f84-11e5-87be-00163e5411b5</transaction-id>
+   <request-id>demo-00000000010</request-id>
+   <transaction-type>debit</transaction-type>
+   <transaction-state>success</transaction-state>
+   <completion-time-stamp>2015-06-10T15:25:03.000Z</completion-time-stamp>
+   <statuses>
+      <status code="201.0000" description="The resource was successfully created." severity="information"/>
+   </statuses>
+   <requested-amount currency="CNY">1.01</requested-amount>
+   <account-holder>
+      <first-name>John</first-name>
+      <last-name>Doe</last-name>
+      <email>john.doe@wirecard.com</email>
+   </account-holder>
+   <ip-address>127.0.0.1</ip-address>
+   <order-number>37530</order-number>
+   <order-detail>Test product 001</order-detail>
+   <payment-methods>
+      <payment-method url="https://mapi.alipay.com/gateway.do?sign_type=MD5&amp;partner=2088101568358171&amp;_input_charset=utf-8&amp;service=create_direct_pay_by_user&amp;notify_url=https%3A%2F%2Fsandbox-engine.thesolution.com%2Fengine%2Fnotification%2Falipay%2F+&amp;return_url=https%3A%2F%2Fsandbox-engine.thesolution.com%2Fengine%2Fnotification%2Falipay%2Fredirect%2Fddae2fed-0f84-11e5-87be-00163e5411b5%2F&amp;out_trade_no=ddae2fed-0f84-11e5-87be-00163e5411b5&amp;payment_type=1&amp;subject=37530&amp;total_fee=1.01&amp;buyer_email=john.doe%40wirecard.com&amp;sign=f6821cc77d752ea2981e281325f7dce6" name="alipay"/>
+   </payment-methods>
+   <locale>en</locale>
+</payment>
+----
