@@ -180,7 +180,6 @@ The following fields must be sent either in the request or the response
 |Field |Request |Response
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== payment
 
@@ -191,7 +190,6 @@ The following fields must be sent either in the request or the response
 |ip-address |O |
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== statuses
 
@@ -201,7 +199,6 @@ The following fields must be sent either in the request or the response
 |status@severity | |M
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== account-holder
 
@@ -213,7 +210,6 @@ The following fields must be sent either in the request or the response
 |account-holder.phone |O |M
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== card
 
@@ -223,7 +219,6 @@ The following fields must be sent either in the request or the response
 |card.card-type |M |
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== card-token
 
@@ -257,7 +252,6 @@ The following fields must be sent either in the request or the response
 |Field |Request |Response
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== payment
 
@@ -268,7 +262,6 @@ The following fields must be sent either in the request or the response
 |ip-address | |O
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== statuses
 
@@ -278,7 +271,6 @@ The following fields must be sent either in the request or the response
 |status@severity | |M
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== account-holder
 
@@ -290,7 +282,6 @@ The following fields must be sent either in the request or the response
 |account-holder.phone |M |O
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== card
 
@@ -300,7 +291,6 @@ The following fields must be sent either in the request or the response
 |card.card-type | |M
 
 3+a|
-[#TableHeadline]
 [discrete]
 ====== card-token
 
@@ -497,7 +487,7 @@ retrieving transaction data from the database or recalling a
 transaction. The data is returned untouched by the ACS with the Payment
 Authentication Response (PARes).
 
-.Auto submission POST Request
+.Example: Auto submission POST Request
 [source,html]
 ----
 <html>
@@ -630,38 +620,15 @@ digits allocated to dynamic information will be.
 [%autowidth]
 |===
 |Card Brand |Field |Digits
+.2+|VISA |Name |25
+         |Location |13
+.2+|Master Card |Name |22
+                |Location |13
+.2+|JBC |Name |25
+        |Location |13
+|===
 
-VISA
-
-Name
-
-25
-
-Location
-
-13
-
-Master Card
-
-Name
-
-22
-
-Location
-
-13
-
-JBC
-
-Name
-
-25
-
-Location
-
-13
-
-Merchants are advised to consider all these parameters before setting a
+NOTE: Merchants are advised to consider all these parameters before setting a
 dynamic descriptor, because any text exceeding the permissible length is
 cut off and discarded.
 
@@ -682,49 +649,42 @@ settlement request to the issuer. To what level the routed details will
 later appear on the customer’s card statement may vary from issuer to
 issuer.
 
-[[PaymentFeatures-HowItWorks]]
-How It Works
-~~~~~~~~~~~~
+[#CreditCard_PaymentFeatures_DynamicDescriptor_HowItWorks]
+====== How It Works
 
 When a merchant sends a transaction request with a dynamic descriptor,
 the data provided in the reserved transaction field tag expands the
 address information registered in the card acquirer’s MID database.
 
-The dynamic descriptor is created for settlement transaction types such
+NOTE: The dynamic descriptor is created for settlement transaction types such
 as _Purchase_, _Capture_ or _Credit_. _Authorisation_ is not supported.
 
-[[PaymentFeatures-Workflow.2]]
-Workflow
-~~~~~~~~
+[#CreditCard_PaymentFeatures_DynamicDescriptor_HowItWorks_Workflow]
+*Workflow*
 
-image:attachments/4751398/4751401.png[image,height=250]
+image::images/11-01-03-credit-card_payment-features/CreditCard_DynamicDescriptor_Workflow.png[CreditCard_DynamicDescriptor_Workflow]
 
-{empty}1. The consumer shops at the merchant’s site and enters his card
+. The consumer shops at the merchant’s site and enters his card
 details at checkout.
-
-{empty}2. The merchant system records the data and posts an XML request
+. The merchant system records the data and posts an XML request
 with the default identifiers including the descriptor text (entered in
 one of the <Transaction-ID>, <Order Number>, <Request ID> or
-<Descriptor> tag) to the _Wirecard Payment Gateway_.
-
-{empty}3. _Wirecard Payment Gateway_ processes the request and forwards
+<Descriptor> tag) to the _Wirecard Payment Processing Gateway_.
+. _Wirecard Payment Processing Gateway_ processes the request and forwards
 the transaction details to the Wirecard Bank (acquirer).
-
-{empty}4. Wirecard Bank acquires the card and sales details, reads the
+. Wirecard Bank acquires the card and sales details, reads the
 related identifier values, looks up the merchant’s name and business
 details in the MID database and complements the merchant data with the
 data sent in one of the transaction identifier tag fields.
-
-{empty}5. Wirecard Bank routes the settlement request including the
+. Wirecard Bank routes the settlement request including the
 dynamic text to the issuer.
-
-{empty}6. The issuer processes the request, debits the consumer’s
+. The issuer processes the request, debits the consumer’s
 account and adds a new debit item with the dynamic descriptor to the
 credit card statement.
+//-
 
-[[PaymentFeatures-PaymentFacilitator]]
-Payment Facilitator
--------------------
+[#CreditCard_PaymentFeatures_PaymentFacilitator]
+===== Payment Facilitator
 
 The _Payment Facilitator_ model allows a Payment Service Provider with a
 _Payment Facilitator_ license to aggregate credit card payments, collect
@@ -733,7 +693,7 @@ directly.
 
 Requests in _Payment Facilitator_ traffic require additional sub
 merchant information in the
-<https://document-center.wirecard.com/pages/viewpage.action?pageId=3703633#Fields(CreditCard)-sub-merchant-info[sub-merchant-info]>
+<<CreditCard_Fields_SubMerchantInfo, sub-merchant-info>>
 tag of each first request in the transaction flow (e.g.:
 _check-enrollment_, _authorization-only_, _authorization_ or
 _purchase_).
@@ -742,46 +702,40 @@ The sub merchant information is only required for Master Card traffic,
 but Wirecard recommends to send it for every credit card brand to avoid
 complexity in implementation.
 
-Each transaction type must contain the <sub-merchant-info> in the
+NOTE: Each transaction type must contain the <sub-merchant-info> in the
 initial step. For the following steps <sub-merchant-info> is not
 mandatory, but Wirecard recommends to send <sub-merchant-info> in every
 step. This helps to avoid complexity in implementation.
 
-[[PaymentFeatures-HowItWorks.1]]
-How It Works
-~~~~~~~~~~~~
+[#CreditCard_PaymentFeatures_PaymentFacilitator_HowItWorks]
+====== How It Works
 
-image:attachments/4751398/4751402.png[image,height=250] +
+image::images/11-01-03-credit-card_payment-features/Enable_payment_facilitator.png[CreditCard_PaymentFacilitator_Workflow]
 
 See the
-https://document-center.wirecard.com/display/PTD/Samples%3A+Requests%2C+Responses+and+Notifications#Samples:Requests,ResponsesandNotifications-PaymentFacilitatorTransactions[corresponding
-samples for details].
+<<CreditCard_Samples_PaymentFacilitatorTransactions, corresponding samples for details>>.
 
-[[PaymentFeatures-RecurringTransaction]]
-Recurring Transaction
----------------------
+[#CreditCard_PaymentFeatures_RecurringTransaction]
+===== Recurring Transaction
 
 To submit a
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RecurringTransaction.1[recurring
-transaction], the merchant must submit a request with the transaction
+<<GeneralPlatformFeatures_Transactions_Recurring, recurring transaction>>
+the merchant must submit a request with the transaction
 type _authorization-only_, _authorization_ or _purchase_ __ including
 the
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-ThePeriodicType[PERIODIC
-TYPE] element and a
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-TheSequenceType[SEQUENCE
-TYPE].
+<<GenralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
+element and a
+<<GeneralPlatformFeatures_Transactions_Recurring_Sequence, SEQUENCE TYPE>>.
 
-[[PaymentFeatures-CreditCardspecificPeriodicTypes]]
-Credit Card specific _Periodic Types_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes]
+====== Credit Card specific _Periodic Types_
 
 Aside from the standard _Periodic Types, Credit Card_ can also be used
-with the _Periodic Types ucof_ and _ci. +
-_
+with the _Periodic Types ucof_ and _ci.
 
-[[PaymentFeatures-ucof]]
-_ucof_
-^^^^^^
+[#CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ucof]
+*_ucof_*
+
 
 _The Unscheduled Credential on File (ucof)_ allows the merchant to
 reference a regularly based transaction (like an unlimited periodic
@@ -792,56 +746,49 @@ occurring transaction date, where the cardholder has provided consent
 for the merchant to initiate one or more future transactions. An example
 of such transaction is an account auto-top up transaction.
 
-[[PaymentFeatures-ci]]
-ci
-^^
+[#CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ci]
+*_ci_*
 
 The periodic type _ci_ (Consumer Initiated) allows the merchant to
 identify that the cardholder himself initiated the transaction and
 whether this is an initial (first) or subsequent (recurring) one. As
 soon as this is subsequent merchant initiated transaction (e.g. the
 cardholder used an account on merchant side ) and the corresponding
-information is sent to Wirecard Payment Gateway, CVV could be omitted
+information is sent to Wirecard Payment Processing Gateway, CVV could be omitted
 within the transaction and Visa will still approve it. So this will lead
 to higher approve rate in the future.
 
-[[PaymentFeatures-Restrictions]]
-Restrictions +
-~~~~~~~~~~~~~~
+[#CreditCard_PaymentFeatures_RecurringTransaction_Restrictions]
+====== Restrictions
 
 Read, which
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-Restrictions[restrictions]
+<<GeneralPlatformFeatures_Transactions_Recurring_Restrictions, restrictions>>
 have to be met to use a recurring transaction.
 
-[[PaymentFeatures-Samples.6]]
-Samples +
-~~~~~~~~~
+[#CreditCard_PaymentFeatures_RecurringTransaction_Samples]
+====== Samples
 
 See
-https://document-center.wirecard.com/display/PTD/Samples%3A+Requests%2C+Responses+and+Notifications#Samples:Requests,ResponsesandNotifications-RecurringTransaction[request/response
-samples] for __Recurring Transaction__.
+<<CreditCard_Samples, request/response samples>> for _Recurring Transaction_.
 
-[[PaymentFeatures-PossibleScenarios]]
-Possible Scenarios
-~~~~~~~~~~~~~~~~~~
+[#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios]
+====== Possible Scenarios
 
-[[PaymentFeatures-ShoppingOnline/ViaanApp]]
-Shopping Online/Via an App
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios_ShoppingOnline]
+*Shopping Online/Via an App*
 
-_Establish Stored Credential/First Transaction +
-_
+_Establish Stored Credential/First Transaction_
 
-1.  Cardholder consent is obtained: _merchant-tokenization-flag_ set
+. Cardholder consent is obtained: _merchant-tokenization-flag_ set
 to _true_
-2.  Cardholder provides the Credit Card data including CVV/CVC2 code
+. Cardholder provides the Credit Card data including CVV/CVC2 code
 (required): _periodic/periodic-type = 'ci'_ included in the transaction
-and __periodic/sequence-type = 'first'__
-3.  Merchant sends the transaction to _Wirecard Payment Gateway_
+and _periodic/sequence-type = 'first'_
+. Merchant sends the transaction to _Wirecard Payment Gateway_
+//-
 
-*Example: Establishment of Stored Credential/First Transaction*
-
-[source,syntaxhighlighter-pre]
+.Example: Establishment of Stored Credential/First Transaction
+[source,xml]
 ----
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
@@ -872,18 +819,18 @@ and __periodic/sequence-type = 'first'__
 
 _Subsequent Cardholder Initiated Purchase_
 
-1.  Cardholder consent is obtained: _merchant-tokenization-flag_ set
+. Cardholder consent is obtained: _merchant-tokenization-flag_ set
 to _true_
-2.  Cardholder data is saved within a cardholder's account (CVV is not
+. Cardholder data is saved within a cardholder's account (CVV is not
 required)
-3.  Cardholder uses the account to make a
+. Cardholder uses the account to make a
 purchase: _periodic/periodic-type = 'ci'_ included in the transaction
-and__ periodic/sequence-type = 'recurring'__
-4.  Merchant sends the transaction to _Wirecard Payment Gateway_
+and _periodic/sequence-type = 'recurring'_
+. Merchant sends the transaction to _Wirecard Payment Processing Gateway_
+//-
 
-*Example: Subsequent Cardholder initiated purchase*
-
-[source,syntaxhighlighter-pre]
+.Example: Subsequent Cardholder initiated purchase
+[source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
@@ -913,16 +860,16 @@ and__ periodic/sequence-type = 'recurring'__
 
 _Guest Account/Single Transaction_
 
-1.  Since Cardholder doesn't create a account, Cardholder data is not
+. Since Cardholder doesn't create a account, Cardholder data is not
 being saved: the default value for _merchant-tokenization-flag_ is
 _false_
-2.  Cardholder provides the Credit Card data including CVV/CVC2 code
+. Cardholder provides the Credit Card data including CVV/CVC2 code
 (required)
-3.  Merchant sends the transaction to _Wirecard Payment Gateway_
+. Merchant sends the transaction to _Wirecard Payment Processing Gateway_
+//-
 
-*Example: guest account/single transaction*
-
-[source,syntaxhighlighter-pre]
+.Example: guest account/single transaction*
+[source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
@@ -946,23 +893,22 @@ _false_
 </payment>
 ----
 
-[[PaymentFeatures-Recurring(R)orInstallment(I)Transaction]]
-Recurring (R) or Installment (I)Transaction
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios_RecurringInstallmentTransaction]
+*Recurring (R) or Installment (I)Transaction*
 
 _First Recurring or Installment_
 
-1.  Cardholder consent is obtained: _merchant-tokenization-flag_ set
+. Cardholder consent is obtained: _merchant-tokenization-flag_ set
 to _true_
-2.  Cardholder would like to initiate Recurring or Installment payments
-3.  Cardholder provides the Credit Card data including CVV/CVC2
+. Cardholder would like to initiate Recurring or Installment payments
+. Cardholder provides the Credit Card data including CVV/CVC2
 code: _periodic/periodic-type = 'installment'/'recurring'_ included in
 the transaction and _periodic/sequence-type = 'first'_
-4.  Merchant sends the transaction to Wirecard Payment Gateway
+. Merchant sends the transaction to Wirecard Payment Gateway
+//-
 
-*Example: First Recurring or Installment*
-
-[source,syntaxhighlighter-pre]
+.Example: First Recurring or Installment
+[source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
@@ -992,20 +938,19 @@ the transaction and _periodic/sequence-type = 'first'_
 </payment>
 ----
 
-[[PaymentFeatures-SubsequentRecurringorInstallment]]
-Subsequent Recurring or Installment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios_SubsequentRecurringInstallment]
+*Subsequent Recurring or Installment*
 
 _Merchant Initiated Transaction_
 
-1.  Merchant initiates a subsequent Recurring or Installment
+. Merchant initiates a subsequent Recurring or Installment
 payment: _periodic/periodic-type = 'installment'/'recurring'_ included
-in the transaction and__ periodic/sequence-type = 'recurring'__
-2.  Merchant sends the transaction to Wirecard Payment Gateway
+in the transaction and _periodic/sequence-type = 'recurring'_
+. Merchant sends the transaction to Wirecard Payment Gateway
+//-
 
-*Example: Merchant initiated transaction*
-
-[source,syntaxhighlighter-pre]
+.Example: Merchant initiated transaction
+[source,xml]
 ----
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
@@ -1033,27 +978,23 @@ in the transaction and__ periodic/sequence-type = 'recurring'__
 </payment>
 ----
 
-[[PaymentFeatures-ucof.1]]
-ucof
-^^^^
-
-_First ucof** +
-**_
+[#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios_ucof]
+*ucof*
 
 _Example_: auto-top up for transit or mobile – date is irregular, i.e.
 not known as usage driven
 
-1.  Cardholder consent is obtained: _merchant-tokenization-flag_ set
+. Cardholder consent is obtained: _merchant-tokenization-flag_ set
 to _true_
-2.  Cardholder would like to initiate _ucof_ payments
-3.  Cardholder provides the Credit Card data including CVV/CVC2
+. Cardholder would like to initiate _ucof_ payments
+. Cardholder provides the Credit Card data including CVV/CVC2
 code: _periodic/periodic-type = 'ucof'_ included in the transaction
 and__ periodic/sequence-type = 'first'__
-4.  Merchant sends the transaction to Wirecard Payment Gateway
+. Merchant sends the transaction to Wirecard Payment Processing Gateway
+//-
 
-*Example: First UCOF*
-
-[source,syntaxhighlighter-pre]
+.Example: First UCOF
+[source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
@@ -1085,14 +1026,14 @@ and__ periodic/sequence-type = 'first'__
 
 _Merchant Initiated Transaction_
 
-1.  Merchant initiates a subsequent UCOF
+. Merchant initiates a subsequent UCOF
 payment: _periodic/periodic-type = 'ucof'_  included in the transaction
-and__ periodic/sequence-type = 'recurring'__
-2.  Merchant sends the transaction to Wirecard Payment Gateway
+and _periodic/sequence-type = 'recurring'_
+. Merchant sends the transaction to Wirecard Payment Processing Gateway
+//-
 
-*Example: First UCOF*
-
-[source,syntaxhighlighter-pre]
+.Example: First UCOF
+[source,xml]
 ----
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
@@ -1120,51 +1061,31 @@ and__ periodic/sequence-type = 'recurring'__
 </payment>
 ----
 
-[[PaymentFeatures-Non-ReferencedCapture]]
+[#CreditCard_PaymentFeatures_RecurringTransactions_NonReferencedCapture]
 Non-Referenced Capture
-~~~~~~~~~~~~~~~~~~~~~~
 
 In an offline transaction process it is possible to have a
-non-referenced capture authorization. The _Wirecard Payment Gateway_ can
+non-referenced capture authorization. The _Wirecard Payment Processing Gateway_ can
 support such a type of transaction when using a special
 capture-authorization _Credit Card_ transaction.
 
 A transaction is considered non-referenced capture when it meets all
 the  following four conditions in the payment XML request:
 
-1.  The transaction type is _Capture-Authorization_
-2.  The payment-method is _Credit Card_
-3.  The _Parent-Transaction-ID_ is empty (no tag present)
-4.  The authorization-code is present (can have empty value)
+. The transaction type is _Capture-Authorization_
+. The payment-method is _Credit Card_
+. The _Parent-Transaction-ID_ is empty (no tag present)
+. The authorization-code is present (can have empty value)
+//-
 
-If all conditions are met, then the transaction is sent to _Wirecard
-Payment Gateway_. 
+If all conditions are met, then the transaction is sent to _Wirecard Payment Processing Gateway_. 
 
 The most exceptional fact in this process is, that it is missing the
 _Parent-Transaction-ID_. By default, _Capture-Authorization_ takes most
 of its properties from the parent transaction.
 
 Even though no parent transaction is available, captures which have not
-been referenced by _Wirecard Payment Gateway_ can be processed. Cases
+been referenced by _Wirecard Payment Processing Gateway_ can be processed. Cases
 like this will be handled a non-referenced _Capture-Authorization_
 transaction type. In that case all fields must be supplied with the
 _Capture-Authorization_ request.
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/4751398/4751397.png[20171013_Create
-TokenID_Workflow.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/4751398/4751401.png[20171117_Credit Card_Dynamic
-Descriptor_Workflow.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/4751398/4751402.png[Enable payment facilitator.png]
-(image/png) +
-
-[[footer]]
-Document generated by Confluence on Feb 12, 2019 16:42
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
