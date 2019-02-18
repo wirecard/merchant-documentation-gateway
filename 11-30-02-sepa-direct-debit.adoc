@@ -195,19 +195,20 @@ _authorization_; or
 _pending-debit_ at a different time
 //-
 
-[[SEPADirectDebit-Referencingtoanauthorization]]
-Referencing to an _authorization_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_TransactionTypes_Authorization_Referencing]
+.Referencing to an _authorization_
 
 A merchant is able to reference a _pending-debit_ to an _authorization_
-by entering the _authorization_’s transaction ID into the
-parent-transaction-id in the _pending-debit_ request. +
+by entering the _authorization_'s transaction ID into the
+parent-transaction-id in the _pending-debit_ request.
+
 This results in the following:
 
-* Transactions will be referenced to each other and considered as part
-of the same payment
-* Fields provided in the _authorization_ will be copied into the
+- Transactions will be referenced to each other and considered as part
+of the same payment.
+- Fields provided in the _authorization_ will be copied into the
 _pending-debit_.
+//-
 
 If the merchant does not want any information to be copied, the
 information must be completely re-submitted as required for a regular
@@ -217,6 +218,8 @@ The merchant may specify a new value for a field in a _pending-debit_.
 However, the rest of the fields will still be copied from the
 _authorization_.
 
+[NOTE]
+====
 There are exceptions to this point above.
 
 If the merchant specifies a new value within any of the following
@@ -230,14 +233,13 @@ _authorization_ will NOT be copied:
 * mandate
 * airline industry
 * cruise industry
+====
 
-It is also possible to reference a
-https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer#SEPACreditTransfer-refund[refund] to
+It is also possible to reference a <<SEPACreditTransfer_TransactionTypes_refund, refund>> to
 an _authorization_ if the merchant's business flow requires this.
 
-[[SEPADirectDebit-ReferencingtoaFailedauthorization]]
-Referencing to a Failed _authorization_
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_TransactionTypes_Authorization_Referencing_Failed]
+.Referencing to a Failed _authorization_
 
 A transaction with type _authorization_ is used for the merchant's
 purpose only. It is not forwarded to a provider and simply aids a
@@ -245,403 +247,182 @@ merchant's business flow or in deciding how to proceed further. When a
 merchant's business flow requires a transaction to be referenced to a
 failed _authorization_ transaction, then it is possible to do so. 
 
-[[SEPADirectDebit-Void]]
-Void
-~~~~
+[#SEPADirectDebit_TransactionTypes_Void]
+====== void
 
-https://document-center.wirecard.com/display/PTD/SEPA#SEPA-SEPAVoid[SEPA
-_Void_] __ can be used with both SEPA payment methods: SEPA _Credit
-Transfer_ and SEPA _Direct Debit._
+<<SEPA_TransactionType_Void, SEPA _void_>>
+can be used with both SEPA payment methods: SEPA _Credit Transfer_ and SEPA _Direct Debit._
 
-[[SEPADirectDebit-TestCredentials]]
-Test Credentials
-----------------
+[#SEPADirectDebit_TestCredentials]
+===== Test Credentials
 
-*URLs (Endpoints)*
+[cols="30h, 70"]
+|===
+| URLs (Endpoints) | ``https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) | 933ad170-88f0-4c3d-a862-cff315ecfbc0
+| Username | 16390-testing
+| Password | 3!3013=D3fD8X7
+| Secret Key | 5caf2ed9-5f79-4e65-98cb-0b70d6f569aa
+|===
 
-https://api-test.wirecard.com/engine/rest/paymentmethods/
-
-*Merchant Account ID (MAID)*
-
-933ad170-88f0-4c3d-a862-cff315ecfbc0
-
-*Username*
-
-16390-testing
-
-*Password*
-
-3!3013=D3fD8X7
-
-*Secret Key*
-
-5caf2ed9-5f79-4e65-98cb-0b70d6f569aa
-
-[[SEPADirectDebit-Workflow]]
-Workflow
---------
+[#SEPADirectDebit_Workflow]
+===== Workflow
 
 image:attachments/3703429/3703426.png[image,height=250]
 
-* The transaction type within the request must be _debit or
-pending-_debit_._
-* If the request is successful, a response will be returned with status
+. The transaction type within the request must be _debit_ or _pending-debit._
+. If the request is successful, a response will be returned with status
 _Success_. This response means that the transaction has entered the
 Wirecard system successfully. The transaction itself is in a _pending_
-status, waiting to be sent to the merchant’s bank.
-* If the request is not successful, a response will be returned with
+status, waiting to be sent to the merchant's bank.
+. If the request is not successful, a response will be returned with
 status _Failed_. *The response always contains a status code and a
 description.* Please read this description carefully as it will help to
 understand why the transaction request has failed and what needs to be
 fixed in order to send a successful transaction request.
-* Once the transaction has been successfully sent to and processed by
+. Once the transaction has been successfully sent to and processed by
 the bank, a new transaction with type _debit_ will be created in status
 _Success_. This process usually takes up to 2 business days. The
 transaction will then be forwarded the Central Bank for processing.
-* If the transaction has been rejected by the merchant’s bank, a _debit_
+. If the transaction has been rejected by the merchant's bank, a _debit_
 transaction on status _Failed_ will be created and the transaction will
 not be sent to the Central Bank.
-* The merchant will receive a notification of the _debit_ transaction.
+. The merchant will receive a notification of the _debit_ transaction.
 
-Although a transaction has been successfully processed by the merchant’s
-bank, the transaction may still be reversed by the consumer’s bank for
+NOTE: Although a transaction has been successfully processed by the merchant's
+bank, the transaction may still be reversed by the consumer's bank for
 reasons such as insufficient funds, account owner deceased, bank account
 closed, etc. In this case, a _Debit-Return_ transaction will be created
 and matched to the original _debit_ transaction to ensure the merchant
 has a complete overview for his debtor management. For a full list of
-_debit-return_ reasons, please refer to
-https://document-center.wirecard.com/display/PTD/SEPA#SEPA-ReturnCodes[the
-list of SEPA Return Codes].
+_debit-return_ reasons, please refer to <<SEPA_ReturnCodes, the list of SEPA Return Codes>>.
 
-The merchant can request the status of the transaction at any time by
-sending a
-“https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RetrieveTransactionbyTransaction-ID[Retrieve
-Transaction by Transaction ID]” or
-“https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-Retrieve_by_Request-IDRetrieveTransactionbyRequest-ID[Retrieve
-Transaction by Request ID]”.
+The merchant can request the status of the transaction at any time by sending a
+<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, "Retrieve Transaction by Request ID">>.
 
-[[SEPADirectDebit-Fields]]
-Fields
-------
+[#SEPADirectDebit_Fields]
+===== Fields
 
-[[SEPADirectDebit-DirectDebit]]
-Direct Debit
-~~~~~~~~~~~~
+[#SEPADirectDebit_Fields_DirectDebit]
+====== Direct Debit
 
 The fields used for SEPA _Direct Debit_ requests, responses and
 notifications are the same as the REST API Fields. Please refer to the
-https://document-center.wirecard.com/display/PTD/Fields[API field list]
-or the request example for the fields required in a
-https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-DirectDebit.1[Direct
-Debit] transaction.
+<<RestApi_Fields, API field list>> or the request example for the fields required in a _Direct Debit_ transaction.
 
 Only the fields listed below have different properties.
 
 The following elements are mandatory (M), optional (O) or conditional
-(C) for a request/response/notification. If the respective cell is
+\(C) for a request/response/notification. If the respective cell is
 empty, the field is disregarded or not sent.
 
-Field
+[%autowidth, cols="1,2,3,4,5,6,7a"]
+|===
+| Field | Request | Response | Notification | Datatype | Size | Description
 
-Request
-
-Response
-
-Notification
-
-Datatype
-
-Size
-
-Description
-
-descriptor
-
-O
-
-O
-
-O
-
-String
-
-100
-
-Description on the settlement of the account holder’s account about a
+| descriptor | O | O | O | String | 100 | Description on the settlement of the account holder's account about a
 transaction.  
 
 For SEPA Direct Debit transactions, it will be combined with the
 Provider Transaction Reference ID and the merchant’s static
 descriptor and will appear on the consumer’s bank account statement.
-
-payment-methods.payment-method-Name
-
-M
-
-M
-
-M
-
-String +
-
-15
-
-This is the name of the payment method ‚sepadirectdebit‘
-
-api-id
-
- 
-
- 
-
-M
-
-String
-
-25
-
-The API id is always returned in the notification. For SEPA it is “---“
-
-b2b
-
-M
-
-M
-
-M
-
-Boolean
-
- 
-
-Can be used with the transaction types _debit_ and _pending-debit_. When
+| payment-methods.payment-method-Name | M | M | M | String | 15 | This is the name of the payment method _sepadirectdebit._
+| api-id   |   |   | M | String | 25 | The API id is always returned in the notification. For SEPA it is “---“
+| b2b      | M | M | M | Boolean |   | Can be used with the transaction types _debit_ and _pending-debit_. When
 set to true, the transaction automatically will be processed as b2b.
+| bank-account.bic | O | O | O | String | 8 or 11 | This is the Bank Identifier Code of the end-consumer's bank. In SEPA Area
+where <<SEPA_Reporting_IbanOnly, IBAN Only>> is enabled, BIC is an optional field.
+| bank-account.iban | C | C | C | String | 34 | This is the end-consumer's International Bank Account Number. +
+Allowed characters:
+[a-zA-Z]\{2}[0-9]\{2}[a-zA-Z0-9]\{4}[0-9]\{7}([a-zA-Z0-9]?){0,16}
 
-bank-account.bic
+NOTE: If no parent-transaction-id is provided it remains mandatory.
 
-O
-
-O
-
-O
-
-String
-
-8 or 11
-
-This is the Bank Identifier Code of the end-consumer' bank. In SEPA Area
-where
-https://document-center.wirecard.com/display/PTD/SEPA#SEPA-SEPAIBANOnly[IBAN
-Only] is enabled, BIC is an optional field.
-
-bank-account.iban
-
-C
-
-C
-
-C
-
-String
-
-34
-
-This is the end-consumer's International Bank Account Number.
-
-Allowed characters: 
-[a-zA-Z]\{2}[0-9]\{2}[a-zA-Z0-9]\{4}[0-9]\{7}([a-zA-Z0-9]?)\{0,16}
-
-If no parent-transaction-id is provided it remains mandatory.
-
-https://confluence.wirecard.sys/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-MandateID[mandate.mandate-id]
-
-M
-
-M
-
-M
-
-String
-
-35
-
-The ID of the signed mandate between the merchant and the consumer.
-
+| <<SEPADirectDebit_Fields_SpecificFields_MandateID, mandate.mandate-id>> | M | M | M | String | 35 | The ID of the signed mandate between the merchant and the consumer. +
 The mandate ID may NOT be generated by the Wirecard Payments Platform.
-It is solely the responsibility of the merchant.
+It is solely the responsibility of the merchant. +
+Allowed characters:
+[A-Za-z0-9][ + ? - : ( ) . , ']){1,35}
 
-Allowed characters: [A-Za-z0-9]|[\+|\?|/|\-|:|\(|\)|\.|,|'])\{1,35}
-
-https://confluence.wirecard.sys/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-MandateSignatureDate[mandate.signature-date]
-
-M
-
-M
-
-M
-
-Date
-
-n/a
-
-This is the date on which the above-mentioned mandate was signed by the
-consumer.
+| <<SEPADirectDebit_Fields_SpecificFields_MandateSignatureDate, mandate.signature-date>> | M | M | M | Date | n/a | This is the date on which the above-mentioned mandate was signed by the
+consumer. +
 
 The date cannot be in the future, the validity is checked against the
 server time. Merchant may choose to specify the UTC timezone as +/-
 number of hours, e.g. <signed-date>2013-09-24+03.00</signed-date>. The
 timezone is considered during the validation process, sign date is
-stored with transaction using server's timezone afterwards.
+stored with transaction using server's timezone afterwards. +
 
 The Mandate Signature Date is only required for SEPA _Direct Debit_ and
 not for SEPA _Credit Transfer_ transactions.
 
-https://confluence.wirecard.sys/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-CreditorID[creditor-id]
-
-M
-
-M
-
-M
-
-String
-
-1,35
-
-Identifies and allows a merchant to process SEPA _Direct
-Debit_ transactions.
-
- 
-
+| <<SEPADirectDebit_Fields_SpecificFields_CreditorID, creditor-id>> | M | M | M | String | 1,35 | Identifies and allows a merchant to process SEPA
+_Direct Debit_ transactions. +
 Allowed characters: 
 [a-zA-Z]\{2,2}[0-9]\{2,2}[a-zA-Z0-9]\{3,3}[a-zA-Z0-9]\{1,28}
 
-https://confluence.wirecard.sys/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-ProviderTransactionReferenceID[provider-transaction-reference-id]
-
- 
-
-M
-
- 
-
-String
-
-10
-
-This ID provides a reference for the complete end-to-end lifecycle of a
+| <<SEPADirectDebit_Fields_SpecificFields_ProviderTransactionReferenceID, provider-transaction-reference-id>> |   | M |   | String | 10 | This ID provides a reference for the complete end-to-end lifecycle of a
 SEPA _Direct Debit_ transaction. It is used as a reference within the
 banking system to ensure all transactions referencing each other (eg: a
 direct _debit_ and a _debit-return_) are matched and that the complete
 lifecycle of a payment is identifiable. Wirecard generates this ID for
 the merchant.
+|===
 
-[[SEPADirectDebit-RecurringTransaction.1]]
-Recurring Transaction
-~~~~~~~~~~~~~~~~~~~~~
+[#SEPADirectDebit_Fields_RecurringTransaction]
+====== Recurring Transaction
 
-The following fields are required *additionally* for a _Recurring_
-transaction.
+The following fields are required *additionally* for a _Recurring_ transaction.
 
-The following elements are mandatory (M), optional (O) or conditional
-(C) for a request/response/notification.
+The following elements are mandatory (M), optional (O) or conditional \(C) for a request/response/notification.
 
-*Field*
+[%autowidth, cols="1,2,3,4,5,6,7"]
+|===
+| Field | Cardinality (Request) | Response | Notification | Datatype | Size | Description
 
-*Cardinality (Request) +
-*
-
-*Response*
-
-*Notification*
-
-*Datatype   *
-
-*Size*
-
-*Description*
-
-parent-transaction-id
-
-M
-
-M
-
-M
-
-Alphanumeric
-
-36
-
-Transaction ID of the first transaction of a payment. It is mandatory
+| parent-transaction-id | M | M | M | Alphanumeric | 36 | Transaction ID of the first transaction of a payment. It is mandatory
 for “recurring” and “final”.
-
-periodic.periodic-type
-
-M
-
-M
-
-M
-
-Alpha
-
-11
-
-Indicates how and why a Payment occurs more than once. Only two possible
+| periodic.periodic-type | M | M | M | Alpha | 11 | Indicates how and why a payment occurs more than once. Only two possible
 values: 'recurring' or "Installment’
-
-periodic.periodic-type.sequence-type
-
-M
-
-M
-
-M
-
-Alpha
-
-11
-
-Indicates the sequence of the recurring transaction. Possible values:
+| periodic.periodic-type.sequence-type | M | M | M | Alpha | 11 | Indicates the sequence of the recurring transaction. Possible values:
 ‘first’, ‘recurring’ or ‘final’
+|===
 
-[[SEPADirectDebit-authorization.1]]
-_authorization_
-~~~~~~~~~~~~~~~
+[#SEPADirectDebit_Fields_Authorization]
+====== _authorization_
 
 The fields used for _authorization_ requests, responses and
-notifications are the same as the REST API Fields. Please refer to the
-https://document-center.wirecard.com/display/PTD/Fields[API field list]
-or the request example for the fields required in an
-_https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-authorization.2[authorization]_
-transaction.
+notifications are the same as the REST API Fields. Please refer to the <<RestApi_Fields, API field list>>
+or the request example for the fields required in an _authorization_ transaction.
 
+[NOTE]
+====
 Some of the elements that are mandatory for a SEPA _Direct Debit_
-transaction are not mandatory for a SEPA Authorization transaction.
+transaction are not mandatory for a SEPA _authorization_ transaction. +
 
 For example, IBAN and BIC are optional. If a merchant requires an IBAN
 and BIC to be validated, they *must* be sent in the request. If they are
 sent within the request the system validates their formal correctness.
+====
 
-[[SEPADirectDebit-SEPADirectDebitSpecificFields]]
- SEPA Direct Debit Specific Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#SEPADirectDebit_Fields_SpecificFields]
+====== SEPA Direct Debit Specific Fields
 
 The following elements should be kept in mind when sending in a SEPA
 _Direct Debit_ payment request:
 
-* Creditor ID or Creditor Identifier
-* Mandate ID
-* Mandate Signature Date
-* Provider Transaction Reference ID
-* Due Date
+- Creditor ID or Creditor Identifier
+- Mandate ID
+- Mandate Signature Date
+- Provider Transaction Reference ID
+- Due Date
+//-
 
-[[SEPADirectDebit-CreditorID]]
-Creditor ID
-^^^^^^^^^^^
+[#SEPADirectDebit_Fields_SpecificFields_CreditorID]
+.Creditor ID
 
 The Creditor ID is a mandatory Identifier for each Merchant who wants to
-perform SEPA _Direct Debits_. Depending on the originating country, the
+perform SEPA _Direct Debits._ Depending on the originating country, the
 merchant may need to apply for the Creditor ID at a tax office, local
 authority, or another organization. The format for the ID is not unique.
 
@@ -656,7 +437,7 @@ The current validation of the Creditor ID follows the rule of the
 'European Payment Council' based on Document 'EPC260-08 Creditor
 Identifier Overview v4.0'.
 
-The countries currently validated by the _Wirecard Payment Gateway_ are
+The countries currently validated by the _Wirecard Payment Processing Gateway_ are
 the following: DE, AT, NL, CH, LI, GB.
 
 The remaining countries mentioned in the documentation are currently not
@@ -670,18 +451,15 @@ http://www.europeanpaymentscouncil.eu/index.cfm/knowledge-bank/epc-documents/cre
 The following characters are allowed:
 [a-zA-Z]\{2,2}[0-9]\{2,2}[a-zA-Z0-9]\{3,3}[a-zA-Z0-9]\{1,28}.
 
-[[SEPADirectDebit-ErrorMessagesincaseofanincorrectlysubmittedCreditorID]]
-Error Messages in case of an incorrectly submitted Creditor ID
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[#SEPADirectDebit_Fields_SpecificFields_CreditorID_ErrorMessages]
+*Error Messages in case of an incorrectly submitted Creditor ID*
 
-For detailed Information concerning the Error Code please see:
+For detailed information concerning the error code please see:
 
-https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[Return
-Codes and Transaction Statuses]
+<<StatusCodes, Return Codes and Transaction Statuses>>
 
-[[SEPADirectDebit-MandateID]]
-Mandate ID
-^^^^^^^^^^
+[#SEPADirectDebit_Fields_SpecificFields_MandateID]
+.Mandate ID
 
 A two-party mandate between the merchant and the debtor is required for
 _SEPA Direct Debit_ payments. The mandate is an agreement giving the
@@ -691,30 +469,26 @@ merchant that, when combined with the Creditor ID, creates a unique
 mandate ID. This mandate reference must be sent to the _Wirecard Payment
 Gateway_ within the request.
 
-The mandate ID may *not* be generated by the _Wirecard Payment Gateway_.
+NOTE: The mandate ID may *not* be generated by the _Wirecard Payment Processing Gateway_.
 It is solely the responsibility of the merchant.
 
-[[SEPADirectDebit-MandateSignatureDate]]
-Mandate Signature Date
-^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_Fields_SpecificFields_MandateSignatureDate]
+.Mandate Signature Date
 
 This is the date on which the above-mentioned mandate was signed by the
 consumer. 
 
-[[SEPADirectDebit-ProviderTransactionReferenceID]]
-Provider Transaction Reference ID
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_Fields_SpecificFields_ProviderTransactionReferenceID]
+.Provider Transaction Reference ID
 
 This ID provides a reference for the complete end-to-end lifecycle of a
 SEPA _Direct Debit_ transaction. It is used as a reference within the
-banking system to ensure all transactions referencing each other (eg: a
+banking system to ensure all transactions referencing each other (e.g. a
 direct debit and a _debit_ return) are matched and that the complete
-lifecycle of a payment is identifiable. +
-Wirecard generates this ID for the merchant.
+lifecycle of a payment is identifiable. Wirecard generates this ID for the merchant.
 
-[[SEPADirectDebit-DueDate]]
-Due Date
-^^^^^^^^
+[#SEPADirectDebit_Fields_SpecificFields_DueDate]
+.Due Date
 
 The due date is the day when the funds will be cleared on the debtors
 bank account. Wirecard can calculate the best (earliest) due date for
@@ -726,13 +500,12 @@ specific date is requested. This date may only be used if it passes
 validation. If validation is not passed, Wirecard will return a failed
 transaction and the transaction must be re-submitted.
 
-Wirecard cannot replace an incorrect due date sent in by the merchant
+WARNING: Wirecard cannot replace an incorrect due date sent in by the merchant
 with a correct due date calculated by the system as this would change
 the content of the transaction sent in by the merchant.
 
-[[SEPADirectDebit-CalculatingtheDueDate]]
-Calculating the Due Date
-++++++++++++++++++++++++
+[#SEPADirectDebit_Fields_SpecificFields_DueDate_DueDateCalculation]
+*Calculating the Due Date*
 
 In order to keep processing times transparent for all transactions
 within SEPA, a transaction’s due date has been clearly defined. If the
@@ -740,9 +513,12 @@ merchant chooses to specify a due date, it is important to ensure all
 payments are submitted on time and are processed correctly. Wirecard
 requires merchants to submit
 
-* all transactions, regardless of sequence type, at least three (3)
+- all transactions, regardless of sequence type, at least three (3)
 banking days before the due date
+//-
 
+[NOTE]
+====
 This is not a requirement. It is an option. If a merchant chooses to
 send in a transaction later than the earliest possible due date, this is
 possible. Wirecard will always validate a due date if one is sent in
@@ -755,22 +531,21 @@ It is also necessary for the merchant to take into consideration the
 European Central Bank’s Target 2 Calendar which specifies all
 non-banking days. These include:
 
-* Saturdays and Sundays
-* New Year's Day
-* Good Friday
-* Easter Monday
-* 1 May (Labour Day)
-* Christmas Day
-* 26 December
+- Saturdays and Sundays
+- New Year's Day
+- Good Friday
+- Easter Monday
+- 1 May (Labour Day)
+- Christmas Day
+- 26 December
+//-
+====
 
 For more information about recurring SEPA Direct Debit payments, please
-read chapter
-https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-RecurringTransaction[SEPA
-Direct Debit Recurring Transaction].
+read chapter <<SEPADirectDebit_TransactionTypes_Recurring, SEPA Direct Debit Recurring Transaction>>.
 
-[[SEPADirectDebit-DelayedprocessingofSEPADirectDebittransactions]]
-Delayed processing of SEPA _Direct Debit_ transactions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_Fields_SpecificFields_DelayedProcessing]
+.Delayed processing of SEPA _Direct Debit_ transactions
 
 Wirecard offers the possibility to delay the processing of a SEPA
 _Direct Debit_ transaction by providing the element:
@@ -782,8 +557,8 @@ inside the SEPA _Direct Debit_ request.
 According to the date which is provided in the request the corresponding
 SEPA transaction will be sent to the Wirecard bank for the processing.
 This feature enables the merchant to cancel the transaction before the
-cut-off time of the capture date. The capture date range is from 1 - 14
-calender days. Dates outside of this range lead to a transaction
+cut-off time of the capture date. The capture date range is from 1-14
+calendar days. Dates outside of this range lead to a transaction
 rejection with the status code 400.1321. If the capture date is a
 non-working bank day, the processing will start on the next bank working
 day. For example, if the capture date is pointing to a Saturday, the
@@ -800,13 +575,12 @@ The due date may only be used if it passes validation. If validation is
 not passed, Wirecard will return a failed transaction (400.1175) and the
 transaction must be re-submitted.
 
-The provided capture date does not guarantee the money flow on this
+NOTE: The provided capture date does not guarantee the money flow on this
 date. The real money flow will occur according to the provided or
 calculated due date.
 
-[[SEPADirectDebit-B2B]]
-B2B
-^^^
+[#SEPADirectDebit_Fields_SpecificFields_B2B]
+.B2B
 
 B2B (B2B SDD) is an optional field. It is a business-to-business scheme,
 intended solely for use of debtors that are professionals or companies.
@@ -814,101 +588,74 @@ intended solely for use of debtors that are professionals or companies.
 Private individuals (consumers) or micro enterprises use B2C (Core SDD)
 instead.
 
-[[SEPADirectDebit-DifferencesbetweenSEPADirectDebitCore(CoreSDD)andSEPADirectDebitB2B(B2BSDD)Schemes]]
-Differences between SEPA _Direct Debit Core_ (Core SDD) and SEPA _Direct
-Debit B2B_ (B2B SDD) Schemes
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+[#SEPADirectDebit_Fields_SpecificFields_B2B_DifferencesSchemes]
+*Differences between SEPA _Direct Debit Core_ (Core SDD) and SEPA _Direct Debit B2B_ (B2B SDD) Schemes*
 
-[width="100%",cols="34%,33%,33%",options="header",]
-|=======================================================================
-|  |Core SDD |B2B SDD
-|*Transaction Process* a|
-1.  Merchant sends mandate to consumer
-2.  Consumer sends signed mandate to merchant
-3.   Merchant captures mandate data and sends the transaction
-information to the WPG
-4.  Merchant stores mandate
+[%autowidth]
+|===
+|  | Core SDD | B2B SDD
 
- a|
-1.  Merchant sends 2 mandate copies to business
-2.  Business:
-1.  Sends signed mandate to merchant
-2.  Sends signed mandate to his/her bank to authorize the account for
-B2B collections
-3.   Merchant captures mandate data and sends the transaction
-information to the WPG
-4.  Merchant stores mandate
+|*Transaction Process* a| . Merchant sends mandate to consumer
+                          . Consumer sends signed mandate to merchant
+                          . Merchant captures mandate data and sends the transaction information to the WPPG
+                          . Merchant stores mandate
 
-|*Usage* a|
-* Consumers
-* Exceptionally small businesses
+                       a| . Merchant sends 2 mandate copies to business
+                          . Business:
+                            * Sends signed mandate to merchant
+                            * Sends signed mandate to his/her bank to authorize the account for B2B collections
+                          . Merchant captures mandate data and sends the transaction information to the WPPG
+                          . Merchant stores mandate
 
- a|
-* Businesses only
-* Small businesses may be excluded from the scheme on a country by
-country basis. Please contact the individual banks.
+|*Usage* a| - Consumers
+            - Exceptionally small businesses
 
-|*Bank Participation* a|
-* Mandatory
+         a| - Businesses only
+            - Small businesses may be excluded from the scheme on a country by country basis. Please contact the individual banks.
 
- a|
-* Optional
+|*Bank Participation* a| - Mandatory
 
-* The consumer's bank must be enrolled in the SEPA B2B scheme in order
+                      a| - Optional
+                         - The consumer's bank must be enrolled in the SEPA B2B scheme in order
 to process B2B SEPA _Direct Debit_ transactions. Please ensure the
 consumer notifies their bank about the upcoming B2B _debit_ transaction.
 Otherwise, the transaction may be rejected.
 
-|*Debit Return* a|
-* possible up to 8 weeks after _debit_
+|*Debit Return*       a| - possible up to 8 weeks after _debit_
+                         - possible up to 13 months after _debit_ (in case of missing mandate)
 
-* possible up to 13 months after _debit_ (in case of missing mandate)
+                      a| - No return possible after _debit_ has been executed
 
- a|
-* No return possible after _debit_ has been executed
+|*Refund*             a| - Refund possible via SEPA Credit
 
-|*Refund* a|
-* Refund possible via SEPA Credit
+                      a| - Refund possible via SEPA Credit
 
- a|
-* Refund possible via SEPA Credit
+|*Mandate Check by Debtor Bank* a| - Optional
 
-|*Mandate Check by Debtor Bank* a|
-* Optional
+                                a| - Mandatory
 
- a|
-* Mandatory
+|*Submission Deadlines*         a| . Pre-notification: 14 calendar days prior to the due date (D–14):
+Merchant notifies the consumer of the upcoming _debit_ transaction. (Merchant and consumer may agree upon a different timeframe.)
+                                   . Due Date: The transaction must be submitted to the bank earliest one
+business day prior to the due date (D–1) for the submission of one-off, first, and subsequent debits.
+                                 | Same as Core DD
+|===
 
-|*Submission Deadlines* a|
-1.  Pre-notification: 14 calendar days prior to the due date (D–14):
-Merchant notifies the consumer of the upcoming _debit_ transaction. (The
-merchant and consumer may agree upon a different timeframe)
-2.  Due Date:The transaction must be submitted to the bank earliest one
-business day prior to the due date (D–1) for the submission of one-off,
-first, and subsequent debits.
-
- |Same as Core DD
-|=======================================================================
-
-For more information regarding the differences between CORE SDD and B2B
+NOTE: For more information regarding the differences between CORE SDD and B2B
 SDD, please refer to Annex V in the European Payments Council SEPA
 Direct Debit Business to Business Rulebook.
 
-[[SEPADirectDebit-Samples:Request,ResponseandNotification]]
-Samples: Request, Response and Notification +
----------------------------------------------
+[#SEPADirectDebit_Samples]
+===== Samples: Request, Response and Notification
 
-Go to
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-NotificationExamples[Notification
-Examples], if you want to see corresponding notification samples.
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want to see corresponding notification samples.
 
-[[SEPADirectDebit-debit]]
-_debit_
-~~~~~~~
+[#SEPADirectDebit_Samples_Debit]
+====== _debit_
 
-*XML Pending-Debit Request (Successful)*  Expand source
+.XML Pending-Debit Request (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -935,11 +682,9 @@ _debit_
 </payment>
 ----
 
- +
+.XML Pending-Debit Response (Successful)
 
-*XML Pending-Debit Response (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -974,11 +719,9 @@ _debit_
 </payment>
 ----
 
- +
+.XML Pending-Debit Request (Failure)
 
-*XML Pending-Debit Request (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1001,11 +744,9 @@ _debit_
 </payment>
 ----
 
- +
+.XML Pending-Debit Response (Failed)
 
-*XML Pending-Debit Response (Failed)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1034,15 +775,13 @@ _debit_
 </payment>
 ----
 
-[[SEPADirectDebit-pending-debitwiththeIBANOnlyfeature.]]
-_pending-debit_ with the
-https://document-center.wirecard.com/display/PTD/SEPA#SEPA-SEPAIBANOnly[IBAN
-Only] feature.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_Samples_Debit_PendingDebit]
+*_pending-debit_ with <<SEPA_Reporting_IbanOnly, IBAN Only>> feature*
 
-*XML Pending-Debit Request (Successful)*  Expand source
 
-[source,syntaxhighlighter-pre]
+.XML Pending-Debit Request (Successful)
+
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1086,9 +825,9 @@ Only] feature.
 </payment>
 ----
 
-*XML Pending-Debit Response (Successful)*  Expand source
+.XML Pending-Debit Response (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1127,13 +866,12 @@ Only] feature.
 </payment>
 ----
 
-[[SEPADirectDebit-<b2b>settotrue]]
-<b2b> set to true
-^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_Samples_Debit_b2b]
+*<b2b> set to true*
 
-*XML debit Request, <b2b> = true (Successful)*  Expand source
+.XML Debit Request, <b2b> = true (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
  POST http://127.0.0.1:8080/engine/rest/paymentmethods/?request-id=1c7ba19e-1ae8-42b5-9b29-fa5a24608685&iban=DE42512308000000060004&bic=WIREDEMMXXX&mandate-id=12345678&signed-date=2017-10-20&consumer-first-name=Jack&consumer-last-name=Smith&creditor-id=DE98ZZZ09999999999&payment-method-name=sepadirectdebit HTTP/1.1
 Accept-Encoding: gzip,deflate
@@ -1173,9 +911,9 @@ Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
 </payment>
 ----
 
-*XML debit Response, <b2b> = true (Successful)*  Expand source
+.XML Debit Response, <b2b> = true (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
    <merchant-account-id>a0a371cc-44d4-4c23-a592-f04b7e8b18e8</merchant-account-id>
@@ -1215,9 +953,9 @@ Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
 </payment>
 ----
 
-*XML pending-debit Request, <b2b> = true (Successful)*  Expand source
+.XML Pending-Debit Request, <b2b> = true (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
  POST http://127.0.0.1:8080/engine/rest/paymentmethods/?request-id=316fab47-5508-456e-a962-ff4b927c0792&iban=DE42512308000000060004&bic=WIREDEMMXXX&mandate-id=12345678&signed-date=2017-10-20&consumer-first-name=Jack&consumer-last-name=Smith&creditor-id=DE98ZZZ09999999999&payment-method-name=sepadirectdebit HTTP/1.1
 Accept-Encoding: gzip,deflate
@@ -1257,9 +995,9 @@ Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
 </payment>
 ----
 
-*XML pending-debit Response, <b2b> = true (Successful)*  Expand source
+.XML Pending-Debit Response, <b2b> = true (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
    <merchant-account-id>a0a371cc-44d4-4c23-a592-f04b7e8b18e8</merchant-account-id>
@@ -1299,13 +1037,12 @@ Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
 </payment>
 ----
 
-[[SEPADirectDebit-RecurringTransactions]]
-Recurring Transactions
-^^^^^^^^^^^^^^^^^^^^^^
+[#SEPADirectDebit_Samples_Debit_Recurring]
+*Recurring Transactions*
 
-*XML Debit Request "First" (Successful)*  Expand source
+.XML Debit Request "First" (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1336,11 +1073,9 @@ Recurring Transactions
 </payment>
 ----
 
- +
+.XML Debit Response "First" (Successful)
 
-*XML Debit Response "First" (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1379,11 +1114,9 @@ Recurring Transactions
 </payment>
 ----
 
- +
+.XML Debit Request "Recurring" (Successful)
 
-*XML Debit Request "Recurring" (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1415,11 +1148,9 @@ Recurring Transactions
 </payment>
 ----
 
- +
+.XML Debit Response "Recurring" (Successful)
 
-*XML Debit Response "Recurring" (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1460,11 +1191,9 @@ Recurring Transactions
 </payment>
 ----
 
- +
+.XML Debit Request "Recurring" (Failure)
 
-*XML Debit Request "Recurring" (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1495,11 +1224,9 @@ Recurring Transactions
 </payment>
 ----
 
- +
+.XML Debit Response "Recurring" (Failure)
 
-*XML Debit Response "Recurring" (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1536,13 +1263,12 @@ Recurring Transactions
 </payment>
 ----
 
-[[SEPADirectDebit-authorization.2]]
-_authorization_
-~~~~~~~~~~~~~~~
+[#SEPADirectDebit_Samples_Authorization]
+====== _authorization_
 
-*XML Authorization Request (Successful)*  Expand source
+.XML Authorization Request (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1564,11 +1290,9 @@ _authorization_
 </payment>
 ----
 
- +
+.XML Authorization Response (Successful)
 
-*XML Authorization Response (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1597,11 +1321,9 @@ _authorization_
 </payment>
 ----
 
- +
+.XML Authorization Request (Failure)
 
-*XML Authorization Request (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1622,11 +1344,9 @@ _authorization_
 </payment>
 ----
 
- +
+.XML Authorization Response (Failure)
 
-*XML Authorization Response (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1653,17 +1373,14 @@ _authorization_
 </payment>
 ----
 
-[[SEPADirectDebit-void-pending-debit]]
-_void-pending-debit_
-~~~~~~~~~~~~~~~~~~~~
+[#SEPADirectDebit_Samples_VoidPendingDebit]
+====== _void-pending-debit_
 
-_void-pending-debit_ transactions can also be used with
-https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer#SEPACreditTransfer-Void-Pending-Credit[SEPA
-Credit Transfer].
+_void-pending-debit_ transactions can also be used with <<SEPACreditTransfer, SEPA Credit Transfer>>.
 
-*XML Void-Pending-Debit Request (Successful)*  Expand source
+.XML Void-Pending-Debit Request (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1678,11 +1395,9 @@ Credit Transfer].
 </payment>
 ----
 
- +
+.XML Void-Pending-Debit Response (Successful)
 
-*XML Void-Pending-Debit Response (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1717,11 +1432,9 @@ Credit Transfer].
 </payment>
 ----
 
- +
+.XML Void-Pending-Debit Request (Failure)
 
-*XML Void-Pending-Debit Request (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -1735,11 +1448,9 @@ Credit Transfer].
 </payment>
 ----
 
- +
+.XML Void-Pending-Debit Response (Failure)
 
-*XML Void-Pending-Debit Response (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -1760,22 +1471,3 @@ Credit Transfer].
   </payment-methods>
 </payment>
 ----
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3703429/3703427.png[20171020_SEPA
-DirectDebit_Workflow.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3703429/3703426.png[20171020_SEPA
-DirectDebit_Workflow.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3703429/3703428.png[SEPA Sequence Type Flow.png]
-(image/png) +
-
-[[footer]]
-Document generated by Confluence on Feb 12, 2019 16:43
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
