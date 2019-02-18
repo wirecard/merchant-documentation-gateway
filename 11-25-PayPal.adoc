@@ -1,0 +1,3196 @@
+[#API_PaymentMethods_PayPal]
+=== PayPal
+
+image::images/11-25-PayPal/PayPal_logo.jpg[PayPal Logo,height=1]
+
+[#API_PayPal_Introduction]
+==== Introduction
+
+_PayPal_ is a global e-commerce business. _PayPal_ processes its
+payments and money transfers through the Internet. _PayPal_ is a wallet
+payment method that allows consumers to make and accept payments without
+having to share their financial information. It is available in 190
+countries worldwide, with more than 100 million active accounts.
+_PayPal_ claims an average 18% increase in online sales once merchants
+add _PayPal_ payment method to their online stores.
+
+_PayPal_ supports debit, authorization and capture, void, refund,
+authorization-only and preauthorization transactions. If the debit,
+authorization, authorization-only or preauthorization request is
+successful, the _Forward-URL_ to the _PayPal_ Express Checkout landing
+page will be sent in the response.
+
+Once Wirecard has received a notification from _PayPal_ about the final
+status of the transaction, this status will be communicated to the
+merchant via the _Notification-URL_ that is configured in the merchant
+account. If no _Notification-URL_ is configured in the merchant account
+the notification will be sent via email to the merchant in case the
+email address has been configured. Usually, this status is received
+within seconds of the completion of the transaction, however, it may
+take up to a few days.
+
+[#API_PayPal_Express]
+===== _PayPal_ Express Checkout
+
+_PayPal_ Express Checkout is a service
+that allows consumers to pay using a _PayPal_ account instead of a
+credit card. They can make purchases without entering billing, shipping,
+and credit card information as all of this information is already stored
+with _PayPal_. _PayPal_ expects merchants to provide details about
+an order, so that this Information can be shown to a consumer during the
+checkout procedure. Also, the consumer is able to change the shipping
+address during the checkout in _PayPal_. Therefore the shipping address
+together with other payment details are returned to merchant’s web shop
+for further processing.
+
+[#API_PayPal_GeneralInformation]
+==== General Information
+
+[#API_PayPal_GeneralInformation_PaymentMode]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _PayPal_ belongs to. It also
+provides detailed information about the countries and currencies which
+are relevant for _PayPal_.
+
+.Payment Mode, Countries and Currencies
+[width="100%",cols="20%,80%",]
+|===
+|*Payment Mode* |<<PaymentMethods_Overview_Wallet, Wallet>>
+|*Countries* |Worldwide
+|*Currencies* |USD, EUR, AUD, CAD, CZK, DKK, HKD, HUF, ILS, JPY, MYR,
+MXN, NOK, NZD, PHP, PLN, GBP, SGD, SEK, CHF, TWD, THB
+|===
+
+[#API_PayPal_GeneralInformation_Communication]
+===== Communication Formats
+
+This table illustrates how _PayPal_ notifications are encoded and which
+formats and methods can be used for requests and responses.
+
+.Communication Formats
+[width="100%",cols="20%,40%,40%"]
+|===
+.2+|*Requests/Responses* | Format | XML
+                         | Methods | POST
+|*IPN Encodement*      2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_NotificatonExample_Alternative,Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_PayPal_Transactions]
+==== Transactions
+
+[#API_PayPal_Transactions_Recurring]
+===== Recurring Transaction
+
+The endpoint for referenced transactions is: ``\https://api.wirecard.com/engine/rest/payments/``.
+The _Wirecard Payment Gateway_ allows a merchant to submit
+<<GeneralPlatformFeatures_Transactions_Recurring, recurring transactions>>
+for _PayPal_ transactions. To submit a recurring transaction, the merchant
+must submit a request with the transaction type _Debit_, _Authorization_ or
+_Authorization-Only_ including a
+<<GeneralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
+and a <<#GeneralPlatformFeatures_Transactions_Recurring_Sequence, SEQUENCE TYPE>> element.
+With _PayPal_ it is also possible to mix the transaction types
+_Authorization_ and _Debit_.
+
+Read, which <<GeneralPlatformFeatures_Transactions_Recurring_Restrictions, restrictions>>
+have to be met to use a recurring transaction.
+
+[#API_PayPal_Transactions_TransactionTypes]
+===== Transaction Types
+
+For transaction type details which are not given here look at <<AppendixB, Appendix B: Transaction Types>>.
+
+.Transaction Types
+[width="100%",cols="25%,50%,25%,options="header",]
+|===
+|Transaction Type |Description |Link to the samples
+|_capture-authorization_ |only available on a successful _authorization_
+which was neither voided nor fully captured yet. Partial and multiple
+capture is allowed, until the authorization limit is not exceeded.
+|<<API_PayPal_Samples_Workflow_capture-authorization, _capture-authorization_ samples>>
+
+|_authorization_ |an _authorization_ payment request represents an
+agreement to pay and places the consumer's funds on hold for up to three
+days. You can attempt to capture from day four to day 29 of the
+authorization period, but _PayPal_ cannot ensure that 100% of the funds
+will be available after the three-day honor period
+|<<API_PayPal_Samples_GeneralSamples_preauthorization, _authorization_ samples>>
+
+|_void-authorization_ |only available on a successful _authorization_
+which was neither voided nor captured yet. Authorization is voided as a
+whole.
+|<<API_PayPal_Samples_voidauthorization, _void-authorization_ sample>>
+
+|_debit_ |debit is an immediate payment for online purchase by
+consumer’s _PayPal_ wallet.
+|API_PayPal_Samples_GeneralSamples_debit[_debit_ samples]
+
+|_refund-debit_ |available on a successful _debit_. Partial and multiple
+refunds are allowed, until the original amount is not exceeded.
+|<<API_PayPal_Samples_GeneralSamples_refunddebit, _refund-debit_ samples>>
+
+|_refund-capture_ |available on a successful capture-authorization.
+Partial and multiple refunds are allowed, until the original amount is
+not exceeded.
+|<<API_PayPal_Samples_GeneralSamples_refundcapture, _refund-capture_ samples>>
+
+|_preauthorization_ |the possibility to obtain consumer’s preliminary
+payment confirmation (along with shipping details from _PayPal_ for
+example).
+|<<API_PayPal_Workflow_ConfirmPreauthorization, _preauthorization_ sample>> 
+
+|_authorization-only_ |transaction can be only the first one in the
+series, and the amount is always zero.
+<<API_PayPal_Samples_GeneralSamples_authorizationonly, _authorization-only_ samples>>
+
+| __order__ |creating a _PayPal_ order indicates that the consumer has
+consented to the purchase but does not place the funds on hold. After
+merchant creates an order, they can place multiple authorizations upon
+it to place funds on hold until ready to capture. Order cannot be
+referenced by debit transaction and cannot be voided.
+<<API_PayPal_Samples_GeneralSamples_order, _order_ samples>>
+
+|_pending-credit_ or _credit_
+|moves funds from the merchant to the consumer without referencing
+previous payment.
+<<API_PayPal_Samples_GeneralSamples_pendingcredit, _pending-credit_ samples>> or
+<<API_PayPal_Samples_GeneralSamples_credit, _credit_ samples>>
+
+|_pending-debit_ |unfinished debit transaction, waiting for the result
+of the link:https://developer.paypal.com/docs/classic/express-checkout/integration-guide/ECOtherAPIOps/[_PayPal_ Payment Review] process. After _PayPal_’s review process is finished, a
+*debit* transaction will be created as follow up transaction. For
+proper functionality, an <<GeneralPlatformFeatures_IPN_Configuration, IPN configuration>> is required in the merchant’s _PayPal_ account. This
+transaction type will occur only for transactions in review process and
+is not invoked for all transactions automatically. | 
+|===
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific]
+===== _PayPal_ Specific Use of Transaction Types
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_preauthorization]
+====== _preauthorization_
+
+It is possible to obtain consumer’s preliminary payment confirmation
+(along with shipping details from _PayPal_, for example) without
+reserving funds on payer’s _PayPal_ account. This can be achieved
+using a _preauthorization_ transaction, which have the same parameters
+as _authorization_ or _debit_ request. Similarly, the _Forward-URL_ to
+the <<API_PayPal_Express, _PayPal_ Express Checkout>> is
+delivered in the response, where the consumer needs to confirm the
+payment. In order to finalize the payment, a regular _authorization_ or
+_debit_ transaction needs to be submitted, referencing the prior
+_preauthorization_ transaction using the _Parent-transaction-ID_ field.
+The _preauthorization_ does not need to be cancelled, if the merchant
+decides not to follow up on this order attempt.
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_authorization-only]
+====== _authorization-only_
+
+On _PayPal_ merchant setup site the option "Use <<API_PayPal_Express, Express Checkout>> to
+process payments" must be "true", otherwise it is not possible to create a "get-url" transaction.
+_authorization-only_ (records data at _PayPal_ and Wirecard for later
+payments/recurring transactions) requires the following: 
+
+* Additional activation of the setting “Obtain authorization for
+pre-approved payments and initiate pre-approved transactions.”
+* _authorization-only_ transaction needs the following settings:
+** address the ``...paymentmethods`` endpoint
+1.  1.  the <<GeneralPlatformFeatures_Transactions_Recurring_Periodic, periodic type>> part must be either "recurring" or "installment"
+2.  the <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, sequence type>> must be "first".
+** amount = "0.00"
+* In addition the merchant can reference "Authorization-only" by either
+debit or authorization. A Follow-up authorization can be then be
+captured.
+** address the ``…/payments`` endpoint for the follow-up debit
+** always use non-zero amount for debit operation
+** the correct (parent-)transaction-id is visible as
+group-transaction-id in WEP for example or can be found out by querying
+Wirecard Payment Gateway using the RequestID from the initial
+transaction (see
+<<GeneralPlatformFeatures_RetrieveTransaction_RequestID, here>>).
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_credit]
+====== _credit_
+
+_credit_ transaction moves funds from the merchant to the consumer
+without referencing previous payment. It's a fast and convenient way to
+send commissions, rebates, rewards, and general payments.
+
+_PayPal_ takes the payment amounts from your account and attempts to put
+them into the recipients' _PayPal_ account. If the recipients do not
+have _PayPal_ accounts, _PayPal_ notifies them that a payment is
+available and they must create a _PayPal_ account to receive the
+payment. _PayPal_ will temporarily hold the total monetary value of the
+mass payment, plus associated fees, until processing is completed. If a
+payment is sent to a recipient who does not have a _PayPal_ account, and
+it remains unclaimed for 30 days from the payment date, the money is
+returned to your _PayPal_ account.
+
+Every recipient receives an email notifying them of the payment.
+Recipients with a _PayPal_ click a link in the email message, log in to
+their account, and access their payments. If the recipients do not have
+a _PayPal_ account, their email message contains a link that directs
+them to a _PayPal_ sign-up page. The sign-up process automatically
+confirms their email address. When they complete the sign-up process,
+the money is available in their new _PayPal_ account. Customers will
+then have the option to make online purchases with their money, withdraw
+it to a bank account, have a check mailed to them, or request for
+_PayPal_ to send them a debit card to access their funds.
+
+Merchant needs to specify one (or multiple) of three fields in the
+_pending-credit_ request:
+
+* wallet.account-id (with customer’s _PayPal_ account identifier)
+* account-holder.email
+* account-holder.phone
+
+The provided information is used in this order to identify the recipient
+of the payment. As soon as request is submitted a _pending-credit_
+transaction is created in the database. Once Wirecard has received a
+notification from _PayPal_ about the final status, a follow-up _credit_
+transaction is created, and this status will be communicated to the
+merchant via the _Notification-URL_ that is configured in the merchant
+account. If no _Notification-URL_ is configured in the merchant account
+the notification will be sent via email to the merchant in case the
+email address has been configured.
+
+_credit_ transaction is provided over so-called “Mass Payments“ service,
+so merchant should contact _PayPal_ Customer Support to enable Mass
+Payments for their _PayPal_ premier or business accounts.
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_order]
+====== _order_
+
+Creating a _PayPal order_ indicates that the buyer has consented to the
+purchase but does not place the funds on hold. After merchant creates an
+_order_, they can place multiple authorizations upon it to place funds
+on hold until ready to _capture_.
+
+Merchants often use this technique to accept orders for items that are
+not available for shipment when the order is placed. For example, when a
+merchant ships items from multiple distribution centers and needs
+separate _authorizations_ for each shipment. Another example would be
+delayed shipping on items that are not in stock.
+
+An _order_ is valid for 29 days. Merchant can make up to 10 referencing
+_authorizations_ for each order. _order_ cannot be referenced by _debit_
+transaction and cannot be voided.
+
+_order_ request has the same fields as _authorization_ or _debit_
+transactions. Similarly, the _Forward-URL_ to the
+<<API_PayPal_Express, _PayPal_ Express Checkout>> is delivered in
+the response, where the consumer needs to confirm the payment. In order
+to finalize the payment, a regular _authorization_ transaction needs to
+be submitted, referencing the prior _order_ transaction using the
+Parent-Transaction-ID field.
+
+[#PayPal_TestCredentials]
+==== Test Credentials
+
+.Test Credentials
+[width="100%",cols="15%,40%,20%,20%"]
+|===
+.2+|*URL(s) Endpoints*
+| The transaction types _debit_, _authorization_, _authorization-only_,
+_preauthorization_, _pending-credit_, _credit_ or _order_ use
+2+| ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| The transaction types _capture-authorization_, _refund-capture_,
+_void-authorization_ and _refund-debit_ use
+2+| ``\https://api-test.wirecard.com/engine/rest/payments/``
+
+.3+|*Merchant Account ID (MAID)*
+| Show No Address
+|be17476f-1a0c-442e-8841-70e33996c0aa
+.3+|<<API_PayPal_Configuration_Addresses, See details>>
+|Show Address
+|8695f3e4-76e8-414b-96cd-a1e5dafcf20c
+|Edit Address
+|ecfec3fa-87a2-41bb-86e9-4e738b89c91a
+
+|*Username*
+3+|16390-testing
+
+|*Password*
+3+|3!3013=D3fD8X7
+|===
+
+[#API_PayPal_TestCredentials_Additional]
+===== Additional Test Credentials on _PayPal_ Environment
+
+.Additional Test Credentials
+[width="100%",cols="20%,80%"]
+|===
+|*Email* |``\paypal.buyer2@wirecard.com``
+|*Password* |Wirecardbuyer
+|===
+
+[#API_PayPal_Workflow]
+==== Workflow
+
+The consumer has three hours to finish his payment, because the
+<<GeneralPlatformFeatures_RedirectURL, _Redirect URL_>> expires after three hours. A query for an unfinished transaction,
+that has exceeded this time span will return a _Failed_ transaction.
+
+[#API_PayPal_Workflow_debit]
+===== _debit_
+
+See
+<<API_PayPal_Samples_GeneralSamples_debit, _debit_ samples>> for details.
+
+._debit_ workflow with _PayPal_
+image::images/11-25-PayPal/PaypalWorkflow_debit.png[debit Workflow,height=100]
+
+1.   Consumer initiates payment.
+2.  Merchant sends _debit_ request to WPG.
+3.  WPG sends a response to merchant containing the redirect URL to
+_PayPal_.
+4.  Merchant takes URL from response.
+5.  Merchant redirects consumer to this URL (URL can be found in parameter
+<``payment-method url="URL" name="paypal"/``>).
+6.  Consumer confirms payment on _PayPal_ site.
+7.  WPG redirects consumer back to merchant’s system URL based on
+payment result (success_url, cancel_url, failed_url <- defined in MAID
+configuration or in first request).
+8.  WPG sends IPN to merchant’s system after payment is verified (usually
+few seconds).
+
+[#API_PayPal_Workflow_refund-debit]
+===== refund-debit or refund-capture
+
+See <<API_PayPal_Samples_GeneralSamples_refunddebit, _refund-debit_ samples>>
+for details.
+
+._refund-debit_ workflow with _PayPal_
+image::images/11-25-PayPal/PaypalWorkflow_refund-debit.png[refund-debit Workflow,height=100]
+
+1.  Merchant sends _refund_ request to WPG
+..  It depends on the corresponding transaction, whether merchant sends
+a _refund-debit_ or _refund-capture_ request.
+..  The request must contain the <``transaction-id``> of the transaction to
+be refunded. The <``transaction-id``> of this corresponding transaction must
+be placed in the <``parent-transaction-id``> field.
+2.  The response sent back to merchant will contain result of
+transaction (success or failed).
+3.  IPN is sent to merchant’s system with transaction result as
+well**.**
+
+[#API_PayPal_Workflow_credit]
+===== _credit_
+
+See <<API_PayPal_Samples_GeneralSamples_credit, _credit_ samples>> for details.
+
+._credit_ workflow with _PayPal_
+image::images/11-25-PayPal/PaypalWorkflow_credit.png[credit workflow,height=250]
+
+1.  Merchant sends _pending-credit_ request to WPG.
+2.  WPG processes the transaction.
+3.  WPG sends response containing the transaction result back to
+merchant**.**
+4.  WPG sends an IPN to merchant with final transaction status**.**
+
+[#API_PayPal_Workflow_authorization]
+===== _authorization_ and _capture-authorization_
+
+See <<API_PayPal_Workflow_AuthorizationCaptureRefundCapture, _authorization_ and _capture-authorization_ samples>> for details.
+
+._authorization_ and _capture-authorization_ workflow with _PayPal_
+image::images/11-25-PayPal/PaypalWorkflow_AuthorizationCapture.png[authorization and capture-authorization workflow,height=100]
+
+The merchant does an _authorization_ for a specific amount, the consumer
+needs to accept this authorization and then the merchant can submit a
+_capture_ anytime to capture the requested amount.
+
+1.  _authorization_
+..  Merchant sends _authorization_ request to WPG**.**
+..  WPG responds with the redirect URL to __PayPal__**.**
+..  Merchant takes URL from response and redirects consumer to this URL
+(URL is in field
+<payment-method url="http://www.paypal.com/?token=EC-MOCK-9N3XB7G4P9PR%22 name="paypal"/>)
+..  Consumer authorizes payment on _PayPal_ site
+..  WPG redirects consumer back to merchant’s system. The URL depends on
+payment result (success_url, cancel_url, failed_url, which is defined
+either in the MAID configuration or in the first request of this payment
+process).
+2.  _capture-authorization_
+..  Merchant submits a _capture_ request. The request contains the
+_Transaction-ID_ from the preceding successful authorization
+transaction. The _Transaction-ID_ is forwarded in field
+__Parent-Transaction-ID__**.**
+..  WPG sends the response with the final transaction status to the
+merchant (the endpoint is defined via _Redirect URL_).
+..  The merchant also receives an IPN.
+
+[#API_PayPal_Workflow_order]
+===== _order_ and _authorization_ and _capture_
+
+See <<API_PayPal_Workflow_OrderAuthorizationCapture, _order_, _authorization_ and _capture-authorization_ samples>>
+for details.
+
+._order_, _authorization_ and _capture-authorization_ workflow with _PayPal_
+image::images/11-25-PayPal/PaypalWorkflow_OrderAuthorizationCapture.png[order, authorization and capture-authorization workflow,height=250]
+  
+
+.  _order_
+..  Merchant sends an _order_ request.
+..  WPG sends a response containing the _Redirect URL_.
+..  Merchant takes URL from this response and redirects consumer to this
+URL (URL is in field
+<payment-method url="http://www.paypal.com/?token=EC-MOCK-9N3XB7G4P9PR%22 name="paypal"/>)
+..  Consumer authorizes his order on _PayPal_'s site.
+..  Merchant redirects consumer back to merchant’s system. The URL
+depends on payment result (success_url, cancel_url, failed_url <-
+defined in MAID configuration or in first request)
+..  WPG sends a notification to the merchant's endpoint specified in
+request or in merchant <<API_PayPal_Configuration_PayPalAccount, account configuration>>.
+The notification contains the *Transaction ID*, which is needed for
+further process.
+.  _authorization_
+..  Merchant submits an _authorization_ request. The request *contains
+the _Transaction-ID_ from the preceding successful _order_* transaction.
+The _Transaction-ID_ is forwarded in field _Parent-Transaction-ID_.
+..  WPG sends a response to the merchant. The response contains the
+Authorization's _Transaction-ID_, to be used for further capture
+processes**.**
+.  _capture-authorization_
+..  Merchant submits an _authorization-capture_ request (The
+_Parent-Transaction-ID_ in this request *must contain the
+_Transaction-ID_ from the preceding _authorization_* of this payment
+process)*.*
+..  WPG sends an _authorization-capture_ response to the merchant**.**
+
+[#API_PayPal_Fields]
+==== Fields
+
+The following elements are mandatory (M), optional (O) or conditional
+(C) for sending a request/response for the Payment Method _Paypal._
+
+._PayPal_ Fields
+[width="100%",cols="16%,3%,3%,3%,10%,10%,55%"]
+|===
+|*Field* |*Request*|*Response*|*Notification*|*Data Type*|*Size*|*Description*
+7+a|
+[#API_PayPal_Fields_Payment]
+===== *Payment*
+|merchant-account-id|M|M|M|String|36|Unique identifier for a merchant account.
+|request-id|M|M|M|150|String|This is the identification number of the request. It has to be unique for each request.
+|transaction-type|M|M|M|30|String|This is the type for a transaction. For Paypal only DEBIT is allowed in the initial request.
+|requested-amount|M|M|M|9,2|Decimal|This is the amount of the transaction. The amount of the decimal place is dependent of the currency.
+|parent-transaction-id|C|C|C|36|String|Transaction ID of the first transaction of a payment. For an individual payment parent-transaction-id is not necessary. If the process is recurring, parent-transaction-id is mandatory in the recurring and final transaction.
+|ip-address|O|O|O|String|15|The global (internet) IP address of the consumer's computer.
+|order-number|O|O|O|String|64|This is the order number of the merchant.
+|order-detail|O|O|O|String|65535|This is a field for details of an order filled by the merchant.
+|descriptor|O|O|O|String|27|Description on the settlement of the account holder’s account about a transaction. The following characters are allowed: ``umlaut, - '0-9','a-z','A-Z',' ' , '+',',','-','.'``
+|transaction-id||M|M|String|36|The Transaction ID is the unique identifier for a transaction. It is generated by Wirecard.
+|transaction-type|M|M|M|String|30|This is the type for a transaction. For Paypal only DEBIT is allowed in the initial request.
+|transaction-state||M|M|String|12|This is the status of a transaction
+|completion-time-stamp||M|M|dateTime||This is the timestamp of completion of request.
+|api-id|||M|String||The API id is always returned in the notification. For Skrill it is ``---``
+|instrument-country|O|O|O|String|2|The instrument country contains the information where the consumer belongs to.
+|processing-redirect-url|O|O|O|String|256|The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page on the merchant’s website.
+|cancel-redirect-url|O|O|O|String|256|The URL to which the consumer will be re-directed after he has cancelled a payment. This is normally a page on the merchant’s Website.
+|success-redirect-url|O|O|O|String|256|The URL to which the consumer will be re-directed after a successful payment. This is normally a success confirmation page on the merchant’s website.
+|signature|||M|complex||The signature info, consisting of SignedInfo, SignatureValue and KeyInfo. For details see <<GeneralPlatformFeatures_IPN, IPN>>.
+|provider-transaction-reference-id|O|O|M|String|36|Billing agreement ID from _PayPal_ returned in response (relevant for a recurring transaction).
+|risk-reference-id|O|O|O|String|32|Additional field, which enables PayPal to better detect fraud on consumer-triggered recurring payments.
+7+a|
+[#API_PayPal_Fields_Payment_account-holder]
+====== *account-holder*
+|account-holder.first-name|O|O|O|String|27|This is the first name of the consumer. The maximum size of first-name and last-name in combination is 27 characters.
+|account-holder.last-name|O|O|O|String|27|This is the last name of the consumer. The maximum size of first-name and last-name in combination is 27 characters.
+|account-holder.email|C|C|C|String|64|This is the consumer’s Email- Address. It is mandatory if the field wallet-account-id is not sent in the initial request.
+|account-holder.gender|O|O|O|String|1|This is the consumer’s gender.
+|account-holder.date-of-birth|O|O|O|Date|0|This is the consumer’s birth date.
+|account-holder.phone|O|O|O|String|32|This is the phone number of the consumer.
+7+a|
+[#API_PayPal_Fields_Payment_AccountHolder_Address]
+======= *account-holder.address*
+|account-holder.address.street1|O|O|O|String|128|This is the first part of the consumer’s street.
+|account-holder.address.street2|O|O|O|String|128|This is the second part of the consumer’s street.
+|account-holder.address.city|O|O|O|String|32|This is the consumer’s city.
+|account-holder.address.state|O|O|O|String|32|This is the consumer’s state.
+|account-holder.address.country|O|O|O|String|3|This is the consumer’s country.
+|account-holder.address.postal-code|O|O|O|String|16|This is the consumer’s postal code.
+7+a|
+[#API_PayPal_Fields_Payment_Shipping]
+====== *shipping*
+|shipping.first-name|O|O|O|String|27|First name of the shipment's recipient.
+|shipping.last-name|O|O|O|String|27|Last name of the shipment's recipient.
+|shipping.phone|O|O|O|String|32|Phone number of the shipment's recipient.
+7+a|
+[#API_PayPal_Fields_Payment_Shipping_Address]
+======= *shipping.address*
+|shipping.address.street1|O|O|O|String|128|First part of the shipment recipient's street name.
+|shipping.address.street2|O|O|O|String|128|Second part of the shipment recipient's street name.
+|shipping.address.city|O|O|O|String|32|Name of the shipment recipient's city.
+|shipping.address.country|O|O|O|String|3|Name of the shipment recipient's country. Please use the list of country codes supported by link:https://developer.paypal.com/docs/classic/api/country_codes/[Paypal]
+|shipping.address.state|C|C|C|String|32|Name of the shipment recipient's state. It is a mandatory field, if the <shipping.address.country> country is one of the following:
+AR (Argentina)1
+BR (Brazil)1
+CA (Canada)1
+IN (India)
+ID (Indonesia)
+IT (Italy)1
+JP (Japan)1
+MX (Mexico)1
+TH (Thailand)
+US (USA)
+Please use the list of state codes supported by Paypal: https://developer.paypal.com/docs/classic/api/state_codes/
+1 = For these countries the fields <shipping.address.postal-code> and <shipping.address.state> are  mandatory.
+|shipping.address.postal-code|C|C|C|String|16|Postal code of the shipment recipient's city. It is a mandatory field, if the shipment recipient's country is provided with a "1" in the field description for <shipping.address.state>.
+7+a|
+[#API_PayPal_Fields_Payment_statuses]
+====== *statuses*
+7+a|
+[#API_PayPal_Fields_Payment_statuses_status]
+======= *statuses.status*
+|statuses.status.code||M|M|String|12|This is the code of the status of a transaction. It can be any of <<StatusCodes, those>>.
+|statuses.status.description||M|M|String|256|This is the description to the status code of a transaction.
+|statuses.status.severity||M|M|String|20|This field gives information if a status is a warning, an error or an information.
+7+a|
+[#API_PayPal_Fields_Payment_notifications]
+====== *notifications*
+|notifications.notification@url|O|O|O|String|256|The URL to be used for the Instant Payment Notification. It overwrites the notification URL that is set up in the merchant configuration.
+7+a|
+[#API_PayPal_Fields_Payment_customfields]
+====== *custom-fields*
+|custom-field.paypal-address-status|O|O|O|String|256|This is the status of the PayPal address check. Note that this field must be explicitly enabled by <<ContactUs, Wirecard's Merchant Support>>.
+|custom-field.paypal-protection-eligibility|O|O|O|String|256|This is the status of the PayPal Seller Protection offered to merchants to protect them from chargebacks, reversals, etc. Note that this field must be explicitly enabled by <<ContactUs, Wirecard's Merchant Support>>.
+7+a|
+[#API_PayPal_Fields_Payment_paymentmethods]
+====== *payment-methods*
+|payment-methods.payment-method-Name|M|M|M|String|15|This is the name of the payment method that is chosen from the consumer.
+7+a|
+[#API_PayPal_Fields_Payment_wallet]
+====== *wallet*
+|wallet.account-id|C|C|C|String|50|The unique identifier of the Account Holder's Wallet Account. It is mandatory if the field account-holder.email is not sent in the initial request.
+7+a|
+[#API_PayPal_Fields_Payment_periodic]
+====== *periodic*
+|periodic.periodic-type|M|M|M|String|9|Indicates how and why a Payment occurs more than once. Only two possible values: 'recurring' or ‘installment’
+|periodic.sequence-type|M|M|M|String|9|Indicates the sequence of the recurring transaction. Possible values: ‘first’, ‘recurring’ or ‘final’
+
+|===
+
+[#API_PayPal_Configuration]
+==== Configuration
+
+[#API_PayPal_Configuration_PayPalAccount]
+_PayPal_ Account Configuration
+
+[#API_PayPal_Configuration_PayPalAccount_Granting]
+===== Granting 3rd Party Permission
+
+In order to submit payments on the merchant’s behalf, merchant needs to
+grant 3^rd^ party API permission to Wirecard on _PayPal_ website.
+
+Navigate to _Account settings_ → _My selling tools_ → _API Access_
+and select the link _Grant API permission_.
+
+image::images/11-25-PayPal/Granting_3rdParty_APIAccess.jpg[image,height=250]
+
+In the textfield _Third Party Permission Username_  enter
+``\payments_api1.wirecard.com`` and click _Lookup_.
+
+image::images/11-25-PayPal/Granting_3rdParty_AddNewTPP.jpg[image,height=250]
+
+Select from the list of _Available Permissions_ the following
+items:
+
+- Use Express Checkout to process payments.
+- Issue a refund for a specific transaction.
+- Authorize and capture your _PayPal_ transactions.
+- Obtain information about a single transaction.
+- Charge an existing customer based on a prior transaction.
+- Create and manage Recurring Payments.
+- Use Express Checkout to process mobile payments.
+
+ Click _Add_.
+
+image::images/11-25-PayPal/Granting_3rdParty_AddNewTPP_Detail.gif[image,height=250]
+
+Check that the permissions were added successfully.
+
+image::images/11-25-PayPal/Granting_3rdParty_ManageThirdParty.jpg[image,height=250]
+
+Finally, the merchant’s _PayPal_ registration e-mail address
+must be communicated to Wirecard to submit payments.
+
+Click _Add new Third Party_ to confirm your settings.
+
+[#API_PayPal_Configuration_PayPalAccount_IPNConfiguration]
+====== IPN Configuration for Wirecard
+
+In order to maintain proper functionality of _PayPal_ transactions, IPN
+(https://confluence.wirecard.sys/display/PTD/General+Platform+Features#GeneralPlatformFeatures-IPNConfiguration[Instant
+Payment Notification]) has to be enabled and pointed to the Wirecard
+server on Merchant’s account in _PayPal_.
+
+Please follow these steps:
+
+Navigate to _My Account_ > _Profile_
+
+image::images/11-25-PayPal/IPN_PayPal_Profile.png[image,height=250]
+
+Switch to section _My Selling tools_, find _Instant payment
+notification_ and click _Update_ on right side in the corresponding
+row.
+
+image::images/11-25-PayPal/IPN_PayPal_MySellingTools.png[image,height=250]
+
+{empty}3. Click _Edit settings_
+
+image::images/11-25-PayPal/IPN_PayPal_EditSettings.png[image,height=250] +
+
+Set Notification URL
+
+``\https://api.wirecard.com/engine/notification/paypalipn``
+
+to Wirecard server as shown on image below.
+
+image::images/11-25-PayPal/IPN_PayPal_SetNotificationURL.png[image,height=250] +
+
+[#API_PayPal_Configuration_Addresses]
+==== Addresses
+
+The _Wirecard Payment Gateway_ offers three options to configure the
+consumer's address:
+
+* Transmitted address is not shown in the wallet, that means, the
+address cannot be modified.
+* Transmitted address is shown in the wallet AND the consumer can change
+it directly in the wallet (changes will be forwarded to shop via
+notification).
+* Transmitted address is shown in the wallet AND the consumer cannot
+change it directly in the wallet. The consumer can change his address
+only in the merchant's shop.
+
+The configuration is set by
+<<ContactUs, Wirecard's Merchant Support>>.
+
+[#API_PayPal_Features]
+==== Features
+
+[#API_PayPal_Features_Basket]
+===== Basket Items
+
+Basket item details may be sent along with debit and authorization
+requests. The detailed items of the shopping basket will be displayed in
+_PayPal_ during the checkout, and later stored as a part of payment
+details in _PayPal_. They can also be obtained later from the Wirecard
+Payment Processing Gateway as part of the transaction details.
+
+.Basket Items
+[width="100%",cols="20%,10%,10%,5%,55%",]
+|===
+|*Field*|*Cardinality Req/Resp*|*Dataype*|*Size*|*Description*
+|order-items.order-item.name|O|Alphanumeric||Name of the item in the basket.
+|order-items.order-item.description|O|Alphanumeric||Longer item description.
+|order-items.order-item.article-number|O|Alphanumeric||EAN or other article identifier for merchant.
+|order-items.order-item.amount|O|Number||Item’s price per unit.
+|order-items.order-item.tax-amount|O|Number||Item’s tax per unit.
+|order-items.order-item.quantity|O|Number||Total count of items in the order.
+|===
+
+[#API_PayPal_Features_Cross]
+===== Cross Merchant Account References
+
+The default security setting for all types of reference transactions
+using the field payment/parent-transaction-id allows the references only
+to the transactions of the same merchant account. However it is possible
+to activate cross referencing for a merchant account. With this option
+activated a merchant account can reference a transaction of another
+merchant account. The only requirement is that the processing user used
+for the authentication of the payment request has rights on the merchant
+account of the referenced transaction.
+
+NOTE: This merchant configuration parameter affects all transaction types.
+Other kinds of reference transactions such as _refund_ or _void_ can use
+cross references as well. Once activated it is enabled for all payment
+methods configured for a merchant account even though not all payment
+providers/acquirers might support it.
+
+_PayPal_ supports cross references natively by configuring a special
+shared consumer account which can be used by several merchants.
+Therefore the billing agreement ID can also be shared among several
+merchants.
+
+NOTE: The cross references must be solely enabled for the
+corresponding merchant accounts of the processing user by Wirecard
+Support team.
+
+The recurring transactions process in cross-reference
+mode remains the same.
+
+[#API_PayPal_Features_Provider]
+===== Provider Transaction ID
+
+This feature enables a merchant to search for transactions in
+the _PayPal_ merchant dashboard directly.
+
+The <``provider-transaction-id``> is returned in every response of an
+_ExpressCheckout, Capture, Refund_ and _Referenced Transaction_ and is
+also part of the respective notifications.
+
+NOTE: The <``provider-transaction-id``> can be found in <``status``> field and it is
+generated for every _PayPal_ transaction.
+
+.<``statuses``>
+
+[source,xml]
+----
+<statuses>
+    <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="NMTPYE7FQWYFRGQDJ"/>
+</statuses>
+----
+
+[#API_PayPal_Features_Seller]
+===== Seller Protection & Recurring Payments
+
+_PayPal_ offers a Seller Protection policy for merchants to help guard
+from losing money to claims and chargebacks. For details of this policy
+see the official _PayPal_ documentation. Terms and conditions for this
+feature depend on the operating country. Please refer to your country
+specific _PayPal_ Website.
+
+The feature _Seller Protection & Recurring Payments_ is available by
+default in the Wirecard Payment Gateway.
+
+The merchant needs to provide a shipping address only in the initial
+payment. For subsequent recurring payments Wirecard Payment Gateway
+automatically sends the shipping address from the initial payment to
+_PayPal_.
+
+NOTE: For recurring payments __Wirecard Payment Gateway__ uses the shipping
+address which has been received from _PayPal_ during the initial
+request.
+
+[#API_PayPal_Features_Cancel]
+===== Cancel handling
+
+_PayPal_ offers payment cancelation. After clicking on Cancel button,
+consumer is redirected to merchant's cancel redirect URL and if merchant
+has cancelation enabled, a _failed transaction_ will be created.
+The response will contain the status 500.1108
+``Transaction was cancelled/aborted. Please try again later.``
+
+image::images/11-25-PayPal/PayPal_CancelHandling.png[image,height=250]
+
+[#API_PayPal_Samples]
+==== Samples: Requests and Responses
+
+[#API_PayPal_Samples_GeneralSamples]
+===== General Samples 
+
+[#API_PayPal_Samples_GeneralSamples_preauthorization]
+====== _preauthorization_
+
+._preauthorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>preauthorization</transaction-type>
+    <requested-amount currency="EUR">6.66</requested-amount>
+    <account-holder>
+        <first-name>Wirecardbuyer</first-name>
+        <last-name>Spintzyk</last-name>
+        <email>paypal.buyer2@wirecard.com</email>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>180403092713285</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+     <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+     <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._preauthorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>1e35fd5e-e820-43f1-b7d4-813f6ec5d913</transaction-id>
+ <request-id>9d4d7ffa-05ed-4fb7-bbc3-e54c119cd3e3</request-id>
+ <transaction-type>preauthorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:37:39.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">6.66</requested-amount>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411103738025</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-64D234765W077901M" name="paypal" />
+ </payment-methods>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">1.53</requested-amount>
+    <account-holder>
+        <first-name>Wirecardbuyer</first-name>
+        <last-name>Spintzyk</last-name>
+        <email>paypal.buyer2@wirecard.com</email>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>48090</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+NOTE: The URL for redirecting consumer is provided, so they can complete
+_authorization_ transaction using <<API_PayPal_Express, PayPal Express Checkout>>.
+
+._authorizataion_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>e6f84861-6523-4b46-a770-63f3ee51e3b2</transaction-id>
+ <request-id>35d4f120-3a60-4eb8-b014-fae0ddf5189d</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:01:27.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">1.53</requested-amount>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411100125053</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-7RV03184BR3855228" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+NOTE: In case of failure there is no notification sent back
+to merchant.
+
+.First Recurring _authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>6ffb8f52-11f2-4e08-aa80-8aa9dc37916b</request-id>
+  <transaction-type>authorization</transaction-type>
+  <api-id>elastic-payment-page</api-id>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">1.23</requested-amount>
+  <order-description>test order</order-description>
+  <descriptor>customerStatement 18009998888</descriptor>
+  <account-holder>
+   <first-name>Wirecardbuyer</first-name>
+   <last-name>Spintzyk</last-name>
+   <email>paypal.buyer2@wirecard.com</email>
+  </account-holder>
+  <order-number>180508094608313</order-number>
+  <shipping>
+    <first-name>SandboxTest</first-name>
+    <last-name>Account</last-name>
+    <phone>+49123123123</phone>
+    <address>
+      <street1>ESpachstr. 1</street1>
+      <city>Freiburg</city>
+      <country>DE</country>
+      <postal-code>79111</postal-code>
+    </address>
+  </shipping>
+  <periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+.First Recurring _authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <transaction-id>4881e975-da9a-49d9-adc4-83dcdfe58eb7</transaction-id>
+  <request-id>6ffb8f52-11f2-4e08-aa80-8aa9dc37916b</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-05-08T07:46:10.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="EUR">1.23</requested-amount>
+  <account-holder>
+   <first-name>Wirecardbuyer</first-name>
+   <last-name>Spintzyk</last-name>
+   <email>paypal.buyer2@wirecard.com</email>
+  </account-holder>
+  <shipping>
+    <first-name>SandboxTest</first-name>
+    <last-name>Account</last-name>
+    <phone>+49123123123</phone>
+    <address>
+      <street1>ESpachstr. 1</street1>
+      <city>Freiburg</city>
+      <country>DE</country>
+      <postal-code>79111</postal-code>
+    </address>
+  </shipping>
+  <order-number>180508094608313</order-number>
+  <descriptor>customerStatement 18009998888</descriptor>
+  <payment-methods>
+    <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-1H6400515N708825E" name="paypal" />
+  </payment-methods>
+  <api-id>elastic-payment-page</api-id>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+  <periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+  </periodic>
+</payment>
+----
+
+._authorization-only_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+   <transaction-type>authorization-only</transaction-type>
+   <payment-methods>
+      <payment-method name="paypal" />
+   </payment-methods>
+   <requested-amount currency="EUR">0</requested-amount>
+   <order-description>test order</order-description>
+   <descriptor>customerStatement 18009998822</descriptor>
+   <account-holder>
+        <first-name>Wirecardbuyer</first-name>
+        <last-name>Spintzyk</last-name>
+        <email>paypal.buyer2@wirecard.com</email>
+   </account-holder>
+   <order-number>180403130946541</order-number>
+   <shipping>
+      <first-name>John</first-name>
+      <last-name>Doe</last-name>
+      <phone>+49123123123</phone>
+      <address>
+        <street1>123 Lake Streed</street1>
+        <city>Brantford</city>
+        <country>CA</country>
+        <postal-code>M4P1E8</postal-code>
+      </address>
+   </shipping>
+   <periodic>
+               <periodic-type>recurring</periodic-type>
+               <sequence-type>first</sequence-type>
+   </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization-only_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>19b8ccad-b564-4384-8086-c4b951ae6abb</transaction-id>
+ <request-id>29171b8a-3db7-41dc-8196-3565f38911d2</request-id>
+ <transaction-type>authorization-only</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T10:07:14.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">0</requested-amount>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 Lake Streed</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411120710809</order-number>
+ <descriptor>customerStatement 18009998822</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-0U479917B3642864S" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <periodic>
+  <periodic-type>recurring</periodic-type>
+  <sequence-type>first</sequence-type>
+ </periodic>
+</payment>
+----
+
+._authorization_ (Referencing an order) Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">1.15</requested-amount>
+    <parent-transaction-id>f605cbe3-5e05-4de7-b854-ce37445d00e6</parent-transaction-id>
+</payment>
+----
+
+._authorization_ (Referencing an _order_) Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>4e3b9261-4a82-47df-8795-ae5353dd9ee3</transaction-id>
+ <request-id>8f2906ea-21ba-4afb-be75-54dd4439403a</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:29:27.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2EV690760Y9874511"/>
+ </statuses>
+ <requested-amount currency="EUR">1.15</requested-amount>
+ <parent-transaction-id>f605cbe3-5e05-4de7-b854-ce37445d00e6</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <custom-fields/>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <api-id>---</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+NOTE: A subsequent referenced capture payment references the first payment via
+the <``parent-transaction-id``>.
+
+._capture-authorization_ (Subsequent Payment) Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <api-id>elastic-payment-page</api-id>
+    <requested-amount currency="EUR">1.53</requested-amount>
+    <parent-transaction-id>4d1a2e87-b395-4f62-a70d-aa528e114132</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+    <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._capture-authorization_ (Subsequent Payment) Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/aaebd767-6906-4cfd-aeda-60e5798f0a97" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</transaction-id>
+ <request-id>0c6735dc-7a56-4c92-baf8-f50314723955</request-id>
+ <transaction-type>capture-authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:13:47.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="4DE25928KH220994J"/>
+ </statuses>
+ <requested-amount currency="EUR">1.53</requested-amount>
+ <parent-transaction-id>1a8dcffd-ed36-487d-b61f-e2bde485a7ca</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411100125053</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.530000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+._void-authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+     <request-id>${unique for each request}</request-id>
+ <transaction-type>void-authorization</transaction-type>
+ <requested-amount currency="EUR">2.31</requested-amount>
+ <parent-transaction-id>c2f15154-b7d9-4d52-88d2-d5cf4112a6ec</parent-transaction-id>
+ <ip-address>127.0.0.1</ip-address>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+</payment>
+----
+
+._void-authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/10bd2521-1fa2-4f83-820f-48ac542f2c22">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>10bd2521-1fa2-4f83-820f-48ac542f2c22</transaction-id>
+ <request-id>1dea9ef2-02d2-4b20-b626-ab15c47f7c39</request-id>
+ <transaction-type>void-authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:20:20.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">2.31</requested-amount>
+ <parent-transaction-id>c2f15154-b7d9-4d52-88d2-d5cf4112a6ec</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <ip-address>127.0.0.1</ip-address>
+ <order-number>180411111612959</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">2.310000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_credit]
+====== _credit_
+
+._pending-credit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+   <transaction-type>pending-credit</transaction-type>
+   <payment-methods>
+      <payment-method name="paypal" />
+   </payment-methods>
+   <requested-amount currency="EUR">11.00</requested-amount>
+   <processing-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</processing-redirect-url>
+   <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+   <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+   <account-holder>
+      <email>paypal.buyer2@wirecard.com</email>
+   </account-holder>
+</payment>
+----
+
+._pending-credit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>41983600-3342-42b5-8646-89d20432f09d</transaction-id>
+ <request-id>0641b672-f0f3-4ce1-bc51-32b94d687765</request-id>
+ <transaction-type>pending-credit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:45:37.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">11.00</requested-amount>
+ <account-holder>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+ <processing-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</processing-redirect-url>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_debit]
+====== _debit_
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">1.01</requested-amount>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>6cb82f55-5af8-43d8-bff9-8bbc6297532d</transaction-id>
+ <request-id>9c4ced64-3013-4ccd-b9d5-c3e6f9208957</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:41:56.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">1.01</requested-amount>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-35S67804YC070853R" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_order]
+====== _order_
+
+._order_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+       <request-id>${unique for each request}</request-id>
+    <transaction-type>order</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">5.55</requested-amount>
+    <order-description>test order</order-description>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+    <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._order_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>ecfb629e-c051-4ab6-bdf6-0f1c1082f922</transaction-id>
+ <request-id>7848806b-4c9d-45e2-982e-1899c80c19e0</request-id>
+ <transaction-type>order</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:23:08.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">5.55</requested-amount>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-6R748794VC296494L" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_refunddebit]
+====== _refund-debit_
+
+._refund-debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>refund-debit</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">1.01</requested-amount>
+ <parent-transaction-id>ad778911-5d84-41a0-a6ca-6e3a9bc83a69</parent-transaction-id>
+ <order-description>test order</order-description>
+</payment>
+----
+
+._refund-debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/4e2632ea-4e3c-4bad-8176-ff3656bff9b1">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>4e2632ea-4e3c-4bad-8176-ff3656bff9b1</transaction-id>
+ <request-id>985e769b-2901-440b-9b7c-1b635dbc5a1b</request-id>
+ <transaction-type>refund-debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:54:52.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="35H62981CH973464P" />
+ </statuses>
+ <requested-amount currency="EUR">1.01</requested-amount>
+ <parent-transaction-id>ad778911-5d84-41a0-a6ca-6e3a9bc83a69</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.010000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_refundcapture]
+====== _refund-capture_
+
+._refund-capture_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>$(unique for each request}</request-id>
+    <transaction-type>refund-capture</transaction-type>
+    <requested-amount currency="EUR">1.02</requested-amount>
+   <payment-methods>
+      <payment-method name="paypal" />
+   </payment-methods>
+    <parent-transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</parent-transaction-id>
+</payment>
+----
+
+._refund-capture_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/52bfef6e-a10d-4fce-ad38-74d9cfc6cf65" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>52bfef6e-a10d-4fce-ad38-74d9cfc6cf65</transaction-id>
+ <request-id>09b39958-32e2-4793-a669-32b89e5ddb4c</request-id>
+ <transaction-type>refund-capture</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:25:24.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="6UF60751CD922420J"/>
+ </statuses>
+ <requested-amount currency="EUR">1.02</requested-amount>
+ <parent-transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411100125053</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.530000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_pendingcredit]
+======= _pending-credit_
+
+._pending-credit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+   <transaction-type>pending-credit</transaction-type>
+   <payment-methods>
+      <payment-method name="paypal" />
+   </payment-methods>
+   <requested-amount currency="EUR">11.00</requested-amount>
+   <processing-redirect-url>http://www.merchant.com/order/success</processing-redirect-url>
+   <cancel-redirect-url>http://www.merchant.com/order/error</cancel-redirect-url>
+   <fail-redirect-url>http://www.merchant.com/order/error</fail-redirect-url>
+   <success-redirect-url>http://www.merchant.com/order/success</success-redirect-url>
+   <account-holder>
+      <email>paypal.buyer2@wirecard.com</email>
+   </account-holder>
+</payment>
+----
+
+._pending-credit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>41983600-3342-42b5-8646-89d20432f09d</transaction-id>
+ <request-id>0641b672-f0f3-4ce1-bc51-32b94d687765</request-id>
+ <transaction-type>pending-credit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:45:37.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">11.00</requested-amount>
+ <account-holder>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+ <processing-redirect-url>http://www.merchant.com/order/success</processing-redirect-url>
+ <cancel-redirect-url>http://www.merchant.com/order/error</cancel-redirect-url>
+ <fail-redirect-url>http://www.merchant.com/order/error</fail-redirect-url>
+ <success-redirect-url>http://www.merchant.com/order/success</success-redirect-url>
+</payment>
+----
+
+[#API_PayPal_Samples_GeneralSamples_authorizationonly]
+======= _authorization-only_
+
+._authorization-only_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+   <transaction-type>authorization-only</transaction-type>
+   <payment-methods>
+      <payment-method name="paypal" />
+   </payment-methods>
+   <requested-amount currency="EUR">0</requested-amount>
+   <order-description>test order</order-description>
+   <descriptor>customerStatement 18009998822</descriptor>
+   <account-holder>
+      <first-name>John</first-name>
+      <last-name>Doe</last-name>
+   </account-holder>
+   <order-number>180403130946541</order-number>
+   <shipping>
+      <first-name>John</first-name>
+      <last-name>Doe</last-name>
+      <phone>+49123123123</phone>
+      <address>
+        <street1>123 Lake Streed</street1>
+        <city>Brantford</city>
+        <country>CA</country>
+        <postal-code>M4P1E8</postal-code>
+      </address>
+   </shipping>
+   <periodic>
+        <periodic-type>recurring</periodic-type>
+        <sequence-type>first</sequence-type>
+   </periodic>
+   <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+   <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization-only_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>19b8ccad-b564-4384-8086-c4b951ae6abb</transaction-id>
+ <request-id>29171b8a-3db7-41dc-8196-3565f38911d2</request-id>
+ <transaction-type>authorization-only</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T10:07:14.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">0</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+ </account-holder>
+ <shipping>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 Lake Streed</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411120710809</order-number>
+ <descriptor>customerStatement 18009998822</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-0U479917B3642864S" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <periodic>
+  <periodic-type>recurring</periodic-type>
+  <sequence-type>first</sequence-type>
+ </periodic>
+</payment>
+----
+
+.Confirm _authorization-only_
+NOTE: Go to payment method URL provided in _authorization-only_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow]
+===== Workflow Samples
+
+[#API_PayPal_Workflow_ConfirmPreauthorization]
+====== Confirm a _preauthorization_
+
+[#API_PayPal_Samples_Workflow_Preauthorization]
+======= _preauthorization_
+
+._preauthorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>preauthorization</transaction-type>
+    <requested-amount currency="EUR">6.66</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Constantine</last-name>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>180403092713285</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._preauthorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>1e35fd5e-e820-43f1-b7d4-813f6ec5d913</transaction-id>
+ <request-id>9d4d7ffa-05ed-4fb7-bbc3-e54c119cd3e3</request-id>
+ <transaction-type>preauthorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:37:39.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">6.66</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411103738025</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-64D234765W077901M" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+.Confirm _preauthorization_
+NOTE: Go to payment method URL provided in _preauthorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<<PayPal_Test, PayPal Access Data>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+
+[#API_PayPal_Workflow_AuthorizationCaptureRefundCapture]
+====== _authorization_ > _capture_ > _refund-capture_
+
+[#API_PayPal_Samples_Workflow_authorization]
+======= _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">1.53</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Constantine</last-name>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>48090</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>e6f84861-6523-4b46-a770-63f3ee51e3b2</transaction-id>
+ <request-id>35d4f120-3a60-4eb8-b014-fae0ddf5189d</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:01:27.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">1.53</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411100125053</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-7RV03184BR3855228" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow_capture-authorization]
+======= _capture-authorization_
+
+._capture_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <api-id>elastic-payment-page</api-id>
+    <requested-amount currency="EUR">1.53</requested-amount>
+    <parent-transaction-id>4d1a2e87-b395-4f62-a70d-aa528e114132</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+    <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._capture_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/aaebd767-6906-4cfd-aeda-60e5798f0a97" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</transaction-id>
+ <request-id>0c6735dc-7a56-4c92-baf8-f50314723955</request-id>
+ <transaction-type>capture-authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:13:47.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="4DE25928KH220994J"/>
+ </statuses>
+ <requested-amount currency="EUR">1.53</requested-amount>
+ <parent-transaction-id>1a8dcffd-ed36-487d-b61f-e2bde485a7ca</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411100125053</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.530000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+<cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+<success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+<fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Samples_Workflow_refund-capture]
+======= _refund-capture_
+
+._refund-capture_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>$(unique for each request}</request-id>
+    <transaction-type>refund-capture</transaction-type>
+    <requested-amount currency="EUR">1.02</requested-amount>
+   <payment-methods>
+      <payment-method name="paypal" />
+   </payment-methods>
+    <parent-transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</parent-transaction-id>
+</payment>
+----
+
+._refund-capture_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/52bfef6e-a10d-4fce-ad38-74d9cfc6cf65" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>52bfef6e-a10d-4fce-ad38-74d9cfc6cf65</transaction-id>
+ <request-id>09b39958-32e2-4793-a669-32b89e5ddb4c</request-id>
+ <transaction-type>refund-capture</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:25:24.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="6UF60751CD922420J"/>
+ </statuses>
+ <requested-amount currency="EUR">1.02</requested-amount>
+ <parent-transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411100125053</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.530000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Workflow_DebitRefund-Debit]
+====== _debit_ > _refund_
+
+
+[#API_PayPal_Samples_Workflow_debit]
+======= _debit_
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">1.01</requested-amount>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>6cb82f55-5af8-43d8-bff9-8bbc6297532d</transaction-id>
+ <request-id>9c4ced64-3013-4ccd-b9d5-c3e6f9208957</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:41:56.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">1.01</requested-amount>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-35S67804YC070853R" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+.Confirm _debit_
+NOTE: Go to payment method URL provided in _debit_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_refund-debit]
+======= refund-debit
+
+._refund-debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>refund-debit</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">1.01</requested-amount>
+ <parent-transaction-id>ad778911-5d84-41a0-a6ca-6e3a9bc83a69</parent-transaction-id>
+ <order-description>test order</order-description>
+</payment>
+----
+
+._refund-debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/4e2632ea-4e3c-4bad-8176-ff3656bff9b1">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>4e2632ea-4e3c-4bad-8176-ff3656bff9b1</transaction-id>
+ <request-id>985e769b-2901-440b-9b7c-1b635dbc5a1b</request-id>
+ <transaction-type>refund-debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T08:54:52.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="35H62981CH973464P" />
+ </statuses>
+ <requested-amount currency="EUR">1.01</requested-amount>
+ <parent-transaction-id>ad778911-5d84-41a0-a6ca-6e3a9bc83a69</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.010000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Workflow_AuthorizationVoidAuthorization]
+====== _authorization_ > _void-authorization_
+
+[#API_PayPal_Samples_authorization]
+======= _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">2.31</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Constantine</last-name>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>48091</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>131b687e-0d9d-44b2-ab50-688d7ccb817c</transaction-id>
+ <request-id>46cd1b02-c82a-4198-9ca0-f1deb7beb3dd</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:16:17.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">2.31</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180411111612959</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-9NG2879161193254M" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+.Confirm _authorization
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_voidauthorization]
+======= _void-authorization_
+
+._void-authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+     <request-id>${unique for each request}</request-id>
+ <transaction-type>void-authorization</transaction-type>
+ <requested-amount currency="EUR">2.31</requested-amount>
+ <parent-transaction-id>c2f15154-b7d9-4d52-88d2-d5cf4112a6ec</parent-transaction-id>
+ <ip-address>127.0.0.1</ip-address>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+</payment>
+----
+
+._void-authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/10bd2521-1fa2-4f83-820f-48ac542f2c22">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>10bd2521-1fa2-4f83-820f-48ac542f2c22</transaction-id>
+ <request-id>1dea9ef2-02d2-4b20-b626-ab15c47f7c39</request-id>
+ <transaction-type>void-authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:20:20.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">2.31</requested-amount>
+ <parent-transaction-id>c2f15154-b7d9-4d52-88d2-d5cf4112a6ec</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <ip-address>127.0.0.1</ip-address>
+ <order-number>180411111612959</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method name="paypal" />
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">2.310000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+.Confirm _void-authorization_
+NOTE: Go to payment method URL provided in _void-authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Workflow_OrderAuthorizationCapture]
+====== _order_ > REFERENCING _authorization_ > _capture_
+
+[#API_PayPal_Samples_order]
+======= _order_
+
+._order_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+       <request-id>${unique for each request}</request-id>
+    <transaction-type>order</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">5.55</requested-amount>
+    <order-description>test order</order-description>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+    <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._order_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>ecfb629e-c051-4ab6-bdf6-0f1c1082f922</transaction-id>
+ <request-id>7848806b-4c9d-45e2-982e-1899c80c19e0</request-id>
+ <transaction-type>order</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:23:08.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">5.55</requested-amount>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-6R748794VC296494L" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+.Confirm _order_
+NOTE: Go to payment method URL provided in _order_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_ReferencingOrderAuthorization]
+======= Referencing (_order_) _authorization_
+
+.Referencing _authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">1.15</requested-amount>
+    <parent-transaction-id>f605cbe3-5e05-4de7-b854-ce37445d00e6</parent-transaction-id>
+</payment>
+----
+
+.Referencing _authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>4e3b9261-4a82-47df-8795-ae5353dd9ee3</transaction-id>
+ <request-id>8f2906ea-21ba-4afb-be75-54dd4439403a</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T09:29:27.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2EV690760Y9874511"/>
+ </statuses>
+ <requested-amount currency="EUR">1.15</requested-amount>
+ <parent-transaction-id>f605cbe3-5e05-4de7-b854-ce37445d00e6</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <custom-fields/>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <api-id>---</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Samples_CaptureAuthorization]
+======= _capture-authorization_
+
+._capture_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <api-id>elastic-payment-page</api-id>
+    <requested-amount currency="EUR">1.15</requested-amount>
+    <parent-transaction-id> 4e3b9261-4a82-47df-8795-ae5353dd9ee3</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+</payment>
+----
+
+._capture Response (Successful)
+
+[source,xml]
+----
+ No response available
+----
+
+.Referencing _authorization Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <requested-amount currency="EUR">2.10</requested-amount>
+    <parent-transaction-id>f605cbe3-5e05-4de7-b854-ce37445d00e6</parent-transaction-id>
+</payment>
+----
+
+.Referencing _authorization Response (Successful)
+
+[source,xml]
+----
+ no response available
+----
+
+[#API_PayPal_Samples_ReferencingAuthorization_CaptureAuthorization]
+====== _capture-authorization_
+
+._capture-authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <api-id>elastic-payment-page</api-id>
+    <requested-amount currency="EUR">2.10</requested-amount>
+    <parent-transaction-id>3804f693-f249-42e7-8fb5-f17c6993b7fe</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+</payment>
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,xml]
+----
+ No response available
+----
+
+[#API_PayPal_debit_PeriodicType_Recurring]
+====== _debit_ (Periodic Type = Recurring)
+
+[#API_PayPal_Samples_debit_Recurring_First]
+======= _debit_ (First Transaction)
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">6.99</requested-amount>
+  <periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>8dc8e24b-5775-4d5c-b71f-c1a018084c73</transaction-id>
+ <request-id>85af2bce-c95a-4307-bb0f-01f75335403a</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T11:14:23.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">6.99</requested-amount>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-34Y60693X17359516" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <periodic>
+  <periodic-type>recurring</periodic-type>
+  <sequence-type>first</sequence-type>
+ </periodic>
+</payment>
+----
+
+.Confirm _debit_
+NOTE: Go to payment method URL provided in _debit_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_debit_Recurring_Recurring]
+======= _debit_ (Recurring Transaction)
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">6.99</requested-amount>
+  <parent-transaction-id>42244051-8733-4066-bceb-7a21615aba85</parent-transaction-id>
+  <periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>recurring</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/b57c6426-e03c-43b2-b316-8065ea2b1e1d" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>b57c6426-e03c-43b2-b316-8065ea2b1e1d</transaction-id>
+ <request-id>6c5ca467-6aa8-4dea-ac60-e692e03e73e9</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T11:19:30.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="8KB09264DK049613F"/>
+ </statuses>
+ <requested-amount currency="EUR">6.99</requested-amount>
+ <parent-transaction-id>42244051-8733-4066-bceb-7a21615aba85</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">6.990000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <periodic>
+  <periodic-type>recurring</periodic-type>
+  <sequence-type>recurring</sequence-type>
+ </periodic>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Samples_debit_Recurring_Final]
+======= _debit_ (Final Transaction)
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">6.99</requested-amount>
+  <parent-transaction-id>42244051-8733-4066-bceb-7a21615aba85</parent-transaction-id>
+  <periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>final</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+  <risk-reference-id>123456</risk-reference-id>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/72deb593-3ca5-41a6-b895-43f50a18ffaa" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>72deb593-3ca5-41a6-b895-43f50a18ffaa</transaction-id>
+ <request-id>23dee65b-ca45-44f8-9ceb-2ffee971860e</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T11:20:58.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="00716004PR521593J"/>
+ </statuses>
+ <requested-amount currency="EUR">6.99</requested-amount>
+ <parent-transaction-id>42244051-8733-4066-bceb-7a21615aba85</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">6.990000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <periodic>
+  <periodic-type>recurring</periodic-type>
+  <sequence-type>final</sequence-type>
+ </periodic>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+ <risk-reference-id>123456</risk-reference-id>
+</payment>
+----
+
+[#API_PayPal_debit_PeriodicType_Installment]
+====== _debit_ (Periodic Type = Installment)
+
+[PayPal_Samples_debit_Installment_First]
+======= _debit_ (First Transaction)
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">1.99</requested-amount>
+  <periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>first</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <transaction-id>0c1b507f-1bd0-4de3-9999-38dd24dcb18d</transaction-id>
+  <request-id>2a4f89ab-893c-4318-a180-f33eed11a662</request-id>
+  <transaction-type>debit</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-04-11T11:22:38.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="EUR">1.99</requested-amount>
+  <payment-methods>
+    <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-2H898338FC864450H" name="paypal" />
+  </payment-methods>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+  <periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>first</sequence-type>
+  </periodic>
+</payment>
+----
+
+.Confirm _debit_
+NOTE: Go to payment method URL provided in _debit_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[PayPal_Samples_debit_Installment_Recurring]
+======= _debit_ (Recurring Transaction)
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xmlversion="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">1.99</requested-amount>
+  <parent-transaction-id>4238ff87-2067-40e1-8dea-d0a4ce60c984</parent-transaction-id>
+  <periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>recurring</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/92bbc280-31cc-438d-a4a9-289decef6f53" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>92bbc280-31cc-438d-a4a9-289decef6f53</transaction-id>
+ <request-id>50648796-09f1-4c14-b7e1-84a202e4aca2</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T11:34:06.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="0SB394606F458281X"/>
+ </statuses>
+ <requested-amount currency="EUR">1.99</requested-amount>
+ <parent-transaction-id>4238ff87-2067-40e1-8dea-d0a4ce60c984</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.990000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <periodic>
+  <periodic-type>installment</periodic-type>
+  <sequence-type>recurring</sequence-type>
+ </periodic>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[PayPal_Samples_debit_Installment_Final]
+======= _debit_ (Final Transaction)
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+  <request-id>$REQ</request-id>
+  <transaction-type>debit</transaction-type>
+  <payment-methods>
+    <payment-method name="paypal" />
+  </payment-methods>
+  <requested-amount currency="EUR">1.99</requested-amount>
+  <parent-transaction-id>4238ff87-2067-40e1-8dea-d0a4ce60c984</parent-transaction-id>
+  <periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>final</sequence-type>
+  </periodic>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/ddf524ea-b1e8-4306-9d7e-32867948e51c" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+ <transaction-id>ddf524ea-b1e8-4306-9d7e-32867948e51c</transaction-id>
+ <request-id>13b11e4f-3ce9-492f-bc46-d8b9a70963bd</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-11T11:37:42.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="paypal:The resource was successfully created." severity="information" provider-transaction-id="8P791943JT975263B"/>
+ </statuses>
+ <requested-amount currency="EUR">1.99</requested-amount>
+ <parent-transaction-id>4238ff87-2067-40e1-8dea-d0a4ce60c984</parent-transaction-id>
+ <account-holder>
+  <first-name>Wirecardbuyer</first-name>
+  <last-name>Spintzyk</last-name>
+  <email>paypal.buyer2@wirecard.com</email>
+ </account-holder>
+ <payment-methods>
+  <payment-method name="paypal"/>
+ </payment-methods>
+ <parent-transaction-amount currency="EUR">1.990000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <periodic>
+  <periodic-type>installment</periodic-type>
+  <sequence-type>final</sequence-type>
+ </periodic>
+ <wallet>
+  <account-id>ZNKTXUBNSQE2Y</account-id>
+ </wallet>
+</payment>
+----
+
+[#API_PayPal_Workflow_Showonly]
+====== Use "Show only" MAID with _authorization_ > _capture-authorization_
+
+Using PayPal to <<API_PayPal_Addresses, show consumer's address>>, please
+use the _MAID_ 8695f3e4-76e8-414b-96cd-a1e5dafcf20c.
+
+[#API_PayPal_Samples_Workflow_Showonly_authorization]
+======= _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8695f3e4-76e8-414b-96cd-a1e5dafcf20c</merchant-account-id>
+    <request-id>57d854b3-9000-45d8-9d91-47e3ca025573</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">1.22</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Constantine</last-name>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Berlin</city>
+            <country>DE</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>180412133830633</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>8695f3e4-76e8-414b-96cd-a1e5dafcf20c</merchant-account-id>
+ <transaction-id>b3a080d1-5bdb-46ac-9d88-6aa2373a6120</transaction-id>
+ <request-id>69ed2f9a-42cf-4173-b17d-82420c2dc1d3</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-13T07:12:48.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">1.22</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Berlin</city>
+   <country>DE</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180413091244599</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-2YE30722DA9051123" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow_Showonly_capture-authorization]
+======= _capture-authorization_
+
+._capture-authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8695f3e4-76e8-414b-96cd-a1e5dafcf20c</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <api-id>elastic-payment-page</api-id>
+    <requested-amount currency="EUR">1.22</requested-amount>
+    <parent-transaction-id>346c43b2-1077-479b-adb5-5724606e9ce8</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+    <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,xml]
+----
+ No Response available
+----
+
+[#API_PayPal_Workflow_EditAddress]
+Use "Edit" MAID with _authorization_ > _capture-authorization_
+
+Using PayPal to <<API_PayPal_Addresses, edit consumer's address>>, please
+use the _MAID_ ecfec3fa-87a2-41bb-86e9-4e738b89c91a.
+
+[#API_PayPal_Samples_Workflow_EditAddress_authorization]
+======= _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>ecfec3fa-87a2-41bb-86e9-4e738b89c91a</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">1.22</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Constantine</last-name>
+    </account-holder>
+    <shipping>
+        <first-name>Jack</first-name>
+        <last-name>Jones</last-name>
+        <phone>+49123123123</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </shipping>
+    <order-number>48090</order-number>
+    <descriptor>customerStatement 18009998888</descriptor>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+._authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>ecfec3fa-87a2-41bb-86e9-4e738b89c91a</merchant-account-id>
+ <transaction-id>cad428c4-f597-4985-8684-6518cf7dade2</transaction-id>
+ <request-id>006f9829-6224-45e2-bee9-86e46178efd6</request-id>
+ <transaction-type>authorization</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-04-12T09:37:53.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="EUR">1.22</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+ </account-holder>
+ <shipping>
+  <first-name>Jack</first-name>
+  <last-name>Jones</last-name>
+  <phone>+49123123123</phone>
+  <address>
+   <street1>123 anystreet</street1>
+   <city>Brantford</city>
+   <country>CA</country>
+   <postal-code>M4P1E8</postal-code>
+  </address>
+ </shipping>
+ <order-number>180412113751540</order-number>
+ <descriptor>customerStatement 18009998888</descriptor>
+ <payment-methods>
+  <payment-method url="https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout&amp;useraction=commit&amp;token=EC-5VS18130RP993651L" name="paypal" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+</payment>
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow_EditAddress_capture-authorization]
+======= _capture-authorization_
+
+._capture-authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>ecfec3fa-87a2-41bb-86e9-4e738b89c91a</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <api-id>elastic-payment-page</api-id>
+    <requested-amount currency="EUR">1.22</requested-amount>
+    <parent-transaction-id>52321771-28e9-4737-b4f4-99a022f3b553</parent-transaction-id>
+    <payment-methods>
+        <payment-method name="paypal" />
+    </payment-methods>
+    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+    <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,xml]
+----
+ Response not available
+----
