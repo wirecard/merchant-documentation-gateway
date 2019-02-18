@@ -51,12 +51,13 @@ function addTOCbindings() {
       highlightTOCelement(clickedItemID);
     },0);
     var pageUrl = $(this).attr('href');
+    console.log('currentPageID ' + currentPageID + ', clickedItemID ' + clickedItemID + ', pageUrl ' + pageUrl);
     if(pageUrl == currentPageID + '.html') {
       event.preventDefault();
       window.scrollTo(0,0);
       return false;
     }
-    if( pageUrl.indexOf( currentPageID ) == -1 ) {
+    if( pageUrl.indexOf( currentPageID + '.html') == -1 ) {
       setTimeout(function() {
         smoothState.load( pageUrl );
       },200);
