@@ -1,7 +1,7 @@
 [#API_PaymentMethods_PayPal]
 === PayPal
 
-image::images/11-25-PayPal/PayPal_logo.jpg[PayPal Logo,height=1]
+image::images/11-25-PayPal/PayPal_logo.png[PayPal Logo, role="right"]
 
 [#API_PayPal_Introduction]
 ==== Introduction
@@ -54,11 +54,11 @@ provides detailed information about the countries and currencies which
 are relevant for _PayPal_.
 
 .Payment Mode, Countries and Currencies
-[width="100%",cols="20%,80%",]
+[%autowidth, cols= "h,"]
 |===
-|*Payment Mode* |<<PaymentMethods_Overview_Wallet, Wallet>>
-|*Countries* |Worldwide
-|*Currencies* |USD, EUR, AUD, CAD, CZK, DKK, HKD, HUF, ILS, JPY, MYR,
+|Payment Mode |<<PaymentMethods_Overview_Wallet, Wallet>>
+|Countries |Worldwide
+|Currencies |USD, EUR, AUD, CAD, CZK, DKK, HKD, HUF, ILS, JPY, MYR,
 MXN, NOK, NZD, PHP, PLN, GBP, SGD, SEK, CHF, TWD, THB
 |===
 
@@ -69,42 +69,26 @@ This table illustrates how _PayPal_ notifications are encoded and which
 formats and methods can be used for requests and responses.
 
 .Communication Formats
-[width="100%",cols="20%,40%,40%"]
+[%autowidth]
 |===
-.2+|*Requests/Responses* | Format | XML
-                         | Methods | POST
-|*IPN Encodement*      2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_NotificatonExample_Alternative,Instant Payment Notification>> to set up IPN.
+.2+h|Requests/Responses | Format | XML
+                        | Methods | POST
+h|IPN Encodement      2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_NotificatonExample_Alternative,Instant Payment Notification>> to set up IPN.
 |===
 
 [#API_PayPal_Transactions]
 ==== Transactions
 
-[#API_PayPal_Transactions_Recurring]
-===== Recurring Transaction
-
-The endpoint for referenced transactions is: ``\https://api.wirecard.com/engine/rest/payments/``.
-The _Wirecard Payment Gateway_ allows a merchant to submit
-<<GeneralPlatformFeatures_Transactions_Recurring, recurring transactions>>
-for _PayPal_ transactions. To submit a recurring transaction, the merchant
-must submit a request with the transaction type _Debit_, _Authorization_ or
-_Authorization-Only_ including a
-<<GeneralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
-and a <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, SEQUENCE TYPE>> element.
-With _PayPal_ it is also possible to mix the transaction types
-_Authorization_ and _Debit_.
-
-Read, which <<GeneralPlatformFeatures_Transactions_Recurring_Restrictions, restrictions>>
-have to be met to use a recurring transaction.
-
 [#API_PayPal_Transactions_TransactionTypes]
 ===== Transaction Types
 
-For transaction type details which are not given here look at <<AppendixB, Appendix B: Transaction Types>>.
+For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Appendix B: Transaction Types>>.
 
 .Transaction Types
-[width="100%",cols="25%,50%,25%,options="header",]
+[%autowidth]
 |===
 |Transaction Type |Description |Link to the samples
+
 |_capture-authorization_ |only available on a successful _authorization_
 which was neither voided nor fully captured yet. Partial and multiple
 capture is allowed, until the authorization limit is not exceeded.
@@ -124,7 +108,7 @@ whole.
 
 |_debit_ |debit is an immediate payment for online purchase by
 consumer’s _PayPal_ wallet.
-|API_PayPal_Samples_GeneralSamples_debit[_debit_ samples]
+|<<API_PayPal_Samples_GeneralSamples_debit, _debit_ samples>>
 
 |_refund-debit_ |available on a successful _debit_. Partial and multiple
 refunds are allowed, until the original amount is not exceeded.
@@ -141,19 +125,19 @@ example).
 |<<API_PayPal_Workflow_ConfirmPreauthorization, _preauthorization_ sample>> 
 
 |_authorization-only_ |transaction can be only the first one in the
-series, and the amount is always zero.
+series, and the amount is always zero.|
 <<API_PayPal_Samples_GeneralSamples_authorizationonly, _authorization-only_ samples>>
 
 | __order__ |creating a _PayPal_ order indicates that the consumer has
 consented to the purchase but does not place the funds on hold. After
 merchant creates an order, they can place multiple authorizations upon
 it to place funds on hold until ready to capture. Order cannot be
-referenced by debit transaction and cannot be voided.
+referenced by debit transaction and cannot be voided. |
 <<API_PayPal_Samples_GeneralSamples_order, _order_ samples>>
 
 |_pending-credit_ or _credit_
 |moves funds from the merchant to the consumer without referencing
-previous payment.
+previous payment. |
 <<API_PayPal_Samples_GeneralSamples_pendingcredit, _pending-credit_ samples>> or
 <<API_PayPal_Samples_GeneralSamples_credit, _credit_ samples>>
 
@@ -165,8 +149,27 @@ transaction type will occur only for transactions in review process and
 is not invoked for all transactions automatically. | 
 |===
 
+[#API_PayPal_Transactions_Recurring]
+===== Recurring Transaction
+
+IMPORTANT: The endpoint for referenced transactions is: ``\https://api.wirecard.com/engine/rest/payments/``.
+
+The _Wirecard Payment Processing Gateway_ allows a merchant to submit
+<<GeneralPlatformFeatures_Transactions_Recurring, recurring transactions>>
+for _PayPal_ transactions. To submit a recurring transaction, the merchant
+must submit a request with the transaction type _Debit_, _Authorization_ or
+_Authorization-Only_ including a
+<<GeneralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
+and a <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, SEQUENCE TYPE>> element.
+With _PayPal_ it is also possible to mix the transaction types
+_Authorization_ and _Debit_.
+
+Read, which <<GeneralPlatformFeatures_Transactions_Recurring_Restrictions, restrictions>>
+have to be met to use a recurring transaction.
+
+
 [#API_PayPal_Transactions_TransactionTypes_PayPalSpecific]
-===== _PayPal_ Specific Use of Transaction Types
+===== _PayPal_-Specific Use of Transaction Types
 
 [#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_preauthorization]
 ====== _preauthorization_
@@ -184,7 +187,7 @@ _preauthorization_ transaction using the _Parent-transaction-ID_ field.
 The _preauthorization_ does not need to be cancelled, if the merchant
 decides not to follow up on this order attempt.
 
-[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_authorization-only]
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_authorizationOnly]
 ====== _authorization-only_
 
 On _PayPal_ merchant setup site the option "Use <<API_PayPal_Express, Express Checkout>> to
@@ -192,19 +195,19 @@ process payments" must be "true", otherwise it is not possible to create a "get-
 _authorization-only_ (records data at _PayPal_ and Wirecard for later
 payments/recurring transactions) requires the following: 
 
-* Additional activation of the setting “Obtain authorization for
+- Additional activation of the setting “Obtain authorization for
 pre-approved payments and initiate pre-approved transactions.”
-* _authorization-only_ transaction needs the following settings:
-** address the ``...paymentmethods`` endpoint
-1.  1.  the <<GeneralPlatformFeatures_Transactions_Recurring_Periodic, periodic type>> part must be either "recurring" or "installment"
-2.  the <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, sequence type>> must be "first".
-** amount = "0.00"
-* In addition the merchant can reference "Authorization-only" by either
+- _authorization-only_ transaction needs the following settings:
+* address the ``...paymentmethods`` endpoint
+.  the <<GeneralPlatformFeatures_Transactions_Recurring_Periodic, periodic type>> part must be either "recurring" or "installment"
+.  the <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, sequence type>> must be "first".
+* amount = "0.00"
+- In addition the merchant can reference "Authorization-only" by either
 debit or authorization. A Follow-up authorization can be then be
 captured.
-** address the ``…/payments`` endpoint for the follow-up debit
-** always use non-zero amount for debit operation
-** the correct (parent-)transaction-id is visible as
+* address the ``…/payments`` endpoint for the follow-up debit
+* always use non-zero amount for debit operation
+* the correct (parent-)transaction-id is visible as
 group-transaction-id in WEP for example or can be found out by querying
 Wirecard Payment Gateway using the RequestID from the initial
 transaction (see
@@ -241,9 +244,9 @@ _PayPal_ to send them a debit card to access their funds.
 Merchant needs to specify one (or multiple) of three fields in the
 _pending-credit_ request:
 
-* wallet.account-id (with customer’s _PayPal_ account identifier)
-* account-holder.email
-* account-holder.phone
+- wallet.account-id (with customer’s _PayPal_ account identifier)
+- account-holder.email
+- account-holder.phone
 
 The provided information is used in this order to identify the recipient
 of the payment. As soon as request is submitted a _pending-credit_
@@ -289,82 +292,76 @@ Parent-Transaction-ID field.
 ==== Test Credentials
 
 .Test Credentials
-[width="100%",cols="15%,40%,20%,20%"]
+[%autowidth]
 |===
-.2+|*URL(s) Endpoints*
-| The transaction types _debit_, _authorization_, _authorization-only_,
-_preauthorization_, _pending-credit_, _credit_ or _order_ use
-2+| ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+.2+h|URL(s) Endpoints | The transaction types _debit_, _authorization_, _authorization-only_,
+_preauthorization_, _pending-credit_, _credit_ or _order_ use 2+| ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
 | The transaction types _capture-authorization_, _refund-capture_,
 _void-authorization_ and _refund-debit_ use
 2+| ``\https://api-test.wirecard.com/engine/rest/payments/``
-
-.3+|*Merchant Account ID (MAID)*
-| Show No Address
-|be17476f-1a0c-442e-8841-70e33996c0aa
+.3+h|Merchant Account ID (MAID)
+|Show No Address |be17476f-1a0c-442e-8841-70e33996c0aa
 .3+|<<API_PayPal_Configuration_Addresses, See details>>
-|Show Address
-|8695f3e4-76e8-414b-96cd-a1e5dafcf20c
-|Edit Address
-|ecfec3fa-87a2-41bb-86e9-4e738b89c91a
+|Show Address |8695f3e4-76e8-414b-96cd-a1e5dafcf20c
+|Edit Address |ecfec3fa-87a2-41bb-86e9-4e738b89c91a
 
-|*Username*
-3+|16390-testing
-
-|*Password*
-3+|3!3013=D3fD8X7
+h|Username 3+|16390-testing
+h|Password 3+|3!3013=D3fD8X7
+.3+h|Secret Key
+|Show No Address | 3d5b74ed-c716-486c-91a5-188b3ffd9862
+.3+|<<API_PayPal_Configuration_Addresses, See details>>
+|Show Address | 227dd634-1226-42a8-a598-83e8988e45d9
+|Edit Address | ef3407c9-2c24-4a68-b290-1051f88c1af7
 |===
 
 [#API_PayPal_TestCredentials_Additional]
 ===== Additional Test Credentials on _PayPal_ Environment
 
 .Additional Test Credentials
-[width="100%",cols="20%,80%"]
+[%autowidth, cols="h,"]
 |===
-|*Email* |``\paypal.buyer2@wirecard.com``
-|*Password* |Wirecardbuyer
+|Email |``\paypal.buyer2@wirecard.com``
+|Password |Wirecardbuyer
 |===
 
 [#API_PayPal_Workflow]
 ==== Workflow
 
-The consumer has three hours to finish his payment, because the
+NOTE: The consumer has three hours to finish his payment, because the
 <<GeneralPlatformFeatures_RedirectURL, _Redirect URL_>> expires after three hours. A query for an unfinished transaction,
 that has exceeded this time span will return a _Failed_ transaction.
 
 [#API_PayPal_Workflow_debit]
 ===== _debit_
 
-See
-<<API_PayPal_Samples_GeneralSamples_debit, _debit_ samples>> for details.
+See <<API_PayPal_Samples_GeneralSamples_debit, _debit_ samples>> for details.
 
 ._debit_ workflow with _PayPal_
-image::images/11-25-PayPal/PaypalWorkflow_debit.png[debit Workflow,height=100]
+image::images/11-25-PayPal/PaypalWorkflow_debit.png[debit Workflow]
 
-1.   Consumer initiates payment.
-2.  Merchant sends _debit_ request to WPG.
-3.  WPG sends a response to merchant containing the redirect URL to
+.  Consumer initiates payment.
+.  Merchant sends _debit_ request to WPG.
+.  WPG sends a response to merchant containing the redirect URL to
 _PayPal_.
-4.  Merchant takes URL from response.
-5.  Merchant redirects consumer to this URL (URL can be found in parameter
-<``payment-method url="URL" name="paypal"/``>).
-6.  Consumer confirms payment on _PayPal_ site.
-7.  WPG redirects consumer back to merchant’s system URL based on
+.  Merchant takes URL from response.
+.  Merchant redirects consumer to this URL (URL can be found in parameter <``payment-method url="URL" name="paypal"/``>).
+.  Consumer confirms payment on _PayPal_ site.
+.  WPG redirects consumer back to merchant’s system URL based on
 payment result (success_url, cancel_url, failed_url <- defined in MAID
 configuration or in first request).
-8.  WPG sends IPN to merchant’s system after payment is verified (usually
+.  WPG sends IPN to merchant’s system after payment is verified (usually
 few seconds).
 
-[#API_PayPal_Workflow_refund-debit]
+[#API_PayPal_Workflow_refundDebit]
 ===== refund-debit or refund-capture
 
 See <<API_PayPal_Samples_GeneralSamples_refunddebit, _refund-debit_ samples>>
 for details.
 
 ._refund-debit_ workflow with _PayPal_
-image::images/11-25-PayPal/PaypalWorkflow_refund-debit.png[refund-debit Workflow,height=100]
+image::images/11-25-PayPal/PaypalWorkflow_refund-debit.png[refund-debit Workflow]
 
-1.  Merchant sends _refund_ request to WPG
+.  Merchant sends _refund_ request to WPG
 ..  It depends on the corresponding transaction, whether merchant sends
 a _refund-debit_ or _refund-capture_ request.
 ..  The request must contain the <``transaction-id``> of the transaction to
@@ -2753,7 +2750,7 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 [#API_PayPal_debit_PeriodicType_Installment]
 ====== _debit_ (Periodic Type = Installment)
 
-[PayPal_Samples_debit_Installment_First]
+[#API_PayPal_Samples_debit_Installment_First]
 ======= _debit_ (First Transaction)
 
 ._debit_ Request (Successful)
@@ -2815,7 +2812,7 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 <``parent-transaction-id``> of the notification must correspond to the
 <``transaction-id``> of the response.
 
-[PayPal_Samples_debit_Installment_Recurring]
+[#API_PayPal_Samples_debit_Installment_Recurring]
 ======= _debit_ (Recurring Transaction)
 
 ._debit_ Request (Successful)
@@ -2882,7 +2879,7 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 </payment>
 ----
 
-[PayPal_Samples_debit_Installment_Final]
+[#API_PayPal_Samples_debit_Installment_Final]
 ======= _debit_ (Final Transaction)
 
 ._debit_ Request (Successful)
