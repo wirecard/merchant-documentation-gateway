@@ -1,7 +1,7 @@
 [#SEPA]
 === SEPA
 
-image::images/11-30-Sepa/SepaLogoEN.jpg[SEPA Logo, 200, align="right"]
+image::images/11-30-sepa/SepaLogoEN.jpg[SEPA Logo, 200, align="right"]
 
 The Single Euro Payments Area (SEPA) is an initiative of the European
 banking industry that makes electronic payments across the euro area as
@@ -25,15 +25,15 @@ https://www.europeanpaymentscouncil.eu/what-we-do/sepa-payment-scheme-management
 
 Wirecard offers two SEPA payment methods.
 
-* <<SEPACreditTransfer, SEPA Credit Transfer>>
-* <<SEPADirectDebit, SEPA Direct Debit>>
+- <<SEPACreditTransfer, SEPA Credit Transfer>>
+- <<SEPADirectDebit, SEPA Direct Debit>>
+//-
 
 SEPA _Direct Debit_ is very popular in Germany, Austria and the
 Netherlands.
 
 [#SEPA_TransactionTypes]
 ==== Transaction Types
-
 
 The following transaction types may be used with both SEPA _Direct Debit_
 and SEPA _Credit Transfer_ payment methods. For payment method
@@ -58,8 +58,9 @@ by the bank and settled, it is no longer possible to void a transaction.
 To void an existing pending SEPA _Direct Debit_ or SEPA _Credit
 Transfer_ transaction, a merchant must
 
-* send a _void-pending-debit_ or _void-pending-credit_ request.
-* include the parent-transaction-ID.
+- send a _void-pending-debit_ or _void-pending-credit_ request.
+- include the parent-transaction-ID.
+//-
 ====
 
 [#SEPA_TransactionType_Void_Restrictions]
@@ -68,21 +69,23 @@ Transfer_ transaction, a merchant must
 To ensure proper processing, please take into consideration the
 following restrictions for SEPA _Void_ transactions:
 
-* A _pending-debit_ or _pending-credit_ transaction may only be voided
+- A _pending-debit_ or _pending-credit_ transaction may only be voided
 *before* the transaction is batched into a file and sent to the bank for
 processing.
 
 NOTE: Batch processing starts at around 10:00 UTC.
 
-* If a _void_ request is sent after the transaction has been sent to the
+- If a _void_ request is sent after the transaction has been sent to the
 bank, a _Failed_ response will be returned.
-* Once a corresponding _debit_ or _credit_ transaction exists for the
+- Once a corresponding _debit_ or _credit_ transaction exists for the
 original _pending-debit_ or _pending-credit_ it is no longer possible to
 void a transaction.
-* A request for a _void_ transaction must contain a parent-transaction
+- A request for a _void_ transaction must contain a parent-transaction
 ID referring to the _pending-debit_ or _pending-credit_ transaction
 that should be voided.
+//-
 
+[#SEPA_TransactionType_Void_Fields]
 ====== Fields
 
 The fields used for SEPA _Void_ requests, responses and notifications
@@ -91,7 +94,7 @@ or the request example for the fields required in a
 <<SEPADirectDebit_Samples_VoidPendingDebit, _void-pending-debit_>> or
 <<SEPACreditTransfer_Samples_VoidPendingCredit, _void-pending-credit_>> transaction.
 
-IMPORTANT: If the amount is sent within the request for the _void_ transaction it
+WARNING: If the amount is sent within the request for the _void_ transaction it
 will be checked if it is the same amount as in the previous
 _pending-debit_ or _pending-credit_ request. Partial cancellations are
 currently *not* possible.   
@@ -102,13 +105,16 @@ The following elements are mandatory (M) or optional (O) for a
 request/response/notification. If the respective cell is empty, the
 field is disregarded or not sent.
 
-.Field Table
+[%autowidth]
 |===
 |Field           	| Request  | Response	| Notification | Description
 
 |requested-amount | O        | M        | M | This is the amount of the transaction. The amount of the decimal place
 is dependent of the currency. Min amount €0.01. Max amount
 €999,999,999.99.
+
+If it is sent within the request it will be validated if it is the same amount like in the _pending-debit_ or _pending-credit_ request.
+
 |requested-currency |O      | M         | M | This is the currency of the requested-amount. Only EUR is accepted.
 |payment-methods.payment-method-Name | M | M | M | This is the name of the payment method *sepadirectdebit* or
 *sepacredit*.
@@ -116,7 +122,6 @@ is dependent of the currency. Min amount €0.01. Max amount
 |transaction-type | M | M  | M | This is the type for a transaction. For a SEPA _Void_ request, only
 _void-pending-debit_, _void-debit_, _void-pending-credit_ or
 _void-credit_ are allowed.
-
 |===
 
 [#SEPA_TransactionType_Deposit]
@@ -139,12 +144,13 @@ SEPA __Credit Transfer __transaction. If the PTRID is not provided or it
 is simply not possible to match the transaction, the transaction will
 remain unmatched.
 
+[#SEPA_TransactionType_Deposit_Fields]
 ====== Fields
 
 The following elements are submitted in the IPN
 (<<GeneralPlatformFeatures_IPN, Instant Payment Notification>>) either mandatory (M) or optional (O):
 
-.Field Table
+[%autowidth]
 |===
 |Field           	| Notification | Description
 |request-id | M | This is the identification number of the request on the merchant's side.
@@ -214,17 +220,19 @@ _deposit_.
 A _debit-return_ reverses a _debit_ transaction. It is initiated by the
 consumer bank 
 
-* if the consumer disputes the transaction
-* if there is a problem with the consumer bank account (e.g. bank account
+- if the consumer disputes the transaction
+- if there is a problem with the consumer bank account (e.g. bank account
 closed)
+//-
 
 A _credit-return_ reverses a _credit_ transaction. It is initiated
 either by
 
-* the merchant's bank (e.g. insufficient funds)
-* the consumer's bank (e.g. bank account closed)
+- the merchant's bank (e.g. insufficient funds)
+- the consumer's bank (e.g. bank account closed)
+//-
 
-All __debit-return__s and __credit-return__s are included in
+All _debit-returns_ and _credit-returns_ are included in
 reconciliation files provided by Wirecard Bank and sent to the _Wirecard Payment Processing Gateway._ The transaction types _debit-return_ and
 _credit-return_ are then initiated by the _Wirecard Payment Processing Gateway_. It is not possible for a
 merchant to request these transaction types.
@@ -237,7 +245,7 @@ Possible return codes are documented within <<SEPA_ReturnCodes, Return Codes>>.
 [#SEPA_Workflow]
 ====== Workflow
 
-image:images/11-30-Sepa/3704722.png[SEPA Workflow]
+image:images/11-30-sepa/3704722.png[SEPA Workflow]
 
 . _Consumer's bank sends a debit-return_ or _credit-return_ to
 Wirecard Bank.
@@ -245,8 +253,6 @@ Wirecard Bank.
 . WPPG receives the transaction.
 . WPPG uses the PTRID to find an initial parent _debit_ or parent
 _credit_ transaction.
-//-
-
 .. If successful, WPPG maps the _debit-return_ to _a debit_ or
 _credit-return_ to a _credit._
 .. if not successful, WPPG creates _a debit-return_ or _credit-return_
@@ -322,7 +328,7 @@ to the merchant.
 ==== Dynamic Descriptor
 
 Just like _Credit Card_ it is also possible to use a
-<<CreditCard_DynamicDescriptor, Dynamic Descriptor>> with SEPA.
+<<CreditCard_PaymentFeatures_DynamicDescriptor, Dynamic Descriptor>> with SEPA.
 
 [#SEPA_Reporting]
 ==== Reporting
@@ -330,10 +336,10 @@ Just like _Credit Card_ it is also possible to use a
 A reconciliation file is available to download by merchants. This allows
 merchant to have the most up-to-date status for their transactions. For
 more information about the reconciliation file see chapter
-<<DataReconciliation, Data Reconciliation>> or please contact Wirecard Merchant Support.
+<<Reporting_DataReconciliation, Data Reconciliation>> or please contact Wirecard Merchant Support.
 
 [#SEPA_Reporting_BankDataValidation]
-===== Bank Data Validation
+==== Bank Data Validation
 
 The _Wirecard Payment Processing Gateway_ validates the consumer's bank data, to
 ensure transactions with faulty bank data are not forwarded to the bank
@@ -345,14 +351,15 @@ for processing.
 _Wirecard Payment Processing Gateway_ validates the consumer's IBAN in the
 following manner:
 
-* The validity of the country code within the IBAN
-* The validity of the country code within the SEPA scheme
-* The structure of the IBAN including:
-** the length of the IBAN based on the issuing country
-** the position of the bank identifier
-** the position of the country code
-** the position of the check digits
-* Check digit verification
+- The validity of the country code within the IBAN
+- The validity of the country code within the SEPA scheme
+- The structure of the IBAN including:
+* the length of the IBAN based on the issuing country
+* the position of the bank identifier
+* the position of the country code
+* the position of the check digits
+- Check digit verification
+//-
 
 [#SEPA_Reporting_BICValidation]
 ===== BIC Validation
@@ -360,19 +367,19 @@ following manner:
 _Wirecard Payment Processing Gateway_ validates the consumer's BIC in the following
 manner:
 
-* The length of the BIC may only be either 8 or 11 characters
-* The validity of the BIC within the SEPA scheme
+- The length of the BIC may only be either 8 or 11 characters
+- The validity of the BIC within the SEPA scheme
+//-
 
 [#SEPA_Reporting_IbanOnly]
-===== SEPA IBAN Only
+===== SEPA IBAN _Only_
 
 According to the EU's SEPA migration directive, as of February 1, 2016,
-the BIC is no longer required to process cross-border SEPA _Direct
-Debit_ and SEPA _Credit Transfer_ transactions. The merchant may still
+the BIC is no longer required to process cross-border SEPA _Direct Debit_ and SEPA _Credit Transfer_ transactions. The merchant may still
 submit the BIC along with the IBAN, however, it is no longer a mandatory
 field.
 
-Depending on the payment method, some providers may still use the BIC as
+WARNING: Depending on the payment method, some providers may still use the BIC as
 support functionality.
 
 [#SEPA_ReturnCodes]
@@ -382,6 +389,7 @@ SEPA transactions may be returned by either the merchant or consumer
 bank for several reasons described below.
 
 .SEPA Return Codes
+[%autowidth]
 |===
 |EE Status Code |Reason Name |Reason Description
 
