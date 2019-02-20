@@ -1,7 +1,8 @@
+
 [#PaymentMethods_NonCredit_Przelewy24]
 === Przelewy24
 
-image::C:\Users\cristina.szilagyi\github\merchant-documentation-gateway\images\11-28-przelewy24\Przelewy24_Logo.png[Przelewy24]
+image::images/11-28-przelewy24/Przelewy24_Logo.png[Przelewy24]
 
 [#PaymentMethods_NonCredit_Przelewy24_Introduction]
 ==== Introduction
@@ -18,11 +19,8 @@ merchant.
 
 The notification for the final status of the transaction should be
 received within a few minutes. If the notification is not sent within
-this time, the merchant has the possibility to send a request for
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RetrieveTransactionbyTransaction-ID[Retrieve
-Transaction by Transaction ID] or
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-Retrieve_by_Request-IDRetrieveTransactionbyRequest-ID[Retrieve
-Transaction by Request ID]. With the response the merchant will get the
+this time, the merchant has the possibility to send a request for <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>> or
+<<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request ID>>. With the response the merchant will get the
 final status of the requested transaction. If the response is 404, it
 means _Wirecard Payment Gateway_ (WPG) has not received final status
 from P24 yet. In such cases a retrieval should be performed again later.
@@ -51,22 +49,16 @@ accessed with any device (notebook, tablet, smartphone).
 ==== Integration
 
 If you want to integrate P24 via *Payment Page*, please refer to the
-documentation at
-https://document-center.wirecard.com/display/PTD/Payment+Page[Payment
-Page].
+documentation at <<PaymentPageSolutions, Payment Page>>.
 
 If you want to integrate P24 via *ReST API*, please refer to the
-documentation at
-https://document-center.wirecard.com/display/PTD/REST+API[ReST API].
+documentation at <<RestApi, ReST API>>.
 
 If you want to use *IPN* with P24, please refer to the documentation at
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-instant_payment_notificationInstantPaymentNotification[Instant
-Payment Notification].
+<<GeneralPlatformFeatures_IPN, Instant Payment Notification>>.
 
 If you want to use the *API for transaction retrieval*, please refer to
-the documentation at
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RetrieveaTransaction[Retrieve
-Transactions].
+the documentation at <<GeneralPlatformFeatures_RetrieveTransaction, Retrieve Transactions>>.
 
 [#PaymentMethods_NonCredit_Przelewy24_General Information]
 ==== General Information
@@ -80,8 +72,7 @@ are relevant for _P24_.
 
 .Payment Mode, Countries and Currencies
 |===
-| *Payment Mode* | https://document-center.wirecard.com/display/PTD/Non+Credit+Card#NonCreditCard-OnlineBankTransfer[Online
-Bank Transfer]
+| *Payment Mode* | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
 | *Countries* | Poland
 | *Currencies* | PLN
 |===
@@ -110,35 +101,28 @@ transaction types.
 
 NOTE: Recurring mode is not available.
 
-For https://document-center.wirecard.com/display/PTD/Glossary#Glossary-TransactionType[transaction
-type] details which are not given here look
-at https://document-center.wirecard.com/display/PTD/Appendix+B%3A+Transaction+Types[Appendix
-B: Transaction Types].
+For <<Glossary_TransactionType, transaction type>> details which are not given here look
+at <<AppendixB, Appendix B: Transaction Types>>.
 
 |===
-| *Transaction Type* | *Request* | *Response/IPN** | *WEP*** | *Description* | *Link to Samples*
+| Transaction Type | Request | Response/IPN | WEP | Description | Link to Samples
+
 | _debit_ | Yes | Yes | Yes | Moves funds from Consumer to Merchant.
 _debit_ requests to take funds from consumer’s bank account. a|
-https://document-center.wirecard.com/display/PTD/Przelewy24#Przelewy24-debit.1[_debit_
-samples] (ReST API)
+<<PaymentMethods_NonCredit_Przelewy24_debitsample, debit samples>>
 
-https://document-center.wirecard.com/display/PTD/Przelewy24#Przelewy24-debit.2[_debit_
-samples] (Payment Page)
-
-|_ get-url_ |No |No |Yes | A step in a group of transactions where the
+|_get-url_ |No |No |Yes | A step in a group of transactions where the
 URL of P24 landing page is retrieved for the Consumer to be redirected
 to. | 
 
-|_ refund-request_ |Yes |Yes |Yes | A request to give funds to the
+|_refund-request_ |Yes |Yes |Yes | A request to give funds to the
 Consumer's account, referring to an eligible _debit_ transaction.
-|https://document-center.wirecard.com/display/PTD/Przelewy24#Przelewy24-refund[_refund_
-samples]
+|<<PaymentMethods_NonCredit_Przelewy24_refundsample, refund samples>>
 
 |_refund-debit_ |No |Yes |Yes |Moves funds from the Merchant to the
 Consumer. It follows _refund-request_ as a final step of the refund
 flow.
-|https://document-center.wirecard.com/display/PTD/Przelewy24#Przelewy24-refund[_refund_
-samples]
+|
 |===
 
 * Yes means the transaction type can be sent in the request.
@@ -173,7 +157,7 @@ h| Secret Key          3+| fdd54ea1-cef1-449a-945c-55abc631cfdc
 [#PaymentMethods_NonCredit_Przelewy24_debitTransaction]
 ===== _debit_ Transaction
 
-[#PaymentMethods_NonCredit_Przelewy24_DebitPrerequisites]
+[#PaymentMethods_NonCredit_Przelewy24_Prerequisites]
 ====== Prerequisites
 
 For a successful workflow, please keep the following prerequisites in
@@ -196,7 +180,7 @@ could have cancelled the order already).
 [#PaymentMethods_NonCredit_Przelewy24_PaymentProcessUsingtheReSTAPI]
 ====== Payment Process Using the ReST API
 
-image::C:\Users\cristina.szilagyi\github\merchant-documentation-gateway\images\11-28-przelewy24\Przelewy24_Debit_TX_ReST.png[Payment Process Using ReST API]
+image::images/11-28-przelewy24/Przelewy24_Debit_TX_ReST.png[Payment Process Using ReST API]
 
 . The consumer initiates a transaction (currency is set to PLN).
 . The merchant sends a request with the consumer's data to the
@@ -222,7 +206,8 @@ definition in the field “notifications/notification/@url” in the request
 [#PaymentMethods_NonCredit_Przelewy24_PaymentProcessUsingthePaymentPage]
 ====== Payment Process Using the Payment Page
 
-image::C:\Users\cristina.szilagyi\github\merchant-documentation-gateway\images\11-28-przelewy24\Przelewy24_Debit_TX_PPage.png[Payment Process Using Payment Page]
+.Payment Process Using Payment Page
+image::images/11-28-przelewy24/Przelewy24_Debit_TX_PPage.png[Payment Process Using Payment Page]
 
 . The consumer initiates a transaction (currency is set to PLN).
 . The merchant sends a request with the consumer's data to the
@@ -256,7 +241,7 @@ A _refund_ transaction is a backend process. Wirecard can only provide a
 process for ReST API. When using Payment Page the merchant must set up a
 refund process.
 
-[#PaymentMethods_NonCredit_Przelewy24_Refund_Prerequisites]
+[#PaymentMethods_NonCredit_Przelewy24_Prerequisites]
 ====== Prerequisites
 
 In order to transfer funds back to the consumer you have to be aware of
@@ -277,7 +262,8 @@ subsequent notification.
 [#PaymentMethods_NonCredit_Przelewy24_refundProcessUsingtheReSTAPI]
 ====== _refund_ Process Using the ReST API
 
-image::C:\Users\cristina.szilagyi\github\merchant-documentation-gateway\images\11-28-przelewy24\Przelewy24_Refund_TX_ReST.png[refund Process Using the ReST API]
+.refund Process Using the ReST API
+image::images/11-28-przelewy24/Przelewy24_Refund_TX_ReST.png[refund Process Using the ReST API]
 
 . The merchant initiates a _refund_ transaction.
 . The merchant sends a request to the endpoint of WPG. The request
@@ -301,17 +287,15 @@ instead of _refund-request_ which was sent in the merchant's request
 In order to receive a server-to-server notification, the notification
 must use the definition in the
 field _notifications/notification/@url_ in the request (Step 2).
-See https://confluence.wirecard.sys/display/PTD/Additional+Products+and+Services#AdditionalProductsandServices-instant_payment_notificationInstantPaymentNotification[Instant
-Payment Notification] for details.
+See <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> for details.
 
 [#PaymentMethods_NonCredit_Przelewy24_BankingStatement]
 ===== Banking Statement
 
-After a successful payment process a banking statement appears in the
+After a successful payment process, a banking statement appears in the
 consumer's transaction history. The statement consists of
 a _Transaction-ID_ generated by P24 (_P24-Transaction-ID_) and a value
-provided in the field __descriptor __of the
-https://document-center.wirecard.com/display/PTD/Przelewy24#Przelewy24-debit.1[_debit_ request].
+provided in the field __descriptor __of the <<PaymentMethods_NonCredit_Przelewy24_debitsample, debit request>>.
 
 The structure of the _P24-Transaction-ID_ is
 “P24-YXX-XXX-XXX”. _The _P24-Transaction-ID__ is also displayed in
@@ -321,11 +305,7 @@ the _Wirecard Enterprise Portal_ (WEP) as _Provider Transaction-ID_.
 ==== Fields
 
 For full reference of allowed fields for Payment Page or REST API can be
-found on
-https://document-center.wirecard.com/display/PTD/Fields+for+Payment+Page[Fields
-for Payment Page] or
-https://document-center.wirecard.com/display/PTD/Fields[Fields for ReST
-API] respectively. +
+found on <<PaymentPageSolutions_Fields, Fields for Payment Page>> or <<RestApi_Fields, Fields for ReST API>> respectively. +
 The following tables describe only P24 specifics. The following elements
 are either mandatory (M), optional (O) or conditional (C).
 
@@ -358,9 +338,7 @@ which a transaction is received and processed. Always use value _PLN_
 
 |descriptor |O |Alphanumeric |64 a|
 Describes the transaction. It is shown on the account holder's statement
-along with the _P24-Transaction-ID_. See section
-https://confluence.wirecard.sys/display/PTD/Przelewy24#Przelewy24-BankingStatement[Banking
-Statement] for details.
+along with the _P24-Transaction-ID_. See section <<PaymentMethods_NonCredit_Przelewy24_BankingStatement, Banking Statement>> for details.
 Do not use no more than 20 characters and do not use special chars as it
 can be misinterpreted by a bank system.
 
@@ -395,22 +373,17 @@ transaction. Always use value _refund-request_
 which a transaction is received and processed. Always use value _PLN_
 |===
 
-[#PaymentMethods_NonCredit_Przelewy24_SamplesRequestsResponsesandNotifications]
-==== Samples
+[#PaymentMethods_NonCredit_Przelewy24_SamplesRequestsResponsesandNotifications]]
+==== Samples: Requests, Responses and Notifications
 
-[#PaymentMethods_NonCredit_Przelewy24_ReSTAPI]
-===== ReST API
-
-Go to
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-NotificationExamples[Notification
-Examples], if you want to see corresponding notification samples.
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want to see corresponding notification samples.
 
 [#PaymentMethods_NonCredit_Przelewy24_debitsample]
 ====== debit
 
-.XML debit Request (Successful)
+.debit Request (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -437,9 +410,9 @@ Examples], if you want to see corresponding notification samples.
 </payment>
 ----
 
-.XML debit Response (Succcessful)
+.debit Response (Succcessful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -472,70 +445,13 @@ Examples], if you want to see corresponding notification samples.
 </payment>
 ----
 
-.XML debit Request (Failure)
-
-[source,syntaxhighlighter-pre]
-----
-<?xml version="1.0" encoding="utf-8"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-   <merchant-account-id>86451785-3ed0-4aa1-99b2-cc32cf54ce9a</merchant-account-id>
-   <request-id>1e46b98b-64dd-44a5-abe7-ad2dee5e99a2</request-id>
-   <transaction-type>debit</transaction-type>
-   <payment-methods>
-      <payment-method name="p24" />
-   </payment-methods>
-   <requested-amount currency="PLN">10</requested-amount>
-   <account-holder>
-      <first-name>John</first-name>
-      <last-name>Doe</last-name>
-      <email/>
-   </account-holder>
-   <order-number>180730104826377</order-number>
-   <notifications>
-      <notification url="https://merchant.com/ipn.php" />
-   </notifications>
-</payment>
-----
-
-.XML debit Response (Failure)
-
-[source,syntaxhighlighter-pre]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
-  <merchant-account-id>86451785-3ed0-4aa1-99b2-cc32cf54ce9a</merchant-account-id>
-  <transaction-id>3e8727cc-e7cd-4299-9899-8f413af745a7</transaction-id>
-  <request-id>7c008ea6-d0ca-41a9-81c5-7bb867c03ca5</request-id>
-  <transaction-type>debit</transaction-type>
-  <transaction-state>failed</transaction-state>
-  <completion-time-stamp>2018-07-30T09:21:47.000Z</completion-time-stamp>
-  <statuses>
-    <status code="400.1201" description="Email has not been provided. Please check your input and try again." severity="error" />
-    <status code="400.1016" description="The Email Address is syntactically incorrect.  Please check your input and try again." severity="error" />
-  </statuses>
-  <requested-amount currency="PLN">10</requested-amount>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email></email>
-  </account-holder>
-  <order-number>180730112147154</order-number>
-  <notifications>
-    <notification url="https://merchant.com/ipn.php"></notification>
-  </notifications>
-  <payment-methods>
-    <payment-method name="p24" />
-  </payment-methods>
-</payment>
-----
-
 [#PaymentMethods_NonCredit_Przelewy24_refundsample]
 ====== refund
 
 
-.XML refund-request Request (Successful)
+.refund-request Request (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -549,9 +465,9 @@ Examples], if you want to see corresponding notification samples.
 </payment>
 ----
 
-.XML refund-request Response (Successful)
+.refund-request Response (Successful)
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/86451785-3ed0-4aa1-99b2-cc32cf54ce9a/payments/8c2bdc7f-d426-4008-a200-745275c6bd46">
@@ -588,90 +504,3 @@ Examples], if you want to see corresponding notification samples.
   <provider-account-id>16027</provider-account-id>
 </payment>
 ----
-
-.XML refund-request Request (Failure)
-
-[source,syntaxhighlighter-pre]
-----
- <?xml version="1.0" encoding="utf-8"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <request-id>a33aad9b-c91a-4520-8ac1-709dc3da5c2b</request-id>
-  <transaction-type>refund-request</transaction-type>
-  <requested-amount currency="PLN">50</requested-amount>
-  <parent-transaction-id>77e8f783-8960-45b5-8e61-5e50f9a29ba1</parent-transaction-id>
-  <payment-methods>
-    <payment-method name="p24" />
-  </payment-methods>
-</payment>
-----
-
-.XML refund-request Response (Failure)
-
-[source,syntaxhighlighter-pre]
-----
- <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/86451785-3ed0-4aa1-99b2-cc32cf54ce9a/payments/4857533a-3078-45e7-9246-5ade67e66cf6">
-  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/86451785-3ed0-4aa1-99b2-cc32cf54ce9a">86451785-3ed0-4aa1-99b2-cc32cf54ce9a</merchant-account-id>
-  <transaction-id>4857533a-3078-45e7-9246-5ade67e66cf6</transaction-id>
-  <request-id>a33aad9b-c91a-4520-8ac1-709dc3da5c2b-refund-request</request-id>
-  <transaction-type>refund-request</transaction-type>
-  <transaction-state>failed</transaction-state>
-  <completion-time-stamp>2018-07-30T09:33:42.000Z</completion-time-stamp>
-  <statuses>
-    <status code="400.1027" description="The Requested Amount exceeds the Parent Transaction Amount.  Please check your input and try again." severity="error" />
-  </statuses>
-  <requested-amount currency="PLN">50</requested-amount>
-  <parent-transaction-id>77e8f783-8960-45b5-8e61-5e50f9a29ba1</parent-transaction-id>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>john.doe@test.com</email>
-  </account-holder>
-  <order-number>180730111704952</order-number>
-  <descriptor>Eshop Order - Shoes</descriptor>
-  <notifications>
-    <notification url="https://merchant.com/ipn.php" />
-  </notifications>
-  <payment-methods>
-    <payment-method name="p24" />
-  </payment-methods>
-  <parent-transaction-amount currency="PLN">10.000000</parent-transaction-amount>
-  <api-id>elastic-api</api-id>
-  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
-  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
-  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
-</payment>
-----
-
-[#PaymentMethods_NonCredit_Przelewy24_PaymentPage]
-===== Payment Page
-
-====== debit
-
-.JSON debit Request
-
-[source,syntaxhighlighter-pre]
-----
-var requestData = {
-  "request_id" : "22a39b38-6554-785d-32b0-88a05e059f72",
-  "request_time_stamp" : "20170602133236",
-  "merchant_account_id" : "564764ea-a4a5-427d-abe3-01cb7f67bd25",
-  "transaction_type" : "debit",
-  "requested_amount" : "10",
-  "requested_amount_currency" : "PLN",
-  "request_signature" : "3e14ba38118745ae02b79573a6f468164301e69861a0036fe9a8451195544c12",
-  "first_name" : "John",
-  "last_name" : "Doe",
-  "email" : "john.doe@test.com",
-  "order_number" : "456987",
-  "notification_url" : "https://merchant.com/ipn.php",
-  "success_redirect_url" : "https://merchant.com/success.php",
-  "fail_redirect_url" : "https://merchant.com/fail.php"
-};
-----
-
-NOTE: Payment Page does not respond to requests.
-
-NOTE: Notification looks like "XML Debit Notification (Successful)" (see
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-NotificationExamples[Notification
-Examples]).
