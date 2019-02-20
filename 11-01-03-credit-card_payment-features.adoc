@@ -32,7 +32,8 @@ with these credit card data uses its assigned token instead of the clear
 card account values. This means the merchant system never needs to store
 the sensitive card information, helping to reduce PCI DSS compliance
 issues.
-. *Sending an Explicit Request with the Transaction Type _Tokenize_ or _Detokenize_*. A transaction with this transaction type encrypts or
+. *Sending an Explicit Request with the Transaction Type _Tokenize_ or _Detokenize_*.
+A transaction with this transaction type encrypts or
 decrypts credit card data for later reuse. The sender only gets back a
 _token-ID_. This _token-ID_ can be reused many times as unique
 identifier for this specific credit card without sending or storing
@@ -75,7 +76,7 @@ does not need the <data> tag of the Credit Card but only the
 _token-id_.
 
 _When using credit card, Wirecard Payment Processing Gateway_ offers two different
-options to reference transactions. It depends on the merchant’s
+options to reference transactions. It depends on the merchant's
 individual business needs and business processes, which type of
 referencing should be used.
 
@@ -100,11 +101,11 @@ NOTE: When processing _credit card_ transactions, the merchant must be PCI DSS
 compliant.
 
 If the merchant only hands through a payment process (using a token) and
-does not store card holder data, it reduces the merchant’s applicable
+does not store card holder data, it reduces the merchant's applicable
 controls required for PCI DSS validation.
 
 If the merchant wants to store card holder data (using
-parent-transaction-id), it increases the merchant’s applicable controls
+parent-transaction-id), it increases the merchant's applicable controls
 required for PCI DSS validation.
 
 The following table describes, which data can be stored and which data
@@ -143,18 +144,18 @@ transactions without transmitting the complete card data repeatedly.
 .2+h|Transaction Sequence .2+h|Transaction Type 2+h|Token-ID .2+h|<card-token>
                                                 h|Token Definition h|Value
 
-|Initial Transaction (Request) |authorization |the <card>-section and all its fields +
-e.g.:<account-number>, <expiration-month> etc +
+|Initial transaction (Request) |authorization |the <card>-section and all its fields +
+e.g.: <account-number>, <expiration-month> etc +
 obtains the substitute _token-id_ Value
 |1234567890987654 |empty
-|Response on initial Transaction |authorization 2+|uses _token-id_ value generated from <card> data given in the initial transaction |1234567890987654
+|Response on initial transaction |authorization 2+|uses _token-id_ value generated from <card> data given in the initial transaction |1234567890987654
 |Any subsequent transaction of this initial transaction |purchase 2+|uses _token-id_ value generated from <card> data given in the initial transaction |1234567890987654
 |===
 
 See the
-<<CreditCard_Samples_PaymentProcessingUsingToken,samples for an overview of a payment process>>
+<<CreditCard_Samples_PaymentProcessUsingToken,samples for an overview of a payment process>>
 consisting of the transaction
-types _Authorization_ and _Purchase_ using a token.
+types _authorization_ and _purchase_ using a token.
 
 [#CreditCard_PaymentFeatures_Tokenization_TokenizeCreditCard]
 ====== Tokenize a Credit Card
@@ -304,7 +305,7 @@ The following fields must be sent either in the request or the response
 
 
 For transaction process details see the
-<<CreditCard_Samples_Detokenization, _detokenize_ samples>>
+<<CreditCard_Samples_Detokenization, _detokenize_ samples>>.
 
 NOTE: The transaction type _detokenize_ *is not included in default configuration.* +
 For further information please contact: support@wirecard.com
@@ -342,7 +343,7 @@ proprietary technology.
 ====== Merchant Plug-In (MPI)
 
 An MPI is a software module which provides a communication interface
-between the merchant and the card schemes’ directory servers. It can be
+between the merchant and the card schemes' directory servers. It can be
 integrated in the merchant website or it may be hosted by a service
 provider or an acquirer. The main functions of an MPI are to verify the
 card issuers digital signature used in the authentication process,
@@ -412,8 +413,8 @@ The three necessary steps for processing are:
 Wirecard Payment Processing API permits merchants to check if a
 card/cardholder is enrolled in the 3-D Secure program. To verify
 Enrollment status, the merchant system sends a transaction request to
-Wirecard’s MPI which in turn posts an Enrollment check request (VEReq)
-to the card schemes’ directory servers. In an exchange of messages the
+Wirecard's MPI which in turn posts an Enrollment check request (VEReq)
+to the card schemes' directory servers. In an exchange of messages the
 directory communicates with the ACS of the card issuer, if required, to
 determine if the cardholder is enrolled for 3-D Secure. A response
 message (VERes) is returned by the ACS to the MPI to prove that the
@@ -464,22 +465,22 @@ See the field description at
 [#CreditCard_PaymentFeatures_3DSecure_CustomerACS_HTTPSRedirect]
 *ACS HTTPS Redirect*
 
-In case a card is eligible and enrolled (‘check-enrollment’, Transaction
-Status Code = 200.0000) the merchant system must redirect the customer’s
+In case a card is eligible and enrolled ('check-enrollment', Transaction
+Status Code = 200.0000) the merchant system must redirect the customer's
 browser to the ACS URL provided in the Verify 3-D Participation
-response. If the card is not enrolled ((‘check-enrollment’, Transaction
+response. If the card is not enrolled (('check-enrollment', Transaction
 Status Code = 500.1072) , the ACS redirect must be skipped.
 
 This HTTPS POST message includes the web address (URL) of the ACS and
 three hidden input types: <PaReq>, <TermUrl> and <MD>.
 
-The <*_PaReq_*>   defined as the Payment Authentication Request.
+The <PaReq>   defined as the Payment Authentication Request.
 
-The <*_TermUrl_*> defines the web address of the merchant site to
+The <TermUrl> defines the web address of the merchant site to
 which the issuer returns the Payment Authentication Response (PARes)
 message.
 
-The parameter type <*_MD_*> is reserved for specific merchant data.
+The parameter type <MD> is reserved for specific merchant data.
 Although this field is mandatory, it does not need to have a value
 defined. If this input type is omitted an authentication error will
 occur and the payment process is aborted. The <MD> may be useful for
@@ -537,7 +538,7 @@ merchant data (*_MD_*).
 ====== Check Payers Response
 
 The merchant has received the PARes via the *_TermUrl_*. This request
-should be used in case you are using the Payment Processing API as “MPI
+should be used in case you are using the Payment Processing API as "MPI
 only".  Otherwise the PARes should be included along with the subsequent
 payment request.
 
@@ -603,8 +604,8 @@ in any settlement transaction, be it e-commerce, POS or MOTO.
 ====== Data and Structure
 
 _Merchant Name_ and _Merchant Location_ are usually displayed on the
-cardholder’s bank statement. These fields or parts of them are used for
-presenting the dynamic data on the cardholder’s statement.
+cardholder's bank statement. These fields or parts of them are used for
+presenting the dynamic data on the cardholder's statement.
 
 Apart from such static data, the merchant can add transaction
 information to better reference their sales. For example, the merchant
@@ -639,14 +640,14 @@ Please also note that it is up to the issuer to decide which data
 provided in the dynamic descriptor is printed on the cardholder’s
 statement. Wirecard can thus not guarantee that the dynamic descriptor
 data submitted to the issuers via the scheme networks is fully printed
-on the cardholder’s statement.
+on the cardholder's statement.
 
 Wirecard Bank (WDB) receives the transaction data from the Wirecard
 processing platform, looks up the merchant address, consolidates static
 address details and dynamic sales data (including _Merchant Name_ and
 _Merchant Location_) and routes the information along with the
 settlement request to the issuer. To what level the routed details will
-later appear on the customer’s card statement may vary from issuer to
+later appear on the customer's card statement may vary from issuer to
 issuer.
 
 [#CreditCard_PaymentFeatures_DynamicDescriptor_HowItWorks]
@@ -657,14 +658,14 @@ the data provided in the reserved transaction field tag expands the
 address information registered in the card acquirer’s MID database.
 
 NOTE: The dynamic descriptor is created for settlement transaction types such
-as _Purchase_, _Capture_ or _Credit_. _Authorisation_ is not supported.
+as _purchase_, _capture_ or _credit_. _authorisation_ is not supported.
 
 [#CreditCard_PaymentFeatures_DynamicDescriptor_HowItWorks_Workflow]
 *Workflow*
 
-image::images/11-01-03-credit-card_payment-features/CreditCard_DynamicDescriptor_Workflow.png[CreditCard_DynamicDescriptor_Workflow]
+image::images/11-01-03-credit-card_payment-features/CreditCard_DynamicDescriptor_Workflow.png[CreditCard DynamicDescriptor Workflow]
 
-. The consumer shops at the merchant’s site and enters his card
+. The consumer shops at the merchant's site and enters his card
 details at checkout.
 . The merchant system records the data and posts an XML request
 with the default identifiers including the descriptor text (entered in
@@ -673,12 +674,12 @@ one of the <Transaction-ID>, <Order Number>, <Request ID> or
 . _Wirecard Payment Processing Gateway_ processes the request and forwards
 the transaction details to the Wirecard Bank (acquirer).
 . Wirecard Bank acquires the card and sales details, reads the
-related identifier values, looks up the merchant’s name and business
+related identifier values, looks up the merchant's name and business
 details in the MID database and complements the merchant data with the
 data sent in one of the transaction identifier tag fields.
 . Wirecard Bank routes the settlement request including the
 dynamic text to the issuer.
-. The issuer processes the request, debits the consumer’s
+. The issuer processes the request, debits the consumer's
 account and adds a new debit item with the dynamic descriptor to the
 credit card statement.
 //-
@@ -693,12 +694,12 @@ directly.
 
 Requests in _Payment Facilitator_ traffic require additional sub
 merchant information in the
-<<CreditCard_Fields_SubMerchantInfo, sub-merchant-info>>
-tag of each first request in the transaction flow (e.g.:
+<<<CreditCard_Fields_SubMerchantInfo, sub-merchant-info>>>
+tag of each first request in the transaction flow (e.g.
 _check-enrollment_, _authorization-only_, _authorization_ or
 _purchase_).
 
-The sub merchant information is only required for Master Card traffic,
+The sub merchant information is only required for MasterCard traffic,
 but Wirecard recommends to send it for every credit card brand to avoid
 complexity in implementation.
 
@@ -721,7 +722,7 @@ See the
 To submit a
 <<GeneralPlatformFeatures_Transactions_Recurring, recurring transaction>>
 the merchant must submit a request with the transaction
-type _authorization-only_, _authorization_ or _purchase_ __ including
+type _authorization-only_, _authorization_ or _purchase_ including
 the
 <<GenralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
 element and a
@@ -731,7 +732,7 @@ element and a
 ====== Credit Card specific _Periodic Types_
 
 Aside from the standard _Periodic Types, Credit Card_ can also be used
-with the _Periodic Types ucof_ and _ci.
+with the _Periodic Types ucof_ and _ci_.
 
 [#CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ucof]
 *_ucof_*
@@ -868,7 +869,7 @@ _false_
 . Merchant sends the transaction to _Wirecard Payment Processing Gateway_
 //-
 
-.Example: guest account/single transaction*
+.Example: guest account/single transaction
 [source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -894,7 +895,7 @@ _false_
 ----
 
 [#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios_RecurringInstallmentTransaction]
-*Recurring (R) or Installment (I)Transaction*
+*Recurring \(R) or Installment (I) Transaction*
 
 _First Recurring or Installment_
 
@@ -1062,7 +1063,7 @@ and _periodic/sequence-type = 'recurring'_
 ----
 
 [#CreditCard_PaymentFeatures_RecurringTransactions_NonReferencedCapture]
-Non-Referenced Capture
+====== Non-Referenced Capture
 
 In an offline transaction process it is possible to have a
 non-referenced capture authorization. The _Wirecard Payment Processing Gateway_ can
@@ -1072,7 +1073,7 @@ capture-authorization _Credit Card_ transaction.
 A transaction is considered non-referenced capture when it meets all
 the  following four conditions in the payment XML request:
 
-. The transaction type is _Capture-Authorization_
+. The transaction type is _capture-authorization_
 . The payment-method is _Credit Card_
 . The _Parent-Transaction-ID_ is empty (no tag present)
 . The authorization-code is present (can have empty value)
@@ -1081,11 +1082,11 @@ the  following four conditions in the payment XML request:
 If all conditions are met, then the transaction is sent to _Wirecard Payment Processing Gateway_. 
 
 The most exceptional fact in this process is, that it is missing the
-_Parent-Transaction-ID_. By default, _Capture-Authorization_ takes most
+_Parent-Transaction-ID_. By default, _capture-authorization_ takes most
 of its properties from the parent transaction.
 
 Even though no parent transaction is available, captures which have not
 been referenced by _Wirecard Payment Processing Gateway_ can be processed. Cases
 like this will be handled a non-referenced _Capture-Authorization_
 transaction type. In that case all fields must be supplied with the
-_Capture-Authorization_ request.
+_capture-authorization_ request.
