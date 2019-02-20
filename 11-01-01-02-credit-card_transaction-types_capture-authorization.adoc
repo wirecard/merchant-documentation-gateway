@@ -1,0 +1,469 @@
+[#CreditCard_TransactionTypes_CaptureAuthorization]
+===== capture-authorization
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_Introduction]
+====== Introduction
+
+A _capture-authorization_ transfers an authorized amount from the
+consumer bank account to the acquirer (merchant's bank account).
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_Introduction_RealLife]
+.Real-Life Example
+
+See
+<<CreditCard_TransactionTypes_Authorization_Introduction_RealLife, authorization>>.
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_AvailabilityRestrictions]
+====== Availability and Restrictions
+
+A _capture-authorization_ must be initiated in a defined period of time
+after a successful authorization (details see
+<<CreditCard_TransactionTypes_Authorization_AvailabilityRestrictions, authorization>>).
+
+NOTE: *Captured Amount* +
+A _capture-authorization_ captures either a part of or the full amount
+of the authorized amount. This depends strongly on the acquirer and the
+credit card brand.
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_AvailabilityRestrictions_Sequence]
+.Sequence
+
+A _capture-authorization_ follows an _authorization_.
+
+A
+<<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_VoidCapture, _void-capture_>>
+or a
+<<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_RefundCapture, _refund-capture_>>
+follows a _capture-authorization._
+
+image::images/11-01-01-02-credit-card_transaction-types_capture-authorization/CC_authorization_capture_sequence.png[capture-authorization_sequence]
+
+See details for <<CreditCard_TransactionTypes_VoidRefund, void and refund>>.
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_AccessTestEnvironment]
+====== Access Test Environment
+
+Access data see <<CreditCard_TestCredentials, _credit card_ test credentials>>.
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_SendingData]
+====== Sending Data
+
+We only list samples for requests and responses. Notifications follow
+the general structure described in 
+<<GeneralPlatformFeatures_IPN_NotificationExamples, General Platform Features>>.
+
+Are you using 
+<<CreditCard_TransactionTypes_RunningTestSamples, Postman>> to send the requests?
+
+- If yes, you can use the samples as provided below (_Request Header_ and _Request Sample_).
+- If no, please replace ``{{$guid}}`` with a globally unique ID in ``<request-id>``. 
+//-
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_SendingData_StatusCodes]
+.Status Codes
+
+In ``<statuses>`` of the response you will find a number that represents a
+<<StatusCodes, status code>>.
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_SendingData_Authorization]
+._authorization_
+
+*Request*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.Request Header
+[source]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+.XML authorization Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <account-holder>
+        <device>
+            <fingerprint>D205933_it27sqacgghmsvge83790ocrj7_16432733</fingerprint>
+        </device>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+</payment>
+----
+
+*Response*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.XML authorization Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/df92ce59-a39c-4e2d-a5d6-c3f952826acd">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</transaction-id>
+    <request-id>127869ec-cfce-4bc8-959a-d48866e3001d</request-id>
+    <transaction-type>authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-21T10:45:58.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <descriptor></descriptor>
+    <custom-fields>
+        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <authorization-code>570271</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
+
+A successful _authorization_ may be followed by a
+
+- <<CreditCard_TransactionTypes_Authorization_SendingData_VoidAuthorization, _void-authorization_>> (details see <<CreditCard_TransactionTypes_VoidRefund_Void, void>>).
+- _capture-authorization_ (details see <<GeneralPlatformFeatures_ReferencingTransaction, Referencing by Transaction ID>>).
+//-
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_SendingData_CaptureAuthorization]
+._capture-authorization_
+
+**Request**
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.Request Header
+[source]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+.XML capture-authorization Request (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <ip-address>127.0.0.1</ip-address>
+</payment>
+----
+
+*Response*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.XML capture-authorization Response (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/76c1fcbf-860e-4793-88b8-b1eed6f22ab0">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>76c1fcbf-860e-4793-88b8-b1eed6f22ab0</transaction-id>
+    <request-id>91cdfbd6-2a54-4c5c-b29c-3b4f727586a6</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-21T10:54:45.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <custom-fields>
+        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <parent-transaction-amount currency="USD">2.500000</parent-transaction-amount>
+    <authorization-code>570271</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
+
+A successful _capture-authorization_ may be followed by a
+
+- _void-capture_ (details see <<CreditCard_TransactionTypes_VoidRefund_Void, void>>).
+- <<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_RefundCapture, _refund-capture_>> (details see <<CreditCard_TransactionTypes_VoidRefund_Refund, refund>>).
+//-
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_SendingData_VoidCapture]
+._void-capture_
+
+A _void-capture_ request must reference a successful
+<<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_CaptureAuthorization, _capture-authorization_>> response.
+
+*Request*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.Request Header
+[source]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+.XML void-capture Request (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>void-capture</transaction-type>
+    <parent-transaction-id>76c1fcbf-860e-4793-88b8-b1eed6f22ab0</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+</payment>
+----
+
+*Response*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.XML void-capture Response (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/86198107-a392-4df6-92d3-6bf7a8525e71">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>86198107-a392-4df6-92d3-6bf7a8525e71</transaction-id>
+    <request-id>b90d6b19-bb56-4272-b794-a6cc94148c6d</request-id>
+    <transaction-type>void-capture</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-21T11:02:12.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <parent-transaction-id>76c1fcbf-860e-4793-88b8-b1eed6f22ab0</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4845276539271999</token-id>
+        <masked-account-number>456396******1999</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <custom-fields>
+        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <parent-transaction-amount currency="USD">2.500000</parent-transaction-amount>
+    <authorization-code>570271</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
+
+[#CreditCard_TransactionTypes_CaptureAuthorization_SendingData_RefundCapture]
+._refund-capture_
+
+A __refund-capture__ request must reference a successful
+<<CreditCard_TransactionTypes_CaptureAuthorization_SendingData_CaptureAuthorization, _capture-authorization_>> response.
+
+*Request*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.Request Header
+[source]
+----
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+Content-Type: application/xml
+----
+
+.XML refund-capture Request (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>refund-capture</transaction-type>
+    <parent-transaction-id>dce8eb51-d520-48b5-8ae5-897297da6f10</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+</payment>
+----
+
+*Response*
+
+_Fields_
+
+We provide detailed descriptions of all
+<<CreditCard_Fields, _credit card_ fields>>.
+
+_Sample_
+
+.XML refund-capture Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/49fc219a-4821-4e0d-8c26-d9b78c4d0a7e">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
+    <transaction-id>49fc219a-4821-4e0d-8c26-d9b78c4d0a7e</transaction-id>
+    <request-id>1db35de9-4414-4159-9852-ffef29d4a195</request-id>
+    <transaction-type>refund-capture</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-12-21T11:35:50.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="USD">2.50</requested-amount>
+    <parent-transaction-id>dce8eb51-d520-48b5-8ae5-897297da6f10</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@test.com</email>
+        <phone>5555555555</phone>
+        <address>
+            <street1>123 anystreet</street1>
+            <city>Brantford</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <card-token>
+        <token-id>4127352795354678</token-id>
+        <masked-account-number>427114******4678</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>7049</order-number>
+    <order-detail>Test Product</order-detail>
+    <custom-fields>
+        <custom-field field-name="elastic-api.card_id" field-value="d37b0e36-d712-11e5-96d8-005056a96a54"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <parent-transaction-amount currency="USD">2.500000</parent-transaction-amount>
+    <authorization-code>080119</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70001</provider-account-id>
+</payment>
+----
