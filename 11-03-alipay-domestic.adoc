@@ -54,13 +54,9 @@ For transaction type details which are not given here look at 
 |===
 |Transaction Type |Link to the Sample
 
-|_check-signature_ | 
+|_debit_ |See <<API_AlipayDomestic_Samples_Debit, samples>>
 
-|_get-url_ | 
-
-|_debit_ |See <<API_AlipayDomestic_Samples_debit, samples>>
-
-|_refund-debit_ | 
+|_refund-debit_ | See <<API_AlipayDomestic_Samples_RefundDebit, samples>>
 |===
 
 [#AlipayDomestic_TestCredentials]
@@ -71,17 +67,17 @@ For transaction type details which are not given here look at 
 .2+h| URL(s) Endpoints
 |For the transaction type _debit._
 |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
-|For the transaction types _refund-debit_ and _refund-request_.
+|For the transaction types _refund-debit_ and _refund-request._
 |``\https://api-test.wirecard.com/engine/rest/payments/``
 
 h| Merchant Account ID (MAID)
-2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
+2+| 3ed75e0a-d70a-421f-a047-c70ba54b9317
 
 h| Username
-2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
+2+| 16390-testing
 
 h| Password
-2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
+2+| 3!3013=D3fD8X7
 
 h| Secret Key
 2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
@@ -90,11 +86,7 @@ h| Secret Key
 [#API_AlipayDomestic_TestCredentials_Additional]
 ===== Additional Test Credentials on _Alipay Domestic_ Environment
 
-[cols="20h, 80"]
-|===
-| Account Name | ``\alipaytest20091@gmail.com``
-| Password | 111111
-|===
+Please contact chinapaymentgateway@wirecard.com for an Alipay buyer test account.
 
 [#API_AlipayDomestic_Workflow]
 ==== Workflow
@@ -134,31 +126,30 @@ the <<RestApi_Fields, REST API Fields>>.  
 
 [source,xml]
 ----
-POST https://sandbox-engine.thesolution.com/engine/rest/paymentmethods/ HTTP/1.1Accept-Encoding: gzip,deflate
-Content-Type: application/xml
-Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
-Content-Length: 672
-Host: sandbox-engine.thesolution.com
-Connection: Keep-Alive
-User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
-
+<?xml version="1.0" encoding="utf-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <payment-methods>
-    <payment-method name="alipay"/>
-  </payment-methods>
-  <merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id>
-  <request-id>demo-00000000010</request-id>
-  <transaction-type>debit</transaction-type>
-  <requested-amount currency="CNY">1.01</requested-amount>
-  <order-number>37530</order-number>
-  <order-detail>Test product 001</order-detail>
-  <ip-address>127.0.0.1</ip-address>
-  <locale>en</locale>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>john.doe@wirecard.com</email>
-  </account-holder>
+<payment-methods>
+  <payment-method name="alipay" />
+</payment-methods>
+<merchant-account-id>3ed75e0a-d70a-421f-a047-c70ba54b9317</merchant-account-id>
+<request-id>0e0e26c6-e414-4e17-8e52-e78cb07f0875</request-id>
+<transaction-type>debit</transaction-type>
+<requested-amount currency="CNY">0.1</requested-amount>
+<order-number>181106090126081</order-number>
+<order-detail>Test product 001</order-detail>
+<ip-address>127.0.0.1</ip-address>
+<locale>en</locale>
+<account-holder>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+  <email>john.doe@wirecard.com</email>
+</account-holder>
+<cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+<success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+<fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+    <notifications>
+        <notification url="add.your.url.here"/>
+    </notifications>
 </payment>
 ----
 
@@ -166,36 +157,36 @@ User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
 
 [source,xml]
 ----
-HTTP/1.1 201 CreatedServer: nginx
-Date: Wed, 10 Jun 2015 15:25:03 GMT
-Content-Type: application/xml;charset=UTF-8
-Content-Length: 1559
-Connection: keep-alive
-Content-Language: en-US
-
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-   <merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id>
-   <transaction-id>ddae2fed-0f84-11e5-87be-00163e5411b5</transaction-id>
-   <request-id>demo-00000000010</request-id>
-   <transaction-type>debit</transaction-type>
-   <transaction-state>success</transaction-state>
-   <completion-time-stamp>2015-06-10T15:25:03.000Z</completion-time-stamp>
-   <statuses>
-      <status code="201.0000" description="The resource was successfully created." severity="information"/>
-   </statuses>
-   <requested-amount currency="CNY">1.01</requested-amount>
-   <account-holder>
-      <first-name>John</first-name>
-      <last-name>Doe</last-name>
-      <email>john.doe@wirecard.com</email>
-   </account-holder>
-   <ip-address>127.0.0.1</ip-address>
-   <order-number>37530</order-number>
-   <order-detail>Test product 001</order-detail>
-   <payment-methods>
-      <payment-method url="https://mapi.alipay.com/gateway.do?sign_type=MD5&amp;partner=2088101568358171&amp;_input_charset=utf-8&amp;service=create_direct_pay_by_user&amp;notify_url=https%3A%2F%2Fsandbox-engine.thesolution.com%2Fengine%2Fnotification%2Falipay%2F+&amp;return_url=https%3A%2F%2Fsandbox-engine.thesolution.com%2Fengine%2Fnotification%2Falipay%2Fredirect%2Fddae2fed-0f84-11e5-87be-00163e5411b5%2F&amp;out_trade_no=ddae2fed-0f84-11e5-87be-00163e5411b5&amp;payment_type=1&amp;subject=37530&amp;total_fee=1.01&amp;buyer_email=john.doe%40wirecard.com&amp;sign=f6821cc77d752ea2981e281325f7dce6" name="alipay"/>
-   </payment-methods>
-   <locale>en</locale>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>3ed75e0a-d70a-421f-a047-c70ba54b9317</merchant-account-id>
+ <transaction-id>12ba0604-106e-454f-a4ca-d4f801dc56fa</transaction-id>
+ <request-id>0e0e26c6-e414-4e17-8e52-e78cb07f0875</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-11-06T08:01:26.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="CNY">0.1</requested-amount>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+  <email>john.doe@wirecard.com</email>
+ </account-holder>
+ <ip-address>127.0.0.1</ip-address>
+ <order-number>181106090126081</order-number>
+ <order-detail>Test product 001</order-detail>
+ <notifications>
+  <notification url="add.your.url.here"/>
+ </notifications>
+ <payment-methods>
+  <payment-method url="https://mapi.alipay.com:443/gateway.do?sign_type=MD5&amp;partner=2088801766902304&amp;supplier=Testing-Alipay-Domestic-EE&amp;_input_charset=utf-8&amp;service=create_direct_pay_by_user&amp;notify_url=https%3A%2F%2Fapi-test.wirecard.com%2Fengine%2Fnotification%2Falipay%2F&amp;return_url=https%3A%2F%2Fapi-test.wirecard.com%2Fengine%2Fnotification%2Falipay%2Fredirect%2F12ba0604-106e-454f-a4ca-d4f801dc56fa%2F&amp;out_trade_no=12ba0604-106e-454f-a4ca-d4f801dc56fa&amp;payment_type=1&amp;subject=181106090126081&amp;total_fee=0.1&amp;buyer_email=john.doe%40wirecard.com&amp;seller_email=shuzhi_zsz%40126.com&amp;sign=56c20cd07e86b26df628548d9c8768ee" name="alipay" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <locale>en</locale>
 </payment>
 ----
 
@@ -203,68 +194,77 @@ Content-Language: en-US
 
 [source,xml]
 ----
-Host: requestb.inContent-Type: text/plain
-Total-Route-Time: 0
-Connection: close
-Payment.Request-Id: 7024F639-1ACA-458D-BA58-FFF8F05EFBE8
-Content-Length: 5948
-X-Request-Id: 66dc2fc3-bac3-4f5a-976c-f3879055b9df
-Payment.Transaction-Id: c9297cf6-16c4-11e5-87be-00163e5411b5
-Breadcrumbid: ID-staging-tomcat-n102-36990-1434638258564-0-4093
-Via: 1.1 vegur
-Connect-Time: 0
-User-Agent: Jakarta Commons-HttpClient/3.1
-Notification.Url: http://requestb.in/11h0jul1
-
-<?xml version="1.0" encoding="UTF-8"?><payment xmlns="http://www.elastic-payments.com/schema/payment"><merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id><transaction-id>c9297cf6-16c4-11e5-87be-00163e5411b5</transaction-id><request-id>7024F639-1ACA-458D-BA58-FFF8F05EFBE8</request-id><transaction-type>debit</transaction-type><transaction-state>success</transaction-state><completion-time-stamp>2015-06-19T20:50:14.000Z</completion-time-stamp><statuses><status code="201.0000" description="alipay:The resource was successfully created." provider-transaction-id="2012111319234154" severity="information"/></statuses><requested-amount currency="CNY">1.010000</requested-amount><account-holder><first-name>John</first-name><last-name>Doe</last-name><email>alipay_test@alipay.com</email><phone>5555555555</phone><address><street1>150 Eglinton</street1><street2>Suite 111</street2><city>Toronto</city><state>ON</state><country>CA</country><postal-code>M4P1E8</postal-code></address></account-holder><ip-address>127.0.0.1</ip-address><order-number>PO98U457Z</order-number><order-detail>1 XL TShirt (white)</order-detail><notifications><notification url="http://requestb.in/11h0jul1"/></notifications><custom-fields><custom-field field-name="Invoice Number" field-value="IN4523H11"/></custom-fields><payment-methods><payment-method name="alipay"/></payment-methods><api-id>elastic-payment-page</api-id><processing-redirect-url/><cancel-redirect-url/><fail-redirect-url/><success-redirect-url/><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>grYdTCI/l0WY/lfhndtb5KAnilg=</DigestValue></Reference></SignedInfo><SignatureValue>KBU++2waR3mDKvcSL4nCfb5r5+cFnIGxHLHjA274RLC7wY2t7ziYJuRkHYWw2Yq/AElgEi3lzicU
-G3ZAVh2ksdsVznm0Sk+NMfJO8Duh6p5WwvH8nuCmDCpupTjvsYHWT6qklZjaXPkXJ59k8dCx+0Xg
-Axt2Dh8/SLiqMbhEWmR9F5+ivrAKKiv0bIjtqVGz2kxIj2TIKxhWQNc/RA+3Qj+rudkD4YNXtosB
-n+zSlxgUs4LBi5OzfEHeH7Gie7yyxlLJJpa5j/02rGB6taTLD3HZ1+zwscqKdVEHiY43jsymTp73
-lEDkeGmrcH9R7PPQCGNjFxk6S77ROmRGyV7gRw==</SignatureValue><KeyInfo><X509Data><X509SubjectName>CN=*.thesolution.com,OU=Domain Control Validated,O=*.thesolution.com</X509SubjectName><X509Certificate>MIIFaTCCBFGgAwIBAgIHS05K//8WnzANBgkqhkiG9w0BAQUFADCByjELMAkGA1UEBhMCVVMxEDAO
-BgNVBAgTB0FyaXpvbmExEzARBgNVBAcTClNjb3R0c2RhbGUxGjAYBgNVBAoTEUdvRGFkZHkuY29t
-LCBJbmMuMTMwMQYDVQQLEypodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRv
-cnkxMDAuBgNVBAMTJ0dvIERhZGR5IFNlY3VyZSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTERMA8G
-A1UEBRMIMDc5NjkyODcwHhcNMTExMTAxMTM1MzQxWhcNMTIxMjAxMTY0MTUwWjBbMRowGAYDVQQK
-DBEqLnRoZXNvbHV0aW9uLmNvbTEhMB8GA1UECwwYRG9tYWluIENvbnRyb2wgVmFsaWRhdGVkMRow
-GAYDVQQDDBEqLnRoZXNvbHV0aW9uLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-AKdw14rJ3PjXr8NbZFypT14XRKpBLuwH+Y8+GPq7mb+X4D20ZHwQklPvO1DsHbnKf4PfbxlSeX+i
-jwJ78fDuM9yezS193wzmzJzBnpUkvduiPD7lBpx87tIVT9Hcpt9dMrqF4Y9UByzOws77gMux5gHF
-tV9KmSL7RF0rHSCm5/27n9hzxAffspZXhS3l1cBKGkIiltt5OlGnCGCZvFruyw2R7W/Z9MxxtLOn
-+YdB6i04fc4oygtvzt4DycZ0ZwjT10W3E7/k/xGUx/pYH9RLN3Niu9xanRLESJlt2ohFXoE2eArP
-+y+QAyj8c4P+k6bPwZegXCFsNHXP6VJyDZtOLSECAwEAAaOCAcAwggG8MA8GA1UdEwEB/wQFMAMB
-AQAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMA4GA1UdDwEB/wQEAwIFoDAzBgNVHR8E
-LDAqMCigJqAkhiJodHRwOi8vY3JsLmdvZGFkZHkuY29tL2dkczEtNTkuY3JsMFMGA1UdIARMMEow
-SAYLYIZIAYb9bQEHFwEwOTA3BggrBgEFBQcCARYraHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5
-LmNvbS9yZXBvc2l0b3J5LzCBgAYIKwYBBQUHAQEEdDByMCQGCCsGAQUFBzABhhhodHRwOi8vb2Nz
-cC5nb2RhZGR5LmNvbS8wSgYIKwYBBQUHMAKGPmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5j
-b20vcmVwb3NpdG9yeS9nZF9pbnRlcm1lZGlhdGUuY3J0MB8GA1UdIwQYMBaAFP2sYTKTbEXW4u6F
-X5q653aZaMznMC0GA1UdEQQmMCSCESoudGhlc29sdXRpb24uY29tgg90aGVzb2x1dGlvbi5jb20w
-HQYDVR0OBBYEFGWt8Z80Urg6pSHSiuot3idSbCOHMA0GCSqGSIb3DQEBBQUAA4IBAQBrdO66l5sg
-s9zUIKiY1oQsKah69RkcQo1f7cwBwNDQLi/DY0KD4efWjOjeon3noaoJ26rrfKyfCE8ShmjGcOuL
-4YdEFdvuFgEIBe86jg5CnVF0vNfdiaIMJXAE/SaoK/b/NabepcvwC2/A+snNaf4kmJkDbHg3IvIY
-62znQhzyQWzpYRYaA36XlBxhoYoz8jKLntfSF/SvXCy/f+J9+55T1r/U2kM5Ulem7z9PsaJUHJjl
-M35hH6Phh1kFU8r0FCuySsfPdyqZe5Xc/bP7yOub4XINvnIEZMcDQfL+PCIEdYDxNbYM6+gtCl78
-8Bz9XY5A6TrXcazIPwW/t3jTZRs/</X509Certificate></X509Data></KeyInfo></Signature></payment>
+<?xml version="1.0" encoding="UTF-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>3ed75e0a-d70a-421f-a047-c70ba54b9317</merchant-account-id>
+ <transaction-id>169f2c5d-1104-4e18-9f66-34c1392f029f</transaction-id>
+ <request-id>0e0e26c6-e414-4e17-8e52-e78cb07f0875</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-11-06T08:02:52.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="alipay:The resource was successfully created." severity="information"/>
+ </statuses>
+ <requested-amount currency="CNY">0.100000</requested-amount>
+ <parent-transaction-id>12ba0604-106e-454f-a4ca-d4f801dc56fa</parent-transaction-id>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Doe</last-name>
+  <email>john.doe@wirecard.com</email>
+ </account-holder>
+ <ip-address>127.0.0.1</ip-address>
+ <order-number>181106090126081</order-number>
+ <order-detail>Test product 001</order-detail>
+ <notifications>
+  <notification url="add.your.url.here"/>
+ </notifications>
+ <payment-methods>
+  <payment-method name="alipay"/>
+ </payment-methods>
+ <api-id>---</api-id>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <locale>en</locale>
+ <iso>
+  <pos-transaction-time>080252</pos-transaction-time>
+  <pos-transaction-date>1106</pos-transaction-date>
+ </iso>
+ <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+  <SignedInfo>
+   <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+   <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+   <Reference URI="">
+    <Transforms>
+     <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+    </Transforms>
+    <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+    <DigestValue>QiPD+eeyhx0XRQMD7wMw+Umh0CmseHF4xJhap2YG/YA=</DigestValue>
+   </Reference>
+  </SignedInfo>
+  <SignatureValue>lafeRWvqTPv3eaCqb3JfqqEjkGPJwHxiGiGckjgTlMle3qrRDrjhXU+N4rBgOO4OYxhmFwh8YBgzGkS93s/347TksxB4xilgqqn84hp6UupkLAvggtDBZcYJ01Gl8VesUykRXIzLdIZYuiN1h+zZQ4bBqr2RIOWs8ekIKdzjNC7sO9M3TX8N/4edsvrF8l/aOFUmtY+ZDHlWwfVFesKFl7CzjJFX0vrpZxN4bFRV/zjAfXbNTF5kd0GrVR6kW6uezCTD0IT9D9hX5u1q9npc80YrNZfDdSdP2y7CM+mjwYS4CXQfdcKwPhKOtBmaMoT5ac1dlkHseA4siJzHK9tRguJVj1pBlgq/5tnT2Hpjtr/Y2QUSTQf7APdUp7RVOn6Qv7AsZyPe92iiE/p0o92KMlqAiZN2t4VPZ+G137g+K8ywNwHL/vhR+oSa9FPNQOyWzfLk0PS+H4kq8nd4XrUJCdFybmY4QC5VcivMDWqgXuAT3RbC/j+SSNM26kaGgdoZrfLb5ZFs8xLZ/IdhgspfLsDcPwb63CC8Hii7ZUI8NeN4J4D1fwQlm2vztIHHqoVgch1pyO8cIY1gJLpzlLvXtDkdd2pWWkWiOtOWsXO0fSIa2jHSTEPOk5fJwadxB0qoSJOZEibruIvIJfEvGjp6taJCfGhC7isILVN7fsM7yfs=</SignatureValue>
+  <KeyInfo>
+   <X509Data>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509Certificate>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</X509Certificate>
+   </X509Data>
+  </KeyInfo>
+ </Signature>
+</payment>
 ----
 
 .XML debit Request (Failure)
 
 [source,xml]
 ----
-POST https://sandbox-engine.thesolution.com/engine/rest/paymentmethods/ HTTP/1.1Accept-Encoding: gzip,deflate
-Content-Type: application/xml
-Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
-Content-Length: 277
-Host: sandbox-engine.thesolution.com
-Connection: Keep-Alive
-User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
-
+<?xml version="1.0" encoding="utf-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
   <payment-methods>
-    <payment-method name="alipay"/>
+    <payment-method name="alipay" />
   </payment-methods>
-  <merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id>
-  <request-id>demo-011111112</request-id>
+  <merchant-account-id>3ed75e0a-d70a-421f-a047-c70ba54b9317</merchant-account-id>
+  <request-id>35564b1f-242b-4209-9d8d-371c7d178a76</request-id>
+  <transaction-type>debit</transaction-type>
 </payment>
 ----
 
@@ -272,64 +272,19 @@ User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
 
 [source,xml]
 ----
-HTTP/1.1 201 CreatedServer: nginx
-Date: Wed, 17 Jun 2015 16:33:32 GMT
-Content-Type: application/xml;charset=UTF-8
-Content-Length: 519
-Connection: keep-alive
-Content-Language: en-US
-
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?><payment xmlns="http://www.elastic-payments.com/schema/payment"><merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id><request-id>demo-011111112</request-id><transaction-state>failed</transaction-state><statuses><status code="400.1011" description="The Requested Amount has not been provided.  Please check your input and try again." severity="error"/></statuses><payment-methods><payment-method name="alipay"/></payment-methods></payment>
-----
-
-.XML debit Notification (Failure)
-
-[source,xml]
-----
-Content-Type: text/plain
-X-Request-Id: dfbf48c3-abbe-4511-9a2b-65a204f1fba9
-Host: requestb.in
-Content-Length: 5984
-User-Agent: Jakarta Commons-HttpClient/3.1
-Total-Route-Time: 0
-Payment.Request-Id: C8AAC76A-E41A-42E1-9E2E-234ECBFFA3C1
-Notification.Url: http://requestb.in/11h0jul1
-Connection: close
-Connect-Time: 1
-Breadcrumbid: ID-staging-tomcat-n101-59038-1434563095388-0-4521
-Via: 1.1 vegur
-Payment.Transaction-Id: 467b957f-16c1-11e5-87be-00163e5411b5
-
-
-<?xml version="1.0" encoding="UTF-8"?><payment xmlns="http://www.elastic-payments.com/schema/payment"><merchant-account-id>4fd7149f-14cd-4a67-a8cb-d54044504cc8</merchant-account-id><transaction-id>467b957f-16c1-11e5-87be-00163e5411b5</transaction-id><request-id>C8AAC76A-E41A-42E1-9E2E-234ECBFFA3C1</request-id><transaction-type>debit</transaction-type><transaction-state>failed</transaction-state><completion-time-stamp>2015-06-19T20:25:07.000Z</completion-time-stamp><statuses><status code="500.1999" description="alipay:The acquirer returned an unknown response.  Contact Technical Support." provider-transaction-id="2012111319234154" severity="error"/></statuses><requested-amount currency="CNY">1.010000</requested-amount><account-holder><first-name>John</first-name><last-name>Doe</last-name><email>alipay_test@alipay.com</email><phone>5555555555</phone><address><street1>150 Eglinton</street1><street2>Suite 111</street2><city>Toronto</city><state>ON</state><country>CA</country><postal-code>M4P1E8</postal-code></address></account-holder><ip-address>127.0.0.1</ip-address><order-number>PO98U457Z</order-number><order-detail>1 XL TShirt (white)</order-detail><notifications><notification url="http://requestb.in/11h0jul1"/></notifications><custom-fields><custom-field field-name="Invoice Number" field-value="IN4523H11"/></custom-fields><payment-methods><payment-method name="alipay"/></payment-methods><api-id>elastic-payment-page</api-id><processing-redirect-url/><cancel-redirect-url/><fail-redirect-url/><success-redirect-url/><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><DigestValue>mqhOEJMTImb4P9xEORSOL9q86AE=</DigestValue></Reference></SignedInfo><SignatureValue>ZPm7gEPGCXTYpchTeKIhV1jpkBwAZhbq5bl4EutR5mWk6GHjCdhG1s9nCQHqJcwNmH6mN2Hunrif
-+ZD1pE99CKikvftUZkcCc9Rw5l/5rKYIyLxpOelYfSW57wxj1U/7jlvKi1SrizoVP80gXwBhR2qm
-56p+rdK7TR/nW+btTBt3T1hStgwvBgREYtXnlRwcu9Fe9oaGD6xGJwfalU3V/Q5LHDn7H8NZAjEJ
-/ICcsXBTlTi8SYfO757+vAuHtTq2/uZQqSxNfvNdSXScH/goMKGEd8MPzkxKWMWzs6ohVQZoNk4p
-XA3WSu0KCTdxgwNXcz4Op1L6ezCXEhUXnvbkiA==</SignatureValue><KeyInfo><X509Data><X509SubjectName>CN=*.thesolution.com,OU=Domain Control Validated,O=*.thesolution.com</X509SubjectName><X509Certificate>MIIFaTCCBFGgAwIBAgIHS05K//8WnzANBgkqhkiG9w0BAQUFADCByjELMAkGA1UEBhMCVVMxEDAO
-BgNVBAgTB0FyaXpvbmExEzARBgNVBAcTClNjb3R0c2RhbGUxGjAYBgNVBAoTEUdvRGFkZHkuY29t
-LCBJbmMuMTMwMQYDVQQLEypodHRwOi8vY2VydGlmaWNhdGVzLmdvZGFkZHkuY29tL3JlcG9zaXRv
-cnkxMDAuBgNVBAMTJ0dvIERhZGR5IFNlY3VyZSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTERMA8G
-A1UEBRMIMDc5NjkyODcwHhcNMTExMTAxMTM1MzQxWhcNMTIxMjAxMTY0MTUwWjBbMRowGAYDVQQK
-DBEqLnRoZXNvbHV0aW9uLmNvbTEhMB8GA1UECwwYRG9tYWluIENvbnRyb2wgVmFsaWRhdGVkMRow
-GAYDVQQDDBEqLnRoZXNvbHV0aW9uLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEB
-AKdw14rJ3PjXr8NbZFypT14XRKpBLuwH+Y8+GPq7mb+X4D20ZHwQklPvO1DsHbnKf4PfbxlSeX+i
-jwJ78fDuM9yezS193wzmzJzBnpUkvduiPD7lBpx87tIVT9Hcpt9dMrqF4Y9UByzOws77gMux5gHF
-tV9KmSL7RF0rHSCm5/27n9hzxAffspZXhS3l1cBKGkIiltt5OlGnCGCZvFruyw2R7W/Z9MxxtLOn
-+YdB6i04fc4oygtvzt4DycZ0ZwjT10W3E7/k/xGUx/pYH9RLN3Niu9xanRLESJlt2ohFXoE2eArP
-+y+QAyj8c4P+k6bPwZegXCFsNHXP6VJyDZtOLSECAwEAAaOCAcAwggG8MA8GA1UdEwEB/wQFMAMB
-AQAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMA4GA1UdDwEB/wQEAwIFoDAzBgNVHR8E
-LDAqMCigJqAkhiJodHRwOi8vY3JsLmdvZGFkZHkuY29tL2dkczEtNTkuY3JsMFMGA1UdIARMMEow
-SAYLYIZIAYb9bQEHFwEwOTA3BggrBgEFBQcCARYraHR0cDovL2NlcnRpZmljYXRlcy5nb2RhZGR5
-LmNvbS9yZXBvc2l0b3J5LzCBgAYIKwYBBQUHAQEEdDByMCQGCCsGAQUFBzABhhhodHRwOi8vb2Nz
-cC5nb2RhZGR5LmNvbS8wSgYIKwYBBQUHMAKGPmh0dHA6Ly9jZXJ0aWZpY2F0ZXMuZ29kYWRkeS5j
-b20vcmVwb3NpdG9yeS9nZF9pbnRlcm1lZGlhdGUuY3J0MB8GA1UdIwQYMBaAFP2sYTKTbEXW4u6F
-X5q653aZaMznMC0GA1UdEQQmMCSCESoudGhlc29sdXRpb24uY29tgg90aGVzb2x1dGlvbi5jb20w
-HQYDVR0OBBYEFGWt8Z80Urg6pSHSiuot3idSbCOHMA0GCSqGSIb3DQEBBQUAA4IBAQBrdO66l5sg
-s9zUIKiY1oQsKah69RkcQo1f7cwBwNDQLi/DY0KD4efWjOjeon3noaoJ26rrfKyfCE8ShmjGcOuL
-4YdEFdvuFgEIBe86jg5CnVF0vNfdiaIMJXAE/SaoK/b/NabepcvwC2/A+snNaf4kmJkDbHg3IvIY
-62znQhzyQWzpYRYaA36XlBxhoYoz8jKLntfSF/SvXCy/f+J9+55T1r/U2kM5Ulem7z9PsaJUHJjl
-M35hH6Phh1kFU8r0FCuySsfPdyqZe5Xc/bP7yOub4XINvnIEZMcDQfL+PCIEdYDxNbYM6+gtCl78
-8Bz9XY5A6TrXcazIPwW/t3jTZRs/</X509Certificate></X509Data></KeyInfo></Signature></payment>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>3ed75e0a-d70a-421f-a047-c70ba54b9317</merchant-account-id>
+  <request-id>35564b1f-242b-4209-9d8d-371c7d178a76</request-id>
+  <transaction-type>debit</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <statuses>
+    <status code="400.1011" description="The Requested Amount has not been provided. Please check your input and try again." severity="error" />
+  </statuses>
+  <payment-methods>
+    <payment-method name="alipay" />
+  </payment-methods>
+</payment>
 ----
 
 [#API_AlipayDomestic_Samples_Debit_Nvp]
@@ -432,3 +387,19 @@ Payment.Transaction-Id: 0362410c-16c3-11e5-87be-00163e5411b5
 
 phone=1+555+555+5555&transaction_type=debit&locale=&status_severity_1=error&status_code_1=500.1999&completion_time_stamp=20150619203733&state=ON&transaction_state=failed&city=Toronto&merchant_account_id=4fd7149f-14cd-4a67-a8cb-d54044504cc8&first_name=John&requested_amount_currency=CNY&status_description_1=alipay%3AThe+acquirer+returned+an+unknown+response.++Contact+Technical+Support.&response_signature=1ad9240967ddb2fa3cbae7cf9ea01037f59e3e795c674e9358e8af1d280016dc&street1=123+test&transaction_id=0362410c-16c3-11e5-87be-00163e5411b5&country=CA&ip_address=127.0.0.1&request_id=b084ff49-d7ed-dc11-70b5-285197d02677&provider_transaction_reference_id=&requested_amount=1.010000&email=john.doe%40wirecard.com&provider_transaction_id_1=2012111319234154&postal_code=M4P1E8&last_name=Doe&authorization_code=&
 ----
+
+[#API_AlipayDomestic_Samples_Debit]
+===== _refund-debit_
+
+[#API_AlipayDomestic_Samples_RefundDebit_Xml]
+====== XML
+
+.XML refund-debit Request (Successful)
+
+.XML refund-debit Response (Successful)
+
+.XML refund-debit Notification (Successful)
+
+.XML refund-debit Request (Failure)
+
+.XML refund-debit Response (Failure)
