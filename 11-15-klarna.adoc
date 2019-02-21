@@ -12,20 +12,20 @@ phone number and email address. Also basket items must be specified.
 Klarna takes over the risk of payment default thus the payment is
 guaranteed for the merchant.
 
-Only physical persons are supported as consumers.
+NOTE: Only physical persons are supported as consumers.
 
 - *Klarna guaranteed invoice* allows the consumer to pay by invoice
 first after the goods were delivered. It also makes possible for the
 consumer to shop even if the consumer’s bank account is empty for the
 moment since the consumer has at least 14 days in which to pay. This
-payment method is available for the following countries: *Germany*,
-*Netherlands*, *Austria*, *Sweden*, *Norway*, *Finland* and *Denmark*.
+payment method is available for the following countries: *Germany,*
+*Netherlands,* *Austria,* *Sweden,* *Norway,* *Finland* and *Denmark.*
 - *Klarna guaranteed installments* allows the consumer to pay by
 installments first after the goods were delivered. It also makes
 possible for the consumer to shop even if the consumer’s bank account is
 empty for the moment since the consumer can pay by installments using
 available installment plans. This payment method is available for the
-following countries: *Germany*, *Sweden*, *Norway*, *Finland* and *Denmark*.
+following countries: *Germany,* *Sweden,* *Norway,* *Finland* and *Denmark.*
 //-
 
 The payment flows of Klarna guaranteed Invoice, Klarna guaranteed
@@ -59,7 +59,6 @@ This table illustrates how _Klarna Invoice and Klarna Installments_
 notifications are encoded and which formats and methods can be used for
 requests and responses.
 
-.Communication Formats
 [%autowidth]
 |===
 .2+h| Requests/Responses | Format   | XML, JSON
@@ -74,7 +73,7 @@ For
 <<Glossary_TransactionType, transaction type>> details which are not given here, look
 at <<AppendixB, Appendix B: Transaction Types>>.
 
-.Transaction Types of Klarna
+
 |===
 |Transaction Type |Description |Link to the sample
 
@@ -109,7 +108,6 @@ additional fees optionally.
 [#Klarna_TestCredentials]
 ==== Test Credentials
 
-.Test Credentials for Klarna
 [cols="h,"]
 |===
 | URLs (Endpoints)    | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
@@ -275,32 +273,33 @@ order to trigger specific behavior.
 ===== authorization
 image::images/11-15-klarna/Klarna_Workflow_Authorization.png[Klarna Workflow authorization,height=250]
 
-* Merchant starts with an _authorization_ of the payment by sending a
+- Merchant starts with an _authorization_ of the payment by sending a
 transaction of the type _authorization_ to _Wirecard Payment Gateway_
 containing the order data like amount, order number and order items
 along with information about the consumer which includes name, billing
 and shipment address, client IP address and optionally some additional
 information based on the merchant category.
-* Wirecard performs a risk check for the payment using Klarna service
+- Wirecard performs a risk check for the payment using Klarna service
 call _reserve_amount_.
-* If Klarna authorizes the payment, it is guaranteed for the merchant
+- If Klarna authorizes the payment, it is guaranteed for the merchant
 once captured.
-* If Klarna cannot guarantee the payment, the _authorization_ is
+- If Klarna cannot guarantee the payment, the _authorization_ is
 rejected with a corresponding error code.
-* The result of the risk check is returned with the status code inside
+- The result of the risk check is returned with the status code inside
 the _authorization_ response to the merchant.
+//-
 
 [#Klarna_Workflows_pendingAuthorization]
 ===== pending-authorization
 
 image::images/11-15-klarna/Klarna_Workflow_PendingAuthorization.png[Klarna Workflow pending-authorization,height=250]
 
-* In case no immediate decision can be made and a manual check of the
+- In case no immediate decision can be made and a manual check of the
 payment must be performed by Klarna. In this case the _Wirecard Payment
 Gateway_ creates a transaction of the type _pending-authorization_
 instead and returns it in the response. It means the _authorization_ is
 pending and cannot be immediately activated.
-* Wirecard takes care of the requesting the actual status of a pending
+- Wirecard takes care of the requesting the actual status of a pending
 _authorization_ and will notify the merchant system about the status
 change using the standard
 <<GeneralPlatformFeatures_IPN_NotificatonExample_Alternative, Instant Payment Notification>> (IPN) mechanism.
@@ -308,15 +307,15 @@ With such a notification
 an _authorization_ transaction with the corresponding state
 _success/failed_ and status code and description is sent to the merchant
 system asynchronously.
-* This new _authorization_ transaction is stored in the system and has
+- This new _authorization_ transaction is stored in the system and has
 the parent transaction ID referencing the pending-authorization
 transaction.
-* The check of the _authorization_ status is performed every 2 hours and
+- The check of the _authorization_ status is performed every 2 hours and
 thus the IPN can only be sent out in regular time periods.
-* The maximum time period for a decision at Klarna is 24 hours after the
+- The maximum time period for a decision at Klarna is 24 hours after the
 _authorization_ and thus a corresponding IPN will be delivered within 26
 hours.
-* It still can occur that no IPN is received after 26 hours e.g. due to
+- It still can occur that no IPN is received after 26 hours e.g. due to
 a technical error. The merchant has the possibility to check the status
 of a _pending-authorization_ using the request retrieving transaction by
 the request ID used for the _authorization_ as described here
@@ -324,140 +323,146 @@ the request ID used for the _authorization_ as described here
 In case a manual decision has been made, the
 new _authorization_ transaction is returned with the response. If not,
 the HTTP code 404 is returned.
-* Please contact Wirecard Customer Support if a pending-authorization
+- Please contact Wirecard Customer Support if a pending-authorization
 transaction still has no corresponding _authorization_ transaction after
 26 hours.
+//-
 
 [#Klarna_Workflows_authorizationRenewal]
 ===== authorization-renewal
 
 image::images/11-15-klarna/Klarna_Workflow_AuthorizationRevewal.png[Klarna Workflow authorization-renewal,height=250]
 
-It is only possible to extend the reservation expiry date after it has
+NOTE: It is only possible to extend the reservation expiry date after it has
 already expired.
 
-* An _authorization_ is valid by default for 14 days.
-* After the _authorization_ is expired, it cannot be activated, but can
+- An _authorization_ is valid by default for 14 days.
+- After the _authorization_ is expired, it cannot be activated, but can
 be prolonged using the _authorization-renewal_ transaction using Klarna
 service call _extend_expiry_date_.
-* A new expiration data is returned with the _authorization-renewal_
+- A new expiration data is returned with the _authorization-renewal_
 response.
+//-
 
 [#Klarna_Workflows_adjustAuthorization]
 ===== adjust-authorization
 
 image::images/11-15-klarna/Klarna_Workflow_AdjustAuthorization.png[Klarna Workflow adjust-authorization,height=250]
 
-A risk check can be performed with every update, if the total order
+NOTE: A risk check can be performed with every update, if the total order
 amount is increased. A new risk check can lead to rejection of the
 _authorization_ adjustment. In this case the last _authorization_ is
 still valid and can be updated or captured.
 
-* An order can be updated before it is activated.
-* Multiple updates are possible.
-* Merchant sends an _adjust-authorization_ transaction with parent
+- An order can be updated before it is activated.
+- Multiple updates are possible.
+- Merchant sends an _adjust-authorization_ transaction with parent
 transaction ID referencing the previous _authorization_ or
 _adjust-authorization_ transaction. Wirecard is using Klarna call
 _update._
-* The following data can be updated: order number, the order items and
+ The following data can be updated: order number, the order items and
 thus the amount, the consumer’s name, billing and shipment address.
-* The data sent with the _adjust-authorization_ transaction will replace
+- The data sent with the _adjust-authorization_ transaction will replace
 the data from the parent _authorization_ /_adjust-authorization_
 transaction.
-* The result of the adjustment is returned with the status code inside
+- The result of the adjustment is returned with the status code inside
 the _adjust-authorization_ response to the merchant.
+//-
 
 [#Klarna_voidAuthorization]
 ===== void-authorization
 
 image::images/11-15-klarna/Klarna_Workflow_VoidAuthorization.png[Klarna Workflow void-authorization,height=250]
 
-A partial captured reservation still can be cancelled. In this case only
+NOTE: A partial captured reservation still can be cancelled. In this case only
 not yet captured order items are cancelled.
 
-* It is possible to cancel a payment authorization before it is fully
+- It is possible to cancel a payment authorization before it is fully
 captured.
-* It should be performed in case the goods or service are not available
+- It should be performed in case the goods or service are not available
 or the consumer would like to cancel his order.
-* Not cancelled authorizations can influence the risk decisions for the
+- Not cancelled authorizations can influence the risk decisions for the
 further payments of a particular consumer or even other consumers.
-* Merchant sends a _void-authorization_ transaction with parent
+- Merchant sends a _void-authorization_ transaction with parent
 transaction ID referencing the _authorization_/_adjust-authorization_
 transaction to be cancelled. Wirecard is using Klarna call
 _cancel_reservation_.
-* A pending-authorization can be cancelled as well.
-* The cancellation can be approved or rejected which is reported by the
+- A pending-authorization can be cancelled as well.
+- The cancellation can be approved or rejected which is reported by the
 transaction state and status code in the response.
-* The reservation is not valid after cancellation any longer and cannot
+- The reservation is not valid after cancellation any longer and cannot
 be updated or activated.
+//-
 
 [#Klarna_captureAuthorization]
 ===== capture-authorization
 
 image::images/11-15-klarna/Klarna_Workflow_CaptureAuthorization.png[Klarna Workflow capture-authorization,height=250]
 
-In case of the payment instructions, the merchant is responsible to send
+NOTE: In case of the payment instructions, the merchant is responsible to send
 by himself the invoices to his consumers. The Klarna bank account
 requisites, where the payment should be provided to, can be taken from
 the payment instructions.
 
-* Merchant must capture an _authorization_ when the goods or services
+- Merchant must capture an _authorization_ when the goods or services
 are ready to be delivered.
-* This call will inform Wirecard and Klarna using _activate_ call that
+- This call will inform Wirecard and Klarna using _activate_ call that
 the order is being shipped.
-* Depending on the merchant configuration Klarna will then send an
+- Depending on the merchant configuration Klarna will then send an
 invoice or payment instructions to the consumer according to the
 provided invoice delivery option: via email, via post or it can be
 downloaded and enclosed in the delivered package.
-* The download link is provided regardless of the invoice delivery
+- The download link is provided regardless of the invoice delivery
 option inside the response. The link is valid for 30 days and will be
 removed afterwards.
-* Once _authorization_ is captured the due date for payment is set. The
+- Once _authorization_ is captured the due date for payment is set. The
 default invoice due date is 14 days after activation.
-* The payout to merchant will only occur for the captured payments.
-* To capture an order merchant sends a _capture-authorization_
+- The payout to merchant will only occur for the captured payments.
+- To capture an order merchant sends a _capture-authorization_
 transaction with parent transaction ID referencing the
 _authorization_/_adjust-authorization_ transaction to be captured.
-* If no order items are provided with the _capture-authorization_
+- If no order items are provided with the _capture-authorization_
 transaction, this is a full capture, i.e. all order items of the
 referenced transaction are activated and must be delivered.
-* Multiple partial captures are possible by sending
+- Multiple partial captures are possible by sending
 _capture-authorization_ transactions with order items to be activated.
-* Please note that no new articles can be added.
-* The price of the existing articles cannot be changed as well,
+- Please note that no new articles can be added.
+- The price of the existing articles cannot be changed as well,
 otherwise the _capture-authorization_ transaction will be rejected.
-* With every partial capture a new invoice and payment instructions are
+- With every partial capture a new invoice and payment instructions are
 generated and sent out.
+//-
 
 [#Klarna_refundCapture]
 ===== refund-capture
 
 image::images/11-15-klarna/Klarna_Workflow_RefundCapture.png[Klarna Workflow refund-capture,height=250]
 
-* If a consumer returns all or some items, the merchant needs to issue a
+- If a consumer returns all or some items, the merchant needs to issue a
 refund by sending a _refund-capture_ transaction with parent transaction
 ID referencing the _capture-authorization_ transaction to be refunded.
 Wirecard is using the Klarna call _credit_part_.
-* For every separate captured payment (invoice) made by a
+- For every separate captured payment (invoice) made by a
 _capture-authorization_ transaction a separate refund must be issued by
 a _refund-capture_ transaction.
-* If no order items are provided with the _refund-capture_ transaction,
+- If no order items are provided with the _refund-capture_ transaction,
 a full refund of the referenced captured payment will be executed.
-* For partial refunds order items to be refunded need to be provided in
+- For partial refunds order items to be refunded need to be provided in
 the request.
-* The price of the articles to be refunded cannot be changed, otherwise
+- The price of the articles to be refunded cannot be changed, otherwise
 the _refund-capture_ transaction will be rejected.
-* It is also possible to issue a so-called good-will refund which is a
+- It is also possible to issue a so-called good-will refund which is a
 new discount item in the _refund-capture_ transaction. It can be also
 used to issue change vouchers. The new order item must explicitly have
 the type _discount_ in order to be processed as good-will refund,
 otherwise it will be rejected as not existing item to be refunded.
-* The other possibility is to add some additional shipment or handling
+- The other possibility is to add some additional shipment or handling
 fees for a refund. It increases the order amount but the fee amount
 itself cannot go over the total amount of the refunded items. To add
 additional fees that may occur at the merchant side (shipping fee or
 handling fee) merchant has to provide new order item(s) with the type
 _shipment_fee_ or _handling_fee._
+//-
 
 [#Klarna_revokeCapture]
 ===== revoke-capture
@@ -481,7 +486,7 @@ amount of the adjust transaction will be equal to the VAT amount of the
 referenced _capture_ transaction.
 
 [Klarna_VoucherHandling]
-==== Voucher Handling
+===== Voucher Handling
 
 Vouchers can be provided as order items with the type _discount_ in the
 _authorization_/_adjust-authorization_ request. Every voucher must have
@@ -489,7 +494,7 @@ its unique article number. The voucher amount cannot be higher than the
 total amount of the articles.
 
 [#Klarna_VoucherHandling_captureVoucher]
-===== capture Voucher
+====== capture Voucher
 
 In case of full _capture_ vouchers are captured among with the other
 articles.
@@ -508,47 +513,47 @@ voucher proportion for single article = single article amount / amount of all ar
 ----
 
 .Example Basket
-* Article A = 5 Euro
-* Article B = 95 Euro
-* Voucher C (discount item) = 10 Euro (10% of total basket amount)
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher C (discount item) = 10 Euro (10% of total basket amount)
 //-
 
 .Example Adjustment authorization
-* Article A = 5 Euro
-* Article B = 95 Euro
-* Voucher for Article A: 5/100*10 = 0,5 Euro
-* Voucher for Article B: 95/100*10 = 9,5 Euro
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher for Article A: 5/100*10 = 0,5 Euro
+- Voucher for Article B: 95/100*10 = 9,5 Euro
 //-
 
 .Example Partial capture:
-* Article A = 5 Euro
-* Voucher for Article A = 0,5 Euro
+- Article A = 5 Euro
+- Voucher for Article A = 0,5 Euro
 //-
 
 [#Klarna_ReCalculate_AvoidNegative]
 ====== Re-Calculate and Split Voucher to avoid Negative Invoice for Partial Activation
 
 .Example Basket
-* Voucher for article A: 5 Euro (<= max. amount of partial
+- Voucher for article A: 5 Euro (<= max. amount of partial
 activation)         
-* Voucher for article B: 5 Euro (remaining voucher amount after
+- Voucher for article B: 5 Euro (remaining voucher amount after
 subtracting value
-* of voucher of partial activation)
+- of voucher of partial activation)
 //-
 
 .Example Adjustment authorization
-* Article A = 5 Euro
-* Article B = 95 Euro
-* Voucher for article A = 5 Euro
-* Voucher for article B = 5 Euro
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher for article A = 5 Euro
+- Voucher for article B = 5 Euro
 //-
 
 .Example Partial capture
-* Article A = 5 Euro
-* Voucher for Article A = 5 Euro
+- Article A = 5 Euro
+- Voucher for Article A = 5 Euro
 //-
 
-In case of uneven amounts the calculation and rounding of amounts should
+NOTE: In case of uneven amounts the calculation and rounding of amounts should
 be done with 2 decimal numbers. Since Klarna ignores more than 2 decimal
 digits this is important to guarantee identical prices in the
 _authorization_ and in the order in the shop system.
@@ -569,29 +574,30 @@ refund amount.
 [#Klarna_PartialVoucherRefund]
 ===== Partial Voucher Refund
 
-* If other articles are to be refunded, a remaining voucher must not
+- If other articles are to be refunded, a remaining voucher must not
 lead to a negative invoice amount.
-* A refund of a voucher may not lead to an increased total invoice
+- A refund of a voucher may not lead to an increased total invoice
 amount. This would be a special case which needs additional contractual
 agreements and general approving for a merchant by Wirecard and Klarna
 Business Underwriting beforehand, otherwise the call would be rejected.
-* In case of a partial refund, the merchant might want to reduce a given
+- In case of a partial refund, the merchant might want to reduce a given
 voucher. In this case the voucher can either be refunded completely and
 a new voucher be added in the credit_part call, or a correcting
 voucher/article can be added to decrease the total discount.
+//-
 
 The following example depicts both cases:
 
 .Reservation
-. Article A = 100 Euro
-. Article B = 100 Euro
-. Voucher C = 20 Euro (10% on basket given for baskets exceeding 150 Euros)
+- Article A = 100 Euro
+- Article B = 100 Euro
+- Voucher C = 20 Euro (10% on basket given for baskets exceeding 150 Euros)
 //-
 
 .Activation
-. Article A = 100 Euro
-. Article B = 100 Euro
-. Voucher C = 20 Euro
+- Article A = 100 Euro
+- Article B = 100 Euro
+- Voucher C = 20 Euro
 //-
 
 NOTE: Consumer returns article A, total basket amount is lower than
@@ -599,25 +605,25 @@ NOTE: Consumer returns article A, total basket amount is lower than
 wants to decrease the voucher.
 
 .Option 1 - remove voucher completely
-. Refund
-.. Article A = 100 Euro
-.. Voucher C = 20 Euro
+- Refund
+* Article A = 100 Euro
+* Voucher C = 20 Euro
 //-
 
 .Option 2 - remove voucher completely and add new lower voucher
-. Refund
-.. Article A = 100 Euro
-.. Voucher C = 20 Euro
-.. Add new voucher D (new item with discount type) = 10 Euro
+- Refund
+* Article A = 100 Euro
+* Voucher C = 20 Euro
+* Add new voucher D (new item with discount type) = 10 Euro
 //-
 
 .Option 3 - keep voucher and add fee item to decrease overall given discount
-. Refund
-.. Refund A = 100 Euro
-.. Add a new item with the fee type to decrease Voucher = 10 Euro
+- Refund
+* Refund A = 100 Euro
+* Add a new item with the fee type to decrease Voucher = 10 Euro
 //-
 
-If the decrease of the voucher is based on the overall basket
+NOTE: If the decrease of the voucher is based on the overall basket
 amount, a calculation as in the first example should be performed.
 
 [#Klarna_Fields]
@@ -2694,83 +2700,83 @@ format, be sure to check the phone numbers before sending the request. 
 |Country |Cellular |Landline
 
 |Austria a|
-* Numbers start with 0650 to 0653, 0655, 0657, 0659 to 0661, 0663 to 0699. +
+- Numbers start with 0650 to 0653, 0655, 0657, 0659 to 0661, 0663 to 0699. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0043 or +43).
+- Country code prefix is optional (0043 or +43).
 
  a|
-* Area codes for landline numbers start with 01, 02, 03, 04, 05, 06
+- Area codes for landline numbers start with 01, 02, 03, 04, 05, 06
 (unless cell) or 07, followed by a number of 4 - 13 digits. +
 Remove area code's leading zero when using country code.
-* Country code prefix is optional (0043 or +43). +
+- Country code prefix is optional (0043 or +43).
 
 |Denmark a|
-* Numbers have 8 digits.
-* Numbers start with 20-29, 30, 31, 40-42, 50-53, 60, 61 71 or 81.
-* Country code prefix is optional (0045 or +45).
+- Numbers have 8 digits.
+- Numbers start with 20-29, 30, 31, 40-42, 50-53, 60, 61 71 or 81.
+- Country code prefix is optional (0045 or +45).
 
  a|
-* Numbers have 8 digits.
-* Numbers start with 32-39, 43-49, 54-59, 62-69, 72-79, 82-89, 96-99.
-* Country code prefix is optional (0045 or +45).
+- Numbers have 8 digits.
+- Numbers start with 32-39, 43-49, 54-59, 62-69, 72-79, 82-89, 96-99.
+- Country code prefix is optional (0045 or +45).
 
 |  a|
-* Numbers have 6 - 12 digits.
-* Numbers start with 040-049 or 050. +
+- Numbers have 6 - 12 digits.
+- Numbers start with 040-049 or 050. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (00358 or +358).
+- Country code prefix is optional (00358 or +358).
 
  a|
-* Numbers have 6 - 12 digits.
-* Numbers start with 01-03, 05-09. +
+- Numbers have 6 - 12 digits.
+- Numbers start with 01-03, 05-09. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (00358 or +358).
+- Country code prefix is optional (00358 or +358).
 
 |Germany a|
-* Numbers have 8 - 12 digits.
-* Numbers start with 015-017. +
+- Numbers have 8 - 12 digits.
+- Numbers start with 015-017. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0049 or +49).
+- Country code prefix is optional (0049 or +49).
 
  a|
-* Numbers have 4 - 12 digits.
-* Numbers start with 010-014, 018-019, 02-09. +
+- Numbers have 4 - 12 digits.
+- Numbers start with 010-014, 018-019, 02-09. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0049 or +49).
+- Country code prefix is optional (0049 or +49).
 
 |Netherlands a|
-* Numbers have 9 - 10 digits.
-* Numbers start with 06. +
+- Numbers have 9 - 10 digits.
+- Numbers start with 06. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0031 or +31).
+- Country code prefix is optional (0031 or +31).
 
  a|
-* Numbers have 9 - 10 digits.
-* Numbers start with 01-05, 07-08. +
+- Numbers have 9 - 10 digits.
+- Numbers start with 01-05, 07-08. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0031 or +31).
+- Country code prefix is optional (0031 or +31).
 
 |Norway a|
-* Numbers have 8 digits.
-* Numbers start with 40-49 or 90-99.
-* Country code prefix is optional (0047 or +47).
+- Numbers have 8 digits.
+- Numbers start with 40-49 or 90-99.
+- Country code prefix is optional (0047 or +47).
 
  a|
-* Numbers have 8 digits.
-* Numbers start with 2,3,5-8.
-* Country code prefix is optional (0047 or +47).
+- Numbers have 8 digits.
+- Numbers start with 2,3,5-8.
+- Country code prefix is optional (0047 or +47).
 
 |Sweden a|
-* Numbers have 7-13 digits.
-* Numbers start with 010, 070, 072, 073, 076. +
+- Numbers have 7-13 digits.
+- Numbers start with 010, 070, 072, 073, 076. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0046 or +46).
+- Country code prefix is optional (0046 or +46).
 
  a|
-* Numbers have 7-13 digits.
-* Numbers start with 011-019, 02-06, 071, 075, 077-079, 08-09. +
+- Numbers have 7-13 digits.
+- Numbers start with 011-019, 02-06, 071, 075, 077-079, 08-09. +
 Remove number's leading zero when using country code.
-* Country code prefix is optional (0046 or +46).
+- Country code prefix is optional (0046 or +46).
 |===
 
 [#Klarna_Features]
@@ -2794,7 +2800,7 @@ Wirecard sales account manager in order to clarify what packages are
 required for your integration.
 
 [#Klarna_FrontendIntegrationRequirements]
-==== Frontend Integration Requirements
+===== Frontend Integration Requirements
 
 image::images/11-15-klarna/Klarna_Workflow_FrontendIntegrationRequirements.png[Klarna Workflow Frontend Integration Requirements,height=250]
 
@@ -2814,7 +2820,7 @@ the following Klarna online developer portal pages:
 |Tool tips |https://developer.klarna.com/en/de/kpm/tooltip
 |===
 
-The merchant requires the Klarna _Merchant ID_ in order to be able to
+NOTE: The merchant requires the Klarna _Merchant ID_ in order to be able to
 use some of the solutions. Please contact your Wirecard account manager
 in order to get the Klarna _Merchant ID_.
 
@@ -2836,21 +2842,22 @@ request.
 
 Please note the following requirements:
 
-* The function can only used for private consumers with a Swedish social
+- The function can only used for private consumers with a Swedish social
 security number.
-* Consumer data is only retrieved for Klarna's payment methods in the
+- Consumer data is only retrieved for Klarna's payment methods in the
 checkout.
-* The function may not be used for consumer registration out of payment
+- The function may not be used for consumer registration out of payment
 scope.
-* The function may only be used after providing the consumer with
+- The function may only be used after providing the consumer with
 Klarna’s terms & conditions.
-* The Get Address UI elements and received data must disappear if the
+- The Get Address UI elements and received data must disappear if the
 consumer chooses another payment method.
-* The consumer needs to actively press a button to collect the data, it
+- The consumer needs to actively press a button to collect the data, it
 may not be triggered by completion of a form field.
-* The button is not allowed to be named Get Address (hämta address).
+- The button is not allowed to be named Get Address (hämta address).
 Approved names: Fetch (Hämta), Continue (Fortsätt), Search (Sök),
 Proceed (Vidare).
+//-
 
 [#Klarna_getAddress_TestCredentials]
 ====== get-address Test Credentials
@@ -5158,7 +5165,7 @@ contains a text with the calculation example.
 [#Klarna_Samples_getAddress]
 ===== get-address
 
-The ``get-address`` request is being sent to
+NOTE: The ``get-address`` request is being sent to
 ``\https://api-test.wirecard.com/engine/rest/utils/getaddress``
 
 .XML Get Address Request (Successful)
@@ -5202,7 +5209,7 @@ The ``get-address`` request is being sent to
 [#Klarna_Samples_klarnaInstall]
 ===== klarna-install
 
-The _Installment Calculator_ request is being sent to
+NOTE: The _Installment Calculator_ request is being sent to
 ``\https://api-test.wirecard.com/engine/rest/utils/installmentcalculator``
 
 .XML Installment Calculator Request for DE (Successful)
@@ -5571,3 +5578,4 @@ NOTE: payment on installments not available
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
 at <<AppendixB, Appendix B: Transaction Types>>.
+//-
