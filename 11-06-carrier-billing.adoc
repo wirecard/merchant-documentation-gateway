@@ -1,53 +1,15 @@
-[[page]]
-[[main]]
-[[main-header]]
-[[breadcrumb-section]]
-1.  link:index.html[API merchant specification]
-2.  link:API-merchant-specification_1146901.html[API merchant
-specification]
-3.  link:Payment-Methods_786790.html[Payment Methods]
-4.  link:Non-Credit-Card_786796.html[Non Credit Card]
+[#CarrierBilling]
+=== Carrier Billing
 
-[[title-heading]]
-[[title-text]] API merchant specification : Carrier Billing
-------------------------------------------------------------
+image::images/11-06-carrier-billing/boku_logo.png[Carrier Billing Logo, width="200", align=right]
 
-[[content]]
-Created by Unknown User (kai.buerster@partner.wirecard.com), last
-modified by Karin Kraus on Jan 09, 2019
-
-[[main-content]]
-* link:#CarrierBilling-Introduction[Introduction]
-** link:#CarrierBilling-Howitworks[How it works]
-* link:#CarrierBilling-GeneralInformation[General Information]
-** link:#CarrierBilling-PaymentMode,CountriesandCurrencies[Payment Mode,
-Countries and Currencies]
-** link:#CarrierBilling-CommunicationFormats[Communication Formats]
-* link:#CarrierBilling-TransactionTypes[Transaction Types]
-** link:#CarrierBilling-debitforcarrier-billing[debit for
-carrier-billing]
-* link:#CarrierBilling-TestCredentials[Test Credentials]
-** link:#CarrierBilling-AdditionalTestCredentialsoncarrierbilling'sEnvironment[Additional
-Test Credentials on carrier billing's Environment]
-* link:#CarrierBilling-Workflow[Workflow]
-** link:#CarrierBilling-UsingReSTAPI[Using ReST API]
-** link:#CarrierBilling-UsingWirecardPaymentPage[Using Wirecard Payment
-Page]
-* link:#CarrierBilling-Fields[Fields]
-* link:#CarrierBilling-Features[Features]
-* #CarrierBilling-Samples:Requests,ResponsesandNotifications[Samples:
-Requests, Responses and Notifications]
-
-image:attachments/786457/1671663.png[image,width=200]
-
-[[CarrierBilling-Introduction]]
-Introduction
-------------
+[#CarrierBilling_Introduction]
+==== Introduction
 
 A mobile number is more than just a way to make a phone call. With Boku
 (our payment provider for _carrier-billing_), a mobile number can be a
 user identity, a digital address, and a payment method, all at the same
-time.  Boku’s unique platform allows mobile operators and merchants
+time. Boku’s unique platform allows mobile operators and merchants
 to rapidly design, scale, and operate programs aimed at giving mobile
 subscribers a best-in-class experience for discovering, activating, and
 purchasing new services. By providing access to a global network of
@@ -56,9 +18,8 @@ channel with which to acquire and retain new users. These value
 added services, in turn, deepen the commercial relationship mobile
 operators have with their subscribers.
 
-[[CarrierBilling-Howitworks]]
-How it works
-~~~~~~~~~~~~
+[discrete]
+===== How it works
 
 A full end-to-end program starts by promoting the merchant’s service
 across the various communication channels a mobile operator maintains
@@ -72,73 +33,54 @@ charges can be handled by their mobile operator through the same
 mobile account used to purchase voice and data services. It is an
 elegant, simple approach that starts and ends with the mobile number.
 
-[[CarrierBilling-GeneralInformation]]
-General Information
--------------------
+[#CarrierBilling_GeneralInformation]
+==== General Information
 
-[[CarrierBilling-PaymentMode,CountriesandCurrencies]]
-Payment Mode, Countries and Currencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#CarrierBilling_GeneralInformation_PaymentMode]
+===== Payment Mode, Countries and Currencies
 
 This table illustrates which payment mode _carrier billing_ belongs to.
 It also provides detailed information about the countries and currencies
 which are relevant for __carrier billing__.
 
-[cols=",",]
-|=======================================================================
-|*Payment Mode*
-|https://document-center.wirecard.com/display/PTD/Non+Credit+Card#NonCreditCard-OnlineBankTransfer[Online
-Bank Transfer]
+[%autowidth, cols="h,"]
+|===
+|Payment Mode |<<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
+|Countries |EUR Countries
+|Currencies |EUR
+|===
 
-|*Countries* |EUR Countries
-
-|*Currencies* |EUR
-|=======================================================================
-
-[[CarrierBilling-CommunicationFormats]]
-Communication Formats
-~~~~~~~~~~~~~~~~~~~~~
+[#CarrierBilling_GeneralInformation_Communication]
+===== Communication Formats
 
 This table illustrates how __carrier billing__ notifications are encoded
 and which formats and methods can be used for requests and responses.
 
-*Requests/Responses*
+[%autowidth]
+|===
+.2+h|Requests/Responses |Format  |XML
+                        |Methods |POST, GET
+h|IPN Encodement 2+|Base64, JSON
+|===
 
-Format
 
-XML
+[#CarrierBilling_TransactionTypes]
+==== Transaction Types
 
-Methods
+For <<Glossary_TransactionType, transaction type>> details look at <<AppendixB, Appendix B: Transaction Types>>.
 
-POST, GET
-
-*IPN Encodement*
-
-Base64, JSON
-
-[[CarrierBilling-TransactionTypes]]
-Transaction Types
------------------
-
-For
-https://document-center.wirecard.com/display/PTD/Glossary#Glossary-TransactionType[transaction
-type] details look at
-https://document-center.wirecard.com/display/PTD/Appendix+B%3A+Transaction+Types[Appendix
-B: Transaction Types].
 
 [cols=",",options="header",]
-|=======================================================================
+|===
 |Transaction Type |Link  to the Sample
-|_debit_
-|https://document-center.wirecard.com/display/PTD/Carrier+Billing#CarrierBilling-Samples:Requests,ResponsesandNotifications[_debit_
-sample]
 
-|_refund-debit_ |_refund-debit_ sample
-|=======================================================================
+|_debit_ | <<CarrierBilling_Samples_Debit, _debit_ sample>>
 
-[[CarrierBilling-debitforcarrier-billing]]
-_debit_ for _carrier-billing_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|_refund-debit_ |
+|===
+
+[#CarrierBilling_TransactionTypes_Debit]
+===== _debit_ for _carrier-billing_
 
 The payment method within the request must be _carrier-billing_, the
 transaction type _debit._ If the request is successful, the
@@ -151,224 +93,158 @@ few days depending on the respective mobile provider.
 
 Once Wirecard has received a notification from the _carrier-billing_
 provider about the final status of the transaction, this status will be
-communicated to the merchant via the
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-instant_payment_notificationInstantPaymentNotification[Notification
-URL] that is configured in the merchant account or provided with the
+communicated to the merchant via the <<GeneralPlatformFeatures_IPN, Notification URL>> that is configured in the merchant account or provided with the
 initial payment transaction request.
 
 If no notification URL is provided with the request and also not
 configured in the merchant account, the notification will be sent via
 Email to the merchant in case the Email address has been configured. In
 case merchant has not received the notification, the status of the
-transaction can be requested by sending a
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-RetrieveTransactionbyTransaction-ID[Retrieve
-Transaction by Transaction ID] or
-https://document-center.wirecard.com/display/PTD/General+Platform+Features#GeneralPlatformFeatures-Retrieve_by_Request-IDRetrieveTransactionbyRequest-ID[Retrieve
-Transaction by Request ID].
+transaction can be requested by sending a <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>> or
+<<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request ID>>.
 
-[[CarrierBilling-TestCredentials]]
-Test Credentials
-----------------
+[#CarrierBilling_TestCredentials]
+==== Test Credentials
 
-[width="100%",cols="50%,50%",]
-|=======================================================================
-|*URLs (Endpoints)*
-|https://api-test.wirecard.com/engine/rest/paymentmethods[https://api-test.wirecard.com/engine/rest/paymentmethods]
+[%autowidth, cols="h,"]
+|===
+|URLs (Endpoints) |``\https://api-test.wirecard.com/engine/rest/paymentmethods``
+|Test Merchant Account ID (MAID) |8b99e2dc-c8d0-43b8-9ebb-0a35fa808af7
+|Username |16390-testing
+|Password |3!3013=D3fD8X7
+|Secret Key |c5baf402-82cd-453d-9f5a-1b20ad44f982
+|===
 
-|*Test Merchant Account ID (MAID)* |8b99e2dc-c8d0-43b8-9ebb-0a35fa808af7
+[#CarrierBilling_TestCredentials_Additional]
+===== Additional Test Credentials on __carrier billing's_ Environment
 
-|*Username* |16390-testing
+[%autowidth, cols="h,"]
+|===
+|Test Number |DE00, SK00
+|===
 
-|*Password* |3!3013=D3fD8X7
+[#CarrierBilling_Workflow]
+==== Workflow
 
-|*Secret Key* |c5baf402-82cd-453d-9f5a-1b20ad44f982
-|=======================================================================
+[#CarrierBilling_Workflow_REST]
+===== Using ReST API
 
-[[CarrierBilling-AdditionalTestCredentialsoncarrierbilling'sEnvironment]]
-Additional Test Credentials on __carrier billing_'s_ Environment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+image::images/11-06-carrier-billing/carrierbilling_workflow_rest.png[CarrierBilling Workflow REST]
 
-[cols=",",]
-|=========================
-|*Test Number* |DE00, SK00
-|=========================
+.  On the merchant site.
+.  Consumers select _carrier billing._
+.  The merchant sends a payment request to _Wirecard Payment Processing Gateway_.
+.  _Wirecard Payment Processing Gateway_ redirects consumers to provider's page.
+.  Continue with point 4 of "Using Payment Page".
 
-[[CarrierBilling-Workflow]]
-Workflow
---------
+//-
 
-[[CarrierBilling-UsingReSTAPI]]
-Using ReST API
-~~~~~~~~~~~~~~
+[#CarrierBilling_Workflow_PP]
+===== Using Payment Page
 
-image:attachments/786457/4390914.png[image,width=299]
+image::images/11-06-carrier-billing/carrierbilling_workflow_pp.png[CarrierBilling Workflow PP]
 
-1.  On the merchant site.
-2.  Consumers select _carrier billing._
-3.  The merchant sends a payment request to _Wirecard Payment Gateway_.
-4.  _Wirecard Payment Gateway_ redirects consumers to provider's page.
-5.  Continue with point 4 at __"__Using Wirecard Payment Page__". +
-__
-
-[[CarrierBilling-UsingWirecardPaymentPage]]
-Using Wirecard Payment Page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-image:attachments/786457/4390921.png[image,height=250]
-
-1.  On the _Wirecard Payment Page_.
-2.  Consumers select _carrier billing_.
-3.  _Wirecard Payment Gateway_ redirects consumers to provider's page.
-4.  Consumers select their mobile network provider. +
- +
-image:attachments/786457/3703861.png[image,height=250] +
- +
-and confirm payment. +
-image:attachments/786457/3703862.png[image,height=250]
-5.  Consumers submit the payment.
-6.  The provider processes the payment and sends a notification to
-_Wirecard Payment Gateway_.
-7.  _Wirecard Payment Gateway_ confirms the payment.
-8.  Merchant redirects consumers to merchant's confirmation page.
-9.  The amount to be paid appears on the consumer's monthly carrier
+.  On the _Payment Page_.
+.  Consumers select _carrier billing_.
+.  _Wirecard Payment Processing Gateway_ redirects consumers to provider's page.
+.  Consumers select their mobile network provider.
++
+image::images/11-06-carrier-billing/carrierbilling_selectNWprovider.png[SelectProvider]
++
+and confirm payment.
++
+image::images/11-06-carrier-billing/carrierbilling_confirmPayment.png[Confirm Payment]
++
+.  Consumers submit the payment.
+.  The provider processes the payment and sends a notification to
+_Wirecard Payment Processing Gateway_.
+.  _Wirecard Payment Processing Gateway_ confirms the payment.
+.  Merchant redirects consumers to merchant's confirmation page.
+.  The amount to be paid appears on the consumer's monthly carrier
 invoice.
 
-[[CarrierBilling-Fields]]
-Fields
-------
+//-
+
+[#CarrierBilling_Fields]
+==== Fields
 
 The following elements are either mandatory (M), optional (O) or
-conditional (C) in a transaction process.
+conditional \(C) in a transaction process.
 
-[width="99%",cols="16%,14%,14%,14%,14%,14%,14%",options="header",]
-|=======================================================================
-a|
-Field
+[%autowidth]
+|===
+|Field                          |Request |Response  |Notification |Datatype     |Size |Description
 
- |Request |Response |Notification a|
-Datatype
-
- a|
-Size
-
- a|
-Description
-
-|transaction-type |M |M |M |Alphanumeric |30 |This is the type for a
+|transaction-type               |M       |M         |M            |Alphanumeric |30   |This is the type for a
 transaction. For _carrier-billing_ only DEBIT is allowed in the initial
 request.
-
-|transaction-id |M |M |M |Alphanumeric |36 |The Transaction ID is the
+|transaction-id                 |M       |M         |M            |Alphanumeric |36   |The Transaction ID is the
 unique identifier for a transaction. It is generated by Wirecard.
-
-|statuses.status@severity |  |M |M |Alphanumeric |20 |This field gives
+|statuses.status@severity       |        |M         |M            |Alphanumeric |20   |This field gives
 information if a  status is a warning, an error or an information.
-
-|statuses.status@description |  |M |M |Alphanumeric |256 |This is the
+|statuses.status@description    |        |M         |M            |Alphanumeric |256  |This is the
 description to the status code of a transaction.
-
-|statuses.status@code |  |M |M |Alphanumeric |12 |This is the code of
+|statuses.status@code           |        |M         |M            |Alphanumeric |12   |This is the code of
 the status of a transaction.
-
-|state |  |M |M |Alphanumeric |12 |The payment transaction state. For
+|state                          |        |M         |M            |Alphanumeric |12   |The payment transaction state. For
 _carrier-billing_ can only be success, failed  or in-progress.
-
-|requested-amount@currency |M |M |M |Alphanumeric |3 |The ISO code of
+|requested-amount@currency      |M       |M         |M            |Alphanumeric |3    |The ISO code of
 the payment currency. Currently only EUR is supported.
-
-|requested-amount |M |M |M |Numeric |18,3 a|
-This is the amount of the transaction.
-
+|requested-amount               |M       |M         |M            |Numeric      |18,3 |This is the amount of the transaction.
 The amount of the decimal place is dependent of the currency. The
 maximum amount is highly dependent on the country and mobile network
 operator. Currently the maximal allowed amount is 30 EUR.
-
-|request-id |M |M |M |Alphanumeric |64 |This is the identification
+|request-id                     |M       |M         |M            |Alphanumeric |64   |This is the identification
 number of the request. It has to be unique for each request.
-
-|payment-methods.payment-method-name@url |  |M |  |Alphanumeric |256
-|The forward URL to the _carrier-billing_ provider checkout page. The
+|payment-methods.payment-method-name@url |  |M      |             |Alphanumeric |256  |The forward URL to the _carrier-billing_ provider checkout page. The
 end-consumer must be redirected to this URL in order to be able to
 complete the payment.
-
-|payment-methods.payment-method-name@name |M |  |  |Alphanumeric |15
-|This is the name of the payment method that that is chosen from the
+|payment-methods.payment-method-name@name |M |      |             |Alphanumeric |15   |This is the name of the payment method that that is chosen from the
 end-consumer. Currently only _carrier-billing_ is supported.
-
-|parent-transaction-id |O |O |  |Alphanumeric |36 |Transaction ID of the
-first transaction in the series.
-
-|order-detail |M |M |  |Alphanumeric |20 |Additional description of the
-provided product or service.
-
-|notifications.notification@url |O |O |  |Alphanumeric |256 |The URL to
-be used for the Instant Payment Notification. It overwrites the
+|parent-transaction-id          |O       |O         |             |Alphanumeric |36 |Transaction ID of the first transaction in the series.
+|order-detail                   |M       |M         |             |Alphanumeric |20 |Additional description of the provided product or service.
+|notifications.notification@url |O       |O         |             |Alphanumeric |256 |The URL to be used for the Instant Payment Notification. It overwrites the
 notification URL that is set up in the merchant configuration.
-
-|merchant-account-id |M |M |M |Alphanumeric |36 |Unique identifier for a
-merchant account.
-
-|locale |  |  |M |Alphanumeric |6 |ISO code of the language. Can be sent
+|merchant-account-id            |M       |M         |M            |Alphanumeric |36 |Unique identifier for a merchant account.
+|locale                         |        |          |M            |Alphanumeric |6  |ISO code of the language. Can be sent
 in the format <language> or in the format <language_country>.
-
-|instrument-country |O |  |  |Alphanumeric |2 |The instrument country
+|instrument-country             |O       |          |             |Alphanumeric |2 |The instrument country
 contains the information where the end-consumer belongs to.
-
-|descriptor |O |  |  |Alphanumeric |40 |Description of the provided
+|descriptor                     |O       |          |             |Alphanumeric |40 |Description of the provided
 product or service. It will appear on the checkout web page and SMS
 texts and may also appear on the end-customers billing invoice from the
 mobile operator depending on the country and operator.
-
-|consumer-id |M |  |  |Alphanumeric |50 a|
-An id of the end-consumer in the merchant’s application e.g. account
-name, gamer
-
-alias, login username.
-
-|completion-time-stamp |  |M |M |Datetime |  |The completion timestamp
-of the transaction processing.
-
-|account-holder.phone |M |M |  |Alphanumeric |30 |The phone number of
+|consumer-id                    |M       |          |             |Alphanumeric |50 |An id of the end-consumer in the merchant’s application e.g. account
+name, gamer alias, login username.
+|completion-time-stamp          |        |M         |M            |Datetime     |   |The completion timestamp of the transaction processing.
+|account-holder.phone           |M       |M         |             |Alphanumeric |30 |The phone number of
 the end-customer (MSISDN) intended to be used for payment
-
-|account-holder.address.country |M |M |M |Alphanumeric |3 |The ISO code
+|account-holder.address.country |M       |M         |M            |Alphanumeric |3  |The ISO code
 of the country used for the mobile payment. It influences the language
 of the checkout page and usage of the mobile operators. Currently only
 DE is supported.
+|account-holder.address.city    |M       |M         |             |Alphanumeric |256 |The city of residence of the account holder.
+|account-holder.address.street1 |M       |M         |             |Alphanumeric |256 |The street name of residence of the account holder.
+|account-holder.first-name      |M       |M         |             |Alphanumeric |256 |The first name of the account holder.
+|account-holder.last-name       |M       |M         |             |Alphanumeric |256 |The last name of the account holder.
+|account-holder.email           |M       |M         |M            |Alphanumeric |256 |The e-mail address of the account holder.
+|===
 
-|account-holder.address.city |M |M |  |Alphanumeric |256 |The city of
-residence of the account holder.
-
-|account-holder.address.street1 |M |M |  |Alphanumeric |256 |The street
-name of residence of the account holder.
-
-|account-holder.first-name |M |M |  |Alphanumeric |256 |The first name
-of the account holder.
-
-|account-holder.last-name |M |M |  |Alphanumeric |256 |The last name of
-the account holder.
-
-|account-holder.email |M |M |M |Alphanumeric |256 |The e-mail address of
-the account holder.
-|=======================================================================
-
-[[CarrierBilling-Features]]
-Features
---------
-
-*Merchant Country Code Security*
+[#CarrierBilling_Features]
+==== Features
+[discrete]
+===== Merchant Country Code Security
 
 Depending on the merchant account ID, merchants will only be able to
-accept payments from the setup country. This means, one country for one
+accept payments from the setup country. This means one country for one
 merchant account ID.
 
-[[CarrierBilling-Samples:Requests,ResponsesandNotifications]]
-Samples: Requests, Responses and Notifications
-----------------------------------------------
+[#CarrierBilling_Samples]
+==== Samples: Requests, Responses and Notifications
 
-*XML Debit Request (Successful)*  Expand source
 
-[source,syntaxhighlighter-pre]
+.Debit Request (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -381,7 +257,7 @@ Samples: Requests, Responses and Notifications
    </payment-methods>
    <account-holder>
       <!-- either set mandatoty element: payment/wallet/account-id or payment/account-holder/email -->
-      <email>john.doe@test.com</email>
+      <email>john.doe@example.com</email>
       <first-name>John</first-name>
       <last-name>Doe</last-name>
       <phone>SK00</phone>
@@ -395,13 +271,12 @@ Samples: Requests, Responses and Notifications
    <order-detail>Test Order</order-detail>
    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
-   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>    
+   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
 </payment>
 ----
 
-*XML Debit Response (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+.Debit Response (Successful)
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -418,7 +293,7 @@ Samples: Requests, Responses and Notifications
    <account-holder>
       <first-name>John</first-name>
       <last-name>Doe</last-name>
-      <email>john.doe@test.com</email>
+      <email>john.doe@example.com</email>
       <phone>SK00</phone>
       <address>
          <street1>Test Street 123</street1>
@@ -437,9 +312,8 @@ Samples: Requests, Responses and Notifications
 </payment>
 ----
 
-*XML Debit Request (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+.Debit Request (Failure)
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
@@ -454,13 +328,12 @@ Samples: Requests, Responses and Notifications
    <order-detail>Test Order</order-detail>
    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
    <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
-   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url> 
+   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
 </payment>
 ----
 
-*XML Debit Response (Failure)*  Expand source
-
-[source,syntaxhighlighter-pre]
+.Debit Response (Failure)
+[source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
@@ -485,62 +358,8 @@ Samples: Requests, Responses and Notifications
 </payment>
 ----
 
-*XML Notification (Successful)*  Expand source
-
-[source,syntaxhighlighter-pre]
+.Notification (Successful)
+[source,xml]
 ----
 response_signature=2a715f3ac100ad38906d48c84717840c40f6a0990390c8be0273cb23104d7960&phone=SK00&transaction_type=debit&locale=&completion_time_stamp=20150709141336&status_code_1=201.0000&status_severity_1=information&transaction_state=success&transaction_id=ec87fe6b-2633-11e5-94a1-0050b65c678c&country=SK&merchant_account_id=d97a261d-dbee-4993-b323-2349d51b768b&ip_address=127.0.0.1&provider_transaction_reference_id=&request_id=5ebb92fc-b72d-478c-98ec-7aca869b1e4c&requested_amount=15.00&requested_amount_currency=EUR&status_description_1=boku%3AThe+resource+was+successfully+created.&provider_transaction_id_1=&authorization_code=&
 ----
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
- 
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/786457/1671663.png[boku_logo.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/786457/3703860.png[CarrierBilling Workflow.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/786457/3703861.png[CarrierBilling Select NW
-provider.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/786457/3703862.png[CarrierBilling confirm payment.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/786457/4390914.png[CarrierBilling Workflow_API.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/786457/4390921.png[CarrierBilling Workflow_WPP.png]
-(image/png) +
-
-[[footer]]
-Document generated by Confluence on Feb 19, 2019 13:36
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
