@@ -10,12 +10,14 @@ Bancontact Mister Cash (BCMC) is the most popular internet payment
 method in Belgium. It is used in more than 80% of Belgian web shops. It
 allows clients to pay with Belgian credit cards.
 
-* With BCMC's mobile app you can pay back friends without cash
+- With BCMC's mobile app you can pay back friends without cash
 immediately after they took over a payment for you (e.g. at a
 restaurant).
-* You can pay your invoices at home using the BCMC mobile app. You can
+- You can pay your invoices at home using the BCMC mobile app. You can
 use the app in a growing number of businesses and stores to pay your
 bill without the hassle of a card reader.
+
+//-
 
 [#BancontactMisterCash_Introduction_HowtoIntegrate]
 ===== How to Integrate
@@ -33,12 +35,13 @@ on <<RestApi, Rest Api>>.
 
 This table illustrates which payment mode _Bancontact_ belongs to. It
 also provides detailed information about the countries and currencies
-which are relevant for __Bancontact__.
+which are relevant for _Bancontact._
 
+[cols="h,"]
 |===
-|*Payment Mode* | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
-|*Countries* |Belgium
-|*Currencies* |EUR
+|Payment Mode | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
+|Countries    |Belgium
+|Currencies   |EUR
 |===
 
 [#BancontactMisterCash_CommunicationFormats]
@@ -46,10 +49,11 @@ which are relevant for __Bancontact__.
 
 This table illustrates how _Bancontact_ notifications are encoded, and which formats and methods can be used for requests and responses.
 
+[%autowidth]
 |===
-.2+| *Requests/Responses* | Format | XML, JSON
-                          | Methods | POST, GET
-| *IPN Encodement* 2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_Introduction, Instant Payment Notification>> to set up IPN.
+.2+h| Requests/Responses | Format | XML, JSON
+                         | Methods | POST, GET
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_Introduction, Instant Payment Notification>> to set up IPN.
 |===
 
 [#BancontactMisterCash_TransactionTypes]
@@ -60,38 +64,38 @@ method _SEPA_. See refund and recurring for details.
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look at <<AppendixB, Appendix B: Transaction Types>>.
 
+[cols="e,,"]
 |===
 |Transaction Type |Description |Link to the Sample
 
-| _debit_ | debit samples
-| _refund-debit_ | _Bancontact_ does not support _refund-debit_. Use https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer[SEPA
-Credit Transfer] to wire funds back to the consumer.
-| _recurring_ | _Bancontact_ does not support _recurring_ transactions. Use https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit[SEPA
-Direct Debit] to initiate _recurring_ transactions
+| debit           |            | debit samples
+| refund-debit    | _Bancontact_ does not support ``refund-debit``. Use <<SEPACreditTransfer, SEPA Credit Transfer>> to wire funds back to the consumer. |
+| recurring       | _Bancontact_ does not support ``recurring`` transactions. Use <<SEPADirectDebit, SEPA Direct Debit>> to initiate _recurring_ transactions |
 |===
 
 [#BancontactMisterCash_TestCredentials]
 ==== Test Credentials
 
+[stripes=none]
 |===
-.2+| *URLs (Endpoints)* | REST API | https://api-test.wirecard.com/engine/rest/paymentmethods/
-                        | Payment Page | https://api-test.wirecard.com/engine/hpp/
-| *Merchant Account ID (MAID)* 2+| 86f03c98-6691-421d-94c8-232c3d5c2573
-| *Username* | REST API | 16390-testing
-| *Password* | REST API | 3!3013=D3fD8X7
-| *Secret Key* | Payment Page | 2341ae35-aa13-4511-95d5-acd80f0fcb52
+.2+h|URLs (Endpoints)  |REST API     |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+                       |Payment Page |``\https://api-test.wirecard.com/engine/hpp/``
+h|Merchant Account ID (MAID)       2+|86f03c98-6691-421d-94c8-232c3d5c2573
+h|Username             |REST API     |16390-testing
+h|Password             |REST API     |3!3013=D3fD8X7
+h|Secret Key           |Payment Page |2341ae35-aa13-4511-95d5-acd80f0fcb52
 |===
 
-When using our testing environment, the _Wirecard Payment Processing
-Gateway_ does not send the request to _Bancontact_ servers. Instead, it
+When using our testing environment, the _Wirecard Payment Processing Gateway_
+does not send the request to _Bancontact_ servers. Instead, it
 will be sent to a simulation endpoint that looks similar to
 the _Bancontact_ landing page.
 
 It covers the most basic situations, such as:
 
-* Success scenario
-* User cancellation
-* Invalid card data
+- Success scenario
+- User cancellation
+- Invalid card data
 
 NOTE: The look and feel of the simulated landing page will not be regularly
 updated which may lead to differences when comparing with real BCMC
@@ -99,7 +103,7 @@ landing page.
 
 You can skip the input fields _Card Number_ and _Expiry Date_ as our
 testing endpoint is ignoring them. To simulate a specific scenario use
-one of the options presented by field _Error code_.
+one of the options presented by field _Error code._
 
 image::images/11-07-bancontact-mister-cash/Bancontact_error_code.png[Bancontact error code]
 
@@ -117,17 +121,17 @@ image::images/11-07-bancontact-mister-cash/Bancontact_workflow_debit_restapi.png
 . Consumer wants to pay a product/service.
 . Consumer selects BCMC payment method.
 . WPG redirects consumer from website to BCMC landing page (WPG uses
-the field *__payment-methods/payment-method/@ur__l* in the response).
+the field ``payment-methods/payment-method/@url`` in the response).
 . Consumer enters BCMC Card data.
 . Now two actions occur simultaneously:
 .. Consumer is sent back to the shop via _Redirect URL_ informing him
 of the status of the payment. The destination depends on the given
 redirect URLs in the <<BancontactMisterCash_Sample_ReSTAPI, _debit_ Request (Successful)>> sample (provided in the
-*_success-redirect-url_* field).
+``success-redirect-url`` field).
 .. WPG sends a notification (IPN) of the payment outcome to the
 merchant. In order to receive server-to-server notifications, you have
 to provide the URL of your endpoint in the <<BancontactMisterCash_Sample_ReSTAPI, _debit_ Request (Successful)>> sample that will process IPNs (provided in the
-*_notifications/notification/@url_* field).
+``notifications/notification/@url`` field).
 
 [#BancontactMisterCash_UsingPaymentPage]
 ====== Using Payment Page
@@ -138,16 +142,16 @@ image::images/11-07-bancontact-mister-cash/Bancontact_workflow_debit_paymentpage
 . Merchant redirects Consumer to Payment Page
 . Consumer selects BCMC payment method.
 . Payment Page redirects the consumer to BCMC landing page (WPG uses
-the field *_payment_methods/payment_method/@url_* in the response).
+the field ``payment_methods/payment_method/@url`` in the response).
 . Consumer completes the payment.
 . Now two actions occur simultaneously:
 .. Consumer is sent back to the Payment Page via _Redirect URL_
 informing him of the status of the payment. The destination depends on
-the given redirect URLs in the Payment Page sample, <<BancontactMisterCash_PaymentPage, _debit_ Request (Successful)>> (provided in the field *_success_redirect_url_*).
+the given redirect URLs in the Payment Page sample, <<BancontactMisterCash_PaymentPage, _debit_ Request>> (provided in the field ``success_redirect_url``).
 .. Payment Page sends a notification (IPN) of the payment outcome to
 the merchant. In order to receive server-to-server notifications, you
 have to provide the URL of your endpoint in the Payment Page sample,
-<<BancontactMisterCash_PaymentPage, _debit_ Request (Successful)>> that will process IPNs (*_notification_url_*).
+<<BancontactMisterCash_PaymentPage, _debit_ Request>> that will process IPNs (``notification_url``).
 
 [#BancontactMisterCash_refund]
 ===== _refund_
@@ -171,17 +175,17 @@ specific debit transaction.
 
 Characteristics of this workflow are:
 
-* The workflow is offline, so you have to wait a longer period for the outcome (it is a matter of a few days).
-* _SEPA Credit Transfer_ must be referenced to a successful debit
+- The workflow is offline, so you have to wait a longer period for the outcome (it is a matter of a few days).
+- _SEPA Credit Transfer_ must be referenced to a successful debit
 transaction; the _Transaction ID_ is taken from the successful debit
 notification.
 
 NOTE: The refund is not available immediately. You can initiate it 24 hours
-after the initial _debit_.
+after the initial _debit._
 
 When making a _SEPA Credit Transfer_ Request, keep in mind:
 
-. You have to reference the successful debit in the _Parent-Transaction-ID_ field.
+. You have to reference the successful debit in the ``parent-transaction-id`` field.
 . Bank account details like IBAN and BIC are not provided by you in
 the request.
 
@@ -195,67 +199,69 @@ employs _SEPA Direct Debit_ to withdraw funds from the consumer.
 
 In order to initiate a _Recurring_ transaction using <<SEPA_DirectDebit, SEPA Direct Debit>>.
 
-* look at <<GeneralPlatformFeatures_CrossPayment, Cross-Payment Methods Referencing>> for an explanation on how to make recurring
-transactions using _SEPA Direct Debit_.
-* look at the <<GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa_Xml, XML SEPA Direct Debit Request Recurring>> sample.
+- look at <<GeneralPlatformFeatures_CrossPayment, Cross-Payment Methods Referencing>> for an explanation on how to make recurring
+transactions using _SEPA Direct Debit._
+- look at the <<GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa_Xml, XML SEPA Direct Debit Request Recurring>> sample.
 
-For the Characteristics of the workflow see <<BancontactMisterCash_refund, _refund_>> above.
+For the Characteristics of the workflow see <<BancontactMisterCash_refund, refund>> above.
 These characteristics also apply for _recurring_ in combination with
-_SEPA Direct Debit_.
+_SEPA Direct Debit._
 
 When making a _SEPA Direct Debit_ Request, keep in mind:
 
-. You have to reference successful debit in the _Parent-Transaction-ID_ field.
+. You have to reference successful debit in the ``parent-transaction-id`` field.
 . Bank account details like IBAN and BIC are not provided by you in
 the request.
 . You need a Mandate, which represents the consumer’s consent of being
 charged via _SEPA Direct Debit._
-. You need to provide your <<SEPADirectDebit_Fields_SpecificFields_CreditorID, _Creditor-ID_>>
+. You need to provide your <<SEPADirectDebit_Fields_SpecificFields_CreditorID, Creditor-ID>>
 in each _SEPA Direct Debit_ request.
 
 [#BancontactMisterCash_Fields]
 ==== Fields
 
 The fields used for BCMC requests, responses and notifications are the
-same as the REST API Fields resp. Payment Page. Please refer to: <<RestApi_Fields, ReST API Fields>>.
+same as the REST API Fields resp. Payment Page. Please refer to: <<RestApi_Fields, ReST API Fields>>
 or <<PaymentPageSolutions_Fields, Payment Page>>.
 
-The fields listed below are BCMC specific and either mandatory (M) or
-optional (O).
+The fields listed below are BCMC specific and either mandatory *M* or
+optional *O.*
 
+[cols="e,,,"]
 |===
 | Field | Cardinality | Data Type | Description
 
 | transaction-type | M |Alphanumeric a| This is the type for a transaction.
 
-Use _Debit._
+Use ``debit``.
 
-| <<PaymentMethods, payment-methods>> | M | Alphanumeric a|
-The name of the Payment Method.
+| payment-methods | M | Alphanumeric a|
+The name of the <<PaymentMethods, Payment Method>>.
 
-Use _bancontact._
+Use ``bancontact``.
 
-| Locale | O |  a| Language used to localize the BCMC landing page. +
+| Locale | O |  a| Language used to localize the BCMC landing page.
 
-Supported by BCMC:
+.Supported by BCMC
+- ``zh`` Chinese
+- ``nl`` Dutch
+- ``en`` English
+- ``fr`` French
+- ``de`` German
+- ``hi`` Hindi
+- ``it`` Italian
+- ``ja`` Japanese
+- ``pt`` Portuguese
+- ``ru`` Russian
+- ``sk`` Slovak
+- ``es`` Spanish
+- ``ru`` Russian
+- ``sk`` Slovak
+- ``es`` Spanish
 
-``zh`` Chinese +
-``nl`` Dutch +
-``en`` English +
-``fr`` French +
-``de`` German +
-``hi`` Hindi +
-``it`` Italian +
-``ja`` Japanese +
-``pt`` Portuguese +
-``ru`` Russian +
-``sk`` Slovak +
-``es`` Spanish +
-``ru`` Russian +
-``sk`` Slovak +
-``es`` Spanish
+//-
 
-Default locale is English.
+Default locale is ``en`` English.
 |===
 
 [#BancontactMisterCash_Samples_RequestsandResponses]
@@ -267,7 +273,6 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 ===== ReST API
 
 .debit Request (Successful)
-
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
@@ -318,7 +323,6 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 ----
 
 .debit Response (Successful)
-
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
@@ -375,7 +379,6 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 ----
 
 .debit Request (Failure)
-
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
@@ -392,7 +395,6 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 ----
 
 .debit Response (Failure)
-
 [source,xml]
 ----
  <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -418,10 +420,9 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 ===== Payment Page
 
 .debit Request (Successful)
-
-[source,xml]
+[source,js]
 ----
- var requestData = {
+var requestData = {
   "request_id" : "75887972-6777-4af6-96fb-1c5419d2e80f",
   "request_time_stamp" : "20170201131500",
   "merchant_account_id" : "9e1b95df-3928-4256-af7b-2431a3c16c33",
