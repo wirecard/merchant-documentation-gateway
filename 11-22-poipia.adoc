@@ -12,7 +12,7 @@ _POI/PIA_ uses the payment method _wiretransfer_ in the
 _Wirecard Payment Gateway_.
 
 To initialize the payment the merchant must submit a transaction with
-transaction type _authorization_ and payment method _wiretransfer_. No
+transaction type _authorization_ and payment method _wiretransfer._ No
 consumer bank account data (IBAN/BIC) is required for the authorization
 request. For every _wiretransfer_ _authorization_ transaction the
 _Wirecard Payment Gateway_ will generate a _Provider Transaction
@@ -66,17 +66,13 @@ Wirecard Bank.
 
 This table illustrates which payment mode _POI/PIA_ belongs to. It
 also provides detailed information about the countries and currencies
-which are relevant for _POI/PIA_.
+which are relevant for _POI/PIA._
 
-[cols="20,80"]
+[cols="20h,80"]
 |===
-|*Payment Mode*
-|<<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
-
-|*Countries*
-|Please <<ContactUs, contact merchant support>> for Countries.
-
-|*Currencies* |EUR
+| Payment Mode | <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
+| Countries    | Please <<ContactUs, contact merchant support>> for Countries.
+| Currencies   | EUR
 |===
 
 [#API_POIPIA_General_Communication]
@@ -102,17 +98,17 @@ here, look at <<AppendixB, Appendix B: Transaction Types>>.
 |===
 |Transaction Type |Description |Link to the sample
 
-|_authorization_ |If the request is successful, a response will be
+| authorization  |If the request is successful, a response will be
 returned with the status Success. This response means that the
 transaction has entered the Wirecard system successfully. The payment is
 in _pending_ status and awaiting a _deposit_ transaction from the consumer
 bank account to the merchant's Wirecard Bank account.
 |<<API_POIPIA_Samples_authorization, _authorization_ samples>>
 
-|_void-authorization_ |Voids an authorization.
+| void-authorization  |Voids an authorization.
 |<<API_POIPIA_Samples_voidauthorization, _void-authorization_ samples>>
 
-|_deposit_ |Incoming funds transfer from the consumer. Merchant is
+| deposit  |Incoming funds transfer from the consumer. Merchant is
 notified via IPN.
 |<<API_POIPIA_Samples_deposit, _deposit_ samples>>
 |===
@@ -172,16 +168,16 @@ bank account.
 ====== _authorization_
 
 If the request is successful, a response will be returned with the
-status _Success_. This response means that the transaction has
+status ``success``. This response means that the transaction has
 entered _Wirecard Payment Gateway_ successfully. The payment is in the
-status _pending_ and awaiting a _deposit_ transaction from the
+status ``pending`` and awaiting a _deposit_ transaction from the
 consumer's bank account to the merchant's bank account.
 
 If the request is not successful, a response will be returned with
-status _failed_. The response always contains a status code and a
+status ``failed``. The response always contains a status code and a
 description.
 
-Please read the description of the _failed_ status carefully as it will
+Please read the description of the ``failed`` status carefully as it will
 help to understand why the transaction request has failed and what needs
 to be fixed in order to send a successful transaction request.
 
@@ -196,8 +192,8 @@ _authorization_ transaction and creates a _deposit_ transaction.
 ===== _refund_
 
 Merchant can refund a _wiretransfer_ payment by sending a _SEPA credit_
-transaction. It is possible to provide the ``<transaction-id>`` of the
-corresponding _deposit_ transaction in the ``<parent-transaction-id>`` field
+transaction. It is possible to provide the ``transaction-id`` of the
+corresponding _deposit_ transaction in the ``parent-transaction-id`` field
 of the _refund_ request. For more details please refer to the chapter
 <<SEPACreditTransfer, Credit Transfer (SEPA)>> and
 <<GeneralPlatformFeatures_CrossPayment, Cross-Payment-Methods Referencing>>.
@@ -220,15 +216,15 @@ whole amount of the _deposit_ transaction will be refunded.
 ===== _void_
 
 Wirecard's Payment Platform allows merchants to void _wiretransfer
-Authorization_ transactions. Please note: voiding an _authorization_
-transaction will not prevent the processing of incoming deposits for
-this authorization. Furthermore it is possible to void an
-_authorization_ even if a _deposit_ has already been received for it.
+Authorization_ transactions.
+
+NOTE: Voiding an _authorization_ transaction will not prevent the processing of incoming deposits for
+this authorization. Furthermore it is possible to void an _authorization_ even if a _deposit_ has already been received for it.
 
 To void an existing _wiretransfer_ _authorization_ transaction sending a
-new transaction request with the type _void-authorization_ request is
+new transaction request with the type ``void-authorization`` request is
 necessary. A request for a void transaction must contain
-a ``<parent-transaction-id>`` referring to the _authorization_ transaction
+a ``parent-transaction-id`` referring to the _authorization_ transaction
 that needs to be voided.
 
 [#API_POIPIA_Fields]
@@ -240,26 +236,26 @@ request/response.
 [#API_POIPIA_Fields_authorization]
 ===== _authorization_
 
-[cols="12,7,7,7,7,60"]
+[cols="12e,7,7,7,7,60"]
 |===
-Field |Request |Response |Datatype |Size |Description
+|Field |Request |Response |Datatype |Size |Description
 
 |merchant-account-id |M |  |String |36 |Unique identifier for a merchant account.
-|transaction-id |  |M |String |36 a|The ``<transaction-id>`` is the unique identifier
+|transaction-id |  |M |String |36 a|The ``transaction-id`` is the unique identifier
 for a transaction. It is generated by Wirecard.
 |request-id |M |  |String |150 a|This is the identification number of the
 request on the merchant’s side. It must be unique for each request.
 
-NOTE: to retrieve _authorization_ or _deposit_ transaction by the ``<request-id>``
-you need to add ``-authorization`` or ``-deposit`` to the original ``<request-id>``
+NOTE: To retrieve _authorization_ or _deposit_ transaction by the ``request-id``
+you need to add ``-authorization`` or ``-deposit`` to the original ``request-id``
 correspondingly (for details see
   <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction>>
-  by ``<request-id>``).
+  by ``request-id``).
 In case of multiple deposits please add ``-deposit:N`` where N is the sequence
 number of the _deposit_ starting with 2 (from second _deposit_).
 
 |transaction-type |M |  |String |30 |This is the type for a transaction. For
-_wiretransfer_, only _authorization_ is allowed.
+_wiretransfer_, only ``authorization`` is allowed.
 |transaction-state  |  |M |String  |12  |This is the status of a transaction.
 |completion-time-stamp  |  |M |dateTime  |  |This is the timestamp of
 completion of request.
@@ -278,7 +274,7 @@ requested-amount. Only EUR (euro) is accepted.
 first name.
 |account-holder.last-Name |M |M |String |32 |This is the end-consumer’s
 last name.
-|account-holder.email |O |O |String |64 |This is the end-consumer’s Email- Address.
+|account-holder.email |O |O |String |64 |This is the end-consumer’s email address.
 |account-holder.gender |O |O |String |1 |This is the end-consumer’s gender.
 |account-holder.date-of-birth |O |O |Date |  |This is the end-consumer’s
 birth date.
@@ -311,7 +307,7 @@ up in the merchant configuration.
 |custom-field.field-value |O |O |String |256 |This is the content of the
 custom field. In this field the merchant can send additional information.
 |payment-methods.payment-method-Name |M |M |api-id |15 |This is the name of
-the payment method -  _wiretransfer_.
+the payment method - ``wiretransfer``.
 |payment/merchant-bank-account/bank-name |  |O |String |100 |The merchant bank
 name as configured for the merchant account
 |payment/merchant-bank-account/branch-city |  |O |String |64 |The city of the
@@ -325,7 +321,7 @@ IBAN as configured for the merchant account
 |payment/merchant-bank-account/bic |  |M |String |15 |The merchant bank account
 BIC as configured for the merchant account
 |api-id |  |  |api-id |  |The API id is always returned in the notification.
-For _wiretransfer_ it is “---“
+For _wiretransfer_ it is ``---``
 |provider-transaction-reference-id |  |M |String |10 |Wirecard generates this
 ID for the merchant and sends back with the _authorization_ response. This ID must be entered by the buyer in the usage field of the bank transfer form in order to be matched to the corresponding _authorization_ transaction in the Wirecard system.
 |===
@@ -333,6 +329,7 @@ ID for the merchant and sends back with the _authorization_ response. This ID mu
 [#API_POIPIA_Fields_voidauthorization]
 ===== _void-authorization_
 
+[cols="12e,7,7,7,7,60"]
 |===
 Field |Request |Response |Data Type |Size |Description
 
@@ -342,7 +339,7 @@ for a transaction. It is generated by Wirecard.
 |request-id |M |  |String |150 |This is the identification number of the
 request on the merchant’s side. It must be unique for each request.
 |transaction-type |M |  |String |30 |This is the type for a transaction -
-_void-authorization_.
+``void-authorization``.
 |transaction-state  |  |M |String  |12  |This is the status of a transaction
 |completion-time-stamp  |  |M |dateTime  |  |This is the timestamp of completion
 of request.
@@ -362,7 +359,7 @@ _authorization_ transaction to be voided.
 |descriptor |O |O |String |100 |Free text describing the reason of voiding the
 transaction.
 |payment-methods.payment-method-name |M |M |api-id |15 |This is the name of
-the payment method - wiretransfer.
+the payment method - ``wiretransfer``.
 |===
 
 [#API_POIPIA_Samples]
@@ -382,7 +379,7 @@ if you want to see corresponding notification samples.
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
   <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
-  <request-id>b6ab1930-e495-4714-bba1-37c80e5e91ae</request-id>
+  <request-id>{{$guid}}</request-id>
   <transaction-type>authorization</transaction-type>
   <requested-amount currency="EUR">10.01</requested-amount>
   <order-number>180809093111171</order-number>
@@ -469,7 +466,7 @@ if you want to see corresponding notification samples.
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
     <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
-    <request-id>d098bad9-97cd-43e1-a001-2ca492aef35b</request-id>
+    <request-id>{{$guid}}</request-id>
     <transaction-type>void-authorization</transaction-type>
     <parent-transaction-id>c8d40613-0f8d-4729-8149-e42a5352b2b2</parent-transaction-id>
     <ip-address>127.0.0.1</ip-address>
