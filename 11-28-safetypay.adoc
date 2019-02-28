@@ -1,0 +1,388 @@
+[#SafetyPay]
+=== SafetyPay
+
+image::images/11-28-safetypay/safetypay.png[SafetyPay, 200, align="right"]
+
+[#SafetyPay_Introduction]
+==== Introduction
+
+_SafetyPay_ is an asynchronous payment method where the end consumers
+finish the payment in their own online-banking account after being
+redirected to a _SafetyPay_ landing page during checkout to choose the
+currency and the desired bank. There is also the option of a cash
+payment, in which case _SafetyPay_ provides a Payment Code for the
+consumers that they can use later at any point of collection to pay
+(merchant receives a notification confirming the outcome of the
+transaction). By integrating _SafetyPay_, merchants can accommodate
+consumers who:
+
+- prefer not to use a credit card (or do not have one),
+- do not want to disclose personal information for fear of fraud,
+- wish to shop outside their country but don't have internationally
+accepted cards.
+
+//-
+
+Another benefit of _SafetyPay_ is that it significantly reduces
+fraudulent purchases, opportunities for identity theft and many other
+related security risks by using _push payments_. Consumers submit
+("push") their payment to the merchant directly, without providing their
+personal & financial information to the merchant or _SafetyPay_. And
+since there is no fraud, the merchant controls when and how to refund
+consumers: there are no chargebacks or other hidden costs.
+
+_SafetyPay_ is offered as a processing payment model, which means that
+the acquirer directly acquires the merchants.
+
+[#SafetyPay_GeneralInformation]
+==== General Information
+
+[#SafetyPay_PaymentModeCountriesandCurrencies]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _SafetyPay_ belongs to. It
+also provides detailed information about the countries and currencies
+which are relevant for _SafetyPay_.
+
+[cols="1h,2", stripes="none"]
+[%autowidth]
+|===
+|Payment Mode | Please <<ContactUs, contact merchant support>> for Payment Mode.
+|Countries |AT, DE, ES, BE, NL, US, CA, CR, MX, PR, BR, EC, PE, CL, CO
+|Currencies |EUR, USD, CAD, MXN, CRC, BRL, PEN, CLP, CLF, COP
+|===
+
+[#SafetyPay_CommunicationFormats]
+===== Communication Formats
+
+This table illustrates how _SafetyPay_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+
+[%autowidth]
+|===
+.2+h| Requests/Responses | Format   | XML
+                         | Methods  | POST
+   h| IPN Encodement   2+| SHA256
+|===
+
+[#SafetyPay_TransactionTypes]
+==== Transaction Types
+
+This table lists all transaction types available for _SafetyPay_.
+
+NOTE: Some of the transaction types cannot be used in the requests. Refer to
+the columns below for an overview.
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look at <<AppendixB, Appendix B: Transaction Types>>.
+
+[%autowidth]
+|===
+| Transaction Type | Description | Request* | Response/IPN**  | WEP*** | Link to the sample
+
+| _debit_ |Creates a request to charge the specified amount from the
+Consumer’s bank account. | YES | YES | YES |https://document-center.wirecard.com/display/PTD/SafetyPay#SafetyPay-debit[_debit_
+example]
+| _refund-debit_ |Initiates the _refund_ process, referring to an
+existing _debit_ transaction. | YES | YES | YES |https://document-center.wirecard.com/display/PTD/SafetyPay#SafetyPay-refund[_refund_
+example]
+| _refund-request_ |Returns the original transaction amount to the
+Consumer's account. It follows _refund-debit_ as the final step of the
+_refund_ flow. | NO | NO | YES | 
+| _get-url_ |Retrieves the URL of the _SafetyPay_ landing page for the
+Consumer to be redirected to. | NO | YES | YES | 
+|===
+
+\* YES indicates that the transaction type is sent in the request.
+
+\\** YES indicates that the transaction type appears in either response or
+notification.
+
+\*** YES indicates that the transaction type is visible in Wirecard
+Enterprise Portal.
+
+[#SafetyPay_TestCredentials]
+==== Test Credentials
+
+|===
+.3+h| *URLs (Endpoints)* .2+| REST API | For transaction type _debit_. | https://api-test.wirecard.com/engine/rest/paymentmethods/
+                                      | For transaction types _refund-request_ and _refund-debit._ | https://api-test.wirecard.com/engine/rest/payments/
+                           2+| Payment Page | https://api-test.wirecard.com/engine/hpp/
+h | *Merchant Account ID (MAID)* 3+| ca20c8a7-fa58-4ef5-a785-1c90ca9662c3
+h | *Username* 3+| 16390-testing
+h | *Password* 3+| 3!3013=D3fD8X7
+h | *Secret Key* 3+| 13f27673-6bbe-4227-838a-e31952b5d794
+|===
+
+[#SafetyPay_Workflow]
+==== Workflow
+
+[#SafetyPay_debit]
+===== _debit_ transaction
+
+[#SafetyPay_UsingReSTAPI]
+====== Payment Process Using REST API
+
+image::images/11-27-safetypay/SafetyPay_workflow_debit_restapi.png[SafetyPay workflow for debit using restapi]
+
+. Consumer initiates a transaction.
+. Merchant sends a request with the consumer's data to the endpoint of WPG.
+. WPG sends a response to the merchant with generated URL to _SafetyPay_ landing page.
+. The merchant redirects the consumer to the _SafetyPay_ landing page
+(The URL for redirection is in the response message, field *payment-methods/payment-method/@url*).
+. The consumer authorizes the transaction.
+. _SafetyPay_ sends the authorization status to WPG.
+. WPG sends a Success/Failed notification to the merchant.
+
+[#SafetyPay_UsingHPP]
+====== Payment Process Using HPP
+
+image::images/11-27-safetypay/SafetyPay_workflow_debit_hpp.png[SafetyPay workflow for debit using HPP]
+
+. Consumer initiates a transaction.
+. Merchant sends a request with the consumer's data to the endpoint of WPG.
+. WPG redirects the consumer to the _SafetyPay_ landing page (The URL
+for redirection is in the response message, field *payment-methods/payment-method/@url*).
+. The consumer authorizes the transaction.
+. _SafetyPay_ sends the authorization status to WPG. 
+. WPG sends a Success/Failed notification to the merchant.
+
+[#SafetyPay_refundTransaction]
+====== _refund_ Transaction
+
+_refund_ is only possible via ReST API.
+
+image::images/11-27-safetypay/SafetyPay_workflow_refund.png[SafetyPay workflow for refund]
+
+. Consumer initiates a _refund_ process.
+. Merchant sends a request to _SafetyPay_. It includes the transaction
+ID of the _debit_ transaction that it's linked to.
+. _SafetyPay_ processes the _refund_ request.
+. _SafetyPay_ sends the _refund_ result to WPG.
+. WPG sends a Success/Failed notification to the merchant.
+
+[#SafetyPay_Fields]
+==== Fields
+
+The fields used for __SafetyPay __requests, responses and notifications
+are the same as the REST API Fields. Please refer to the <<RestApi_Fields, ReST API Fields>> or the request example for the fields required in a <<SafetyPay_debit_transaction, debit transaction>>.
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory (M), optional (O) or conditional
+(C) for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[#SafetyPay_debit_transaction]
+===== _debit_ transaction
+
+|===
+| Field | Request   | Response | Notification | Data Type | Size | Value Range | Description | Usage of Optional Fields
+
+|product-id | O | O | O | Alphanumeric | 36 a| "online" "offline" | Identifier for selection, if consumer wants to proceed payment with
+Cash (offline) or Internet Banking (online). | If the field is not
+present in the request, consumer will select ONLINE or OFFLINE option
+after redirection on _SafetyPay_ page.
+|===
+
+[#SafetyPay_Samples:XMLRequestsResponsesandNotifications]
+==== Samples: XML Requests, Responses and Notifications
+
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want to see corresponding notification samples.
+
+[#SafetyPay_Sample_debit]
+===== _debit_
+
+.debit Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+ <request-id>a10fc76c-1174-48a1-9a1c-dd82fc600deb</request-id>
+ <transaction-type>debit</transaction-type>
+ <requested-amount currency="USD">1.23</requested-amount>
+ <payment-methods>
+  <payment-method name="safetypay" />
+ </payment-methods>
+ <notifications>
+  <notification url="add.your.url" />
+ </notifications>
+ <locale>en</locale>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+.debit Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+ <transaction-id>1cefb8b1-0e8f-46d8-93ff-2cc051e425c7</transaction-id>
+ <request-id>a10fc76c-1174-48a1-9a1c-dd82fc600deb</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-08-02T10:01:24.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="The resource was successfully created." severity="information" />
+ </statuses>
+ <requested-amount currency="USD">1.23</requested-amount>
+ <notifications>
+  <notification url="add.your.url"/>
+ </notifications>
+ <payment-methods>
+  <payment-method url="https://sandbox-gateway.safetypay.com/Express4/Checkout/index?TokenID=15db9aa1-9db3-4049-a938-3c20110fdb73" name="safetypay" />
+ </payment-methods>
+ <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+ <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+ <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+ <locale>en</locale>
+</payment>
+----
+
+.debit Request (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+  <request-id>59c4d5a5-2b9c-4575-87be-2414f4d03b34</request-id>
+  <transaction-type>debit</transaction-type>
+  <requested-amount currency="USD">1.23</requested-amount>
+  <payment-methods>
+    <payment-method name="safetypay" />
+  </payment-methods>
+  <locale />
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+</payment>
+----
+
+.debit Response (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+  <transaction-id>262fa2bd-2927-4c4f-b98a-0297961815f7</transaction-id>
+  <request-id>59c4d5a5-2b9c-4575-87be-2414f4d03b34</request-id>
+  <transaction-type>debit</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-08-02T10:04:17.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1169" description="The language or language_COUNTRY is invalid." severity="error" />
+  </statuses>
+  <requested-amount currency="USD">1.23</requested-amount>
+  <payment-methods>
+    <payment-method name="safetypay" />
+  </payment-methods>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <locale></locale>
+</payment>
+----
+
+[#SafetyPay_Sample_refund]
+===== _refund_
+
+.refund-debit Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+  <request-id>058319b4-134e-4c4d-ad73-65a32d4bd9f5</request-id>
+  <transaction-type>refund-debit</transaction-type>
+  <requested-amount currency="USD">1.23</requested-amount>
+  <payment-methods>
+    <payment-method name="safetypay" />
+  </payment-methods>
+  <parent-transaction-id>03240826-20ee-446d-a1cb-342917f8d94f</parent-transaction-id>
+</payment>
+----
+
+.refund-debit Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+  <transaction-id>ba4d5af7-4d77-44e4-99fa-a54ac9e21f8b</transaction-id>
+  <request-id>058319b4-134e-4c4d-ad73-65a32d4bd9f5</request-id>
+  <transaction-type>refund-debit</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-08-02T10:05:21.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="USD">1.23</requested-amount>
+  <parent-transaction-id>03240826-20ee-446d-a1cb-342917f8d94f</parent-transaction-id>
+  <notifications>
+    <notification url="add.your.url" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="safetypay" />
+  </payment-methods>
+  <authorization-code>0B110B6181603EB333574C2A81D32836C80EE9D8423F788E1C065C6F5C1F98D7</authorization-code>
+  <api-id>---</api-id>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <locale>en</locale>
+</payment>
+----
+
+.refund-debit Request (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+  <request-id>a60c531a-2f48-47be-9edc-d531567fe6d6</request-id>
+  <transaction-type>refund-debit</transaction-type>
+  <requested-amount currency="USD">5.55</requested-amount>
+  <payment-methods>
+    <payment-method name="safetypay" />
+  </payment-methods>
+  <parent-transaction-id>03240826-20ee-446d-a1cb-342917f8d94f</parent-transaction-id>
+</payment>
+----
+
+.refund-debit Response (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>ca20c8a7-fa58-4ef5-a785-1c90ca9662c3</merchant-account-id>
+  <transaction-id>74bfceab-d18b-40a9-b115-cb60f052fbc6</transaction-id>
+  <request-id>a60c531a-2f48-47be-9edc-d531567fe6d6</request-id>
+  <transaction-type>refund-debit</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-08-02T10:10:52.000Z</completion-time-stamp>
+  <statuses>
+    <status code="500.1154" description="The amount requested is not valid." severity="error" />
+  </statuses>
+  <requested-amount currency="USD">5.55</requested-amount>
+  <parent-transaction-id>03240826-20ee-446d-a1cb-342917f8d94f</parent-transaction-id>
+  <payment-methods>
+    <payment-method name="safetypay" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/cancel</cancel-redirect-url>
+  <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/error</fail-redirect-url>
+  <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#!/success</success-redirect-url>
+  <locale>en</locale>
+</payment>
+----
