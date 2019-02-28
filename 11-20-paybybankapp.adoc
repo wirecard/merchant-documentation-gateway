@@ -1,0 +1,867 @@
+[#API_PaybyBankapp]
+=== Pay by Bank app (Zapp)
+
+image::images/11-20-paybybankapp/logo_pay-by-bank-app.jpg[Pay by Bank app Logo, height=150]
+
+.First-time integration only
+IMPORTANT: Based on Zapp rules, the first merchant integrating either mobile or
+eCom journey must pass a qualification in Live-Proving environment in
+order to go live. This is to ensure that merchant has correctly
+integrated Zapp elements in cooperation with WDT.
+
+[#API_PaybyBankapp_Introduction]
+==== Introduction
+
+_Pay by bank app_ (PBBA) enables merchant & billers to accept payment
+via consumer mobile phone.
+
+_PBBA_ is an innovative, secure and fully digital payment option in the
+UK. Consumers will be able to pay at Wirecard acquired online merchants
+directly from their banking app, with the transactions taking place in
+real time. Payments work through secure digital tokens, meaning
+customers never reveal any of their financial details to merchants when
+they are shopping.
+
+Banks which support _PBBA_: Barclays, Bank of Scotland, HSBC, Llodys,
+Halifax (until the end of 2017).
+
+.USPs
+- One device / Two device payment Process
+- Real time settlement
+- KYC upgrade: address data can be submitted via banking interface 
+- Consumer can choose his preferred sub banking account during checkout
+process 
+
+//-
+
+[#API_PaybyBankapp_GeneralInformation]
+==== General Information
+
+[#API_PaybyBankapp_General_PaymentMode]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _PBBA_ belongs to.
+It also provides detailed information about the countries and currencies
+which are relevant for _PBBA_.
+
+[cols="h,",]
+|===
+|Payment Mode
+|<<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
+|Countries
+|Please <<ContactUs, merchant support>> for Countries.
+|Currencies |GBP
+|===
+
+[#API_PaybyBankapp_General_Communication]
+===== Communication Formats
+
+This table illustrates how _PBBA_ notifications are encoded
+and which formats and methods can be used for requests and responses.
+
+[%autowidth]
+|===
+.2+h| Requests/Responses |Format |XML, JSON
+                        |Methods |POST
+h| IPN Encodements 2+|Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_PaybyBankapp_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look
+at <<AppendixB, Appendix B: Transaction Types>>.
+
+[%autowidth]
+|===
+|Transaction Type |Description |Link to sample
+
+|_debit_ |receive funds from a consumer's account to ship the
+merchandise |See <<API_PaybyBankapp_Samples_debit, debit>> samples.
+|_refund-debit_ |refund an order, because consumer has returned
+merchandise |
+|===
+
+[#PaybyBankapp_TestCredentials]
+==== Test Credentials
+
+[%autowidth]
+|===
+.2+h| URL(s) Endpoints |For the transaction type _debit_.        |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+                       |For the transaction type _refund-debit_. |``\https://api-test.wirecard.com/engine/rest/payments/``
+h| Merchant Account ID (MAID)
+2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
+
+h| Username
+2+|70000-APITEST-AP
+
+h| Password
+2+|qD2wzQ_hrc!8
+
+h| Secret Key
+2+|4a4396df-f78c-44b9-b8a0-b72b108ac465
+|===
+
+[#API_PaybyBankapp_TestCredentials_Additional]
+===== Additional Test Credentials on _PBBA_ Environment
+
+[%autowidth]
+|===
+h|Merchant Account Name | ``WD Zapp``
+h|PE BCSig | 123456
+h|can use credit +
+(configuration parameter)
+a|true +
+*if false, use*: 8a817d99-04bc-4f40-9650-59f726079fa0
+
+h|mobile endpoint enabled
+(for Payment SDK purposes)
+a|yes
+|===
+
+[#API_PaybyBankapp_Workflow]
+==== Workflow
+
+[#API_PaybyBankapp_Workflow_debit]
+===== _debit_
+
+image::images/11-20-paybybankapp/paybybank_debit_workflow.png[Pay by Bank app Debit Workflow, height=250]
+
+. Consumers select products/services on merchant's website. (This can
+happen either with a desktop browser or a mobile device browser. See
+https://paybybankapp.co.uk/how-it-works/the-experience/[the PBBA
+Experience] for details).
+. Consumers select payment method _PBBA_.
+. Provider generates a unique code per _PBBA_ payment button.
+. Consumers log in to the Mobile Banking App (MBA).
+. Consumers enter the unique payment code.
+. Consumers confirm payment to their bank.
+. Consumers have the option to continue with or without
+<<API_PaybyBankapp_Fields_debit_withPC, PayConnect>> for the next purchase.
+. Consumers' bank processes the payment in real-time and sends a
+notification to provider and merchants.
+. Consumers' bank displays payment confirmation on MBA.
+. Merchants redirect consumers to a result page.
+
+//-
+
+[#API_PaybyBankapp_Workflow_refundrequest]
+===== _refund-request_
+
+image::images/11-20-paybybankapp/paybybank_refund_workflow.png[Pay by Bank app Refund Workflow, height=250]
+
+. Consumers request a refund from merchant.
+. Merchants send _refund_ request to Wirecard.
+. _WPG_ requests refund account details of the consumers
+(transaction type _refund-request_).
+. _WPG_ initiates refund using wiretransfer method (take several
+days).
+. After confirmation from bank, consumers are refunded (transaction type
+_refund-debit_).
+
+//-
+
+[#API_PaybyBankapp_Fields]
+==== Fields
+
+[#API_PaybyBankapp_Fields_debit_withPC]
+===== _debit_ with PayConnect
+
+This is faster checkout option without typing the unique 6-digit PBBA
+code to a mobile banking app. To support the PayConnect feature for
+Consumer desktop, laptop or tablet based payment journeys, the consumer
+has an option to link the browser he/she is using to a Mobile Banking
+App after a successful payment on the device which results in a
+PayConnect cookie being stored in the consumer’s browser if consent is
+given.
+
+.How it works
+
+. Once the consumer has authorised an ECOM Transaction using a PBBA
+code the Consumer is given the option to enable PayConnect, which links
+the browser they are using to their mobile banking app. +
+image:images/11-20-paybybankapp/ui_payconnect.png[PayConnect, height=250]
+. On subsequent _PBBA_ transactions from the same browser the Consumer
+will receive a Push Notification on their linked Mobile device and upon
+action they automatically invoke their MBA.
+. The transaction is retrieved by the consumer's financial institution
+after the Consumer swipes the Push Notification and logs in to their
+MBA.
+
+//-
+
+The following elements are mandatory (M), optional (O) or conditional
+(C) for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[%autowidth]
+|===
+|Field |Request |Response |Notification |Type |Size |Description
+
+|browser/user-agent                     |M |M |M |String |  |Browser User Agent
+|browser/time-zone                      |M |M |M |String |  |Browser Time Zone
+|browser/screen-resolution              |M |M |M |String |  |Browser Screen
+|browser/headers/header/name            |O |O |O |String |  |HTTP Active Header name
+|browser/headers/header/value           |O |O |O |String |  |HTTP Active Header value
+|browser/cookies/cookie/name            |O |O |O |String |  |Cookie name. Must be "*pcid*".
+|browser/cookies/cookie/value           |O |O |O |String |  |Cookie value
+|browser/cookies/cookie/max-age         |  |  |O |String |  |Cookie max age. Number of seconds until the cookie expires
+|custom-field/[@zapp.out.FIShortName]   |  |O |O |String |  |This message field specifies the Consumer’s FI Short Name or the Name. If
+                                                             custom-field/[@zapp.out.CookieStatus] is Y, then FI Short Name must be set.
+|===
+
+[#API_PaybyBankapp_Fields_debit_withoutPC]
+===== _debit_ without PayConnect
+
+[%autowidth]
+|===
+|Field |Request |Response |Notification |Type |Size |Description
+
+|merchant-account-id                    |M |M |M |String  |36 |Unique identifier for a merchant account
+|transaction-id                         |  |M |M |String  |36 |The Transaction ID is the unique identifier for a transaction. It is generated by Wirecard.
+|request-id                             |M |M |M |String  |36 |This is the identification number of the request. *It has to be unique for each request.*
+|transaction-type                       |M |M |M |String  |22 |This is the type for a transaction. Must be *debit*.
+|payment-methods/payment-method[@name]  |M |M |M |String  |9  |The name of the Payment Method is “*zapp*”.
+|requested-amount                       |M |M |M |Decimal |18,2 a|This is the amount of the transaction. The amount of the decimal place is dependent of the currency. Minimum is 0.01
+|requested-amount[@currency]            |M |M |M |String  |3  |Zapp supports *only GBP.*
+|ip-address                             |M |M |M |String  |   |IP address of the device. 
+|device/type                            |M |O |  |Enum    |   |Type of device which submits the RTP. Enum types: mobile - mobile phone, pc - PC or laptop, tablet, other.
+|device/operating-system                |M |O |  |Enum    |   |Operating system used on the device. Enum types: android - Android, ios - Apple IOS, windows -
+                                                               Windows, windows-mobile - Windows Mobile OS, other.
+|custom-field/[@http://zapp.in[zapp.in].MerchantRtnStrng] |M |O |O |String    |  |Merchant Return String to redirect the Consumer from the
+                                                                                  Mobile Banking App to the Merchant’s browser or App.
+|custom-field/[@http://zapp.in[zapp.in].TxType]           |M |O |O |String    |  |Type of Transaction.
+|custom-field/[@http://zapp.in[zapp.in].DeliveryType]     |M |O |O |String    |  |The delivery type chosen for the delivery of purchased goods.
+|custom-field/[@zapp.inout.ApTRId]                        |  |M |M |String    |  |The human readable Transaction Retrieval ID (Secure Token) generated by Zapp to
+                                                                                  uniquely identify the related Order.
+|custom-field/[@zapp.out.CookieStatus]                    |  |M |M |Y/N       |  |Cookie status for Payconnect services indicates if the cookie is valid and active.
+|custom-field/[@zapp.out.SetlmtRtvlId]                    |  |M |M |String    |  |The Settlement Retrieval Id must be present if the <RTPType> is IMMEDIATE
+                                                                                  and must not be present if <RTPType> is DEFERRED.
+|custom-field/[@zapp.inout.ApTransactionId]               |  |M |M |String    |  |The computer readable Transaction ID generated by Zapp to uniquely identify
+                                                                                  the Order [a-z A-Z 0-9].
+|custom-field/[@zapp.out.BRN]                             |  |M |M |String    |  |Short term Unique Basket Reference Number provided by Zapp to the Distributor to be
+                                                                                  conveyed to the consumer in order to retrieve order for payment.
+|custom-field/[@zapp.out.RtrvlExpiryTimeIntrvl]           |  |O |O |Number    |  |The Retrieval is the time taken from when the consumer hits the Merchant
+                                                                                  button and sees the transaction within their banking app
+|custom-field/[@zapp.out.ConfmtnExpiryTimeIntrvl]         |  |M |M |Number    |  |The Confirmation is from the time the consumer sees the transaction
+                                                                                  within their banking app and presses confirm to submit the payment
+|api-id                                                   |O |O |O |String    |  |A unique identifier assigned for every API.
+|transaction-state                                        |  |M |M |String    |7 |Transaction result status. Should be *success or failed*
+|Statuses/status[@code]                                   |  |M |M |String    |  |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                            |  |M |M |String    |  |Transaction status description (e.g. 201.0000).
+|statuses/status[@severity]                               |  |M |M |String    |  |Transaction status severity. Should be ‘information’ for successful transactions, ‘error’
+                                                                                  for failed
+|completion-time-stamp                                    |  |M |M |Date time |  |Timestamp of the get-url transaction
+|===
+
+[#API_PaybyBankapp_Fields_refundrequest]
+===== _refund-request_
+
+[%autowidth]
+|===
+|Field |Request |Response |Notification |Type |Size |Description
+
+|merchant-account-id                                     |M |M |M |String    |36 |Unique identifier for a merchant account
+|request-id                                              |M |M |M |String    |36 |This is the identification number of the request. *It has to be unique for each request.*
+|transaction-type                                        |M |M |M |String    |22 |This is the type for a transaction. Must be _Refund-Request_
+|parent-transaction-id                                   |M |M |M |String    |36 |Transaction-id of debit transaction for which the refund is being done.
+|payment-methods/payment-method[@name]                   |M |M |M |String    |9 |The name of the Payment Method is “*zapp*”.
+|requested-amount                                        |O |M |M |Decimal   |18,2 a| This is the amount of the transaction. When not defined the whole amount of parent transaction is used.
+|requested-amount[@currency]                             |M |M |M |String    |3 |Zapp supports *only GBP.*
+|custom-field/[@zhttp://app.in[app.in].RefundReasonType] |M |O |O |String    |  |Used to complete the reason for the Refund, and when
+                                                                                 applicable will indicate whether a Refund is the result of a Query or Dispute case.
+|custom-field/[@http://zapp.in[zapp.in].RefundMethod]    |M |O |O |String    |  |The method of Refund that will be used by Wirecard to make the refund payment
+|custom-field/[@zapp.inout.MerchantRefundRef]            |O |O |O |String    |  |Merchant assigned reference for the Refund.
+|custom-field/[@http://zapp.in[zapp.in].CaseRefId]       |O |O |O |String    |  |Case Reference Id generated by Query/ZDMS to be populated when the Refund is a result of a Query or Dispute. The
+                                                                                 <http://zapp.in/[zapp.in].CaseRefId> will hold value only when the
+                                                                                 <zhttp://app.in/[app.in].RefundReasonType> is DISPUTES
+|account-holder.last-Name                                |M |M |M |String    |50 |This is the last name of the end-consumer.
+|transaction-state                                       |  |M |M |String    |7  |Transaction result status. Should be *success or failed*
+|Statuses/status[@code]                                  |  |M |M |String    |   |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                           |  |M |M |String    |   |Transaction status description
+|statuses/status[@severity]                              |  |M |M |String    |   |Transaction status severity. Should be ‘information’ for successful transactions, ‘error’ for failed
+|completion-time-stamp                                   |  |M |M |Date time |   |Timestamp of the get-url
+transaction
+|===
+
+[#API_PaybyBankapp_Fields_refunddebit]
+===== _refund-debit_ Notification
+
+When refund is finished, the merchant receives _refund-debit_
+notification. Notification is send as Base64 Encoded XML message, unless
+the merchant has different configuration.
+
+[%autowidth]
+|===
+|Field |Notification |Type |Size |Description
+
+|merchant-account-id                                          |M |String    |36    |Unique identifier for a merchant account
+|request-id                                                   |M |String    |36    |This is the identification number of the request. *It has to be unique for each request.*
+|transaction-type                                             |M |String    |22    |This is the type for a transaction. Must be *refund-debit*.
+|parent-transaction-id                                        |M |String    |36    |Transaction-id of debit transaction for which the refund is being done.
+|payment-methods/payment-method[@name]                        |M |String    |9     |The name of the Payment Method is “*zapp*”.
+|requested-amount                                             |M |Decimal   |18,2 a|This is the amount of the transaction. When not defined the whole amount of parent transaction is used.
+|requested-amount[@currency]                                  |M |String    |3     |Zapp supports *only GBP.*
+|custom-field/[@zhttp://app.in/[app.in].RefundReasonType]     |O |String    |      |Used to complete the reason for the Refund, and when applicable will
+                                                                                  indicate whether a Refund is the result of a Query or Dispute case.
+|custom-field/[@http://zapp.in/[zapp.in].RefundMethod]        |O |String    |      |The method of Refund that will be used by Wirecard to make the refund payment
+|custom-field/[@zapp.inout.MerchantRefundRef]                 |O |String    |      |Merchant assigned reference for the Refund.
+|custom-field/[@http://zapp.in/[zapp.in].CaseRefId]           |O |String    |      |Case Reference Id generated by Query/ZDMS to be populated when the Refund is
+                                                                                    a result of a Query or Dispute.The <http://zapp.in/[zapp.in].CaseRefId>
+                                                                                    will hold value only when the <zhttp://app.in/[app.in].RefundReasonType>
+                                                                                    is DISPUTES
+|account-holder.last-Name                                     |M |String    |50    |This is the last name of the end-consumer.
+|transaction-state                                            |M |String    |7     |Transaction result status. Should be *success or failed*
+|Statuses/status[@code]                                       |M |String    |      |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                                |M |String    |      |Transaction status description
+|statuses/status[@severity]                                   |M |String    |      |Transaction status severity. Should be ‘information’ for successful transactions, ‘error’ for failed
+|completion-time-stamp                                        |M |Date time |      |Timestamp of the get-url transaction
+|Statuses/status[@code]                                       |M |String    |      |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                                |M |String    |      |Transaction status description
+|statuses/status[@severity]                                   |M |String    |      |Transaction status severity. Should be ‘information’ for successful transactions, ‘error’ for failed
+|ip-address                                                   |O |String    |      | 
+|merchant-bank-account.iban                                   |O |String    |      |Iban of the bank account that is used to credit the refunded customer.
+|merchant-bank-account.bic                                    |O |String    |      |Bic of the bank account that
+                                                                                    is used to credit the refunded customer.
+|===
+
+[#API_PaybyBankapp_Fields_Custom]
+===== Custom Fields
+
+[%autowidth]
+|===
+|Field            |Potential values |Description
+
+.4+m|zapp.in.TxType
+                  |BILLPT           |Payment is for a Bill
+                  |PAYMT            |Payment is for retail item
+                  |INVOICE          |Payment is for an invoice
+                  |DONATIONS        |Payment is for Donations
+.6+m|zapp.in.DeliveryType
+                  |COLLST           |Collection from store. The Consumer chooses to collect the goods from store
+                  |DELTAD           |Delivery to address. The Consumer chooses to have goods delivered to the address specified
+                  |DIGDEL           |Digital delivery. The Consumer chooses to receive the digital delivery of item purchased
+                  |SERVICE          |Services provided. For SMB transactions where there is no need for a Delivery address
+                  |F2F              |Face-to-face transactions. Primarily for use with an SMB transaction.
+                  |NONE             |No delivery
+.7+m|zapp.in.RefundReasonType
+                  |DUPLICATEORDER   |Duplicate order. To be used when the Merchant has charged the Consumer twice by accident
+                  |GOODSRETURNED    |Goods returned. To be used when the Consumer returns goods to the Merchant for a refund
+                  |ORDERCANCELLED   |Order cancelled. To be used when the Consumer cancels their order
+                  |MERCHANTOUTOFSTOCK |Merchant out of stock. To be used by the Merchant when they have charged the Consumer but are out of stock
+                  |GOODSNOTRECV     |Goods not received. To be used when the goods are not received
+                  |LATECONFIRMATION |Late confirmation. To be used when confirmation is late
+                  |DISPUTES         |Disputes. To be used when there is a dispute
+.4+m|zapp.in.RefundMethod
+                  |BACS             |To be used if refund would be processed through BACS
+                  |CHAPS            |To be used if refund would be processed through CHAPS
+                  |FPS              |To be used if refund would be processed through FPS
+                  |OTHER            |To be used if refund would be processed through any other method
+m|zapp.in.CaseRefId            |any        |Reference number that should be included in this message when the Refund is a result of a disputed case.The <zapp.in.CaseRefId> can hold value only when the <zapp.in.RefundReasonType> is DISPUTES
+m|zapp.in.MerchantRtnStrng     |URI format |Merchant Return String to redirect the Consumer from the Mobile Banking App to the Merchant’s browser or App
+m|zapp.inout.ApTRId            |any        |The human readable Transaction Retrieval ID (Secure Token) generated by Zapp to uniquely identify the related Order
+m|zapp.inout.ApTransactionId   |any        |The computer readable Transaction ID generated by Zapp to uniquely identify the Order
+m|zapp.inout.MerchantRefundRef |any        |Merchant’s system generated reference number for the Refund Transaction. Max length is 35
+m|zapp.out.FIShortName         |any        |This message field specifies the Consumer’s FI Short Name or the Name
+m|zapp.out.CookieStatus        |Y/N        |Cookie status for Payconnect services indicates if the cookie is valid and active
+m|zapp.out.BRN                 |any        |Short term Unique Basket Reference Number provided by Zapp to the Distributor to be conveyed to the consumer in order to retrieve order for payment
+m|zapp.out.SetlmtRtvlId        |any        |Settlement Id which will be mapped to the DSS message. This will be further used by participants for the reconciliation
+m|zapp.out.RefundTransactionId |any        |Unique Refund Transaction reference issued by Zapp to log the refund
+m|zapp.out.RefundTRId          |any        |The Refund Transaction Retrieval Id generated by Zapp
+m|zapp.out.RollNum             |any        |A reference commonly used by building societies to identify a specific account
+m|zapp.out.DirectConsumerAccountFlag |Y/N  |Indicates whether the account details provided are the Consumer's account or the CFI Holding Account.  Y = Consumer account N = Holding account
+m|zapp.out.UniqueRefId         |any        |Unique Identifier that needs to be included on the bank transfer when the Distributor sends money to the Consumer's CFI. This will allow the CFI to disperse the money correctly to the end consumer when the funds are received relating to a Refund Transaction
+a|(from EE release 1.130.0)
+``zapp.out.ConfmtnExpiryTimeIntrv`` |numeric  |The Confirmation is from the time the consumer sees the transaction within their banking app and presses confirm to submit the payment
+a|(from EE release 1.130.0)
+``zapp.out.RtrvlExpiryTimeIntrvl``  |numeric  |The Retrieval is the time taken from when the consumer hits the Merchant button and sees the transaction within their banking app
+|===
+
+[#API_PaybyBankapp_Samples]
+==== Samples
+
+[#API_PaybyBankapp_Samples_debit]
+===== _debit_
+
+[#API_PaybyBankapp_Samples_debit_withPC]
+====== With PayConnect
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+POST https://api-test.wirecard.com/engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 1307
+Host: api-test.wirecard.com
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+Authorization: Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8a817d99-04bc-4f40-9650-59f726079fa0</merchant-account-id>
+    <request-id>f1657629-ed60-44c3-8553-642177c049c2</request-id>
+    <transaction-type>debit</transaction-type>
+    <payment-methods>
+        <payment-method name="zapp" />
+    </payment-methods>
+    <requested-amount currency="GBP">0.01</requested-amount>
+    <ip-address>127.0.0.1</ip-address>
+    <device>
+        <type>mobile</type>
+        <operating-system>android</operating-system>
+    </device>
+    <browser>
+        <user-agent>Mozilla/5.0 (Android 7.0; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0</user-agent>
+        <time-zone>+01:00</time-zone>
+        <screen-resolution>1920*1080</screen-resolution>
+        <cookies>
+            <cookie>
+                <name>pcid</name>>
+                <value>c9957383-39b5-403f-b4db-650a1555e3bd</value>
+            </cookie>
+        </cookies>
+    </browser>
+    <custom-fields>
+        <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="testVal" />
+        <custom-field field-name="zapp.in.TxType" field-value="PAYMT" />
+            <custom-field field-name="zapp.in.DeliveryType" field-value="DIGDEL" />
+    </custom-fields>
+    <api-id>elastic-api</api-id>
+        <notifications>
+         <notification url="https://requestb.in/qc51c8qc"/>
+     </notifications>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+   <merchant-account-id>8a817d99-04bc-4f40-9650-59f726079fa0</merchant-account-id>
+   <transaction-id>fb22856d-bd88-4c1c-a212-ab4e32425707</transaction-id>
+   <request-id>f1657629-ed60-44c3-8553-642177c049c2</request-id>
+   <transaction-type>debit</transaction-type>
+   <transaction-state>success</transaction-state>
+   <completion-time-stamp>2017-11-24T15:02:08.000Z</completion-time-stamp>
+   <statuses>
+      <status code="201.0000" description="The resource was successfully created." severity="information"/>
+   </statuses>
+   <requested-amount currency="GBP">0.01</requested-amount>
+   <ip-address>127.0.0.1</ip-address>
+   <notifications>
+      <notification url="https://requestb.in/qc51c8qc"/>
+   </notifications>
+   <custom-fields>
+      <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="testVal"/>
+      <custom-field field-name="zapp.in.TxType" field-value="PAYMT"/>
+      <custom-field field-name="zapp.in.DeliveryType" field-value="DIGDEL"/>
+      <custom-field field-name="zapp.inout.ApTransactionId" field-value="293LZ4A1DVB3DY9E7QF77RY00ZARTIEJGCAJG"/>
+      <custom-field field-name="zapp.out.FIShortName" field-value="BankToo"/>
+      <custom-field field-name="zapp.out.CookieStatus" field-value="Y"/>
+      <custom-field field-name="zapp.out.SetlmtRtvlId" field-value="171124000025063686"/>
+      <custom-field field-name="zapp.inout.ApTRId" field-value="296515508883024063"/>
+      <custom-field field-name="zapp.out.BRN" field-value="NHZDQM"/>
+   </custom-fields>
+   <payment-methods>
+      <payment-method name="zapp"/>
+   </payment-methods>
+   <api-id>elastic-api</api-id>
+   <device>
+      <type>mobile</type>
+      <operating-system>android</operating-system>
+   </device>
+   <browser>
+      <user-agent>Mozilla/5.0 (Android 7.0; Mobile; rv:54.0) Gecko/54.0 Firefox/54.0</user-agent>
+      <time-zone>+01:00</time-zone>
+      <screen-resolution>1920*1080</screen-resolution>
+      <cookies>
+         <cookie>
+            <name>pcid</name>
+            <value>c9957383-39b5-403f-b4db-650a1555e3bd</value>
+         </cookie>
+      </cookies>
+   </browser>
+</payment>
+----
+
+._debit_ Notification (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+    <merchant-account-id>8a817d99-04bc-4f40-9650-59f726079fa0</merchant-account-id>
+    <transaction-id>ed8f6242-86f7-492e-9d74-81f0375febe5</transaction-id>
+    <request-id>f1657629-ed60-44c3-8553-642177c049c2</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2017-11-24T15:02:16.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="zapp:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="GBP">0.010000</requested-amount>
+    <parent-transaction-id>fb22856d-bd88-4c1c-a212-ab4e32425707</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <notifications>
+        <notification url="https://requestb.in/qc51c8qc"/>
+    </notifications>
+    <custom-fields>
+        <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="testVal"/>
+        <custom-field field-name="zapp.in.TxType" field-value="PAYMT"/>
+        <custom-field field-name="zapp.in.DeliveryType" field-value="DIGDEL"/>
+        <custom-field field-name="zapp.inout.ApTransactionId" field-value="293LZ4A1DVB3DY9E7QF77RY00ZARTIEJGCAJG"/>
+        <custom-field field-name="zapp.out.FIShortName" field-value="BankToo"/>
+        <custom-field field-name="zapp.out.CookieStatus" field-value="Y"/>
+        <custom-field field-name="zapp.out.SetlmtRtvlId" field-value="171124000025063686"/>
+        <custom-field field-name="zapp.inout.ApTRId" field-value="296515508883024063"/>
+        <custom-field field-name="zapp.out.BRN" field-value="NHZDQM"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="zapp"/>
+    </payment-methods>
+    <api-id>elastic-api</api-id>
+    <device>
+        <policy-score>0</policy-score>
+    </device>
+    <browser>
+        <screen-resolution>1920*1080</screen-resolution>
+        <cookies>
+            <cookie>
+                <name>pcid</name>
+                <value>e99b925e-2197-4a12-ae38-5a31228b9a3f</value>
+                <max-age>4838400</max-age>
+            </cookie>
+        </cookies>
+    </browser>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+                <DigestValue>+pjrXh6HYEjMPxeepcq8T+nOESfBodOXpiI3O/qnJHo=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>
+            fqsJZOKOyeCiHbSPxOzZFlP5O6ezQ4+R3W85Zsix3A5iYkgs1U2mdgRVgJES7XQBsZt5bJWWmlcXFOe+PD6CyhzVlv/tPH8YlUKl6XELvXzkw/FAq0MoKelej2nC1cAuAXEYjrCoouIEYxTRGCYTAffd6c4OwwyEKV7etorUf7ETYG22hxjAdHPL98441PymMN7ktVYOaCdCYz4PCnQAGT4zIgzYcfSON2IVwsbsDo+FnsFwBe97aLZlsjawUc38pL8AWYefmWEVj1H6Wp1qX5AFGyd0Fdn1p3OVlslY+8NL9K2IWSQNeO/UdIiMsUiHHKQvUvm7E2uFh+WjrLxYEYG5GrR8Y4pzcNtnyWL/oOwEyG7udZVt/HKRLXW9AF1sA+Ix9d29vMpJda23ohrfiiCb7hHa21aRJaIHJItg7j2fIzm/Xk6+dYuu2rn41LVeJtqCeX58fdZUz3dE0VOgAvEI5CYZwexN43LjR13nV5zl6Nl3LADEGmGWDqUUIAZz0QZbuN0Armk6ap4wzGkpRSOP1VjLL/5c5+7qo+8o5MPbifl2IElx+cX+d6225R1921y5SMFNsiw9Um6kSjVT8wrZszshllU9aJRbbEmEDAHDLGmyC5ZT9XXxbOqOm2/7KzMhwGtN1EZUX6k/0cde1NVeoC6+lMnmejpKL34p15Q=
+        </SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE
+                </X509SubjectName>
+                <X509Certificate>
+                    MIIF5DCCBMygAwIBAgICLHQwDQYJKoZIhvcNAQELBQAwWzELMAkGA1UEBhMCREUxETAPBgNVBAoTCFdpcmVjYXJkMTkwNwYDVQQDFDB3aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIwHhcNMTcwMTEyMTM1OTI2WhcNMTkwMTEyMTM1OTI2WjCBijELMAkGA1UEBhMCREUxIzAhBgNVBAoTGldpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJIMRMwEQYDVQQLEwpPcGVyYXRpb25zMR4wHAYDVQQDExVhcGktdGVzdC53aXJlY2FyZC5jb20xDzANBgNVBAQTBkJheWVybjEQMA4GA1UEBxMHQXNjaGVpbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKSkExBY8FjRcZdrxOuJF+HZY8+McQaOB8B0E/hTUhoclsF4OJNaMThje7R6w6OYWBMKpssGngHFaZv35rCo5XVUpJmjZa04ytxE72GKO/uP4yIR7ZBXZx42B22MFaJJZTgPRCCFd6jrz906BZ//CmEAmk5gKelfPxfWJgGyTX6xz7I9R/G57E1xNOuEihN0ma5Q2IhD71MPVseFIGazyfGbJD6rYYbeBbOQSGk//TL8sdRCn0BLcm4DH5oqcPxDKzkaBP4ohNkCWsxpLLSyV6Wx0ihT0S1OLVNkEeTvcrYgUk124VyGatwWNUuCBYyOGQSOGqrW8IHmrhjzzT0NQog0/m38lpdqw/eWmt39qhODqSfILUk2Dxv1+W0IRKJCKcJrcTbXEQCuHl+XWY+U2AhinIPNRA0KX2oOgC//inwyKWSGWHdQnaake646R1wHqtoEfCtEcfyaeR+IrMr1rCAA3RZ+MH1J5UlUCWcnxPT0kad6dUwe3Qjq3jK4gaFzYU2yVScX5LVZMlWy2NiGCIvngHQmhArESzxMVvz5METZujfax6hfmiLNRWu0Zqs09Mpxy5zk5m/WRi5izb0uBeCfcA6x9pmjMx8M4OGG5RO2HTXSwLYJTKI47VXNsLLOY+nMFmhj/dkLJ5d3zI7EczToPMRHmHG7EqEdAfbb+oUlAgMBAAGjggGAMIIBfDARBgNVHQ4ECgQIS6wVIA0mJ9IwEwYDVR0jBAwwCoAIQ2weFtQ9BQ4wCwYDVR0PBAQDAgTwMIIBQwYDVR0fBIIBOjCCATYwggEyoIIBLqCCASqGgdVsZGFwOi8vd2lyZWNhcmQubGFuL0NOPXdpcmVjYXJkLURRLU1VQy1pbnRlcm5hbC13ZWJzZXJ2aWNlLWlzc3VpbmdDQV8wMixDTj1DRFAsQ049UHVibGljIEtleSBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLGRjPXdpcmVjYXJkLGRjPWxhbj9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Q1JMRGlzdHJpYnV0aW9uUG9pbnSGUGh0dHA6Ly9jcmwud2lyZWNhcmQubGFuL0NSTF93aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAmlUoiEFPRsOjGPb7SYiuJLxqTXCvZQeuXiUydF6FQl/zIpR/zSltaZKK86L+1i7t1C89OyTTXBD9FN6EKmlHo/ulsMn9V2B4zK3lT/NUclST98BmCla4Jzm+roeOHTqlPz3gPRJiPsr3wdvM+FSAJ2MRdv3l77mTE3v3hjsVVMmShR3VwwpxCICl3mpMsSaJZLyJdOHwvnpXs1m9kESwPD3DQ3RAQ/OGa0pPxAkHaauog4DhPvr/nBQnWHd2Us5b/ep7LME9hZ8u3hu/Kc6Vk24c5p3WUOiyaTiw+Ym3QDXl1wBSl9DdM94KbmAAQ5D/FUqyQnSc4TpmYvJ+Iavag
+                </X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</payment>
+----
+
+[#API_PaybyBankapp_Samples_debit_withoutPC]
+====== Without PayConnect
+
+._debit_ Request (Successful)
+
+[source,xml]
+----
+POST https://api-test.wirecard.com/engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 989
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>1b791b2e-4df4-4e08-b2c1-1ae4dd7a2439</merchant-account-id>
+    <request-id>0ad04c66-3ccc-4861-a84a-95e3ec3cfa87</request-id>
+    <transaction-type>debit</transaction-type>
+    <payment-methods>
+        <payment-method name="zapp" />
+    </payment-methods>
+    <requested-amount currency="GBP">1.00</requested-amount>
+    <ip-address>127.0.0.1</ip-address>
+    <device>
+        <type>tablet</type>
+        <operating-system>linux</operating-system>
+    </device>
+    <custom-fields>
+        <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="www.myexampleshop/processing" />
+        <custom-field field-name="zapp.in.TxType" field-value="PAYMT" />
+        <custom-field field-name="zapp.in.DeliveryType" field-value="SERVICE" />
+    </custom-fields>
+    <api-id>elastic-api</api-id>
+</payment>
+----
+
+._debit_ Response (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+   <merchant-account-id>1b791b2e-4df4-4e08-b2c1-1ae4dd7a2439</merchant-account-id>
+   <transaction-id>3958a84c-391d-4140-b893-62cc49c6107c</transaction-id>
+   <request-id>0ad04c66-3ccc-4861-a84a-95e3ec3cfa87</request-id>
+   <transaction-type>debit</transaction-type>
+   <transaction-state>success</transaction-state>
+   <completion-time-stamp>2018-02-12T14:32:43.000Z</completion-time-stamp>
+   <statuses>
+      <status code="201.0000" description="The resource was successfully created." severity="information"/>
+   </statuses>
+   <requested-amount currency="GBP">1.00</requested-amount>
+   <ip-address>127.0.0.1</ip-address>
+   <custom-fields>
+      <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="www.myexampleshop/processing"/>
+      <custom-field field-name="zapp.in.TxType" field-value="PAYMT"/>
+      <custom-field field-name="zapp.in.DeliveryType" field-value="SERVICE"/>
+      <custom-field field-name="zapp.inout.ApTransactionId" field-value="1RIEPHXU0GSB7IZMWMNBCB3EVC1KXCZ0HIH6D"/>
+      <custom-field field-name="zapp.out.CookieStatus" field-value="N"/>
+      <custom-field field-name="zapp.out.SetlmtRtvlId" field-value="180212000333009124"/>
+      <custom-field field-name="zapp.inout.ApTRId" field-value="232207554637899515"/>
+      <custom-field field-name="zapp.out.ConfmtnExpiryTimeIntrvl" field-value="150"/>
+      <custom-field field-name="zapp.out.BRN" field-value="FRKLLT"/>
+      <custom-field field-name="zapp.out.RtrvlExpiryTimeIntrvl" field-value="250"/>
+   </custom-fields>
+   <payment-methods>
+      <payment-method url="https://api-test.wirecard.com/engine/notification/zapp/lightBoxPaymentPage?tkn=232207554637899515&amp;brn=FRKLLT&amp;rtp=250&amp;ctp=150&amp;cks=N&amp;cb=http%3A%2F%2Flocalhost%3A8080%2Fengine%2Fnotification%2Fzapp%2Fcallback%3Ftid%3D3958a84c-391d-4140-b893-62cc49c6107c%26rid%3D0ad04c66-3ccc-4861-a84a-95e3ec3cfa87%26mid%3D1b791b2e-4df4-4e08-b2c1-1ae4dd7a2439%26api%3Delastic-api%26cnc%3Dhttp%253A%252F%252F127.0.0.1%253A8080%252Fshop%252Fcancel.html%26chck%3D5b4145a5d4d27477b62fe3c4d73cefa5b2121019b895628650ebb096f2f570a0&amp;chck=d1636ef97b77a21d2ef8083605471ba9227b7d6cd74d2a105b87f56caaef35e7" name="zapp"/>
+   </payment-methods>
+   <api-id>elastic-api</api-id>
+   <device>
+      <type>tablet</type>
+      <operating-system>linux</operating-system>
+   </device>
+</payment>
+----
+
+._debit_ Notification (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+    <merchant-account-id>1b791b2e-4df4-4e08-b2c1-1ae4dd7a2439</merchant-account-id>
+    <transaction-id>cdc0bf4e-aa46-45a7-af85-7568daf90899</transaction-id>
+    <request-id>0ad04c66-3ccc-4861-a84a-95e3ec3cfa87</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-02-12T14:34:00.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="zapp:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="GBP">1.000000</requested-amount>
+    <parent-transaction-id>3958a84c-391d-4140-b893-62cc49c6107c</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <custom-fields>
+        <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="www.myexampleshop/processing"/>
+        <custom-field field-name="zapp.in.TxType" field-value="PAYMT"/>
+        <custom-field field-name="zapp.in.DeliveryType" field-value="SERVICE"/>
+        <custom-field field-name="zapp.inout.ApTransactionId" field-value="1RIEPHXU0GSB7IZMWMNBCB3EVC1KXCZ0HIH6D"/>
+        <custom-field field-name="zapp.out.CookieStatus" field-value="N"/>
+        <custom-field field-name="zapp.out.SetlmtRtvlId" field-value="180212000333009124"/>
+        <custom-field field-name="zapp.inout.ApTRId" field-value="232207554637899515"/>
+        <custom-field field-name="zapp.out.ConfmtnExpiryTimeIntrvl" field-value="150"/>
+        <custom-field field-name="zapp.out.BRN" field-value="FRKLLT"/>
+        <custom-field field-name="zapp.out.RtrvlExpiryTimeIntrvl" field-value="250"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="zapp"/>
+    </payment-methods>
+    <api-id>elastic-api</api-id>
+    <settlement>
+        <gross-amount>1.00</gross-amount>
+        <currency>GBP</currency>
+    </settlement>
+    <device>
+        <policy-score>0</policy-score>
+        <type>tablet</type>
+        <operating-system>linux</operating-system>
+    </device>
+    <browser>
+        <cookies/>
+    </browser>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <DigestValue>ncI2ins/pAHk4iDSGJ57akxPAko=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>
+            gxYSJqDtEuEcQSCox//Vn4QdtEMEmebus3TF360vaaL+1leyNs8XHWibpKXe9jqeNtz2vRnU3SLcBrNKd9/9j84z6wwwUM3BwCcKmhf6/hQ8yXG5e0zEhLgmA4ituFgiS2YVsOLw3Yyx2HGQNn1hgCGzptpoRe2a9NhNEOk24ayo5Sq6dwGW6Fu85COb1Fx2+DvVJ9woEVtVZWbuhKSlXlXU2WwIgYfeZaKw4fu534cb0coxcZrvKJfiBXNXoswZzFUyziO+r48wphFiPjkuhIXJaQg0pGJvrMt1udZzaAzufGDeJYRg9/zITq7aMv9+zMnRbXa5crlyw2t7OMUCsA==
+        </SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509SubjectName>CN=Manoj Sahu,OU=Operations,O=Wirecard Elastic Payments,L=Toronto,ST=ON,C=CA</X509SubjectName>
+                <X509Certificate>
+                    MIIDcDCCAligAwIBAgIETgQWGTANBgkqhkiG9w0BAQUFADB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwHhcNMTEwNjI0MDQ0NDA5WhcNMTQwMzIwMDQ0NDA5WjB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCc8rTt4N5fNeVzlsRgOXKDE2YUSfJx7xXBozFZ3Vh3XQyy3IpIuEfZz7004k4HeonfTxCNetBvJ9rgNc0Cxrk/euMj3pOUrE9WYN2eAXC0r5pUIAZhIAnSxUSaIF3JKBxf7gDAik5d8RT5HaJV4n5cXJQ/uhAEYU3EGN/74UrD2UsOYD3VBXTJS5VgSi/c3IyLwhDbYIyU6j4fMKyHIlAMGzW7VgKD2pqu6BRysqUVdEEAvW2OmyVqGVyPkm87EiHSMMSar3CvYYxYqBN2KBUjabkvnRWbIzyQuyUyDeUbQmhVQKL0WlMb5ev65m2VjGyDTGL5jfB14rSXRMGzeJ+LAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBADgkuN/e2IFy7JXdbjNJbKBd3HLvFvK87dv8qQ+HK4qfCxYXh6aYhbKHJSA6C2pbOD3HBXoyovZrmk/KqOyUL+unVcR+APjxX4KP25sdkplgmeQ47CWxtKAHZUTtWwAVI/WhsX89SSucBfIS5TJ54e7m02qvGoK8UA/IRbIQ6DZ9hEKV5VQKiMx3ubwwHGXfOWz2fKmeZBuTeY+HiTEH8KCHpfw2j8G+dDgUjlp9LvjVNmJzfNBBk1Si0d/rhXmMzVSKj08tp1sPRK0/sJtJZBzQajpnsZ9NFfoJNdG13AzYwDP3x/QspK0jYn1KZw1qz524VWoQoueR8Xj30A2jntA=
+                </X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</payment>
+----
+
+NOTE: For a failed notification, notice the 'failed' state of the transaction.
+
+[#API_PaybyBankapp_Samples_refundrequest]
+====== _refund-request_
+
+NOTE: Refund action triggers a request to return paid funds. Below request
+supplies consumer's bank account details kept by Wirecard. These are
+used to arrange a wiretransfer using BACS scheme (takes several days).
+
+._refund-request_ Request (Succcessful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+               <merchant-account-id>2fe4fd54-5ea3-46cf-85ff-c3b86797f821</merchant-account-id>
+               <request-id>726bafd6-b17b-4047-a611-b3c8e55925fd</request-id>
+               <transaction-type>refund-request</transaction-type>
+               <parent-transaction-id>24b115ba-4a2f-44dd-b2e7-d3d4152e56ff</parent-transaction-id>
+               <payment-methods>
+                              <payment-method name="zapp" />
+               </payment-methods>
+               <requested-amount currency="GBP">1.00</requested-amount>
+                              <custom-fields>
+                              <custom-field field-name="zapp.in.RefundReasonType" field-value="LATECONFIRMATION" />
+                              <custom-field field-name="zapp.in.RefundMethod" field-value="BACS" />
+               </custom-fields>
+               <account-holder>
+                              <last-name>Doe</last-name>
+               </account-holder>
+</payment>
+----
+
+._refund-request_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com/engine/rest/merchants/70055b24-38f1-4500-a3a8-afac4b1e3249/payments/857059ee-d390-465a-aeb5-49ecdd5a9077">
+    <merchant-account-id ref="https://api-test.wirecard.com/engine/rest/config/merchants/70055b24-38f1-4500-a3a8-afac4b1e3249">70055b24-38f1-4500-a3a8-afac4b1e3249</merchant-account-id>
+    <transaction-id>857059ee-d390-465a-aeb5-49ecdd5a9077</transaction-id>
+    <request-id>726bafd6-b17b-4047-a611-b3c8e55925fh-refund-request</request-id>
+    <transaction-type>refund-request</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2017-12-07T09:51:37.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="zapp:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="GBP">1.00</requested-amount>
+    <parent-transaction-id>b1ca738d-e20c-4693-a24c-8ac4ad6505c1</parent-transaction-id>
+    <account-holder>
+        <last-name>Doe</last-name>
+    </account-holder>
+    <ip-address>127.0.0.1</ip-address>
+    <custom-fields>
+        <custom-field field-name="zapp.in.RefundReasonType" field-value="LATECONFIRMATION"/>
+        <custom-field field-name="zapp.in.RefundMethod" field-value="BACS"/>
+        <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="testVal"/>
+        <custom-field field-name="zapp.in.TxType" field-value="INVOICE"/>
+        <custom-field field-name="zapp.in.DeliveryType" field-value="SERVICE"/>
+        <custom-field field-name="zapp.inout.ApTransactionId" field-value="1L60I416J4C1B1SWMLUGLHG02R23KOQ7DR2JG"/>
+        <custom-field field-name="zapp.out.CookieStatus" field-value="N"/>
+        <custom-field field-name="zapp.out.SetlmtRtvlId" field-value="171207000025075011"/>
+        <custom-field field-name="zapp.inout.ApTRId" field-value="209011810157119153"/>
+        <custom-field field-name="zapp.out.ConfmtnExpiryTimeIntrvl" field-value="150"/>
+        <custom-field field-name="zapp.out.BRN" field-value="HRRNMK"/>
+        <custom-field field-name="zapp.out.RtrvlExpiryTimeIntrvl" field-value="250"/>
+        <custom-field field-name="zapp.out.DirectConsumerAccountFlag" field-value="N"/>
+        <custom-field field-name="zapp.out.RefundTRId" field-value="171207000301060018"/>
+        <custom-field field-name="zapp.out.RefundTransactionId" field-value="1ATRTE55HY2A5BG77RQZIW441VP4BMPO28CPF"/>
+        <custom-field field-name="zapp.out.UniqueRefId" field-value="nNrTOpgWFtsQvlXhqh"/>
+        <custom-field field-name="zapp.out.RollNum" field-value="234567899"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="zapp"/>
+    </payment-methods>
+    <parent-transaction-amount currency="GBP">1.000000</parent-transaction-amount>
+    <api-id>elastic-api</api-id>
+</payment>
+----
+
+._refund-debit_ Notification (Successful)
+
+[source,xml]
+----
+ <payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+    <merchant-account-id>9f54d887-8a5f-414f-aa53-0be3a90aac5c</merchant-account-id>
+    <transaction-id>1e69c428-f947-43f5-878c-3c972e102005</transaction-id>
+    <request-id>43b8b510-7486-48cd-8090-35c12b1d818e</request-id>
+    <transaction-type>refund-debit</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2018-01-19T14:15:18.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="zapp:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="GBP">1.000000</requested-amount>
+    <parent-transaction-id>1309ca5e-ca80-4530-8566-11165844f733</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <notifications>
+        <notification url="https://requestb.in/z8qld3z8"/>
+    </notifications>
+    <custom-fields>
+        <custom-field field-name="zapp.in.RefundReasonType" field-value="GOODSRETURNED"/>
+        <custom-field field-name="zapp.in.RefundMethod" field-value="FPS"/>
+        <custom-field field-name="zapp.in.MerchantRtnStrng" field-value="testVal"/>
+        <custom-field field-name="zapp.in.TxType" field-value="INVOICE"/>
+        <custom-field field-name="zapp.in.DeliveryType" field-value="SERVICE"/>
+        <custom-field field-name="zapp.inout.ApTransactionId" field-value="bFDYPDi8isrEL7tyi8MB3wqIcalccZ8OYlGJv"/>
+        <custom-field field-name="zapp.out.CookieStatus" field-value="N"/>
+        <custom-field field-name="zapp.out.SetlmtRtvlId" field-value="7vu7dc3Oj9BaVTYrk9"/>
+        <custom-field field-name="zapp.inout.ApTRId" field-value="227408776954048749"/>
+        <custom-field field-name="zapp.out.ConfmtnExpiryTimeIntrvl" field-value="150"/>
+        <custom-field field-name="zapp.out.BRN" field-value="PDwJOX"/>
+        <custom-field field-name="zapp.out.RtrvlExpiryTimeIntrvl" field-value="250"/>
+    </custom-fields>
+    <payment-methods>
+        <payment-method name="zapp"/>
+    </payment-methods>
+    <merchant-bank-account>
+        <iban>GB47ESSE40486513304006</iban>
+        <bic>ESSEGB2LXXX</bic>
+    </merchant-bank-account>
+    <api-id>elastic-api</api-id>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <DigestValue>VSZGFt+XRFjv23dAw9GSFtzX8X8=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>
+            WMRw9PUR5uoZL8ndToCVA9YKw0LEF6Ww60TXiRfvHpCD5u6CbkfUpvKyUbZ31ehnFUo+kspn4VQRGtzAPdnXlIDqO+KHAD3lNhcmuksIYmbP4woYQ6eKN68D88VtDZ/FmHr4Ws+PGE1j2xkakER3Mf+3AxZ4jhJ/Emz7gKD6SQkakt+plIcRYdDS/RjvAVA4IF+yVDeKFLK8qG9YERktiBRFFnNTM9qH9dzjAvvjB//W4tfyogC4eMkK3YpSF+XTvTHruOdw6y7XachWmGjrJ/J34s2xk4VYgIPsznsZIFJSz8UmBdDsb0XIzAKjDZjj35VJPZJTFd56ANREgcwTIQ==
+        </SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509SubjectName>CN=Manoj Sahu,OU=Operations,O=Wirecard Elastic Payments,L=Toronto,ST=ON,C=CA</X509SubjectName>
+                <X509Certificate>
+                    MIIDcDCCAligAwIBAgIETgQWGTANBgkqhkiG9w0BAQUFADB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwHhcNMTEwNjI0MDQ0NDA5WhcNMTQwMzIwMDQ0NDA5WjB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCc8rTt4N5fNeVzlsRgOXKDE2YUSfJx7xXBozFZ3Vh3XQyy3IpIuEfZz7004k4HeonfTxCNetBvJ9rgNc0Cxrk/euMj3pOUrE9WYN2eAXC0r5pUIAZhIAnSxUSaIF3JKBxf7gDAik5d8RT5HaJV4n5cXJQ/uhAEYU3EGN/74UrD2UsOYD3VBXTJS5VgSi/c3IyLwhDbYIyU6j4fMKyHIlAMGzW7VgKD2pqu6BRysqUVdEEAvW2OmyVqGVyPkm87EiHSMMSar3CvYYxYqBN2KBUjabkvnRWbIzyQuyUyDeUbQmhVQKL0WlMb5ev65m2VjGyDTGL5jfB14rSXRMGzeJ+LAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBADgkuN/e2IFy7JXdbjNJbKBd3HLvFvK87dv8qQ+HK4qfCxYXh6aYhbKHJSA6C2pbOD3HBXoyovZrmk/KqOyUL+unVcR+APjxX4KP25sdkplgmeQ47CWxtKAHZUTtWwAVI/WhsX89SSucBfIS5TJ54e7m02qvGoK8UA/IRbIQ6DZ9hEKV5VQKiMx3ubwwHGXfOWz2fKmeZBuTeY+HiTEH8KCHpfw2j8G+dDgUjlp9LvjVNmJzfNBBk1Si0d/rhXmMzVSKj08tp1sPRK0/sJtJZBzQajpnsZ9NFfoJNdG13AzYwDP3x/QspK0jYn1KZw1qz524VWoQoueR8Xj30A2jntA=
+                </X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</payment>
+----
+
+//-
