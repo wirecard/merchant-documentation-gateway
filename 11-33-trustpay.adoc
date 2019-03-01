@@ -12,14 +12,16 @@ _TrustPay_, merchants receive instant wire transfer payments from the
 consumer. _TrustPay_ is used in Central Eastern Europe.
 
 There is no need for the consumer to have a _TrustPay_ account – using
-online Banking, the consumer completes an instant wire transfer .
+online Banking, the consumer completes an instant wire transfer.
 
 The current flow includes two redirects:
 
-* the consumer is re-directed from the merchant's page to _TrustPay_ to
+- the consumer is re-directed from the merchant's page to _TrustPay_ to
 choose the country of origin and bank. 
-* the consumer is then re-directed to the bank's online banking page to
+- the consumer is then re-directed to the bank's online banking page to
 proceed the payment.
+
+//-
 
 [#TrustPay_GeneralInformation]
 ==== General Information
@@ -29,12 +31,13 @@ proceed the payment.
 
 This table illustrates which payment mode _TrustPay_ belongs to. It
 also provides detailed information about the countries and currencies
-which are relevant for _TrustPay_.
+which are relevant for _TrustPay._
 
+[cols="h,"]
 |===
-| *Payment Mode* | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>, <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>> (depends on 3rd party provider/bank)
-| *Countries* | CZ, SK
-| *Currencies* | CZK, EUR
+| Payment Mode | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>, <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>> (depends on 3rd party provider/bank)
+| Countries    | CZ, SK
+| Currencies   | CZK, EUR
 |===
 
 [#TrustPay_CommunicationFormats]
@@ -44,35 +47,37 @@ This table illustrates how _TrustPay_ notifications are encoded and
 which formats and methods can be used for requests and responses.
 
 |===
-.2+| *Requests/Responses* | Format | XML
-                          | Methods | POST, GET
-| *IPN Encodement* 2+| Base64
+.2+h| Requests/Responses | Format  | XML
+                         | Methods | POST, GET
+   h| IPN Encodement   2+| Base64
 |===
 
 [#TrustPay_TransactionTypes]
 ==== Transaction Types
 
-_TrustPay_ uses the two transaction types: <<TrustPay_Samples_XMLRequestsResponsesandNotifications, _debit_>>
-and _pending-debit_.
+_TrustPay_ uses the two transaction types: <<TrustPay_Samples, debit>>
+and ``pending-debit``.
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
 at <<AppendixB, Appendix B: Transaction Types>>.
 
+[cols="e,"]
 |===
-|Transaction Type |Link to the Sample
+|Transaction Type | Link to the Sample
 
-| _debit_ | <<TrustPay_Samples_XMLRequestsResponsesandNotifications, _debit_ sample>>
-| _pending-debit_ | 
+| debit           | <<TrustPay_Samples, _debit_ sample>>
+| pending-debit   | 
 |===
 
 [#TrustPay_TestCredentials]
 ==== Test Credentials
 
+[cols="h,"]
 |===
-| *URL (Endpoint)* | https://api-test.wirecard.com/engine/rest/paymentmethods/
-| *Merchant Account ID (MAID)* | 0f78d81a-a67f-44b6-9384-f11860fda6b9
-| *Username* | 16390-testing
-| *Password* | 3!3013=D3fD8X7
-| *Secret Key* | 44d0aa47-5d46-45aa-91b3-f3846a99be09
+| URL (Endpoint)             | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) | 0f78d81a-a67f-44b6-9384-f11860fda6b9
+| Username                   | 16390-testing
+| Password                   | 3!3013=D3fD8X7
+| Secret Key                 | 44d0aa47-5d46-45aa-91b3-f3846a99be09
 |===
 
 [#TrustPay_Workflow]
@@ -91,6 +96,8 @@ image::images/11-33-trustpay/TrustPay_workflow_debit.png[TrustPay workflow for d
 . _TrustPay_ redirects the consumer to the merchant's success/failure
 page (depending on notification's content).
 
+//-
+
 [#TrustPay_Fields]
 ==== Fields
 
@@ -101,10 +108,11 @@ _debit_ transaction.
 
 Only the fields listed below have different properties.
 
-The following elements are mandatory (M), optional (O) or conditional
-(C) for a request/response/notification. If the respective cell is
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for a request/response/notification. If the respective cell is
 empty, the field is disregarded or not sent.
 
+[cols="e,,,,,,"]
 |===
 | Field | Request | Response | Notification | Data Type | Size | Description
 
@@ -117,7 +125,7 @@ IMPORTANT: It has to be unique for each request.
 | transaction-type | M | M | M | Alphanumeric | 30 | This is the type for a transaction.
 | requested-amount | M | M | M | Numeric | 18,2 | This is the amount of the transaction. The amount of the decimal place is dependent
 of the currency.
-| payment-methods.payment-method@name | M |  | M | Alphanumeric | 15 |The name of the Payment Method is _TrustPay_.
+| payment-methods.payment-method@name | M |  | M | Alphanumeric | 15 | The name of the Payment Method is ``trustpay``.
 | payment-methods.payment-method@url |  | M |  | Alphanumeric | 256 | A redirect URL of the payment method.
 | locale | O | O | O | Alphanumeric | 2 | Country identifier of a payer.
 | requested-amount currency | M | M | M | Alphanumeric | 3 | Currency unit.
@@ -151,13 +159,14 @@ This workflow is almost identical to <<TrustPay_debitTransaction, _debit_ Transa
 ====== Fields
 
 The following elements are used for sending a request for the direct
-banking extension for _TrustPay_.
+banking extension for _TrustPay._
 
+[cols="e,,,,"]
 |===
 | Fieldname | Cardinality | Datatype | Size | Description
 
 | account-holder.address.country | O | Alphanumeric | 2 |Country identifier of a payer.
-| custom-fields.custom-field@name=”gwkey” | M | Alphanumeric | 256 | Dynamic gateway key of a bank to be returned.
+| custom-fields.custom-field@name="gwkey" | M | Alphanumeric | 256 | Dynamic gateway key of a bank to be returned.
 | success-redirect-url | M |Alphanumeric | 256 |The redirect URL for successful payments.
 | fail-redirect-url | M | Alphanumeric | 256 | The redirect URL for failed payments.
 |===
@@ -165,7 +174,7 @@ banking extension for _TrustPay_.
 [#TrustPay_DirectBankingExtension_Samples]
 ====== Samples
 
-Look for samples with <<TrustPay_XMLSamples_SelectedGatewayTestPaySK, Selected Gateway of “TestPaySK”>>.
+Look for samples with <<TrustPay_Samples_SelectedGatewayTestPaySK, Selected Gateway of "TestPaySK">>.
 
 [#TrustPay_OfflinePayment]
 ===== Offline Payment
@@ -181,9 +190,11 @@ consumer's payment close to the payment process.
 
 The General payments sequence is:
 
-. _get-url_
-. _pending-debit_
-. _debit_
+. ``get-url``
+. ``pending-debit``
+. ``debit``
+
+//-
 
 The following scenarios are covered:
 
@@ -209,6 +220,8 @@ notification:
 .. The merchant redirects the consumer to the successful TrustPay page.
 .. WPG sends the _debit_ response to the merchant.
 
+//-
+
 [#TrustPay_OfflinePayment_FailureWorkflow]
 ====== Failure Workflow
 
@@ -216,8 +229,8 @@ In case of failure the merchant creates a failed _pending-debit_. WPG
 doesn't create a _debit_ and the merchant redirects the consumer to the
 failure page.
 
-[#TrustPay_Samples_XMLRequestsResponsesandNotifications]
-==== Samples: XML Requests, Responses and Notifications
+[#TrustPay_Samples]
+==== Samples
 
 [#TrustPay_Sample_debit]
 ===== _debit_
@@ -229,7 +242,7 @@ failure page.
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <merchant-account-id>fe6c560b-5f28-4e0a-9bde-cee067f97ed6</merchant-account-id>
-   <request-id>${unique for each request}</request-id>
+   <request-id>{{$guid}}</request-id>
    <transaction-type>debit</transaction-type>
    <payment-methods>
       <payment-method name="trustpay"/>
@@ -295,7 +308,7 @@ failure page.
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <merchant-account-id>fe6c560b-5f28-4e0a-9bde-cee067f97ed6</merchant-account-id>
-   <request-id>${unique for each request}</request-id>
+   <request-id>{{$guid}}</request-id>
    <transaction-type>debit</transaction-type>
    <api-id>elastic-payment-page</api-id>
    <payment-methods>
@@ -332,17 +345,17 @@ failure page.
 </payment>
 ----
 
-[#TrustPay_XMLSamples_SelectedGatewayTestPaySK]
-===== XML Samples with Selected Gateway of “TestPaySK”
+[#TrustPay_Samples_SelectedGatewayTestPaySK]
+===== XML Samples with Selected Gateway of "TestPaySK"
 
-.debit Request “TestPaySK” (Successful)
+.debit Request "TestPaySK" (Successful)
 
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
     <merchant-account-id>fe6c560b-5f28-4e0a-9bde-cee067f97ed6</merchant-account-id>
-    <request-id>${unique for each request}</request-id>
+    <request-id>{{$guid}}</request-id>
     <transaction-type>debit</transaction-type>
     <api-id>elastic-payment-page</api-id>
     <payment-methods>
@@ -357,7 +370,7 @@ failure page.
 </payment>
 ----
 
-.debit Response “TestPaySK” (Successful)
+.debit Response "TestPaySK" (Successful)
 
 [source,xml]
 ----
@@ -385,7 +398,7 @@ failure page.
 </payment>
 ----
 
-.debit Notification “TestPaySK” (Successful)
+.debit Notification "TestPaySK" (Successful)
 
 [source,xml]
 ----
