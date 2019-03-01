@@ -175,7 +175,7 @@ bank account.
 
 If the request is successful, a response will be returned with the
 status ``success``. This response means that the transaction has
-entered _Wirecard Payment Gateway_ successfully. The payment is in the
+entered _Wirecard Payment Processing Gateway_ successfully. The payment is in the
 status ``pending`` and awaiting a _deposit_ transaction from the
 consumer's bank account to the merchant's bank account.
 
@@ -190,8 +190,8 @@ to be fixed in order to send a successful transaction request.
 [#API_POIPIA_Workflow_From_to_deposit]
 ====== _deposit_
 
-Once the consumer's payment reaches the _Wirecard Payment Gateway_,
-_Wirecard Payment Gateway_ matches the transaction to the original
+Once the consumer's payment reaches the _Wirecard Payment Processing Gateway_,
+_Wirecard Payment Processing Gateway_ matches the transaction to the original
 _authorization_ transaction and creates a _deposit_ transaction.
 
 [#API_POIPIA_Workflow_refund]
@@ -205,11 +205,11 @@ of the _refund_ request. For more details please refer to the chapter
 <<GeneralPlatformFeatures_CrossPayment, Cross-Payment-Methods Referencing>>.
 
 It allows to perform a _refund_ to the corresponding buyer bank account
-without sending the consumer’s name and bank account details like IBAN
+without sending the consumer's name and bank account details like IBAN
 and BIC. This information is taken automatically from the Wirecard
-system. If the consumer’s first/last name or IBAN/BIC is unknown for the
+system. If the consumer's first/last name or IBAN/BIC is unknown for the
 referenced _deposit_ transaction and not provided with the _credit_
-request, the request will be rejected. If consumer’s first and last name
+request, the request will be rejected. If consumer's first and last name
 and IBAN and BIC are sent with the _credit_ SEPA request, this information
 will be used instead of the data stored in the referenced deposit
 transaction.
@@ -221,13 +221,12 @@ whole amount of the _deposit_ transaction will be refunded.
 [#API_POIPIA_Workflow_void]
 ===== _void_
 
-Wirecard's Payment Platform allows merchants to void _wiretransfer
-Authorization_ transactions.
+Wirecard's Payment Platform allows merchants to void _wiretransfer Authorization_ transactions.
 
 NOTE: Voiding an _authorization_ transaction will not prevent the processing of incoming deposits for
 this authorization. Furthermore it is possible to void an _authorization_ even if a _deposit_ has already been received for it.
 
-To void an existing _wiretransfer_ _authorization_ transaction sending a
+To void an existing _wiretransfer authorization_ transaction, sending a
 new transaction request with the type ``void-authorization`` request is
 necessary. A request for a void transaction must contain
 a ``parent-transaction-id`` referring to the _authorization_ transaction
@@ -378,7 +377,7 @@ if you want to see corresponding notification samples.
 [#API_POIPIA_Samples_authorization]
 ===== _authorization_
 
-._authorization_ Request (Successful)
+.XML _authorization_ Request (Successful)
 
 [source,xml]
 ----
@@ -413,7 +412,7 @@ if you want to see corresponding notification samples.
 </payment>
 ----
 
-._authorization_ Response (Successful)
+.XML _authorization_ Response (Successful)
 
 [source,xml]
 ----
@@ -462,10 +461,64 @@ if you want to see corresponding notification samples.
 </payment>
 ----
 
+.XML _authorization_ Request (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+    <request-id>6ece0a97-6586-4ad3-9271-eaac7578e330</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">10.01</requested-amount>
+    <order-number>180809093655091</order-number>
+    <order-detail>Test Product</order-detail>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>10910</order-number>
+    <order-detail>1 XL TShirt (white)</order-detail>
+    <descriptor>test product transaction</descriptor>
+    <payment-methods>
+        <payment-method name="wiretransfer" />
+    </payment-methods>
+    <notifications>
+        <notification url="https://www.merchant.com/ipn" transaction-state="success" />
+    </notifications>
+</payment>
+----
+
+.XML _authorization_ Response (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <transaction-id>772506ca-bdb3-49f1-a9a8-2dd8ca600aff</transaction-id>
+  <request-id>6ece0a97-6586-4ad3-9271-eaac7578e330</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-08-09T07:36:55.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1007" description="The account holder information has not been provided.  Please check your input and try again." severity="error" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>10910</order-number>
+  <order-detail>1 XL TShirt (white)</order-detail>
+  <descriptor>test product transaction</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://www.merchant.com/ipn"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
+</payment>
+----
+
 [#API_POIPIA_Samples_voidauthorization]
 ===== _void-authorization_
 
-._void-authorization_ Request (Successful)
+.XML _void-authorization_ Request (Successful)
 
 [source,xml]
 ----
@@ -482,7 +535,7 @@ if you want to see corresponding notification samples.
 </payment>
 ----
 
-._void-authorization_ Response (Successful)
+.XML _void-authorization_ Response (Successful)
 
 [source,xml]
 ----
@@ -520,6 +573,46 @@ if you want to see corresponding notification samples.
     <payment-method name="wiretransfer" />
   </payment-methods>
   <parent-transaction-amount currency="EUR">10.010000</parent-transaction-amount>
+  <api-id>elastic-api</api-id>
+</payment>
+----
+
+.XML _void-authorization_ Request (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+    <request-id>38556143-250f-4803-aa6e-f6c8d49516c4</request-id>
+    <transaction-type>void-authorization</transaction-type>
+    <parent-transaction-id>a7953048-00c1-11e6-a14b-005056b16ddcxxx</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <payment-methods>
+        <payment-method name="wiretransfer" />
+    </payment-methods>
+</payment>
+----
+
+.XML _void-authorization_ Response (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/dcd72c94-25df-4794-8197-daf029c82d65/payments/878ccd04-6e5c-4152-bdbf-4f4c34ea8946">
+  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/dcd72c94-25df-4794-8197-daf029c82d65">dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <transaction-id>878ccd04-6e5c-4152-bdbf-4f4c34ea8946</transaction-id>
+  <request-id>38556143-250f-4803-aa6e-f6c8d49516c4</request-id>
+  <transaction-type>void-authorization</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-08-09T07:49:30.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1020" description="The Parent Transaction Id does not exist.  Please check your input and try again." severity="error" />
+  </statuses>
+  <ip-address>127.0.0.1</ip-address>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
   <api-id>elastic-api</api-id>
 </payment>
 ----
