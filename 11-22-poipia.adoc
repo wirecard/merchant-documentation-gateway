@@ -1,0 +1,711 @@
+[#API_POIPIA]
+=== Payment on Invoice/Payment in Advance
+ 
+
+[#API_POIPIA_Introduction]
+==== Introduction
+
+_Wirecard Payment Processing Gateway_ allows a merchant to integrate
+_Payment on Invoice/Payment in Advance (POI/PIA)._
+
+_POI/PIA_ uses the payment method _wiretransfer_ in the
+_Wirecard Payment Processing Gateway._
+
+To initialize the payment the merchant must submit a transaction with
+transaction type _authorization_ and payment method _wiretransfer._ No
+consumer bank account data (IBAN/BIC) is required for the authorization
+request. For every _wiretransfer_ _authorization_ transaction the
+_Wirecard Payment Processing Gateway_ will generate a _Provider Transaction Reference ID_
+(PTRID) and return it inside the _authorization_ response.
+Additionally, the following details, as setup for the _Merchant AccountID,_
+will be returned inside the response
+
+- Merchant IBAN
+- Merchant BIC
+- Merchant bank name and address (The bank name and address is optional
+response information.)
+
+//-
+
+The PTRID and merchant bank account information must be provided to the
+consumer. This information provides the consumer with clear
+instructions to which account the invoice sum should be transferred and
+which reference ID should be entered in the bank wire transfer
+remittance information field. Usually the merchant provides should
+provide this information on the confirmation page as well as on
+the invoice.
+
+For the Wirecard Hosted Payment Page (HPP) integration an invoicing page
+with all of the required information will be shown to the consumer.
+Additionally the invoice emailing option may be activated for a merchant
+account. If activated and the consumer email address is provided inside
+the _authorization_ request, an invoicing email will be sent from the
+Wirecard system to the consumer on behalf of the merchant.
+
+The decision if a merchant should wait for the payment or deliver
+goods/services immediately is a subject to the merchant's payment method
+logic. It is not relevant for the Wirecard system, the payment
+processing logic is identical for both cases.
+
+As soon as the bank transfer is triggered by the consumer and
+successfully completed, the Wirecard Payment Gateway will receive the
+information about the incoming wire transfer _deposit_ and match that to
+the corresponding _authorization_ transactions in exactly the same way as
+it is described for <<SEPA, SEPA deposits>>. After a _deposit_ has been
+processed and stored in the Wirecard system, a notification is sent to the
+merchant's system if an IPN URL is provided or configured. For details please see
+<<GeneralPlatformFeatures_IPN, Instant Payment Notifications>>.
+
+The prerequisite for the _wiretransfer_ payment method is like for the
+SEPA payment methods – the merchant must use an active bank account at
+Wirecard Bank.
+
+[#API_POIPIA_GeneralInformation]
+==== General Information
+
+[#API_POIPIA_General_PaymentMode]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _POI/PIA_ belongs to. It
+also provides detailed information about the countries and currencies
+which are relevant for _POI/PIA._
+
+[cols="20h,80"]
+|===
+| Payment Mode | <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
+| Countries    | Please <<ContactUs, contact merchant support>> for Countries.
+| Currencies   | EUR
+|===
+
+[#API_POIPIA_General_Communication]
+===== Communication Formats
+
+This table illustrates how _POI/PIA_ notifications are encoded and which
+formats and methods can be used for requests and responses.
+
+[cols="25,20,55"]
+|===
+.2+h| Requests/Responses |Format  |XML, JSON, NVP
+                         |Methods |POST, GET
+h| IPN Encodements     2+|Base64
+|===
+
+[#API_POIPIA_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given
+here, look at <<AppendixB, Appendix B: Transaction Types>>.
+
+[cols="20e,60,20"]
+|===
+|Transaction Type |Description |Link to the sample
+
+| authorization  |If the request is successful, a response will be
+returned with the status Success. This response means that the
+transaction has entered the Wirecard system successfully. The payment is
+in _pending_ status and awaiting a _deposit_ transaction from the consumer
+bank account to the merchant's Wirecard Bank account.
+|<<API_POIPIA_Samples_authorization, _authorization_ samples>>
+
+| void-authorization  |Voids an authorization.
+|<<API_POIPIA_Samples_voidauthorization, _void-authorization_ samples>>
+
+| deposit  |Incoming funds transfer from the consumer. Merchant is
+notified via IPN.
+|<<API_POIPIA_Samples_deposit, _deposit_ samples>>
+|===
+
+[#POIPIA_TestCredentials]
+==== Test Credentials
+
+[cols="20,60,20"]
+|===
+.2+h|URLs (Endpoints) |For transaction types _authorization_, _credit_, _pending-credit_.
+|``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+|For transaction type _void-authorization._ |``\https://api-test.wirecard.com/engine/rest/payments/``
+h|Merchant Account ID (MAID) 2+|dcd72c94-25df-4794-8197-daf029c82d65
+h|Username 2+|16390-testing
+h|Password 2+|3!3013=D3fD8X7
+h|Secret Key 2+|	cbdf53d2-b9ff-4355-80d5-8836342ac336
+|===
+
+[#API_POIPIA_Workflow]
+==== Workflow
+
+[#API_POIPIA_Workflow_From_to]
+===== From _authorization_ to _deposit_
+
+.via ReST API
+
+image::images\11-22-poipia/poipia_workflow_rest.png[Workflow via ReST]
+
+. Consumers initiate a payment process on merchants' website.
+. Consumers select the payment method _POI/PIA._
+. Merchants present invoice to consumers.
+. Merchants display the payment's confirmation page.
+. Consumers confirm the payment.
+. Consumers initiate a _Credit Transfer_ at their bank.
+. _Wirecard Payment Processing Gateway_ deposits the funds into the merchants'
+bank account.
+. _Wirecard Payment Processing Gateway_ sends a notification to the merchants.
+. Merchants receive the notification.
+
+//-
+
+.via Hosted Payment Page (HPP)
+
+image::images\11-22-poipia/poipia_workflow_hpp.png[Workflow via HPP]
+
+. Consumers initiate a payment process on merchants' website.
+. Merchants redirect consumers on Hosted Payment Page (HPP).
+. Consumers select the payment method _POI/PIA._
+. Consumers confirm the payment.
+. HPP sends an invoice to the consumers.
+. HPP redirects consumers to merchants' website.
+. Consumers initiate a _Credit Transfer_ at their bank.
+. _Wirecard Payment Processing Gateway_ deposits the funds into the merchants'
+bank account.
+. _Wirecard Payment Processing Gateway_ sends a notification to the merchants.
+. Merchants receive the notification.
+
+//-
+
+[#API_POIPIA_Workflow_From_to_authorization]
+====== _authorization_
+
+If the request is successful, a response will be returned with the
+status ``success``. This response means that the transaction has
+entered _Wirecard Payment Processing Gateway_ successfully. The payment is in the
+status ``pending`` and awaiting a _deposit_ transaction from the
+consumer's bank account to the merchant's bank account.
+
+If the request is not successful, a response will be returned with
+status ``failed``. The response always contains a status code and a
+description.
+
+Please read the description of the ``failed`` status carefully as it will
+help to understand why the transaction request has failed and what needs
+to be fixed in order to send a successful transaction request.
+
+[#API_POIPIA_Workflow_From_to_deposit]
+====== _deposit_
+
+Once the consumer's payment reaches the _Wirecard Payment Processing Gateway_,
+_Wirecard Payment Processing Gateway_ matches the transaction to the original
+_authorization_ transaction and creates a _deposit_ transaction.
+
+[#API_POIPIA_Workflow_refund]
+===== _refund_
+
+Merchant can refund a _wiretransfer_ payment by sending a _SEPA credit_
+transaction. It is possible to provide the ``transaction-id`` of the
+corresponding _deposit_ transaction in the ``parent-transaction-id`` field
+of the _refund_ request. For more details please refer to the chapter
+<<SEPACreditTransfer, Credit Transfer (SEPA)>> and
+<<GeneralPlatformFeatures_CrossPayment, Cross-Payment-Methods Referencing>>.
+
+It allows to perform a _refund_ to the corresponding buyer bank account
+without sending the consumer's name and bank account details like IBAN
+and BIC. This information is taken automatically from the Wirecard
+system. If the consumer's first/last name or IBAN/BIC is unknown for the
+referenced _deposit_ transaction and not provided with the _credit_
+request, the request will be rejected. If consumer's first and last name
+and IBAN and BIC are sent with the _credit_ SEPA request, this information
+will be used instead of the data stored in the referenced deposit
+transaction.
+
+If an amount is provided in the _credit_ request, this value will be
+refunded. Multiple refunds are allowed. If no amount is provided, the
+whole amount of the _deposit_ transaction will be refunded.
+
+[#API_POIPIA_Workflow_void]
+===== _void_
+
+Wirecard's Payment Platform allows merchants to void _wiretransfer Authorization_ transactions.
+
+NOTE: Voiding an _authorization_ transaction will not prevent the processing of incoming deposits for
+this authorization. Furthermore it is possible to void an _authorization_ even if a _deposit_ has already been received for it.
+
+To void an existing _wiretransfer authorization_ transaction, sending a
+new transaction request with the type ``void-authorization`` request is
+necessary. A request for a void transaction must contain
+a ``parent-transaction-id`` referring to the _authorization_ transaction
+that needs to be voided.
+
+[#API_POIPIA_Fields]
+==== Fields
+
+The following elements are mandatory (M) or optional (O) for a
+request/response.
+
+[#API_POIPIA_Fields_authorization]
+===== _authorization_
+
+[cols="12e,7,7,7,7,60"]
+|===
+|Field |Request |Response |Datatype |Size |Description
+
+|merchant-account-id |M |  |String |36 |Unique identifier for a merchant account.
+|transaction-id |  |M |String |36 a|The ``transaction-id`` is the unique identifier
+for a transaction. It is generated by Wirecard.
+|request-id |M |  |String |150 a|This is the identification number of the
+request on the merchant’s side. It must be unique for each request.
+
+NOTE: To retrieve _authorization_ or _deposit_ transaction by the ``request-id``
+you need to add ``-authorization`` or ``-deposit`` to the original ``request-id``
+correspondingly (for details see
+  <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction>>
+  by ``request-id``).
+In case of multiple deposits please add ``-deposit:N`` where N is the sequence
+number of the _deposit_ starting with 2 (from second _deposit_).
+
+|transaction-type |M |  |String |30 |This is the type for a transaction. For
+_wiretransfer_, only ``authorization`` is allowed.
+|transaction-state  |  |M |String  |12  |This is the status of a transaction.
+|completion-time-stamp  |  |M |dateTime  |  |This is the timestamp of
+completion of request.
+|status.code |  |M |String |12 |This is the code of the status of a transaction.
+|status.description |  |M |String |256 |This is the description to the status
+code of a transaction.
+|status.severity |  |M |String |20 |This field gives information if a status
+is a warning, an error or an information.
+|statuses.Status |  |M |String |12 |This is the status of a transaction.
+|requested-amount |M |M |Numeric |11,3 |This is the amount of the transaction.
+The amount of the decimal place is dependent of the currency. Min amount €0.01.
+Max amount €999999999.99.
+|requested-amount@currency |M |M |String |3 |This is the currency of the
+requested-amount. Only EUR (euro) is accepted.
+|account-holder.first-Name |O |O |String |32 |This is the end-consumer’s
+first name.
+|account-holder.last-Name |M |M |String |32 |This is the end-consumer’s
+last name.
+|account-holder.email |O |O |String |64 |This is the end-consumer’s email address.
+|account-holder.gender |O |O |String |1 |This is the end-consumer’s gender.
+|account-holder.date-of-birth |O |O |Date |  |This is the end-consumer’s
+birth date.
+|account-holder.phone |O |O |String |32 |This is the end-consumer’s
+phone number.
+|account-holder.address.street1 |O |O |String |70 |This is the first part of
+the end-consumer’s street.
+|account-holder.address.street2 |O |O |String |128 |This is the second part of
+the end-consumer’s street.
+|account-holder.address.city |O |O |String |32 |This is the end-consumer’s city.
+|account-holder.address.state |O |O |String |32 |This is the end-consumer’s state.
+|account-holder.address.country |O |O |String |3 |This is the end-consumer’s
+country.
+|account-holder.address.postal-code |O |O |String |16 |This is the
+end-consumer’s postal code.
+|ip-address |O |O |String |15 |The global (internet) IP address of the
+consumer’s computer.
+|order-number |O |O |String |64 |This is the order number of the merchant.
+|order-detail |O |O |String |65535 |This is a field for details of an order
+filled by the merchant.
+|descriptor |O |O |String |100 |Free text describing the order/payment purpose.
+Please note that this field provided in the _authorization_ request is not
+relevant for the _deposit_ matching. Delivered with the _deposit_ payment
+notification to the merchant this field contains the bank transfer usage
+information entered by the buyer.
+|notifications.notification@url |O |O |String |256 |The URL to be used for the
+Instant Payment Notification. It overwrites the notification URL that is set
+up in the merchant configuration.
+|custom-field.field-name |O |O |String |36 |This is the name for the custom field.
+|custom-field.field-value |O |O |String |256 |This is the content of the
+custom field. In this field the merchant can send additional information.
+|payment-methods.payment-method-Name |M |M |api-id |15 |This is the name of
+the payment method - ``wiretransfer``.
+|payment/merchant-bank-account/bank-name |  |O |String |100 |The merchant bank
+name as configured for the merchant account
+|payment/merchant-bank-account/branch-city |  |O |String |64 |The city of the
+merchant bank as configured for the merchant account
+|payment/merchant-bank-account/branch-state |  |O |String |64 |The state/country
+of the merchant bank as configured for the merchant account
+|payment/merchant-bank-account/branch-address |  |O |String |64 |The street and
+house number of the merchant bank as configured for the merchant account
+|payment/merchant-bank-account/iban |  |M |String |34 |The merchant bank account
+IBAN as configured for the merchant account
+|payment/merchant-bank-account/bic |  |M |String |15 |The merchant bank account
+BIC as configured for the merchant account
+|api-id |  |  |api-id |  |The API id is always returned in the notification.
+For _wiretransfer_ it is ``---``
+|provider-transaction-reference-id |  |M |String |10 |Wirecard generates this
+ID for the merchant and sends back with the _authorization_ response. This ID must be entered by the buyer in the usage field of the bank transfer form in order to be matched to the corresponding _authorization_ transaction in the Wirecard system.
+|===
+
+[#API_POIPIA_Fields_voidauthorization]
+===== _void-authorization_
+
+[cols="12e,7,7,7,7,60"]
+|===
+|Field |Request |Response |Data Type |Size |Description
+
+|merchant-account-id |M |  |String |36 |Unique identifier for a merchant account.
+|transaction-id |  |M |String |36 |The Transaction ID is the unique identifier
+for a transaction. It is generated by Wirecard.
+|request-id |M |  |String |150 |This is the identification number of the
+request on the merchant’s side. It must be unique for each request.
+|transaction-type |M |  |String |30 |This is the type for a transaction -
+``void-authorization``.
+|transaction-state  |  |M |String  |12  |This is the status of a transaction
+|completion-time-stamp  |  |M |dateTime  |  |This is the timestamp of completion
+of request.
+|status.code |  |M |String |12 |This is the code of the status of a transaction.
+|status.description |  |M |String |256 |This is the description to the status
+code of a transaction.
+|status.severity |  |M |String |20 |This field gives information if a status
+is a warning, an error or an information.
+|statuses.status |  |M |String |12 |This is the status of a transaction.
+|requested-amount |O |O |Numeric |11,3 |This is the amount of the transaction
+to be voided. The amount of the decimal place is dependent of the currency.
+Min amount €0.01. Max amount €999999999.99.
+|requested-amount@currency |O |O |String |3 |This is the currency of the
+requested-amount. Only EUR (euro) is accepted.
+|parent-transaction-id |M |M |String |36 |The transaction ID of the
+_authorization_ transaction to be voided.
+|descriptor |O |O |String |100 |Free text describing the reason of voiding the
+transaction.
+|payment-methods.payment-method-name |M |M |api-id |15 |This is the name of
+the payment method - ``wiretransfer``.
+|===
+
+[#API_POIPIA_Samples]
+==== Samples
+
+Go to
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>,
+if you want to see corresponding notification samples.
+
+[#API_POIPIA_Samples_authorization]
+===== _authorization_
+
+.XML _authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <request-id>{{$guid}}</request-id>
+  <transaction-type>authorization</transaction-type>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <order-number>180809093111171</order-number>
+  <order-detail>Test Product</order-detail>
+  <ip-address>127.0.0.1</ip-address>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+    <email>john.doe@test.com</email>
+    <address>
+      <street1>Example Street 35</street1>
+      <city>Munich</city>
+      <country>DE</country>
+    </address>
+  </account-holder>
+  <order-number>45367</order-number>
+  <order-detail>1 XL TShirt (white)</order-detail>
+  <descriptor>test product transaction</descriptor>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
+  <notifications>
+    <notification url="https://www.merchant.com/ipn" transaction-state="success" />
+  </notifications>
+</payment>
+----
+
+.XML _authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <transaction-id>b8314ffe-4b17-4b2d-8224-45cb393f5ce8</transaction-id>
+  <request-id>b6ab1930-e495-4714-bba1-37c80e5e91ae</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-08-09T07:31:12.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+    <status code="100.0000" description="Transaction Processing has begun, and the outcome of the Transaction is not yet known." severity="information" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+    <email>john.doe@test.com</email>
+    <address>
+      <street1>Example Street 35</street1>
+      <city>Munich</city>
+      <country>DE</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>45367</order-number>
+  <order-detail>1 XL TShirt (white)</order-detail>
+  <descriptor>test product transaction</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://www.merchant.com/ipn"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
+  <merchant-bank-account>
+    <bank-name></bank-name>
+    <branch-city></branch-city>
+    <branch-state></branch-state>
+    <branch-address></branch-address>
+    <iban>DE82512308000005599149</iban>
+    <bic>WIREDEMMXXX</bic>
+  </merchant-bank-account>
+  <provider-transaction-reference-id>43B343766C</provider-transaction-reference-id>
+</payment>
+----
+
+.XML _authorization_ Request (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+    <request-id>6ece0a97-6586-4ad3-9271-eaac7578e330</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">10.01</requested-amount>
+    <order-number>180809093655091</order-number>
+    <order-detail>Test Product</order-detail>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>10910</order-number>
+    <order-detail>1 XL TShirt (white)</order-detail>
+    <descriptor>test product transaction</descriptor>
+    <payment-methods>
+        <payment-method name="wiretransfer" />
+    </payment-methods>
+    <notifications>
+        <notification url="https://www.merchant.com/ipn" transaction-state="success" />
+    </notifications>
+</payment>
+----
+
+.XML _authorization_ Response (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <transaction-id>772506ca-bdb3-49f1-a9a8-2dd8ca600aff</transaction-id>
+  <request-id>6ece0a97-6586-4ad3-9271-eaac7578e330</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-08-09T07:36:55.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1007" description="The account holder information has not been provided.  Please check your input and try again." severity="error" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>10910</order-number>
+  <order-detail>1 XL TShirt (white)</order-detail>
+  <descriptor>test product transaction</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://www.merchant.com/ipn"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
+</payment>
+----
+
+[#API_POIPIA_Samples_voidauthorization]
+===== _void-authorization_
+
+.XML _void-authorization_ Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>void-authorization</transaction-type>
+    <parent-transaction-id>c8d40613-0f8d-4729-8149-e42a5352b2b2</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <payment-methods>
+        <payment-method name="wiretransfer" />
+    </payment-methods>
+</payment>
+----
+
+.XML _void-authorization_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/dcd72c94-25df-4794-8197-daf029c82d65/payments/fcd79a05-6d74-43bd-b9de-570261ea0c1d">
+  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/dcd72c94-25df-4794-8197-daf029c82d65">dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <transaction-id>fcd79a05-6d74-43bd-b9de-570261ea0c1d</transaction-id>
+  <request-id>d098bad9-97cd-43e1-a001-2ca492aef35b</request-id>
+  <transaction-type>void-authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-08-09T07:48:53.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <parent-transaction-id>c8d40613-0f8d-4729-8149-e42a5352b2b2</parent-transaction-id>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+    <email>john.doe@test.com</email>
+    <address>
+      <street1>Example Street 35</street1>
+      <city>Munich</city>
+      <country>DE</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>45367</order-number>
+  <order-detail>1 XL TShirt (white)</order-detail>
+  <descriptor>test product transaction</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://www.merchant.com/ipn" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
+  <parent-transaction-amount currency="EUR">10.010000</parent-transaction-amount>
+  <api-id>elastic-api</api-id>
+</payment>
+----
+
+.XML _void-authorization_ Request (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+    <request-id>38556143-250f-4803-aa6e-f6c8d49516c4</request-id>
+    <transaction-type>void-authorization</transaction-type>
+    <parent-transaction-id>a7953048-00c1-11e6-a14b-005056b16ddcxxx</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <payment-methods>
+        <payment-method name="wiretransfer" />
+    </payment-methods>
+</payment>
+----
+
+.XML _void-authorization_ Response (Failure)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/dcd72c94-25df-4794-8197-daf029c82d65/payments/878ccd04-6e5c-4152-bdbf-4f4c34ea8946">
+  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/dcd72c94-25df-4794-8197-daf029c82d65">dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+  <transaction-id>878ccd04-6e5c-4152-bdbf-4f4c34ea8946</transaction-id>
+  <request-id>38556143-250f-4803-aa6e-f6c8d49516c4</request-id>
+  <transaction-type>void-authorization</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-08-09T07:49:30.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1020" description="The Parent Transaction Id does not exist.  Please check your input and try again." severity="error" />
+  </statuses>
+  <ip-address>127.0.0.1</ip-address>
+  <payment-methods>
+    <payment-method name="wiretransfer" />
+  </payment-methods>
+  <api-id>elastic-api</api-id>
+</payment>
+----
+
+[#API_POIPIA_Samples_deposit]
+===== _deposit_ Notification
+
+._deposit_ Notification (matched)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+    <merchant-account-id>dcd72c94-25df-4794-8197-daf029c82d65</merchant-account-id>
+    <transaction-id>36fc7778-017b-11e6-a14b-005056b16ddc</transaction-id>
+    <request-id>98e6ec23-d402-4a8e-bde4-afcdb16c9706-deposit</request-id>
+    <transaction-type>deposit</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2016-04-13T13:25:39.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="bank:The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="EUR">10.01</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@mail.com</email>
+        <address>
+            <street1>Example Street 35</street1>
+            <city>Munich</city>
+            <country>DE</country>
+        </address>
+    </account-holder>
+    <ip-address>127.0.0.1</ip-address>
+    <order-number>45367</order-number>
+    <order-detail>1 XL TShirt (white)</order-detail>
+    <descriptor>test product transaction</descriptor>
+    <notifications>
+        <notification transaction-state="success" url="https://www.merchant.com/ipn"/>
+    </notifications>
+    <payment-methods>
+        <payment-method name="wiretransfer"/>
+    </payment-methods>
+      <merchant-bank-account>
+  <bank-name/>
+  <branch-city/>
+  <branch-state/>
+  <branch-address/>
+  <iban>DE82512308000005599149</iban>
+  <bic>WIREDEMMXXX</bic>
+ </merchant-bank-account>
+    <api-id>---</api-id>
+    <provider-transaction-reference-id>8B05FCD5B2</provider-transaction-reference-id>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <DigestValue>uQNsSjz+9aQb7gNzdI95bmowlLc=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>lIWjM1jYYDkctYKDfDC4MOckmoqWCEzRX6CzsHCtKG8T/KPukCPReFzATILjgh/IM8aSBSfdWftq
+QoY1kGls+37emd36phkSyzO18C+Bbc/3PPd1Pxn+WVlw2StahLyKb9qg6oYeg+s1YKeL+Sw0vNZ9
+b3/+OgTmQW61ity2d0C1nckCXQ2T072sToJvRnxg/iT7XSDdgO+dLquJDfqX3fUYnd794iZnWQDS
+mySUMVjrb1F006Ch7xFK57Hj+ckdmyIZnUdvW7wG02pqQMcuq5S2vJ7yY5lrIvOfOGMY/g01Yjb2
+dIN8KDhcQjC8x4M+XXYum062ZhoQt8gzFo2QBA==</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509SubjectName>CN=Elastic Engine,OU=Operations,O=Wirecard Elastic Payments,L=Toronto,ST=ON,C=CA</X509SubjectName>
+                <X509Certificate>MIIDcDCCAligAwIBAgIETgQWGTANBgkqhkiG9w0BAQUFADB6MQswCQYDVQQGEwJDQTELMAkGA1UE
+CBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVu
+dHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwHhcNMTEwNjI0MDQ0
+NDA5WhcNMTQwMzIwMDQ0NDA5WjB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcT
+B1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9w
+ZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQCc8rTt4N5fNeVzlsRgOXKDE2YUSfJx7xXBozFZ3Vh3XQyy3IpIuEfZz7004k4HeonfTxCN
+etBvJ9rgNc0Cxrk/euMj3pOUrE9WYN2eAXC0r5pUIAZhIAnSxUSaIF3JKBxf7gDAik5d8RT5HaJV
+4n5cXJQ/uhAEYU3EGN/74UrD2UsOYD3VBXTJS5VgSi/c3IyLwhDbYIyU6j4fMKyHIlAMGzW7VgKD
+2pqu6BRysqUVdEEAvW2OmyVqGVyPkm87EiHSMMSar3CvYYxYqBN2KBUjabkvnRWbIzyQuyUyDeUb
+QmhVQKL0WlMb5ev65m2VjGyDTGL5jfB14rSXRMGzeJ+LAgMBAAEwDQYJKoZIhvcNAQEFBQADggEB
+ADgkuN/e2IFy7JXdbjNJbKBd3HLvFvK87dv8qQ+HK4qfCxYXh6aYhbKHJSA6C2pbOD3HBXoyovZr
+mk/KqOyUL+unVcR+APjxX4KP25sdkplgmeQ47CWxtKAHZUTtWwAVI/WhsX89SSucBfIS5TJ54e7m
+02qvGoK8UA/IRbIQ6DZ9hEKV5VQKiMx3ubwwHGXfOWz2fKmeZBuTeY+HiTEH8KCHpfw2j8G+dDgU
+jlp9LvjVNmJzfNBBk1Si0d/rhXmMzVSKj08tp1sPRK0/sJtJZBzQajpnsZ9NFfoJNdG13AzYwDP3
+x/QspK0jYn1KZw1qz524VWoQoueR8Xj30A2jntA=</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</payment>
+----
+
+//-
