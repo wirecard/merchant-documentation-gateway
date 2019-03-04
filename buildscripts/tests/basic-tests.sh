@@ -16,7 +16,7 @@ function getPSPDOC() {
 
 # get Warnings and Error messages from asciidoctor
 function getWarnings() {
-  ADOCMSG=$(RUBYOPT="-E utf-8" asciidoctor --failure-level=WARN -b html5 -a toc=left -a docinfo=shared -a icons=font "${1}" -o /dev/null 2>&1)
+  ADOCMSG=$(RUBYOPT="-E utf-8" asciidoctor --failure-level=WARN -b html5 -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram "${1}" -o /dev/null 2>&1)
   AD_EXIT_CODE=$?
   [[ ${AD_EXIT_CODE} -gt 0 ]] && echo ${ADOCMSG}
   return ${AD_EXIT_CODE}
