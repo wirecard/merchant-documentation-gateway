@@ -1,0 +1,984 @@
+[[page]]
+[[main]]
+[[main-header]]
+[[breadcrumb-section]]
+1.  link:index.html[API merchant specification]
+2.  link:API-merchant-specification_1146901.html[API merchant
+specification]
+3.  link:Payment-Page-Solutions_4751423.html[Payment Page Solutions]
+4.  link:Wirecard-Payment-Page_3704201.html[Wirecard Payment Page]
+5.  link:Payment-Methods-with-WPP_3704241.html[Payment Methods with WPP]
+
+[[title-heading]]
+[[title-text]] API merchant specification : eps with WPP
+---------------------------------------------------------
+
+[[content]]
+Created by Dorothea Bartel, last modified on Jan 23, 2019
+
+[[main-content]]
+* link:#epswithWPP-TestCredentials[Test Credentials]
+* link:#epswithWPP-DebitTransactionTypeDebit[Transaction Type Debit]
+* link:#epswithWPP-Refund[Refund]
+* link:#epswithWPP-NVPFieldReference[NVP Field Reference]
+** link:#epswithWPP-Response-onlyFields[Response-only Fields]
+
+ 
+
+This is a reference page for *eps*. Here you find all the information
+necessary for integrating this payment method in
+your https://document-center.wirecard.com/display/PTD/HPP+Integration[Hosted] and https://document-center.wirecard.com/display/PTD/EPP+Integration[Embedded] Payment
+Page.
+
+Are you familiar with Wirecard Payment Page (WPP)?
+
+Visit one of the integration guides
+(**https://document-center.wirecard.com/display/PTD/HPP+Integration[Hosted] **or **https://document-center.wirecard.com/display/PTD/EPP+Integration[Embedded] **Payment
+Page) for a quick explanation & a step-by-step guide before
+continuing. +
+All
+*https://document-center.wirecard.com/display/PTD/Wirecard+Payment+Page[WPP]*
+integrations share a
+*https://document-center.wirecard.com/display/PTD/WPP+Workflow[common
+process flow]* for creating payments.
+
+Below, you find a sample request and response for
+a link:#epswithWPP-Debit[debit] transaction, including field lists with
+short descriptions.
+
+This request is *designed for the testing environment* and *does not use
+real information*. For your production environment, you need to use your
+production credentials. If you need your production
+credentials, contact mailto:support@wirecard.com[merchant support].
+
+All examples presented here should return successful responses.
+
+For more details on the `redirect-url`s, see
+the https://document-center.wirecard.com/display/PTD/Configuring+Redirects+and+IPNs+for+WPP[Configuring
+Redirects and IPNs for WPP] section. +
+For response verification examples, see
+the https://document-center.wirecard.com/display/PTD/WPP+Security[WPP
+Security] section.
+
+*About eps*
+
+image:attachments/4390959/4390960.png[image,width=232]eps-Überweisung (**e**lectronic **p**ayment **s**tandard),
+eps for short, is an online payment method provided to consumers of
+Austrian banks. eps utilizes the established online banking systems of
+nearly all Austrian banks. eps is one of the most popular payment
+methods for online shopping in Austria.
+
+The eps e-payment standard is the interface between online payment
+systems for irrevocable payments, adopted by online shops as well as
+public authorities like E-Government.
+
+Selecting a bank in a merchant's web store, the consumer is redirected
+from the merchant's web store to their bank's online banking window.
+
+If no bank is selected in the merchant's web store, the bank selection
+is done during redirect and the consumer is redirected to their bank's
+online banking window after selecting a bank from the SO (Scheme
+Operator, central routing instance for eps) bank list.
+
+Successfully logging on to their respective account using their account
+number and PIN, the buyer simply needs to confirm the transaction using
+a TAN.
+
+After the consumer has confirmed the payment with TAN (or other commonly
+used approval mechanism within internet banking), eps confirms the
+payment-sending payment result and details to the PSP system.
+
+The consumer clicks the "Back to shop" link in the online banking window
+and is redirected back to the merchant's web shop.
+
+ 
+
+**image:attachments/4390959/4390961.png[image,width=125]giropay
+interoperability: **SO-implemented interlink to eps-giropay scheme in
+Germany. +
+If the merchant's contract allows to process those interoperability
+transactions, all eps-giropay participating banks in Germany can also be
+reached with a technical eps transaction. To enable giropay
+interoperability, the merchant has to register giropay directly with
+eps. In some cases, this is a free add-on. If giropay is activated by
+eps, the bank selection page shows the German bank institutes next to
+the Austrian ones.
+
+'''''
+
+[[epswithWPP-TestCredentials]]
+Test Credentials
+----------------
+
+Merchant Credentials
+
+*URI (Endpoint)*
+
+`https://wpp-test.wirecard.com/api/payment/register`
+
+*Username*
+
+`16390-testing`
+
+*Password*
+
+`3!3013=D3fD8X7`
+
+*MAID (`merchant-account-id`)*
+
+`1f629760-1a66-4f83-a6b4-6a35620b4a6d`
+
+*Secret Key (used for response verification)*
+
+`20c6a95c-e39b-4e6a-971f-52cfb347d359`
+
+Test credentials for eps sandbox
+
+*Ärzte- und Apotheker Bank*
+
+*BIC*
+
+`BWFBATW1XXX`
+
+*Login data*
+
+Just click to continue - no input needed.
+
+*or*
+
+*Stuzza Bank*
+
+*BIC*
+
+`STUZZATWXXX`
+
+*Login data*
+
+mailto:support@wirecard.com[on request]
+
+'''''
+
+[[epswithWPP-DebitTransactionTypeDebit]]
+[[epswithWPP-Debit]]Transaction Type Debit
+------------------------------------------
+
+A debit transaction charges the account holder's bank account with the
+specified amount and transfers it immediately.
+
+*Debit workflow in detail:*
+
+1.  The consumer initiates the debit transaction (e.g. by clicking the
+"Pay Now" button). The merchant sends a debit request to Wirecard.
+2.  As a response, the merchant receives the `payment-redirect-url` with
+a `PaymentToken`. This URL redirects the consumer either to the URL of
+the consumer's online banking system (if a BIC is provided in
+the request), or to the eps bank selection page (hosted by eps Scheme
+Operator).
+3.  The consumer completes all steps of the online banking procedure.
+4.  The consumer is redirected to the WPP processing page.
+5.  After the transaction has been approved, the consumer is redirected
+back to the merchant's shop (redirection URLs,
+see link:#epswithWPP-DebitSampleRequest[sample request]). There, the
+consumer and the merchant are notified about the outcome of the payment
+process. +
+We **recommend** that the merchant includes
+a **notification-URL** (see link:#epswithWPP-DebitSampleRequest[sample
+request]) to receive a payment notification directly from Wirecard
+Payment Gateway.
+
+ +
+
+Step by step guide to a successful debit transaction
+
+1.  Create a payment session (initial debit request).
+2.  Redirect the consumer to the payment page (initial response URL).
+3.  Highly recommended: Parse and process the payment response.
+
+ +
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+The examples show an initial request which creates the payment session.
+If it is successful, you receive a URL as a response, which you can use
+to redirect your consumer to the eps payment form.
+
+API Endpoints
+
+*Test*
+
+`https://wpp-test.wirecard.com/api/payment/register`
+
+*Production/Live*
+
+Contact mailto:support@wirecard.com[merchant support] for your
+production credentials.
+
+*Request headers*
+
+[source,syntaxhighlighter-pre]
+----
+Content-Type: application/json
+Authorization: Basic MTYzOTAtdGVzdGluZzozITMwMTM9RDNmRDhYNw==
+----
+
+ 
+
+{empty}[[epswithWPP-DebitSampleRequest]]
+
+*1. Create a Payment Session (Initial Request)*
+
+[source,syntaxhighlighter-pre]
+----
+{
+    "payment": {
+        "merchant-account-id": {
+            "value": "1f629760-1a66-4f83-a6b4-6a35620b4a6d"
+        },
+        "request-id": "{{$guid}}",
+        "transaction-type": "debit",
+        "requested-amount": {
+            "value": "62.34",
+            "currency": "EUR"
+        },
+        "payment-methods": {
+            "payment-method": [
+                {
+                "name": "eps"
+                }
+            ]
+        },
+        "bank-account": {
+            "iban": "AT123456789012345678",
+            "bic": "BWFBATW1XXX"
+        },
+        "account-holder" : {
+            "first-name" : "Iam T.",
+            "last-name" : "Shopper"
+        },
+        "descriptor": "Here are the details to your payment. Thank you for shopping!",
+        "order-number": "7171456",
+        "locale": "AT",
+        "notifications": {
+            "notification": [
+                {
+                "url": "https://example.com/ipn.php"
+                }
+            ]
+        },
+        "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/success",
+        "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/cancel",
+        "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error"
+    }
+}
+----
+
+*Field (JSON)*
+
+*Data Type*
+
+*Required/* +
+*Optional*
+
+*Size*
+
+*Description*
+
+merchant-account-id
+
+value
+
+String
+
+required
+
+36
+
+A unique identifier assigned to every merchant account (by Wirecard).
+You receive a unique merchant account ID for each payment method.
+
+request-id
+
+String
+
+required
+
+64
+
+A unique identifier assigned by the merchant to each request. Used when
+searching for or referencing it later.
+
+You may enter any `request-id` that has never been used before.
+
+As the `request-id` must be unique, `{{$guid}}` serves as a placeholder;
+e.g. Postman uses it to generate a random `request-id` for testing. 
+
+Allowed characters: +
+a - z +
+0 - 9 +
+-_
+
+transaction-type
+
+String
+
+required
+
+n/a
+
+The requested transaction type. For eps payments, transaction-type must
+be set to` "debit"`.
+
+requested-amount
+
+value
+
+Numeric
+
+required
+
+18.2
+
+The full amount that is requested/contested in a transaction. 2 decimal
+digits allowed.
+
+currency
+
+String
+
+required
+
+3
+
+The currency of the requested/contested transaction amount. +
+Format: 3-character abbreviation according to ISO 4217.
+
+payment-method
+
+name
+
+String
+
+required
+
+256
+
+The name of the payment method used. Set this value to `"eps"`.
+
+bank-account
+
+bic
+
+String
+
+optional
+
+8 or 11
+
+The bank identifier code (BIC) of the account owner (consumer). +
+Allowed characters and format:
+([a-zA-Z]\{4}[a-zA-Z]\{2}[a-zA-Z0-9]\{2}([a-zA-Z0-9]\{3})
+
+bank-account
+
+iban
+
+String
+
+optional
+
+34
+
+The international bank account number (IBAN) of the account owner
+(consumer).  +
+Allowed characters and format: 
+[a-zA-Z]\{2}[0-9]\{2}[a-zA-Z0-9]\{4}[0-9]\{7}([a-zA-Z0-9]?)\{0,16}
+
+account-holder
+
+first-name
+
+String
+
+optional
+
+32
+
+The first name of the account holder.
+
+account-holder
+
+last-name
+
+String
+
+optional
+
+32
+
+The last name of the account holder.
+
+descriptor
+
+String
+
+optional
+
+140
+
+The `descriptor` is the text representing an order on the bank statement
+issued to your consumer by their bank. It provides information for the
+consumer, as it associates a specific debit on the consumer's account to
+a specific purchase in your shop.
+
+Limit of 35 characters for structured purpose or 140 characters for
+unstructured purpose. Applied only if not already configured during
+merchant setup. Supports only limited character set:
+
+a b c d e f g h i j k l m n o p q r s t u v w x y z +
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z +
+0 1 2 3 4 5 6 7 8 9 +
+- € $ § % ! = # ~ ; + / ? : ( ) . , ' & > < " | * \{ } [ ] @ \ _ ° ^ +
+Ä Ö Ü ä ö ü ß +
+Space
+
+order-number
+
+String
+
+optional
+
+32
+
+Merchant-side order number. The following characters are allowed:
+
+a b c d e f g h i j k l m n o p q r s t u v w x y z +
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z +
+0 1 2 3 4 5 6 7 8 9 +
++
+
+locale
+
+String
+
+optional
+
+2
+
+A 2-letter code which indicates what language the payment page is
+rendered in (ISO 639-1).
+
+notification-url
+
+String
+
+optional
+
+256
+
+The URL to which Wirecard Payment Gateway sends the transaction outcome.
+
+success-redirect-url
+
+String
+
+required
+
+2000
+
+The URL to which the consumer is redirected after a successful
+payment, +
+e.g. `https://demoshop-test.wirecard.com/demoshop/#!/success`
+
+fail-redirect-url
+
+String
+
+required
+
+2000
+
+The URL to which the consumer is redirected after an unsuccessful
+payment, +
+e.g. `https://demoshop-test.wirecard.com/demoshop/#!/error`
+
+cancel-redirect-url
+
+String
+
+required
+
+2000
+
+The URL to which the consumer is redirected after having cancelled a
+payment, +
+e.g. `https://demoshop-test.wirecard.com/demoshop/#!/cancel `
+
+*2. Redirect the Consumer to the Payment Page (Initial Debit Response)*
+
+[source,syntaxhighlighter-pre]
+----
+{
+"payment-redirect-url": "https://wpp-test.wirecard.com/processing?wPaymentToken=6SHxrNo6Pfwa_gLiCadCgMDmj2U9SpvzdvhG8gNQ_gA"
+}
+----
+
+[cols=",,",]
+|=======================================================================
+|*Field (JSON)* |*Data Type* |*Description*
+
+|payment-redirect-url |string |The URL which redirects to the payment
+form (hosted by eps). Sent as a response to the initial request.
+|=======================================================================
+
+The response to this link:#epswithWPP-DebitSampleRequest[initial debit
+request] is the `payment-redirect-url`. +
+At this point, you need to redirect your consumer
+to `payment-redirect-url` (or render it in an `iframe` depending on
+your https://document-center.wirecard.com/display/PTD/Wirecard+Payment+Page[integration
+method]), where the consumer is to enter payment details.
+
+The consumer is redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. The response can
+
+* be successful (`transaction-state: success`)
+* fail (`transaction-state: failed`)
+* or the consumer cancelled the payment before/after submission
+(`transaction-state: failed`).
+
+The transaction result is the value of `transaction-state `in the
+payment response. More details (including the
+link:#epswithWPP-StatusCode[status code]) can also be found in the
+payment response in the `statuses` object. Cancelled payments are
+returned as `"transaction-state" : "failed"`, but the
+link:#epswithWPP-StatusDescription[status description] indicates it was
+cancelled.
+
+In any case, a base64 encoded response containing payment information is
+sent to one of the configured redirection URLs
+(`success-redirect-url`, `cancel-redirect-url`, or `fail-redirect-url`).
+
+See https://document-center.wirecard.com/display/PTD/Configuring+Redirects+and+IPNs+for+WPP[Configuring
+Redirects and IPNs for WPP] for more details on redirection targets
+after payment. You can find a decoded payment response example below.
+
+*3. Parse and Process the Payment Response (Decoded Payment Response)*
+
+[source,syntaxhighlighter-pre]
+----
+{
+   "payments": {
+      "payment": {
+         "merchant-account-id": "557c767b-92a6-4b74-98c0-233025ba016b",
+         "transaction-id": "0635ef01-5448-4df8-8fd6-29fd8ef7a5e3",
+         "request-id": "61108925-0944-40a1-b2af-1ed291e16e49",
+         "transaction-type": "debit",
+         "transaction-state": "success",
+         "completion-time-stamp": "2018-08-29T13:06:40.000Z",
+         "statuses": {
+            "status": [
+               {
+                  "code": "201.0000",
+                  "description": "The resource was successfully created.",
+                  "severity": "information"
+               }
+            ]
+         },
+         "requested-amount": {
+            "currency": "EUR",
+            "text": "62.340000"
+         },
+         "parent-transaction-id": "1051f70d-941f-4e1c-ba05-eaf9a705fe8d",
+         "order-number" : "7171456",
+         "account-holder": {
+            "first-name": "Iam T.",
+            "last-name": "Shopper"
+         },
+         "payment-methods": {
+            "payment-method": {
+               "name": "eps"
+            }
+         },
+         "bank-account": {
+            "iban": "AT302099900001123488",
+            "bic": "SPBAAT20XXX"
+         },
+         "api-id": "wpp",
+         "locale": "at",
+         "descriptor" : "Here are the details to your payment. Thank you for shopping!",
+         "notifications": {
+            "notification": [
+                {
+                "url": "https://example.com/ipn.php"
+                }
+            ]
+         },
+         "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/success",
+         "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/cancel",
+         "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error"
+      }
+   }
+}
+----
+
+*Field (JSON)*
+
+*Data Type*
+
+*Description*
+
+merchant-account-id
+
+String
+
+A unique identifier assigned to every merchant account (by Wirecard).
+You receive a unique merchant account ID for each payment method.
+
+transaction-id
+
+String
+
+A unique identifier assigned to every transaction. Used when searching
+for or referencing it later.
+
+request-id
+
+String
+
+A unique identifier assigned by the merchant to each request. Used when
+searching for or referencing it later.
+
+transaction-type
+
+String
+
+The requested transaction type. Must be `"debit"` for eps payments.
+
+transaction-state
+
+String
+
+The current transaction state.
+
+Possible values:
+
+* `in-progress`
+* `success`
+* `failed`
+
+Typically, a transaction starts with state "`in-progress"` and finishes
+with state either `"success"` or `"failed"`. This information is
+returned in the response only.
+
+completion-time-stamp
+
+DateTime
+
+The UTC/ISO time-stamp documents the time & date when the transaction
+was executed. +
+Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
+
+[[epswithWPP-statuses]]status +
+ +
+
+[[epswithWPP-StatusCode]]code
+
+String
+
+Status code of the status message. +
+Click
+https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[here]
+for a complete list of status codes.
+
+[[epswithWPP-StatusDescription]]description
+
+String
+
+The description of the transaction status message. +
+Click
+https://document-center.wirecard.com/display/PTD/Return+Codes+and+Transaction+Statuses[here] 
+for a complete list of status descriptions.
+
+severity
+
+String
+
+The definition of the status message.
+
+Possible values:
+
+* `information`
+* `warning`
+* `error`
+
+requested-amount
+
+currency
+
+String
+
+The currency of the requested/contested transaction amount.
+
+value
+
+Numeric
+
+The full amount that was requested/contested in the transaction.
+
+parent-transaction-id
+
+String
+
+The ID of the transaction being referenced as a parent. As a `debit`
+transaction is internally split into sub-transactions, the
+`parent-transaction-id` serves to link these sub-transactions.
+
+order-number
+
+String
+
+Merchant-side order number as set in the request.
+
+account-holder
+
+first-name
+
+String
+
+The first name of the account holder.
+
+last-name
+
+String
+
+The last name of the account holder.
+
+ip-address
+
+String
+
+The internet protocol address of the account holder as recorded by the
+entity receiving the transaction attempt from the account holder. +
+Supported IP versions: IPv4 and IPv6.
+
+payment-method
+
+name
+
+String
+
+The name of the payment method used.
+
+bank-account
+
+iban
+
+String
+
+The international bank account number (IBAN) of the account holder. 
+
+bic
+
+String
+
+The bank identifier code (BIC) of the account holder.
+
+api-id
+
+String
+
+Identifier of the currently used API.
+
+locale
+
+String
+
+A code which indicates what language the payment page is rendered in
+(according to ISO 639-1).
+
+descriptor
+
+String
+
+The `descriptor` is the text representing an order on the bank statement
+issued to your consumer by their bank. It provides information for the
+consumer, as it associates a specific debit on the consumer's account to
+a specific purchase in your shop.
+
+notification-url
+
+String
+
+The URL to which Wirecard Payment Gateway sends the transaction outcome.
+
+success-redirect-url
+
+String
+
+The URL to which the consumer is redirected after a successful
+payment, +
+e.g. `https://demoshop-test.wirecard.com/demoshop/#!/success`
+
+fail-redirect-url
+
+String
+
+The URL to which the consumer is redirected after an unsuccessful
+payment, +
+e.g. `https://demoshop-test.wirecard.com/demoshop/#!/error`
+
+cancel-redirect-url
+
+String
+
+The URL to which the consumer is redirected after having cancelled a
+payment, +
+e.g. `https://demoshop-test.wirecard.com/demoshop/#!/cancel`
+
+'''''
+
+[[epswithWPP-Refund]]
+Refund
+------
+
+Basically, eps with WPP supports debit only. For refund,
+use** https://document-center.wirecard.com/display/PTD/SEPA+Credit+Transfer[SEPA
+Credit Transfer] **(if SEPA Credit Transfer is activated for your
+merchant account) through
+our *https://document-center.wirecard.com/display/PTD/REST+API[REST
+API]*.
+
+You must provide the necessary data:
+
+* `parent-transaction-id`: This is the transaction ID of the preceding
+debit. You can gather it from the response to a successful debit.
+* `amount` (can be either the total amount for refunding the full
+amount, or a partial amount for a partial refund)
+
+If the `parent-transaction-id `is not available, the following fields
+are mandatory:
+
+* `iban`
+* `bic` (only required by some acquirers)
+* `amount` (can be either the total amount for refunding the full
+amount, or a partial amount for a partial refund)
+
+'''''
+
+[[epswithWPP-NVPFieldReference]]
+NVP Field Reference
+-------------------
+
+NVP equivalents for JSON fields (for migrating merchants)
+
+*JSON Structure for eps Requests*
+
+[source,syntaxhighlighter-pre]
+----
+{
+    "payment": {
+        "merchant-account-id": {
+        "value": "string"
+        },
+        "request-id": "string",
+        "transaction-type": "string",
+        "requested-amount": {
+            "currency": "string",
+            "value": "0"
+        },     
+        "payment-methods": {
+            "payment-method": [
+                {
+                "name": "string"
+                }
+            ]
+        },
+        "bank-account": {
+            "iban": "string",
+            "bic": "string"
+        },
+        "account-holder" : {
+            "first-name" : "string",
+            "last-name" : "string"
+        },
+        "descriptor": "string",
+        "order-number": "string",
+        "locale": "string",
+        "success-redirect-url": "string",
+        "fail-redirect-url": "string", 
+        "cancel-redirect-url": "string"
+    }
+}
+----
+
+[width="100%",cols="34%,33%,33%",]
+|==========================================================
+|*Field (NVP)* |*Field (JSON)* |*JSON Parent*
+|merchant_account_id |value |merchant-account-id
+|request_id |request-id |payment
+|transaction_type |transaction-type |payment
+|requested_amount_currency |currency |requested-amount
+|requested_amount |value |requested-amount
+|payment_method |payment-method ([ ])/name |payment-methods
+|bank_account_bic |bic |bank-account
+|bank_account_iban |iban |bank-account
+|first_name |first-name |account-holder
+|last_name |last-name |account-holder
+|descriptor |descriptor |payment
+|order_number |order-number |payment
+|locale |locale |payment
+|success_redirect_url |success-redirect-url |payment
+|fail_redirect_url |fail-redirect-url |payment
+|cancel_redirect_url |cancel-redirect-url |payment
+|ip_address |ip-address |ip-address
+|==========================================================
+
+'''''
+
+[[epswithWPP-Response-onlyFields]]
+Response-only Fields
+~~~~~~~~~~~~~~~~~~~~
+
+[source,syntaxhighlighter-pre]
+----
+{
+    "api-id" : "string",
+    "parent-transaction-id" : "string",
+    "transaction-state" : "string",
+    "transaction-id" : "string",
+    "completion-time-stamp" : "2018-03-23T10:41:34",
+    "statuses" : {
+        "status" : [ {
+        "severity" : "string",
+        "code" : "string",
+        "description" : "string"
+        } ]
+    }
+}
+----
+
+[cols=",,",]
+|=============================================================
+|*Field (NVP)* |*Field (JSON)* |*JSON Parent*
+|api_id |api-id |payment
+|parent_transaction_id |parent-transaction-id |payment
+|transaction_state |transaction-state |payment
+|transaction_id |transaction-id |payment
+|completion_time_stamp |completion-time-stamp |payment
+|status_severity_n |status ([ \{} ])/ severity |statuses
+|status_code_n |status ([ \{} ])/ code |statuses
+|status_description_n |status ([ \{} ])/ description |statuses
+|=============================================================
+
+Attachments:
+~~~~~~~~~~~~
+
+image:images/icons/bullet_blue.gif[image,width=8,height=8]
+link:attachments/4390959/4390960.png[epsLogo.png] (image/png) +
+image:images/icons/bullet_blue.gif[image,width=8,height=8]
+link:attachments/4390959/4390961.png[giropayLogo.png] (image/png) +
+
+[[footer]]
+Document generated by Confluence on Feb 06, 2019 10:33
+
+[[footer-logo]]
+http://www.atlassian.com/[Atlassian]
