@@ -31,16 +31,13 @@ respective database defaults. 
 You can overwrite the default values by specifying the redirect links in
 the payment request:
 
-[%autowidth]
+[%autowidth,cols="v,v,,,,v,"]
 |===
-| Field (NVP) | Field (JSON) | Required | Data Type | Size | JSON Parent | Description
+ | Field (NVP)           | Field (JSON)         | Required | Data Type | Size  | JSON Parent   | Description
 
-| success_redirect_url | success-redirect-url | N | String | 2000 | payment
-({ }) | The URL to which the consumer is redirected after a successful payment.
-| fail_redirect_url | fail-redirect-url | N | String | 2000 | payment ({ })
-| The URL to which the consumer is redirected after an unsuccessful payment.
-| cancel_redirect_url | cancel-redirect-url | N | String | 2000 | payment ({}) 
-|The URL to which the consumer is redirected after they cancel a payment.
+e| success_redirect_url e| success-redirect-url | N        | String    | 2000 e| payment ({ }) | The URL to which the consumer is redirected after a successful payment.
+e| fail_redirect_url    e| fail-redirect-url    | N        | String    | 2000 e| payment ({ }) | The URL to which the consumer is redirected after an unsuccessful payment.
+e| cancel_redirect_url  e| cancel-redirect-url  | N        | String    | 2000 e| payment ({ }) | The URL to which the consumer is redirected after they cancel a payment.
 |===
 
 If you have no database defaults, you *must* include them in the
@@ -60,13 +57,11 @@ WARNING: Do not confuse this field with `payment-redirect-url`, which contains 
 whether the payment succeeds, fails or the consumer cancels, they are
 redirected to the URL specified in `redirect-url`:
 
-[%autowidth]
+[%autowidth,cols="v,v,,,,v,"]
 |===
-| Field (NVP) | Field (JSON) | Required | Data Type | Size | JSON Parent | Description
+ | Field (NVP)   | Field (JSON) | Required | Data Type | Size | JSON Parent   | Description
 
-| redirect_url | redirect-url | N | String | 256 | payment ({ }) | The URL to
-which the consumer is redirected after a successful, failed or canceled
-payment if there are no alternatives available.
+e| redirect_url e| redirect-url | N        | String    | 256 e| payment ({ }) | The URL to which the consumer is redirected after a successful, failed or canceled payment if there are no alternatives available.
 |===
 
 `redirect-url` is only used as a fallback if there is
@@ -87,13 +82,11 @@ processed, but its current state is not final. Since this is not the
 final response, the consumer is redirected to the `pending-redirect-url`
 instead of the usual `success-redirect-url`.
 
-[%autowidth]
+[%autowidth,cols="v,v,,,,v,"]
 |===
-| Field (NVP) | Field (JSON) | Required | Data Type | Size | JSON Parent | Description
+ | Field (NVP)          | Field (JSON)         | Required | Data Type | Size | JSON Parent   | Description
 
-| pending_redirect_url | pending-redirect-url | N | String | 256 | payment ({}) 
-|The URL to which the consumer is redirected when the response returns a _pending_ 
-transaction type.
+e| pending_redirect_url | pending-redirect-url | N        | String    | 256  | payment ({ }) | The URL to which the consumer is redirected when the response returns a _pending_ transaction type.
 |===
 
 
@@ -103,7 +96,7 @@ transaction type.
 There are 3 levels for each type (canceled, successful, failed) of redirection:
 
 .  Redirect fields sent in the request
-(`success-redirect-url`,`fail-redirect-url` or `cancel-redirect-url`).
+(`success-redirect-url`, `fail-redirect-url` or `cancel-redirect-url`).
 .  The `redirect-url` field - covering all of the three options - used
 as a fallback if the above is not defined. 
 .  The third level is defined in merchant configuration (database
@@ -134,21 +127,21 @@ substitute them for any of the redirects found here (or add more):
 
 [source,json]
 ----
-{  
-   "payment":{  
-      "merchant-account-id":{  
-         "value":"61e8c484-dbb3-4b69-ad8f-706f13ca141b"
-      },
-      "request-id":"{{$guid}}",
-      "transaction-type":"auto-sale",
-      "requested-amount":{  
-         "value":10.1,
-         "currency":"EUR"
-      },
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "61e8c484-dbb3-4b69-ad8f-706f13ca141b"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "auto-sale",
+    "requested-amount": {
+      "value": 10.1,
+      "currency": "EUR"
+    },
     "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/success",
     "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error",
     "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/cancel"
-   }
+  }
 }
 ----
 
@@ -168,41 +161,41 @@ configuration:
 [source,json]
 ----
 {
-   "payment":{
-      "merchant-account-id":{
-         "value":"7a6dd74f-06ab-4f3f-a864-adc52687270a"
-      },
-      "request-id":"{{$guid}}",
-      "requested-amount":{
-         "value":"1.01",
-         "currency":"EUR"
-      },
-      "account-holder":{
-         "first-name":"John",
-         "last-name":"Dao"
-      },
-      "transaction-type":"auto-sale",
-      "notifications":{
-         "format":"application/json",
-         "notification":[
-            {
-               "url":"https://www.yourdomain.com/notification-target"
-            },
-            {
-               "url":"https://www.yourdomain.com/success-notification-target",
-               "transaction-state":"success"
-            },
-            {
-               "url":"https://www.yourdomain.com/failed-notification-target",
-               "transaction-state":"failed"
-            },
-            {
-               "url":"https://www.yourdomain.com/success-notification-target2",
-               "transaction-state":"success"
-            }
-         ]
-      }
-   }
+  "payment": {
+    "merchant-account-id": {
+      "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+    },
+    "request-id": "{{$guid}}",
+    "requested-amount": {
+      "value": "1.01",
+      "currency": "EUR"
+    },
+    "account-holder": {
+      "first-name": "John",
+      "last-name": "Dao"
+    },
+    "transaction-type": "auto-sale",
+    "notifications": {
+      "format": "application/json",
+      "notification": [
+        {
+          "url": "https://www.yourdomain.com/notification-target"
+        },
+        {
+          "url": "https://www.yourdomain.com/success-notification-target",
+          "transaction-state": "success"
+        },
+        {
+          "url": "https://www.yourdomain.com/failed-notification-target",
+          "transaction-state": "failed"
+        },
+        {
+          "url": "https://www.yourdomain.com/success-notification-target2",
+          "transaction-state": "success"
+        }
+      ]
+    }
+  }
 }
 ----
 
@@ -217,7 +210,7 @@ requested_amount=37.80
 requested_amount_currency=EUR
 ip_address=127.0.0.1
 locale=en
-notifications_format=application/json 
+notifications_format=application/json
 notification_transaction_state=success
 notification_url=https://www.yourdomain.com/success-notification-target
 notification_transaction_state_1=success
@@ -230,5 +223,5 @@ request_time_stamp=20180604074549
 request_signature_v2=WAUTH+SFMyNTYKY3VzdG9tX2Nzc191cmw9CnJlcXVlc3RfdGltZV9zdGFtcD0yMDE4LTA2LTA0VDA5OjQ1OjQ4KzAyOjAwCm1
 lcmNoYW50X2FjY291bnRfaWQ9MDBmMGI1ZWYtMTI0MS00YWI5LTllYjEtODMxN2IzZGQ5NDEwCnJlcXVlc3RlZF9hbW91bnRfY3VycmVuY3k9RVVSCmlwX
 2FkZHJlc3M9MTI3LjAuMC4xCnRyYW5zYWN0aW9uX3R5cGU9YXV0aG9yaXphdGlvbgpyZXF1ZXN0X2lkPWUzNDQ2ODFkLWYwMDItNDVlMC04M2U0LTM0NWY
-5OTM5MjIxZgpyZXF1ZXN0ZWRfYW1vdW50PTM3LjgwCnJlZGlyZWN0X3VybD0K.qzVwTDrCL%2F6zWXmV4f5KD9jXdV4K1v6c7WDQYtMx9Gc%3D  
+5OTM5MjIxZgpyZXF1ZXN0ZWRfYW1vdW50PTM3LjgwCnJlZGlyZWN0X3VybD0K.qzVwTDrCL%2F6zWXmV4f5KD9jXdV4K1v6c7WDQYtMx9Gc%3D
 ----
