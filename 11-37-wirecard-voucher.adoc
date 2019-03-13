@@ -48,7 +48,7 @@ and which formats and methods can be used for requests and responses.
 .2+h| Requests/Responses | Format  | XML
                          | Methods | POST
 
-h|IPN Encodement       2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN. 
+h|IPN Encodement       2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
 
@@ -71,7 +71,7 @@ If redemption was already confirmed, reversal needs to be used. | 
 amount is subtracted from total voucher amount. |See <<WirecardVoucher_Samples_Redeem, _redeem_ samples>>
 | cancel-redeem | Cancellation of confirmed redemption. Amount of
 voucher is returned to value without redemption. If voucher has been
-"REDEEMED", it is returned to "IN_USE" state. | 
+``REDEEMED``, it is returned to ``IN_USE`` state. | 
 | void-cancel-redeem | Rollback of redemption reversal. Voucher's
 redemption value and state is set back to the original redemption's state. | 
 |===
@@ -107,7 +107,7 @@ image::images/11-37-wirecard-voucher/WirecardVoucher_Workflow.png[Wirecard Vouch
 ==== Fields
 
 Payment fields required for the _Wirecard Voucher_ are the same fields as
-the <<RestApi_Fields, REST API Fields>>. Additionally, voucher element should 
+the <<RestApi_Fields, REST API Fields>>. Additionally, voucher element should
 be present.
 
 The following elements are either mandatory (M), optional (O) or
@@ -115,22 +115,19 @@ conditional \(C) in a transaction process.
 
 [cols="v,,,,,,"]
 |===
-| Field | Request   | Response | Notification | Data Type | Size | Description
+| Field               | Request | Response | Notification | Data Type    | Size | Description
 
-| voucher-code     | M | M | M | Alphanumeric | 36  | Code for payment and voucher processing.
-| voucher-brand-id | M | M | M | Alphanumeric | 255 | Brand of voucher.
-| voucher-token-id | O | O | O | Alphanumeric | 255 | Redemption token as returned from +
-'REDEMPTION_RESERVATION'.
-| voucher-description | O | O | O | Alphanumeric | 255 | Used as operational comment.
-| alternative-amount  | O | O | O | Numeric      |     | Used for merchant specific
-currencies (bonuses, km, etc.).
-| serial-number    | O | O | O | Alphanumeric | 255 | Code for support and voucher
-identification.
+| voucher-code        | M       | M        | M            | Alphanumeric | 36   | Code for payment and voucher processing.
+| voucher-brand-id    | M       | M        | M            | Alphanumeric | 255  | Brand of voucher.
+| voucher-token-id    | O       | O        | O            | Alphanumeric | 255  | Redemption token as returned from ``REDEMPTION_RESERVATION``.
+| voucher-description | O       | O        | O            | Alphanumeric | 255  | Used as operational comment.
+| alternative-amount  | O       | O        | O            | Numeric      |      | Used for merchant specific currencies (bonuses, km, etc.).
+| serial-number       | O       | O        | O            | Alphanumeric | 255  | Code for support and voucher identification.
 |===
 
-WARNING: Payments/Payment/additional-merchant-data
-field is used along with the voucher type to send keyValuePairs to the
-Voucher API, value is Base64 encoded.
+WARNING: The ``payments/payment/additional-merchant-data``
+field is used along with the voucher type to send ``keyValuePairs`` to the
+Voucher API. Its value is Base64 encoded.
 
 Part of the request
 
@@ -146,20 +143,20 @@ will be sent to Voucher API as
 "keyValuePairs": "ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiDQp9"
 ----
 
-Decode from Base64 "ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiDQp9"
+Decode from Base64 ``ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiDQp9``
 
 [source,json]
 ----
 {
-"xyz": "123",
-"abc": "456"
+  "xyz": "123",
+  "abc": "456"
 }
 ----
 
 [#WirecardVoucher_Samples]
 ==== Samples
 
-Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want 
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want
 to see corresponding notification samples.
 
 [#WirecardVoucher_Samples_Purchase]
@@ -171,18 +168,18 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
-    <request-id>826a358c-ff21-4eb8-8150-dd14ba4c2263</request-id>
-    <transaction-type>purchase</transaction-type>
-        <requested-amount currency="EUR">1.25</requested-amount>
-        <payment-methods>
-            <payment-method name="voucher" />
-        </payment-methods>
-        <voucher>
-                <voucher-code>TESTM49499486680</voucher-code>
-                <voucher-brand-id>testmerchant</voucher-brand-id>
-                <voucher-description>This is Voucher Description</voucher-description>
-        </voucher>
+	<merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
+	<request-id>{{$guid}}</request-id>
+	<transaction-type>purchase</transaction-type>
+	<requested-amount currency="EUR">1.25</requested-amount>
+	<payment-methods>
+		<payment-method name="voucher" />
+	</payment-methods>
+	<voucher>
+		<voucher-code>TESTM49499486680</voucher-code>
+		<voucher-brand-id>testmerchant</voucher-brand-id>
+		<voucher-description>This is Voucher Description</voucher-description>
+	</voucher>
 </payment>
 ----
 
@@ -221,9 +218,9 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <request-id>8eb23e9a-61e8-4bd5-8a9d-7faa9edb54b7</request-id>
-    <transaction-type>void-purchase</transaction-type>
-    <parent-transaction-id>$transaction-id-from-purchase-response</parent-transaction-id>
+	<request-id>{{$guid}}</request-id>
+	<transaction-type>void-purchase</transaction-type>
+	<parent-transaction-id>$transaction-id-from-purchase-response</parent-transaction-id>
 </payment>
 ----
 
@@ -268,18 +265,18 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
-    <request-id>175215cb-00f0-42a5-9471-4b7bd17cb554</request-id>
-    <transaction-type>reserve</transaction-type>
-        <requested-amount currency="EUR">0.25</requested-amount>
-        <payment-methods>
-            <payment-method name="voucher" />
-        </payment-methods>
-        <voucher>
-                <voucher-code>TESTM49499486680</voucher-code>
-                <voucher-brand-id>testmerchant</voucher-brand-id>
-                <voucher-description>This is Voucher Description</voucher-description>
-        </voucher>
+	<merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
+	<request-id>${{guid}}</request-id>
+	<transaction-type>reserve</transaction-type>
+	<requested-amount currency="EUR">0.25</requested-amount>
+	<payment-methods>
+		<payment-method name="voucher" />
+	</payment-methods>
+	<voucher>
+		<voucher-code>TESTM49499486680</voucher-code>
+		<voucher-brand-id>testmerchant</voucher-brand-id>
+		<voucher-description>This is Voucher Description</voucher-description>
+	</voucher>
 </payment>
 ----
 
@@ -318,9 +315,9 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <request-id>8eb23e9a-61e8-4bd5-8a9d-7faa9edb54b7</request-id>
-    <transaction-type>void-reserve</transaction-type>
-    <parent-transaction-id>$transaction-id-from-reserve-response</parent-transaction-id>
+	<request-id>{{$guid}}</request-id>
+	<transaction-type>void-reserve</transaction-type>
+	<parent-transaction-id>$transaction-id-from-reserve-response</parent-transaction-id>
 </payment>
 ----
 
@@ -365,19 +362,19 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
-    <request-id>30232dda-6a16-400d-8e91-e6d1754b227b</request-id>
-    <transaction-type>redeem</transaction-type>
-    <requested-amount currency="EUR">0.25</requested-amount>
-    <payment-methods>
-        <payment-method name="voucher" />
-    </payment-methods>
-    <voucher>
-        <voucher-code>TESTM49499486680</voucher-code>
-        <voucher-brand-id>testmerchant</voucher-brand-id>
-        <voucher-description>This is Voucher Description</voucher-description>
-        <voucher-token-id>$from-successful-reserve-response</voucher-token-id>
-    </voucher>
+	<merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
+	<request-id>${{guid}}</request-id>
+	<transaction-type>redeem</transaction-type>
+	<requested-amount currency="EUR">0.25</requested-amount>
+	<payment-methods>
+		<payment-method name="voucher" />
+	</payment-methods>
+	<voucher>
+		<voucher-code>TESTM49499486680</voucher-code>
+		<voucher-brand-id>testmerchant</voucher-brand-id>
+		<voucher-description>This is Voucher Description</voucher-description>
+		<voucher-token-id>$from-successful-reserve-response</voucher-token-id>
+	</voucher>
 </payment>
 ----
 
@@ -416,10 +413,10 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
-    <request-id>bfd442bb-5b86-44b1-bfb8-34e579aff23d</request-id>
-    <transaction-type>cancel-redeem</transaction-type>
-    <parent-transaction-id>$from-redeem-response</parent-transaction-id>
+	<merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
+	<request-id>{{$guid}}</request-id>
+	<transaction-type>cancel-redeem</transaction-type>
+	<parent-transaction-id>$from-redeem-response</parent-transaction-id>
 </payment>
 ----
 
@@ -461,10 +458,10 @@ to see corresponding notification samples.
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
-    <request-id>cc0f56c5-e6ce-4bbc-9c9f-dc9f9da2e9d7</request-id>
-    <transaction-type>void-cancel-redeem</transaction-type>
-    <parent-transaction-id>$from-cancel-redeem-response</parent-transaction-id>
+	<merchant-account-id>7b14cf26-44ae-4bf2-a180-044ac03ff9f6</merchant-account-id>
+	<request-id>${{guid}}</request-id>
+	<transaction-type>void-cancel-redeem</transaction-type>
+	<parent-transaction-id>$from-cancel-redeem-response</parent-transaction-id>
 </payment>
 ----
 
