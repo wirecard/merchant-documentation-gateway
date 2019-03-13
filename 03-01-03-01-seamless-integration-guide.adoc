@@ -1,262 +1,169 @@
-[[page]]
-[[main]]
-[[main-header]]
-[[breadcrumb-section]]
-1.  link:index.html[API merchant specification]
-2.  link:API-merchant-specification_1146901.html[API merchant
-specification]
-3.  link:Payment-Page-Solutions_4751423.html[Payment Page Solutions]
-4.  link:Wirecard-Payment-Page_3704201.html[Wirecard Payment Page]
-5.  link:Seamless-Mode_3704231.html[Seamless Mode]
+[#WPP_Seamless_Integration]
+===== Seamless Integration Guide
 
-[[title-heading]]
-[[title-text]] API merchant specification : Integrating WPP in Seamless
-Mode
------------------------------------------------------------------------------
+.Download the full integration demo from our Github
+image:images/03-01-03-01-seamless-integration-guide/github_java.png[JAVA, link="https://github.com/wirecard/wpp-integration-demo-java"]
+image:images/03-01-03-01-seamless-integration-guide/github_php.png[PHP, link="https://github.com/wirecard/wpp-integration-demo-php"]
 
-[[content]]
-Created by Volker Hauss, last modified by Karin Kraus on Mar 07, 2019
 
-[[main-content]]
-* link:#IntegratingWPPinSeamlessMode-Overview[Overview]
-* link:#IntegratingWPPinSeamlessMode-FirstSteps[First Steps]
-** link:#IntegratingWPPinSeamlessMode-1.PreparingyourCheckoutPage[1. Preparing
-your Checkout Page]
-** link:#IntegratingWPPinSeamlessMode-2.ChangingtheBackgroundColorSettinginPaymentPageDesigner[2.
-Changing the Background Color Setting in Payment Page Designer]
-* link:#IntegratingWPPinSeamlessMode-Payment-ProcessingExample[Payment-Processing
-Example]
-** link:#IntegratingWPPinSeamlessMode-SetupandTestCredentials[Setup and
-Test Credentials]
-** link:#IntegratingWPPinSeamlessMode-1.CreateaPaymentSession[1. Create
-a Payment Session]
-** link:#IntegratingWPPinSeamlessMode-2.RendertheSeamlessPaymentForm[2.
-Render the Seamless Payment Form]
-** link:#IntegratingWPPinSeamlessMode-3.SubmitthePayment[3. Submit the
-Payment]
-** link:#IntegratingWPPinSeamlessMode-4.ParseandProcessthePaymentResponse(HighlyRecommended)[4.
-Parse and Process the Payment Response (Highly Recommended)]
-
- 
-
-*Download the full integration demo from our Github*
-
-*https://github.com/wirecard/wpp-integration-demo-java[image:attachments/3704237/4391195.png[image]]https://github.com/wirecard/wpp-integration-demo-php[image:attachments/3704237/4391196.png[image]]*
-
-[[IntegratingWPPinSeamlessMode-Overview]]
-Overview
---------
+[#WPP_Seamless_Integration_Overview]
+====== Overview
 
 To integrate the Wirecard Payment Page in Seamless Mode in your shop,
 get your checkout page ready in two steps:
 
-**1. Preparing your checkout page: **Add the `paymentPage.js` library to
+. *Preparing your checkout page:* Add the `paymentPage.js` library to
 your checkout page's HTML code.
 
-*2. Changing the background color setting in Payment Page Designer:* Set
+. *Changing the background color setting in Payment Page Designer:* Set
 the background color to transparent in Payment Page Designer.
 
- +
 
-Then use a backend-to-backend JSON
-https://document-center.wirecard.com/display/PTD/WPP+Workflow[workflow]
+Then use a backend-to-backend JSON <<PaymentPageSolutions_WPP_WPPWorkflow, workflow>>
 for the payment process.
 
-*1. Create a payment session:* You send an initial POST request with
+. *Create a payment session:* You send an initial POST request with
 details of the transaction to the Wirecard Payment Page (WPP). This POST
-request is secured by basic access authentication. +
+request is secured by basic access authentication.
 
-*2. Render the seamless payment form:* WPP returns an initial response
-URL.
+. *Render the seamless payment form:* WPP returns an initial response URL.
++
+====
+- *If the initial POST request is correct,* use this response URL and the
+`WPP.seamlessRender` library call to render the payment form in a
+seamless iframe. *Continue with step 3.*
 
- 
-
-*If the initial POST request is correct*, use this response URL and the
-`WPP.seamlessRender `library call to render the payment form in a
-seamless iframe. Continue with step 3.
-
-**3. Submit the payment: **The consumer fills in the payment form. Use
-the `WPP``.seamlessSubmit` function to submit the payment. Ensure that
+- *If the initial POST request is faulty,* WPP returns an error code with
+a description of the problem in the response. *Return to step 1.*
+====
++
+. *Submit the payment:* The consumer fills in the payment form. Use
+the `WPP.seamlessSubmit` function to submit the payment. Ensure that
 the function is bound to an interactive UI element, such as a button, in
-your HTML code. ** +
-**
-
-* *3-D Secure credit card payment* automatically redirects the consumer
+your HTML code.
+- *3-D Secure credit card payment* automatically redirects the consumer
 to the authentication page, and then to a WPP success- or
 fail-redirect-url. Include the success- and fail-redirect-urls in your
 initial request! This page includes a JSON sample for 3-D Secure credit
 card payment.
-* *Non-3-D Secure credit card payment* requires you to implement
-redirects to subsequent pages, such as a
-`success-/fail-/cancel-redirect-url` to let the consumer know about the
-payment outcome, by yourself. * +
-* +
-
-*4. Parse and Process the Payment Response:* The payment is processed.
+- *Non-3-D Secure credit card payment* requires you to implement
+redirects to subsequent pages, such as a `success-/fail-/cancel-redirect-url` to let the consumer know about the
+payment outcome, by yourself.
++
+. *Parse and Process the Payment Response:* The payment is processed.
 WPP returns base64 encoded payment data. It is _highly recommended_ that
 you parse and process this base64 encoded response to verify the
 payment.
 
-*If the initial POST request is faulty*, WPP returns an error code with
-a description of the problem in the response. Return to step 1.
 
-'''''
+[#WPP_Seamless_Integration_FirstSteps]
+====== First Steps
 
- 
-
-[[IntegratingWPPinSeamlessMode-FirstSteps]]
-First Steps
------------
-
-Before processing payments in Seamless Mode, you need to make a small
-adjustment to your checkout page's HTML code, and change a setting in
+Before processing payments in Seamless Mode, you need to make a small adjustment to your checkout page's HTML code, and change a setting in
 the Payment Page Designer.
 
-[[IntegratingWPPinSeamlessMode-1.PreparingyourCheckoutPage]]
-1. Preparing your Checkout Page
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.1. Preparing your Checkout Page
 
 Add the `paymentPage.js` library to your checkout page HTML code:
 
-[source,syntaxhighlighter-pre]
+[source,java]
 ----
 <script src="https://wpp.wirecard.com/loader/paymentPage.js" type="text/javascript"></script>
 ----
 
-This library lets you render the payment form as an iframe in your
-checkout page.
+This library lets you render the payment form as an iframe in your checkout page.
 
-The URL included here serves only as an example. Please enter the domain
+CAUTION: The URL included here serves only as an example. Please enter the domain
 of the instance received during merchant configuration.
 
- 
-
-[[IntegratingWPPinSeamlessMode-2.ChangingtheBackgroundColorSettinginPaymentPageDesigner]]
-2. Changing the Background Color Setting in Payment Page Designer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.2. Changing the Background Color Setting in Payment Page Designer
 
 Open the Payment Page Designer to set the background color to
-*transparent*. Transparency of the card form's background ensures a
+*transparent.* Transparency of the card form's background ensures a
 seamless appearance when it is embedded in your checkout page.
 
-{empty}1. Select the *Payment* tab and click on *Colors.*
-
-{empty}2. In *Colors*, go to the *Content* tab and open the *Content
-Background Color* window.
-
-{empty}3. Set the *Content Background Color* alpha value (*A*)
-to__ __*0*
-
-image:attachments/3704237/5406934.png[image,width=443]
-
-image:attachments/3704237/5406935.png[image,width=443]
-
-image:attachments/3704237/5406936.png[image,width=443]
-
- 
+. Select the *Payment* tab and click on *Colors.*
++
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_1.png[Seamless Page Designer 1]
++
+. In *Colors,* go to the *Content* tab and open the *Content Background Color* window.
++
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_2.png[Seamless Page Designer 2]
++
+. Set the *Content Background Color* alpha value (*A*) to *0*
++
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_3.png[Seamless Page Designer 3]
 
 '''''
 
- 
+[#WPP_Seamless_Integration_Example]
+====== Payment-Processing Example
 
-[[IntegratingWPPinSeamlessMode-Payment-ProcessingExample]]
-Payment-Processing Example
---------------------------
+This is an example of a credit card 3-D Secure transaction to show how to process a payment with the Wirecard Payment Page in Seamless Mode.
+Currently, Seamless Mode supports *only credit card payments.* For a more payment-method-specific integration guide, go to <<WPP_CC, Credit Card with WPP>>.
 
-This is an example of a credit card 3-D Secure transaction to show how
-to process a payment with the Wirecard Payment Page in Seamless Mode. +
-Currently, Seamless Mode supports *only credit card payments*. For a
-more payment-method-specific integration guide, go to
-https://document-center.wirecard.com/display/PTD/Credit+Card+with+WPP[Credit
-Card with WPP].
+The payment-processing example is *designed for the testing environment* and *does not use real information.*
 
-The payment-processing example is *designed for the testing
-environment* and *does not use real information.*
+Payment processing with Wirecard Payment Page in Seamless Mode deviates a little bit from the
 
- 
+<<PPSolutions_WPP_HPP_HPPintegration, HPP>> and <<PPSolutions_WPP_EPP_EPPintegration, EPP>> payment processing workflow:
 
-Payment processing with Wirecard Payment Page in Seamless Mode deviates
-a little bit from the
-https://document-center.wirecard.com/display/PTD/HPP+Integration[HPP]
-and
-https://document-center.wirecard.com/display/PTD/EPP+Integration[EPP]
-payment processing workflow:
+[%autowidth]
+|===
+h|Payment Processing with Wirecard Payment Page in Seamless Mode                       
+a|.  Create a payment session (initial request)                                      
+  . Render the Seamless payment form in your checkout page (initial response URL).   
+  .  Submit the payment.                                                              
+  .  Highly recommended: Parse and process the payment response.
 
-Payment Processing with Wirecard Payment Page in Seamless Mode
+h|Payment Processing with HPP and EPP
+a|.  Create a payment session (initial request).
+  .  Redirect the consumer to the payment page (initial response URL).
+  .  Highly recommended: Parse and process the payment response.
+|===
 
-1.  Create a payment session (initial request)
-2.  Render the Seamless payment form in your checkout page (initial
-response URL).
-3.  Submit the payment.
-4.  Highly recommended: Parse and process the payment response.
 
-Payment Processing with HPP and EPP
-
-1.  Create a payment session (initial request).
-2.  Redirect the consumer to the payment page (initial response URL).
-3.  Highly recommended: Parse and process the payment response.
-
-[[IntegratingWPPinSeamlessMode-SetupandTestCredentials]]
-Setup and Test Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+[#WPP_Seamless_Integration_Example_TestCreds]
+.Setup and Test Credentials
 Before you can send your first request, use the following information to
 set up your testing tool:
 
-[[IntegratingWPPinSeamlessMode-TestCredentials]]
-Test Credentials
-^^^^^^^^^^^^^^^^
+.Test Credentials
+[%autowidth, cols="h,",]
+|===
+|URI (Endpoint)   |\https://wpp-test.wirecard.com/api/payment/register
+|Username         |70000-APILUHN-CARD
+|Password         |8mhwavKVb91T
+|MAID             |`cad16b4a-abf2-450d-bcb8-1725a4cef443`
+|Secret Key       |`b3b131ad-ea7e-48bc-9e71-78d0c6ea579d`
+2+|Test Card  
+|Card Number      |4012000300001003
+|Expiration Date  |01/23
+|CVV              |003
+|3-D Verification Password |wirecard
+|===
 
-[width="100%",cols="50%,50%",]
-|====================================================================
-|*URI (Endpoint)* |https://wpp-test.wirecard.com/api/payment/register
-|*Username* |70000-APILUHN-CARD
-|*Password* |8mhwavKVb91T
-|*MAID* |`cad16b4a-abf2-450d-bcb8-1725a4cef443`
-|*Secret Key* |`b3b131ad-ea7e-48bc-9e71-78d0c6ea579d`
-|Test Card | 
-|*Card Number* |4012000300001003
-|*Expiration Date* |01/23
-|*CVV* |003
-|*3-D Verification Password* |wirecard
-|====================================================================
 
- 
-
- 
-
- 
-
-[[IntegratingWPPinSeamlessMode-1.CreateaPaymentSession]]
-1. Create a Payment Session
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
- 
-
-To create a payment session, send a *POST request* to the
-`/api/payment/register` endpoint,
-e.g. https://wpp-test.wirecard.com/api/payment/register.
-
- 
+[#WPP_Seamless_Integration_Example_InitialRequest]
+.1. Create a Payment Session 
+To create a payment session, send a *POST request* to the `/api/payment/register` endpoint,
+e.g. \https://wpp-test.wirecard.com/api/payment/register.
 
 This is an HTTP request with two headers:
 
-*Request Headers*
-
-[source,syntaxhighlighter-pre]
+.Request Headers
+[source,xml]
 ----
 Content-Type: application/json
 Authorization: Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
 ----
 
-The `Authorization `header needs to be formatted as:
-"Authorization"="Basic"  + base64(“username:password”)
+The `Authorization` header needs to be formatted as:
+"Authorization"="Basic" + base64(“username:password”)
 
  
-
-*1. Create a Payment Session (Initial Request)*
-
-[source,syntaxhighlighter-pre]
+.1. Create a Payment Session (Initial Request)
+[source,json]
 ----
 {
     "payment": {
@@ -290,204 +197,73 @@ The `Authorization `header needs to be formatted as:
 }
 ----
 
-Field (JSON)
-
-Data Type
-
-Required/Optional
-
-Size
-
-Description
-
-merchant-account-id
-
-value
-
-String
-
-Required
-
-36
-
-A unique identifier assigned to every merchant account (by Wirecard).
-
-request-id
-
-String
-
-Required
-
-64
-
-A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing it later. `{{$guid}}` serves as a
-placeholder for a random request-id.
-
-Allowed characters: +
-a - z +
-0 - 9 +
--_
-
-transaction-type
-
-String
-
-Required
-
-36
-
-The requested transaction type.
-
-requested-amount
-
-value
-
-Numeric
-
-Required
-
-18
-
-The full amount that is requested/contested in a transaction. 2 decimal
-places allowed.
-
-Use `.` (decimal point) as the separator.
-
-currency
-
-String
-
-Required
-
-3
-
-The currency of the requested/contested transaction amount.
-
-Format: 3-character abbreviation according to ISO 4217.
-
-payment-method
-
-name
-
-String
-
-Optional
-
-15
-
-The name of the payment method used. Set this value to `creditcard`.
-
-three-d
-
-attempt-tree-d
-
-Boolean
-
-Conditional
-
-N/A
-
-*Required for 3-D Secure transactions.* Indicates whether 3-D Secure
-authentication is enabled for the transaction.
-
-success-redirect-url
-
-String
-
-Optional
-
-256
-
-The URL to which the consumer is redirected after successful payment, +
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
-
-fail-redirect-url
-
-String
-
-Optional
-
-256
-
-The URL to which the consumer is redirected after unsuccessful
-payment, +
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
-
-cancel-redirect-url
-
-String
-
-Optional
-
-256
-
-The URL to which the consumer is redirected after having cancelled
-payment, +
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
-
-options
-
-mode
-
-String
-
-Required
-
-8
-
-Indicates which mode of payment page is used for the payment. Currently
-supports `embedded `and` seamless`. *Use `seamless` in this example.* +
-
-frame-ancestor
-
-String
-
-Required
-
-256
-
-The URL of the checkout page where the iframe is rendered.
-
-You must include` "options": {"mode":"seamless"} `in your request,
-otherwise WPP returns a regular payment URL that cannot be used in
-Seamless Mode.
+|===
+ 2+|Field (JSON)               |Data Type |Required/Optional |Size |Description
+
+   |merchant-account-id |value |String    |Required          |36   |A unique identifier assigned to every merchant account (by Wirecard).
+ 2+|request-id                 | String   |Required          |64   |A unique identifier assigned to every request (by merchant). Used when
+                                                                   searching for or referencing it later. `{{$guid}}` serves as a
+                                                                   placeholder for a random request-id.
+                                                                   Allowed characters: +
+                                                                   a - z +
+                                                                   0 - 9 +
+                                                                   -_
+ 2+|transaction-type           |String    |Required          |36   |The requested transaction type.
+.2+|requested-amount |value    |Numeric   |Required          |18   |The full amount that is requested/contested in a transaction. 2 decimal places allowed.
+                                                                   Use `.` (decimal point) as the separator. 
+                     |currency |String    |Required          |3    |The currency of the requested/contested transaction amount.
+                                                                   Format: 3-character abbreviation according to ISO 4217.
+   |payment-method   |name     |String    |Optional          |15   |The name of the payment method used. Set this value to `creditcard`.                                                                  
+   |three-d          |attempt-tree-d |Boolean |Conditional   |N/A  |*Required for 3-D Secure transactions.* Indicates whether 3-D Secure
+                                                                    authentication is enabled for the transaction.
+ 2+|success-redirect-url       |String    |Optional          |256  |The URL to which the consumer is redirected after successful payment,
+                                                                    e.g. \https://demoshop-test.wirecard.com/demoshop/#!/success
+ 2+|fail-redirect-url          |String    |Optional          |256  |The URL to which the consumer is redirected after successful payment,
+                                                                    e.g. \https://demoshop-test.wirecard.com/demoshop/#!/error
+ 2+|cancel-redirect-url        |String    |Optional          |256  |The URL to which the consumer is redirected after successful payment,
+                                                                    e.g. \https://demoshop-test.wirecard.com/demoshop/#!/cancel
+.2+|options          |mode     |String    |Required          |8    |Indicates which mode of payment page is used for the payment. Currently
+                                                                    supports `embedded `and` seamless`. *Use `seamless` in this example.*
+              |frame-ancestor  |String    |Required          |256  |The URL of the checkout page where the iframe is rendered.
+          
+|===
+
+[CAUTION] 
+====
+You must include `"options": {"mode":"seamless"}` in your request, otherwise WPP returns a regular payment URL that cannot be used in
+Seamless Mode. +
 
 Seamless Mode renders the payment form into an iframe. Therefore, you
-need to include `"options": {`"frame-ancestor": "url"} in the request
-with your domain as the `"url"` value. +
-If you do not send `"frame-ancestor"` in the request, browsers will
-refuse to display the payment page in the iframe due to HTTP security
-policy. +
+need to include `"options": {`"frame-ancestor": "url"}` in the request with your domain as the `"url"` value. +
+If you do not send `"frame-ancestor"` in the request, browsers will refuse to display the payment page in the iframe due to HTTP security
+policy.
+====
 
- 
 
-*Download the full integration demo from our Github*
+.Download the full integration demo from our Github
+image:images/03-01-03-01-seamless-integration-guide/github_java.png[JAVA, link="https://github.com/wirecard/wpp-integration-demo-java"]
+image:images/03-01-03-01-seamless-integration-guide/github_php.png[PHP, link="https://github.com/wirecard/wpp-integration-demo-php"]
 
-*https://github.com/wirecard/wpp-integration-demo-java[image:attachments/3704237/4391195.png[image]]https://github.com/wirecard/wpp-integration-demo-php[image:attachments/3704237/4391196.png[image]]*
 
-[[IntegratingWPPinSeamlessMode-2.RendertheSeamlessPaymentForm]]
-2. Render the Seamless Payment Form
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[#WPP_Seamless_Integration_Example_Render]
+.2. Render the Seamless Payment Form
 
 The response to the initial authorization request contains the
 `payment-``redirect-url`.
 
-*2. Response to Auhtorization Request*
-
-[source,syntaxhighlighter-pre]
+.2.Response to Authorization Request
+[source,xml]
 ----
 {
     "payment-redirect-url": "https://wpp-test.wirecard.com/seamless?wPaymentToken=XUcGTdnxwwCWPEP-YOeDmT05_hg1bKbaibLTpcdR8cU"
 }
 ----
 
- +
+Use the *`WPP.seamlessRender`* function to render the payment form in a seamless iframe. 
+Include the `payment-redirect-url` here:
 
-Use the **`WPP.seamlessRender `**function to render the payment form in
-a seamless iframe. Include the `payment-``redirect-url` here:
-
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 WPP.seamlessRender({
     url: paymentredirecturl, // this is the payment link returned in response to your initial request 
@@ -499,15 +275,16 @@ WPP.seamlessRender({
 });
 ----
 
-This function renders only the payment form! The button with which
+CAUTION: This function renders only the payment form! The button with which
 consumers confirm their payment must be part of you checkout page.
-
 Bind the function to an interactive UI element, such as a button, in
 your HTML code.
 
-*2. Render the Payment Form: Example from Wirecard Demoshop*
+.Seamless payment form rendered into `wrappingDivId`
+image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamless Payment Form]
 
-[source,syntaxhighlighter-pre]
+.2. Render the Payment Form: Example from Wirecard Demoshop
+[source,html]
 ----
 <html>
 <head>
@@ -542,30 +319,16 @@ your HTML code.
 </html>
 ----
 
-[[IntegratingWPPinSeamlessMode-]]
- 
-^
 
-[[IntegratingWPPinSeamlessMode-SeamlesspaymentformrenderedintowrappingDivId]]
-Seamless payment form rendered into `wrappingDivId`
-+++++++++++++++++++++++++++++++++++++++++++++++++++
-
-image:attachments/3704237/5406937.png[image,width=450]
-
- 
-
- 
-
-[[IntegratingWPPinSeamlessMode-3.SubmitthePayment]]
-3. Submit the Payment
-~~~~~~~~~~~~~~~~~~~~~
+[#WPP_Seamless_Integration_Example_Submit]
+.3. Submit the Payment
 
 Now the payment form has been rendered and consumers can enter their
 payment information.
 
-To submit that data, use the **`WPP`***`.seamlessSubmit`* function:
+To submit that data, use the *`WPP.seamlessSubmit`* function:
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 WPP.seamlessSubmit({
     onSuccess: function (response) { // called when seamless form data is successfully submitted
@@ -575,13 +338,12 @@ WPP.seamlessSubmit({
 });
 ----
 
-Bind the function to an interactive UI element, such as a button, in
+CAUTION: Bind the function to an interactive UI element, such as a button, in
 your HTML code. The consumer can then click the button to submit the
 payment.
 
-*3. Submit the Payment: Example from Wirecard Demoshop*
-
-[source,syntaxhighlighter-pre]
+.3. Submit the Payment: Example from Wirecard Demoshop
+[source,html]
 ----
 <html>
 <head>
@@ -635,11 +397,10 @@ payment.
 </html>
 ----
 
-*The function only submits the payment.*
+WARNING: *The function only submits the payment.*
 
-[[IntegratingWPPinSeamlessMode-3-DSecureTransactionRedirect]]
-3-D Secure Transaction Redirect
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#WPP_Seamless_Integration_Example_3DSRedirect]
+.3-D Secure Transaction Redirect
 
 For 3-D Secure transactions, WPP in Seamless Mode automatically
 redirects the consumer to the card provider 3-D Secure authentication
@@ -648,49 +409,41 @@ pages. There are no actions required from you for this process.
 After 3-D Secure authentication, the payment is further processed.
 
 Depending on the outcome, the consumer is redirected to a
-`success-/fail`-/cancel-redirect-url. As the consumer leaves your page
+`success-/fail-/cancel-redirect-url`. As the consumer leaves your page
 for 3-D Secure authentication, these URLs need to be set up in the same
-way as those for
-https://document-center.wirecard.com/display/PTD/HPP+Integration[HPP]
-and
-https://document-center.wirecard.com/display/PTD/EPP+Integration[EPP]
+way as those for <<PPSolutions_WPP_HPP_HPPintegration, HPP>> and <<PPSolutions_WPP_EPP_EPPintegration, EPP>>
 integrations.
 
+[NOTE]
+====
 This means that *for 3-D Secure Transactions, you need to include the
-`success-/fail`-/cancel-redirect-url in the initial request!* +
+`success-/fail-/cancel-redirect-url` in the initial request!
 
 URLs for successful, failed, and canceled transactions can also be set
 during the initial merchant configuration and saved in the database. If
-you would like to change these default values, please
-https://document-center.wirecard.com/display/PTD/Contact+Us[contact
-Merchant Support].
+you would like to change these default values, please contact <<ContactUs, Merchant Support>>.
 
-More information on `success-/fail`-/cancel-redirect-url configuration
-can be found in
-https://document-center.wirecard.com/display/PTD/Configuring+Redirects+and+IPNs+for+WPP[Configuring
-Redirects and IPNs for WPP].
+More information on `success-/fail-/cancel-redirect-url` configuration
+can be found in <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>.
+==== 
 
-[[IntegratingWPPinSeamlessMode-Non3-DSecureTransactionRedirect]]
-Non 3-D Secure Transaction Redirect
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#WPP_Seamless_Integration_Example_Redirect]
+.Non 3-D Secure Transaction Redirect
 
 For Non 3-D Secure transactions, any further steps, such as displaying
 success messages to your consumer, or redirecting your consumer to
 success-/fail-/cancel-pages, need to be implemented separately in your
 online shop.
 
- 
-
-[[IntegratingWPPinSeamlessMode-4.ParseandProcessthePaymentResponse(HighlyRecommended)]]
-4. Parse and Process the Payment Response (Highly Recommended)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[#WPP_Seamless_Integration_Example_Parse]
+.4. Parse and Process the Payment Response (Highly Recommended)
 
 Once you have submitted the payment, and it has been processed, you
 receive a payment response. The payment response is sent in three parts:
-the `response-signature-base64,` the` ``response-signature-algorithm`,
-and the` response-base64`.
+the `response-signature-base64,` the `response-signature-algorithm`,
+and the `response-base64`.
 
-[source,syntaxhighlighter-pre]
+[source,xml]
 ----
 Object { 
 "response-signature-base64": "9JSIJ/G4Otz6KbAJTg20LSNOcvidhgGWAPR3BMXfbxQ=", 
@@ -699,42 +452,30 @@ Object {
 }
 ----
 
-* `response-base64` contains the payment data. +
-* `response-signature-base64 `and the `response-signature-algorithm`,
-together with the Secret Key you receive upon signing a contract with
+- `response-base64` contains the payment data. 
+- `response-signature-base64 `and the `response-signature-algorithm`, together with the Secret Key you receive upon signing a contract with
 Wirecard, are required for calculating the security response signature.
 The security response signature is essential for verifying the payment
-status. * +
-Please consult
-https://document-center.wirecard.com/display/PTD/WPP+Security[WPP
-Security] for details and examples of response signature verification.*
+status. +
+*Please consult <<PPSolutions_WPP_WPPSecurity, WPP Security>> for details and examples of response signature verification.*
 
- +
-
-In Seamless Mode, the WPP sends the final response containing the
-payment data to either of the following destinations, depending on the
+In Seamless Mode, the WPP sends the final response containing the payment data to either of the following destinations, depending on the
 payment mode.
 
-[[IntegratingWPPinSeamlessMode-3-DSecureCreditCardPayment]]
-3-D Secure Credit Card Payment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[#WPP_Seamless_Integration_Example_Parse_3DS]
+.Parse and Process 3-D Secure Credit Card Payment
 
 The WPP sends the final response containing the payment data to the
-*`success-redirect-url`/`fail-redirect-url `specified in the initial
-request*. This is the URL where the consumer is redirected to at the end
+`success-redirect-url`/`fail-redirect-url` *specified in the initial request.* This is the URL where the consumer is redirected to at the end
 of a payment session.
 
 To parse and process the payment response of 3-D Secure credit card
-payment, please consult
-*https://document-center.wirecard.com/display/PTD/WPP+Security[WPP
-Security]* *for details***.**
+payment, please consult *<<PPSolutions_WPP_WPPSecurity, WPP Security>> for details.*
 
-This is the decoded payment data contained in the example payment
-response provided above.
+This is the decoded payment data contained in the example payment response provided above.
 
-*Decoded Payment Response*
-
-[source,syntaxhighlighter-pre]
+.Decoded Payment Response*
+[source,json]
 ----
 {
     "payment": {
@@ -810,301 +551,65 @@ response provided above.
 }
 ----
 
-*Field (JSON)*
-
-*Data Type*
-
-*Description*
-
-transaction-state
-
-String
-
-The current transaction state.
-
-Possible values:
-
-* `in-progress`
-* `success`
-* `failed`
-
-Typically, a transaction starts with state` in-progress` and finishes
-with state either `success` or `failed`. This information is returned in
-the response only
-
-payment-method
-
-name
-
-String
-
-The name of the payment method used for the transaction.
-
-three-d
-
- 
-
-cardholder-authentication-status
-
-String
-
- Result of the 3-D Secure check.
-
-attempt-three-d
-
-Boolean
-
- Indicates whether the transaction should use the 3-D Secure workflow.
-
-merchant-account-id
-
-value
-
-String
-
-A unique identifier assigned to every merchant account (by Wirecard).
-
-custom-field
-
-field-name
-
-String
-
-Custom field.
-
-field-value
-
-String
-
-Custom field.
-
-transaction-id
-
-String
-
-A unique identifier assigned to every transaction(by Wirecard). Used
-when searching for or referencing to it later.
-
-completion-time-stamp
-
- YYYY-MM-DD-Thh:mm:ss
-
-The UTC/ISO time-stamp documents the time & date when the transaction
-was executed. +
-Format: YYYY-MM-DDThh:mm:ss (ISO).
-
-requested-amount
-
-currency
-
-String
-
-The currency of the requested/contested transaction amount. 
-
-Format: 3-character abbreviation according to ISO 4217.
-
-value
-
-Numeric
-
-The full amount that is requested/contested in a transaction.
-
-authorization-code
-
-String
-
- Provider authorization code.
-
-csc-code
-
-String
-
-Code indicating Card Verification Value (CVV/CVC) verification results.
-
-account-holder
-
-first-name
-
-String
-
-The first name of the account holder.
-
-last-name
-
-String
-
-The last name of the account holder.
-
-card
-
- 
-
- 
-
-expiration-month
-
-Numeric
-
-The expiration month of the card used in the transaction.
-
-expiration-year
-
- Numeric
-
-The expiration year of the card used in the transaction.
-
-card-type
-
-String
-
-The type/provider of the card used in the transaction.
-
-merchant-tokenization-flag
-
-Boolean
-
-Indicates whether Cardholder card data was stored by the Merchant for
-future transactions. Maps to the Visa field __Stored Credential__.
-
-status
-
-description
-
-String
-
-The description of the transaction status message.
-
-severity
-
-String
-
-The definition of the status message.
-
-Possible values:
-
-* `information`
-* `warning`
-* `error`
-
-code
-
-String
-
-Status code of the status message.
-
-parent-transaction-id
-
-String
-
-The unique identifier of a transaction that is being referenced
-(sometimes referred to as the "original transaction").
-
-parent-transaction-amount
-
-currency
-
-String
-
-The currency of the requested/contested transaction amount. 
-
-Format: 3-character abbreviation according to ISO 4217.
-
-value
-
-Numeric
-
-The full amount that is requested/contested in a transaction.
-
-api-id
-
-String
-
-Description of the transaction for account holder’s bank statement
-purposes.
-
-iso
-
-approval-code
-
-String
-
-Authentication ID of the response
-
-card-token
-
-token-id
-
-String
-
-A unique identifier assigned to every card token.
-
-masked-account-number
-
-String
-
-The masked code that represents the account (card) number used in the
-transaction.
-
-transaction-type
-
-String
-
-The requested transaction type.
-
-request-id
-
-String
-
-A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing to it later.
-
-[[IntegratingWPPinSeamlessMode-Non3-DSecureCreditCardPayment]]
-Non 3-D Secure Credit Card Payment
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The WPP sends the final response containing the payment data *as part of
-the `onSuccess/onError` function*. Use the response to redirect the
-consumer to a success-/fail-/cancel-redirect url of your own choice and
-design to inform the consumer about the transaction status.
+.Field Table
+|===
+2+|Field (JSON)                               |Data Type  |Description
+2+|transaction-state                          |String    a|The current transaction state.
+                                                           Possible values:
+                                                           - `in-progress`
+                                                           - `success`
+                                                           - `failed`
+                                                           Typically, a transaction starts with state `in-progress` and finishes
+                                                           with state either `success` or `failed`. This information is returned in
+                                                           the response only.
+   |payment-method |name                      |String  |The name of the payment method used for the transaction.
+.2+|three-d |cardholder-authentication-status |String  |Result of the 3-D Secure check.
+            |attempt-three-d                  |Boolean |Indicates whether the transaction should use the 3-D Secure workflow.
+|merchant-account-id |value                   |String  |A unique identifier assigned to every merchant account (by Wirecard).
+.2+|custom-field |field-name                  |String  |Custom field.
+                 |field-value                 |String  |Custom field.
++2|transaction-id                             |String  |A unique identifier assigned to every transaction(by Wirecard). Used
+                                                        when searching for or referencing to it later.
++2|completion-time-stamp         |YYYY-MM-DD-Thh:mm:ss |The UTC/ISO time-stamp documents the time & date when the transaction was executed. +
+                                                        Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+|requested-amount |currency                |String  |The currency of the requested/contested transaction amount. +
+                                                        Format: 3-character abbreviation according to ISO 4217.
+                     |value                   |Numeric |The full amount that is requested/contested in a transaction.
+2+|authorization-code                         |String  |Provider authorization code.
++2|csc-code                                   |String  |Code indicating Card Verification Value (CVV/CVC) verification results.
+.2+|account-holder |first-name                |String  |The first name of the account holder.
+                   |last-name                 |String  |The last name of the account holder.
+
+.4+|card       |expiration-month              |Numeric |The expiration month of the card used in the transaction.
+               |expiration-year               |Numeric |The expiration year of the card used in the transaction.
+               |card-type                     |String  |The type/provider of the card used in the transaction.
+               |merchant-tokenization-flag    |Boolean |Indicates whether Cardholder card data was stored by the Merchant for
+                                                        future transactions. Maps to the Visa field _Stored Credential_.
+.3+|status     |description                   |String  |The description of the transaction status message.
+               |severity                      |String a|The definition of the status message. Possible values:
+                                                        - `information`
+                                                        - `warning`
+                                                        - `error`
+              |code                           |String  |Status code of the status message.
+2+|parent-transaction-id                      |String  |The unique identifier of a transaction that is being referenced
+                                                        (sometimes referred to as the "original transaction").
+.2+|parent-transaction-amount  |currency      |String  |The currency of the requested/contested transaction amount. 
+                                                        Format: 3-character abbreviation according to ISO 4217.
+                               |value         |Numeric |The full amount that is requested/contested in a transaction.
+
+2+|api-id                                     |String  |Description of the transaction for account holder’s bank statement purposes.
+.2+|card-token  |token-id                     |String  |A unique identifier assigned to every card token.
+                |masked-account-number        |String  |The masked code that represents the account (card) number used in the transaction.
+|transaction-type                             |String  |The requested transaction type.
+|request-id                                   |String  |A unique identifier assigned to every request (by merchant). Used when
+                                                        searching for or referencing to it later.
+|===
+
+[#WPP_Seamless_Integration_Example_Parse_3DS]
+.Parse and Process Non 3-D Secure Credit Card Payment
+
+The WPP sends the final response containing the payment data *as part of the `onSuccess/onError` function.* Use the response to redirect the
+consumer to a success-/fail-/cancel-redirect-url of your own choice and design to inform the consumer about the transaction status.
 
 To parse and process the payment response of Non 3-D Secure credit card
-payment, please
-consult *https://document-center.wirecard.com/display/PTD/WPP+Security[WPP]https://document-center.wirecard.com/display/PTD/WPP+Security[
-Security] for details***.** +
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/3704235.png[Shopping Chart.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/3704236.png[WD Payment Page Designer.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/3704456.png[seamless-by-matus-dominik.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/3704457.png[seamless-inside.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/4391195.png[Available_on_Github_JAVA.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/4391196.png[Available_on_Github_PHP.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/5406933.png[PPDes_1.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/5406934.png[PPDes_1_2.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/5406935.png[PPDes_2.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/5406936.png[PPDes_3.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704237/5406937.png[seamless-inside_cleanframe_2.png]
-(image/png) +
-
-[[footer]]
-Document generated by Confluence on Mar 11, 2019 10:04
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
+payment, please consult <<PPSolutions_WPP_WPPSecurity, WPP Security>>.
