@@ -39,7 +39,7 @@ the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
 [#WPP_AlipayCrossborder_About]
 ====== About _Alipay Cross-border_
 
-image:images/03-01-04-02-alipay-cross-border/alipay_crossborder_logo.png[Alipay Cross-border Logo]
+image:images/03-01-04-02-alipay-cross-border/alipay_crossborder_logo.png[Alipay Cross-border logo]
 
 Alipay is China's leading online payment service provider. It offers a
 wallet system similar to _PayPal_ and _WeChat Pay._
@@ -68,7 +68,7 @@ Merchant Credentials for Transaction Type
 |===
 
 [#WPP_AlipayCrossborder_TestCredentials_Additional]
-.Test Card Information for the _Alipay Cross-border_ Environment
+.Additional Test Credentials for the _Alipay Cross-border_ Environment
 
 [cols="35,20,45"]
 |===
@@ -99,7 +99,7 @@ holder's bank account and marks it for immediate transfer.
 For a successful debit transaction:
 
 . Create a payment session (initial debit request).
-. Redirect the customer to the payment page (initial response URL).
+. Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
 
 We provide ready-made JSON examples for each step of this process. You
@@ -110,7 +110,7 @@ transactions.
 
 .Initial Request
 
-The initial request creates the payment session. If it's
+The initial request creates the payment session. If it is
 successful, you receive a URL as a response which redirects to the
 _Alipay Cross-border_ payment form.
 
@@ -127,7 +127,7 @@ For a full list of optional fields you can use, see the REST API
 <<API_AlipayCrossBorder, _Alipay Cross-border_ specification>>.
 
 For a full structure of a request (optional fields included), see the
-<<WPP_AlipayCrossborder_JSON/NVPField, JSON/NVP Field Reference>> section.
+<<WPP_AlipayCrossborder_JSON/NVPField, JSON/NVP Field Reference>> section at the bottom.
 
 .1. Create a Payment Session (Initial Request)
 
@@ -182,8 +182,8 @@ merchant account (by Wirecard).
 (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
 
-Allowed characters:  [a - z], [0 - 9], [-_]
-2+|transaction-type |String |The requested transaction type. For Alipay Cross-border payments, transaction-type must be set to debit.
+Allowed characters:  [a-z0-9-_]
+2+|transaction-type |String |The requested transaction type. For Alipay Cross-border payments, transaction-type must be set to _debit_.
 .2+|requested-amount e|value |Numeric a|The full amount that is requested/contested in a transaction. 2 decimal digits allowed.
 
 Use . (decimal point) as the separator.
@@ -200,13 +200,13 @@ To test _Alipay Cross-border_, enter a small sum (double digit amount at most).
 |email |String |The email address of the account holder.
 2+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
 
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 2+|fail-redirect-url |String a|The URL to which the consumer is redirected after an unsuccessful payment,
 
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 2+|cancel-redirect-url |String a|The URL to which the consumer is redirected after having cancelled a payment,
 
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
 
 .2. Redirect the Consumer to the Payment Page (Initial Debit Response)
@@ -226,31 +226,31 @@ e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
 form. Sent as a response to the initial request.
 |===
 
-At this point, you need to redirect your customer to
+At this point, you need to redirect your consumer to
 ``payment-redirect-url`` (or render it in an _iframe_ depending on your
 <<PPSolutions_WPP, integration method>>﻿).
 
-The customers are redirected to the payment form. There they enter their
+The consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
-- successful (``transaction-state``: _success_),
-- failed (``transaction-state``: _failed_),
-- canceled. The customer canceled the payment before/after submission
-(``transaction-state``: _failed_).
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
 
 //-
 
 The transaction result is the value of ``transaction-state`` in the
 payment response. More details (including the status code) can also be
 found in the payment response in the ``statuses`` object. Canceled
-payments are returned as ``transaction-state``: _failed_, but the
+payments are returned as ``transaction-state: failed``, but the
 status description indicates it was canceled.
 
-In any case (unless the customer cancels the transaction on a 3rd party
-provider page), a base64 encoded response containing payment information
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64-encoded response containing payment information
 is sent to the configured redirection URL. See
 <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
-for more details on redirection targets after payment & transaction status
+for more details on redirection targets after payment and transaction status
 notifications.
 
 You can find a decoded payment response example below.
@@ -314,13 +314,13 @@ You can find a decoded payment response example below.
 2+|locale |String |A set of parameters defining language and country in the user interface.
 2+|ip-address |String |The internet protocol address of the consumer.
 2+|transaction-id |String |A unique identifier assigned for every transaction. This information is returned in the response only.
-2+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
+2+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time and date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
 .2+|requested-amount e|currency |String |The currency of the requested/contested transaction amount. For Alipay Cross-border payments, the currency must be one of the following: AUD, CAD, CHF, DKK, EUR, GBP, HKD, JPY, KRW, NOK, NZD, SEK, SGD, THB, USD.
 e|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimal digits allowed.
 
-Use "." (decimal point) as the separator.
+Use . (decimal point) as the separator.
 2+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
 2+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
 |merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by Wirecard). You receive a unique merchant account ID for each payment method.
@@ -328,33 +328,33 @@ Use "." (decimal point) as the separator.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
 
 //-
 
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed._ This information is returned in the response
 only.
-2+|transaction-type |String |The requested transaction type. For Alipay Cross-border payments, transaction-type must be set to debit.
+2+|transaction-type |String |The requested transaction type. For Alipay Cross-border payments, transaction-type must be set to _debit_.
 2+|cancel-redirect-url |String a|The URL to which the consumer is redirected after having cancelled a payment,
 
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 2+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
 
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 2+|fail-redirect-url |String a|The URL to which the consumer is redirected after an unsuccessful payment,
 
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 .3+|status e|description |String |The description of the transaction status message.
 |severity |String a|The definition of the status message.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
@@ -370,13 +370,13 @@ Possible values:
 
 
 [#WPP_AlipayCrossborder_PostProcessing]
-====== Post Processing Operations
+====== Post-Processing Operations
 
 WPP is best used to deal with one-off payments (e.g. regular,
 independent _debit_ transactions) or the initial transaction in a chain of
 them (e.g. a first _authorization_ in a chain of recurring transactions).
 However, when it comes to referencing a transaction for any kind of
-post processing operations — like a refund of one of your _debit_ transactions 
+post-processing operation — such as a refund of one of your _debit_ transactions 
 — use our <<RestApi, REST API>>﻿﻿ directly. Check the REST API
 <<API_AlipayCrossBorder, _Alipay Cross-border_ specification>> for details on
 _Alipay Cross-border_ specific post processing operations.
@@ -436,6 +436,8 @@ Here you can:
 }
 ----
 
+.Request-Only Fields
+
 [cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
@@ -482,6 +484,8 @@ Here you can:
 }
 ----
 
+.Response-Only Fields
+
 [cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
@@ -490,8 +494,8 @@ Here you can:
 |completion_time_stamp |completion-time-stamp |payment ({ })
 |parent_transaction_id |parent-transaction-id |payment ({ })
 |transaction_state |transaction-state |payment ({ })
-|status_description_n |status ([ \{} ])/ description |statuses ({ })
-|status_severity_n |status ([ \{} ])/ severity |statuses ({ })
-|status_code_n |status ([ \{} ])/ code |statuses ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
 |api_id |api-id |payment ({ })
 |===
