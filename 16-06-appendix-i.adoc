@@ -1,0 +1,181 @@
+[#AppendixI]
+=== Appendix I: Help and Support
+
+==== FAQ
+
+[#AppendixI_FAQ_RestApiIntegration]
+===== REST API Integration
+
+[#AppendixI_FAQ_Error_NoProviderAccount]
+.We receive the following response when trying to process a transaction: +
+_<status code="400.1048" description="This Merchant Account does not have a Provider Account associated with it. Please contact technical support." severity="error"/>_ +
+
+You are passing a payment method, card type, or currency that is not
+properly configured on your merchant account. Please contact your PSP to
+double-check your merchant account setup.
+
+'''''
+
+[#AppendixI_FAQ_Error_SameRequestId]
+.We keep receiving duplicate Request Id errors: +
+_<status code="400.1018" description="The same Request Id for the Merchant Account is being tried a second time. Please use another Request Id." severity="error"/>_ +
+
+The <request-id> element must be unique for every transaction. If the
+problem persists, please contact technical support as it can also be an
+indication of a technical error.
+
+'''''
+
+[#AppendixI_FAQ_HtmlInsteadOfXmlResponse]
+.When submitting and/or querying transactions, I am getting this HTML response back, but would like it to be in XML format:
+
+[source,xml]
+----
+HTTP/1.1 201 Created
+Server: nginx/1.0.14
+Date: Mon, 06 Aug 2012 05:23:58 GMT
+Content-Type: text/html;charset=UTF-8
+Connection: close
+Content-Length: 2299
+Set-Cookie: JSESSIONID=E46B646F5537821830F7DB1EFE5D77F8; Path=/engine
+Content-Language: en-US
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"... "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+        <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+                <title>Transaction Details</title>
+                <style type="text/css">
+                        table {border-collapse: collapse; font-family: verdana; font size: 11px; margin: 0 auto;}
+                        th {background-color: #ddd; padding: 5px; font-size: 13px;}
+                        td {padding: 5px;}
+                        td.label {background-color: #eee; font-weight: 900;}
+                </style>
+        </head>
+        <body>
+                <table border="1">
+                        <tr><th colspan="2"><b>Transaction Details</b></th></tr>
+                        <tr><td class="label">Transaction Identifier</td><td>ebe10c14-df86-11e1-958e-0019b9f1412f</td></tr>
+...  
+----
+
+Please ensure that the HTTP Content-Type Header to is set to "application/xml" in your request.
+
+``Content-Type: application/xml``
+
+'''''
+
+[#AppendixI_FAQ_Credentials]
+.Where do I put my username and password when sending a transaction?
+Authentication is done via Basic HTTP authentication. See
+http://en.wikipedia.org/wiki/Basic_access_authentication#Protocol for
+more information.
+
+'''''
+
+[#AppendixI_FAQ_EmptyResponse]
+.My REST transaction query is producing an empty response.
+Please double-check the <merchant-account-id> you are using. In addition,
+you must supply a valid <request-id> that references a submitted
+transaction.
+
+'''''
+
+[#AppendixI_FAQ_SubmitRecurringAuthorizationRequest]
+.How can I submit a successful recurring authorization request?
+There are 2 ways to perform recurring transactions:
+
+. By using the transaction type _referenced-authorization_ or _referenced-purchase_ for 
+subsequent/recurring transactions.
++
+.Request
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>c9cbc1f0-be3a-4264-8395-450c94d4d836</merchant-account-id>
+    <request-id>f332158b-a2f7-4067-ad66-b430fdfd4228</request-id>
+    <transaction-type>referenced-authorization</transaction-type>
+    <parent-transaction-id>48ff1d5f-9652-11e2-9b9e-00163e7f9842</parent-transaction-id>
+    <requested-amount currency="USD">10.00</requested-amount>
+<ip-address>127.0.0.1</ip-address>
+</payment>
+----
++
+.Response
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment>
+<merchant-account-id>c9cbc1f0-be3a-4264-8395-450c94d4d836</merchant-account-id>
+<transaction-id>4b37efd8-9652-11e2-9b9e-00163e7f9842</transaction-id>
+<request-id>f332158b-a2f7-4067-ad66-b430fdfd4228</request-id>
+<transaction-type>referenced-authorization</transaction-type>
+<transaction-state>success</transaction-state>
+<completion-time-stamp>2013-03-26T20:18:16.904Z</completion-time-stamp>
+<statuses>
+    <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+</statuses>
+<requested-amount currency="USD">10.00</requested-amount>
+<card-token>
+    <token-id>4557271468161111</token-id>
+    <masked-account-number>444433******1111</masked-account-number>
+</card-token>
+<ip-address>127.0.0.1</ip-address>
+<payment-methods>
+    <payment-method name="creditcard"/>
+</payment-methods>
+<authorization-code>153620</authorization-code>
+</payment>
+----
++
+. By leveraging the token information from the initial
+transaction response to do subsequent/recurring transactions.
++
+.Request
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">  
+    <merchant-account-id>c9cbc1f0-be3a-4264-8395-450c94d4d836</merchant-account-id>  
+    <request-id>28570960-09c6-41b6-bc37-bad59f40ba6e</request-id>  
+    <transaction-type>authorization</transaction-type>  
+    <requested-amount currency="USD">2.00</requested-amount>  
+    <account-holder>  
+        <first-name>John</first-name>  
+        <last-name>Doe</last-name>  
+    </account-holder>  
+    <card-token>  
+        <token-id>4557271468161111</token-id>  
+    </card-token>  
+    <ip-address>127.0.0.1</ip-address> 
+</payment>
+----
++
+.Response
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?> 
+<payment>  
+    <merchant-account-id>c9cbc1f0-be3a-4264-8395-450c94d4d836</merchant-account-id>  
+    <transaction-id>c1b4be6e-9654-11e2-9b9e-00163e7f9842</transaction-id>  
+    <request-id>28570960-09c6-41b6-bc37-bad59f40ba6e</request-id>  
+    <transaction-type>authorization</transaction-type>  
+    <transaction-state>success</transaction-state> 
+    <completion-time-stamp>2013-03-26T20:35:56.416Z</completion-time-stamp>  
+    <statuses>  
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>  
+    </statuses>  
+    <requested-amount currency="USD">2.00</requested-amount>  
+    <card-token>  
+        <token-id>4557271468161111</token-id>  
+    </card-token>  
+    <ip-address>127.0.0.1</ip-address>  
+    <descriptor>graypay Amazon</descriptor>  
+    <authorization-code>153620</authorization-code> 
+</payment>
+----
+
+//-
