@@ -589,21 +589,19 @@ Possible values:
 [#WPP_SEPADirectDebit_B2BScheme]
 ====== B2B Scheme
 
-
-
 To use the SEPA B2B scheme for Direct Debit, add the ``b2-b`` field to the
 request and set its value to ``true``.
 
 The default value is ``false`` so unless you send this field in the
-request as ``true``, the payment proceeds with the default scheme. For
-more information regarding SEPA schemes,
-click *https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPADirectDebit-B2B[here]*.
+request as ``true``, the payment proceeds with the default scheme.
 
- 
+NOTE: For more information on SEPA schemes, click
+<<SEPADirectDebit_Samples_Debit_B2b, here>>.
 
-*SEPA DD Example Request with B2B Scheme Enabled*
 
-[source,syntaxhighlighter-pre]
+.SEPA Direct Debit Example Request with B2B Scheme Enabled
+
+[source,json]
 ----
 {
 "payment":{  
@@ -632,184 +630,64 @@ click *https://document-center.wirecard.com/display/PTD/SEPA+Direct+Debit#SEPAD
 }
 ----
 
- 
+[cols="15e,10,10,10,5,50"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
 
- 
+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned to every merchant account (by Wirecard).
+2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later. ``{{$guid}}`` serves as a
+placeholder for a random ``request-id``.
 
- 
+Allowed characters:  [a-z0-9-_]
+2+| transaction-type          | String | Required | 36 | The requested transaction type.
+.2+| requested-amount e| value | Numeric | Required | 11 | The full amount that is requested/contested in a transaction. 2 decimal
+places allowed.
 
- 
+Use . (decimal point) as the separator.
 
- 
+                       | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For SEPA Direct Debit
+                         payments, the currency must be set to ``EUR``.
 
-*Field (JSON)*
-
-*Data Type*
-
-*Required/* +
-*Optional*
-
-*Size*
-
-*Description*
-
-merchant-account-id
-
-value
-
-String
-
-Required
-
-36
-
-A unique identifier assigned to every merchant account (by Wirecard).
-
-request-id
-
-String
-
-Required
-
-64
-
-A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing it later. `{{$guid}}` serves as a
-placeholder for a random request-id.
-
-Allowed characters: +
-a - z +
-0 - 9 +
--_
-
-transaction-type
-
-String
-
-Required
-
-36
-
-The requested transaction type.
-
-requested-amount
-
-value
-
-Numeric
-
-Required
-
-11
-
-The full amount that is requested/contested in a transaction. 2 decimals
-allowed.
-
-Use `.` (decimal point) as the separator.
-
-currency
-
-String
-
-Required
-
-3
-
-The currency of the requested/contested transaction amount. For SEPA
-Direct Debit payments, the currency must be set to*** ***`EUR`.
-
-Format: 3-character abbreviation according to ISO 4217.
-
-payment-method
-
-name
-
-String
-
-Optional
-
-15
-
-The name of the payment method used for the transaction. Set this value
-to `sepadirectdebit`.
-
-mandate-id
-
-String
-
-Required
-
-35
-
-The ID of the Direct Debit mandate. You must generate this value
+Format: 3-character abbreviation according to ISO 4217.                         
+| payment-method      e| name     | String | Optional | 15 | The name of the payment method used. Set this value to ``sepadirectdebit``.
+2+| mandate-id         | String | Required | 35 | The ID of the Direct Debit mandate. You must generate this value
 yourself.
+2+| creditor-id        | String | Required | 35 | The Creditor ID of the merchant.
+2+| b2-b | Boolean | Conditional | N/A | *Required for B2B payments.* Indicates whether the B2B scheme is used for the payment.
+|===
 
-creditor-id
-
-String
-
-Required
-
-35
-
-The Creditor ID of the merchant.
-
-b2-b
-
-Boolean
-
-Conditional
-
-N/A
-
-*Required for B2B payments.* Indicates whether the B2B scheme is used
-for the payment.
-
-'''''
-
-[[SEPADirectDebitwithWPP-PostProcessingOperations]]
-Post Processing Operations 
----------------------------
-
-{empty}[[SEPADirectDebitwithWPP-Follow-up]]
-
-Use our link:REST-API_786616.html[REST API] for any post processing
-operations. Check the REST API link:SEPA-Direct-Debit_3703429.html[SEPA
-Direct Debit specification] for details on SEPA Direct Debit
-transactions.
-
-WPP is best used to deal with "one-off" payments (e.g. regular,
-independent debit transactions) or the initial transaction in a chain of
-them (e.g. a first authorization in a chain of recurring transactions).
+ 
+[#WPP_SEPADirectDebit_PostProcessing]
+====== Post-Processing Operations 
+ 
+WPP is best used to deal with one-off payments (e.g. regular,
+independent _debit_ transactions) or the initial transaction in a chain of
+them (e.g. a first _authorization_ in a chain of recurring transactions).
 However, when it comes to referencing a transaction for any kind of
-follow-up — like a refund of one of your debit transactions — use
-our link:REST-API_786616.html[REST API] directly.
+post-processing operation — such as a refund of one of your _debit_ transactions 
+— use our <<RestApi, REST API>>﻿﻿ directly.
 
-For SEPA Direct Debit, there is only one post processing operation
-available:
+WARNING: A direct refund through WPP is not possible for _SEPA Direct Debit_ so you have to
+obtain your consumer's banking information and send the refund using
+SEPA Credit Transfer. +
+Check the REST API <<SEPACreditTransfer, _SEPA Credit Transfer_ specification>> for details on
+_SEPA Direct Debit_ specific post processing operations.
 
-* a refund, via SEPA Credit Transfer.
 
-A direct refund through WPP is not possible for SEPA Direct Debit so you
-have to obtain your consumer's banking information and send the refund
-using SEPA Credit Transfer. For examples and more information, see
-the REST API link:SEPA-Credit-Transfer_3703420.html[specification for
-SEPA Credit Transfer]. 
-
-'''''
-
-[[SEPADirectDebitwithWPP-Field-referenceJSON/NVPFieldReference]]
-[[SEPADirectDebitwithWPP-Field-reference]]JSON/NVP Field Reference
-------------------------------------------------------------------
+[#WPP_SEPADirectDebit_JSON_NVPFields]
+====== JSON/NVP Field Reference
 
 Here you can:
 
-* find the NVP equivalents for JSON fields (for migrating merchants),
-* or see the structure of a full request (optional fields included).
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
 
-*JSON Request Structure for SEPA Direct Debit*
+//-
 
-[source,syntaxhighlighter-pre]
+.JSON Structure for SEPA Direct Debit Requests
+
+[source,json]
 ----
 {
 "payment":{  
@@ -854,34 +732,36 @@ Here you can:
 }
 ----
 
-[cols=",,",]
-|=================================================================
-|*Field (NVP)* |*Field (JSON)* |*JSON Parent*
-|merchant_account_id |value |merchant-account-id (\{ })
-|request_id |request-id |payment (\{ })
-|transaction_type |transaction-type |payment (\{ })
+[#WPP_SEPADirectDebit_JSON_NVPFields_Request]
+
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
 |requested_amount |value |requested-amount (\{ })
-|requested_amount_currency |currency |requested-amount (\{ })
-|first_name |first-name |account-holder (\{ })
-|last_name |last-name |account-holder (\{ })
-|payment_method |payment-method ([ ])/name |payment-methods (\{ })
-|bank_account_iban |iban |bank-account (\{ })
-|mandate_mandate_id |mandate-id |mandate (\{ })
-|mandate_signed_date |signed-date |mandate (\{ })
-|creditor_id |creditor-id |payment (\{ })
-|periodic_type |periodic-type |periodic (\{ })
-|sequence_type |sequence-type |periodic (\{ })
-|success_redirect_url |success-redirect-url |payment (\{ })
-|fail_redirect_url |fail-redirect-url |payment (\{ })
-|cancel_redirect_url |cancel-redirect-url |payment (\{ })
-|b2b |b2-b |payment (\{ })
-|=================================================================
+|requested_amount_currency |currency |requested-amount ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|bank_account_iban |iban |bank-account ({ })
+|mandate_mandate_id |mandate-id |mandate ({ })
+|mandate_signed_date |signed-date |mandate ({ })
+|creditor_id |creditor-id |payment ({ })
+|periodic_type |periodic-type |periodic ({ })
+|sequence_type |sequence-type |periodic ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|b2b |b2-b |payment ({ })
+|===
 
-[[SEPADirectDebitwithWPP-Response-onlyFields]]
-Response-only Fields
-~~~~~~~~~~~~~~~~~~~~
 
-[source,syntaxhighlighter-pre]
+.Response-Only Fields
+
+[source,json]
 ----
 {
 "payment": { 
@@ -900,40 +780,29 @@ Response-only Fields
     },
  "api-id": "string"
 }
+}
 ----
 
-[cols=",,",]
-|=======================================================================
-|*Field (NVP)* |*Field (JSON)* |*JSON Parent*
 
-|provider_transaction_reference_id |provider-transaction-reference-id
-|payment (\{ })
+[#WPP_SEPADirectDebit_JSON_NVPFields_Response]
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
 
-|transaction_state |transaction-state |payment (\{ })
+| provider_transaction_reference_id | provider-transaction-reference-id |payment ({ })
 
-|transaction_id |transaction-id |payment (\{ })
+| transaction_state | transaction-state | payment ({ })
 
-|completion_time_stamp |completion-time-stamp |payment (\{ })
+| transaction_id | transaction-id | payment ({ })
 
-|status_code_n |status ([ \{} ])/ code |statuses (\{ })
+| completion_time_stamp | completion-time-stamp | payment ({ })
 
-|status_description_n |status ([ \{} ])/ description |statuses (\{ })
+| status_code_n | status ([ {} ])/ code | statuses ({ })
 
-|status_severity_n |status ([ \{} ])/ severity |statuses (\{ })
+| status_description_n | status ([ {} ])/ description |statuses ({ })
 
-|api_id |api-id |payment (\{ })
-|=======================================================================
+| status_severity_n | status ([ {} ])/ severity |statuses ({ })
 
-Attachments:
-~~~~~~~~~~~~
+| api_id | api-id |payment ({ })
+|===
 
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704252/4391157.png[SepaLogoEN.png] (image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704252/4391158.jpg[SEPA.jpg] (image/jpeg) +
-
-[[footer]]
-Document generated by Confluence on Feb 06, 2019 10:33
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
