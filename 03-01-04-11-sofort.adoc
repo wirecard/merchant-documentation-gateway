@@ -14,7 +14,8 @@ a step-by-step guide before continuing.
 All <<PPSolutions_WPP, WPP>> integrations share a
 <<PPSolutions_WPP_Workflow, common process flow>>﻿ for creating payments.
 
-Below, you find example requests for all available transaction types, 
+Below, you find example requests for the available transaction type
+<<WPP_Sofort_TransactionType_debit, _debit_>>, 
 including field lists with short descriptions.
 
 These requests are designed for the testing environment and do not
@@ -39,17 +40,20 @@ the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
 image::images/03-01-04-11-sofort/sofort_logo.png[Sofort logo, 200]
 
 Sofort GmbH is a payment service provider which has been part of the Klarna Group since 2014.
-_Sofort_ (also known as Pay now with Klarna) allows consumers to make online purchases 
-using their online banking details. Merchants get a real-time transfer confirmation, and can 
+_Sofort_ (also known as Pay now with Klarna) allows consumers to make online purchases
+using their online banking details. Merchants get a real-time transfer confirmation, and can
 dispatch their goods straight away.
 
 
 [#WPP_Sofort_TestCredentials]
 ====== Test Credentials
 
+Test credentials for the transaction type
+<<WPP_Sofort_TransactionType_debit, _debit_>>.
+
 [cols="35h,65"]
 |===
-| URI (Endpoint)             | ``\https://wpp-test.wirecard.com/api/payment/register``
+| URL (Endpoint)             | ``\https://wpp-test.wirecard.com/api/payment/register``
 | Merchant Account ID (MAID) | f19d17a2-01ae-11e2-9085-005056a96a54
 | Username                   | 70000-APITEST-AP
 | Password                   | qD2wzQ_hrc!8
@@ -57,7 +61,7 @@ dispatch their goods straight away.
 |===
 
 [#WPP_Sofort_TestCredentials_Sandbox]
-.Testing Credentials for Sofort. Sandbox
+.Testing Credentials for _Sofort._ Sandbox
 
 [cols="35h,65"]
 |===
@@ -65,7 +69,7 @@ dispatch their goods straight away.
 | User ID/password/TAN/other | Arbitrary (4 characters minimum)
 |===
 
-NOTE: On Sofort. testing environment, use the sort code *00000* or the name
+NOTE: On _Sofort._ testing environment, use the sort code *00000* or the name
 "Demo Bank" when prompted. For other credentials (User ID, password,
 TAN) any number/text will do as long as it is at least 4 characters long.
 
@@ -110,7 +114,7 @@ For a full list of optional fields you can use, see the REST API
 <<Sofort, _Sofort_ specification>>.
 
 For a full structure of a request (optional fields included), see the
-<<WPP_Sofort_JSON/NVPFields, JSON/NVP Field Reference>> section at the bottom.
+<<WPP_Sofort_JSON/NVPFields, JSON/NVP Field Reference>>.
 
 .1. Create a Payment Session (Initial Request)
 
@@ -123,7 +127,7 @@ For a full structure of a request (optional fields included), see the
         },
         "request-id":"{{$guid}}",
         "transaction-type": "debit",
-        "requested-amount": {         
+        "requested-amount": {
             "value": "10.1",
             "currency": "EUR"
         },
@@ -133,10 +137,10 @@ For a full structure of a request (optional fields included), see the
                 "name": "sofortbanking"
             }
             ]
-        },          
+        },
         "descriptor": "test",
         "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/success",
-        "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error",        
+        "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error",
         "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/cancel"
     }
 }
@@ -162,15 +166,18 @@ Use . (decimal point) as the separator.
                        | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For Sofort
                          payments, the currency must be set to ``EUR``.
 
-Format: 3-character abbreviation according to ISO 4217.                         
+Format: 3-character abbreviation according to ISO 4217.
 | payment-method      e| name     | String | Required | 15 | The name of the payment method used. Set this value to ``sofortbanking``.
 2+| descriptor                   | String | Optional | 100 | Description of the transaction for account holder's bank statement
 purposes. 
-2+| success-redirect-url         | String | Required | 2000 | The URL to which the consumer is redirected after a successful payment,
+2+| success-redirect-url         | String | Required | 2000 a| The URL to which the consumer is redirected after a successful payment,
+
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
-2+| fail-redirect-url            | String | Required | 2000 | The URL to which the consumer is redirected after a failed payment, 
+2+| fail-redirect-url            | String | Required | 2000 a| The URL to which the consumer is redirected after a failed payment,
+
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
-2+| cancel-redirect-url          | String | Required | 2000 | The URL to which the consumer is redirected after having canceled a payment, 
+2+| cancel-redirect-url          | String | Required | 2000 a| The URL to which the consumer is redirected after having canceled a payment,
+
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
 
@@ -280,7 +287,7 @@ when searching for or referencing to it later.
 .3+| status e| code | String | Status code of the status message.
             | description | String | The description of the transaction status message.
             | severity    | String a| The definition of the status message.
-            
+
 Possible values:
 
 - ``information``
@@ -293,7 +300,7 @@ Possible values:
                     | last-name  | String | The last name of the account holder.
 2+| request-id | String | A unique identifier assigned to every request (by merchant). Used when
 searching for or referencing it later.
-.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount. For 
+.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount. For
 _Sofort_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
@@ -321,7 +328,7 @@ was executed. +
 Format: YYYY-MM-DDThh:mm:ss (ISO).
 2+| cancel-redirect-url | String | The URL to which the consumer is redirected after having canceled a
 payment, e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
-2+| fail-redirect-url | String | The URL to which the consumer is redirected after a failed payment, 
+2+| fail-redirect-url | String | The URL to which the consumer is redirected after a failed payment,
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 2+| transaction-type | String | The requested transaction type. For _Sofort_ payments, the
 transaction-type must be set to ``debit``.
@@ -366,7 +373,7 @@ Here you can:
         },
         "request-id":"string",
         "transaction-type": "string",
-        "requested-amount": {         
+        "requested-amount": {
             "value": 0,
             "currency": "string"
         },
@@ -380,10 +387,10 @@ Here you can:
         "account-holder" : {
             "first-name" : "string",
             "last-name" : "string"
-        },          
+        },
         "descriptor": "string",
         "success-redirect-url": "string",
-        "fail-redirect-url": "string",  
+        "fail-redirect-url": "string",
         "cancel-redirect-url": "string"
     }
 }
@@ -418,12 +425,12 @@ Here you can:
   "transaction-id" : "string",
   "transaction-state" : "string",
   "completion-time-stamp" : "2018-03-23T10:41:34",
-  "api-id" : "string",  
+  "api-id" : "string",
   "statuses" : {
     "status" : [ {
       "description" : "string",
       "severity" : "string",
-      "code" : "string"      
+      "code" : "string"
     } ]
   }
   }
