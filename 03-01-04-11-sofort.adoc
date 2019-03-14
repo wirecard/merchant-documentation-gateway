@@ -272,150 +272,92 @@ You can find a decoded payment response example below.
 
 2+| descriptor   | String    | Description of the transaction for account holder's bank statement
 purposes.
-| payment-method | name | String | The name of the payment method used.
+| payment-method e| name | String | The name of the payment method used.
 2+| parent-transaction-id | String | The ID of the transaction being referenced as a parent.
 2+| api-id       | String | Identifier of the currently used API.
 2+| transaction-id | String | A unique identifier assigned to every transaction (by Wirecard). Used
 when searching for or referencing to it later.
-.3+| status | code | String | Status code of the status message.
+.3+| status e| code | String | Status code of the status message.
             | description | String | The description of the transaction status message.
-            | severity    | String | The definition of the status message.
+            | severity    | String a| The definition of the status message.
             
 Possible values:
 
-* ``information``
-* ``warning``
-* ``error``
+- ``information``
+- ``warning``
+- ``error``
 
-.2+| account-holder | first-name | String | The first name of the account holder.
+//-
+
+.2+| account-holder e| first-name | String | The first name of the account holder.
                     | last-name  | String | The last name of the account holder.
-2+| request-id | String
-
-A unique identifier assigned to every request (by merchant). Used when
+2+| request-id | String | A unique identifier assigned to every request (by merchant). Used when
 searching for or referencing it later.
-
-requested-amount
-
-currency
-
-String
-
-The currency of the requested/contested transaction amount. For **
-Sofort. ** payments, the currency must be set to `EUR`.
+.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount. For 
+_Sofort_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
-
-value
-
-Numeric
-
-The full amount that is requested/contested in a transaction.
-
-transaction-state
-
-String
-
-The current transaction state.
+                      | value    | Numeric | The full amount that is requested/contested in a transaction.
+2+| transaction-state | String a| The current transaction state.
 
 Possible values:
 
-* `in-progress`
-* `success`
-* `failed`
+- ``in-progress``
+- ``success``
+- ``failed``
 
-Typically, a transaction starts with state` in-progress` and finishes
-with state either `success` or `failed`. This information is returned in
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes
+with state either _success_ or _failed_. This information is returned in
 the response only.
 
-success-redirect-url
-
-String
-
-The URL to which the consumer is redirected after a successful
-payment, +
-e.g. `https://demoshop-test.wirecard.com/demoshop/#!/success`
-
-merchant-account-id
-
-value
-
-String
-
-A unique identifier assigned to every merchant account (by Wirecard).
-
-completion-time-stamp
-
-YYYY-MM-DD-Thh:mm:ss
-
-The UTC/ISO time-stamp documents the time & date when the transaction
+2+| success-redirect-url | String | The URL to which the consumer is redirected after a successful
+payment, e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
+| merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by Wirecard).
+2+| completion-time-stamp | YYYY-MM-DD-Thh:mm:ss | The UTC/ISO time-stamp documents the time and date when the transaction
 was executed. +
+
 Format: YYYY-MM-DDThh:mm:ss (ISO).
+2+| cancel-redirect-url | String | The URL to which the consumer is redirected after having canceled a
+payment, e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
+2+| fail-redirect-url | String | The URL to which the consumer is redirected after a failed payment, 
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
+2+| transaction-type | String | The requested transaction type. For _Sofort_ payments, the
+transaction-type must be set to ``debit``.
+|===
 
-cancel-redirect-url
 
-String
+[#WPP_Sofort_PostProcessing]
+====== Post Processing Operations 
 
-The URL to which the consumer is redirected after having canceled a
-payment, +
-e.g. `https://demoshop-test.wirecard.com/demoshop/#!/cancel`
-
-fail-redirect-url
-
-String
-
-The URL to which the consumer is redirected after a failed payment, +
-e.g. `https://demoshop-test.wirecard.com/demoshop/#!/error`
-
-transaction-type
-
-String
-
-The requested transaction type. For Sofort. payments, the
-transaction-type must be set to `debit`.
-
-'''''
-
-[[Sofort.withWPP-PostProcessingOperations]]
-Post Processing Operations 
----------------------------
-
-{empty}[[Sofort.withWPP-Follow-up]]
-
-Use our link:REST-API_786616.html[REST API] for any post processing
-operations. Check the REST API link:Sofort._786562.html[Sofort.
-specification] for details on Sofort. specific transactions.
-
-WPP is best used to deal with "one-off" payments (e.g. regular,
-independent debit transactions) or the initial transaction in a chain of
-them (e.g. a first authorization in a chain of recurring transactions).
+WPP is best used to deal with one-off payments (e.g. regular,
+independent _debit_ transactions) or the initial transaction in a chain of
+them (e.g. a first _authorization_ in a chain of recurring transactions).
 However, when it comes to referencing a transaction for any kind of
-follow-up — like a refund of one of your debit transactions — use
-our link:REST-API_786616.html[REST API] directly.
+post-processing operation — such as a refund of one of your _debit_ transactions 
+— use our <<RestApi, REST API>>﻿﻿ directly.
 
-For Sofort., there is only one post processing operation available:
-
-* a refund, via SEPA Credit Transfer.
-
-A direct refund through WPP is not possible for Sofort. so you have to
+WARNING: A direct refund through WPP is not possible for Sofort so you have to
 obtain your consumer's banking information and send the refund using
-SEPA Credit Transfer. For examples and more information, see the REST
-API https://document-center.wirecard.com/display/PREPTD/SEPA+Credit+Transfer[specification
-for SEPA Credit Transfer]. 
+SEPA Credit Transfer. +
+Check the REST API <<SEPACreditTransfer, _SEPA Credit Transfer_ specification>> for details on
+_Sofort_ specific post processing operations.
 
-'''''
 
-[[Sofort.withWPP-Field-referenceJSON/NVPFieldReference]]
-[[Sofort.withWPP-Field-reference]]JSON/NVP Field Reference
-----------------------------------------------------------
+[#WPP_Sofort_JSON_NVPField]
+====== JSON/NVP Field Reference
 
 Here you can:
 
-* find the NVP equivalents for JSON fields (for migrating merchants),
-* or see the structure of a full request (optional fields included).
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
 
-*JSON Structure for Sofort. Requests*
+//-
 
-[source,syntaxhighlighter-pre]
+.JSON Structure for Sofort. Requests
+
+[source,json]
 ----
  {
     "payment": {
@@ -447,30 +389,28 @@ Here you can:
 }
 ----
 
-[cols=",,",]
-|=================================================================
-|*Field (NVP)* |*Field (JSON)* |*JSON Parent*
-|merchant_account_id |value |merchant-account-id (\{ })
-|request_id |request-id |payment (\{ })
-|transaction_type |transaction-type |payment (\{ })
-|requested_amount |value |requested-amount (\{ })
-|requested_amount_currency |currency |requested-amount (\{ })
-|payment_method |payment-method ([ ])/name |payment-methods (\{ })
-|first_name |first-name |account-holder (\{ })
-|last_name |last-name |account-holder (\{ })
-|descriptor |descriptor |payment (\{ })
-|success_redirect_url |success-redirect-url |payment (\{ })
-|fail_redirect_url |fail-redirect-url |payment (\{ })
-|cancel_redirect_url |cancel-redirect-url |payment (\{ })
-|=================================================================
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
 
-[[Sofort.withWPP-Response-onlyFields]]
-Response-only Fields
-~~~~~~~~~~~~~~~~~~~~
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount |value |requested-amount ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|descriptor |descriptor |payment ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|===
 
- 
 
-[source,syntaxhighlighter-pre]
+.Response-Only Fields
+
+[source,json]
 ----
 {
 "payment": {
@@ -489,33 +429,16 @@ Response-only Fields
 }
 ----
 
- 
 
- 
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
 
-[cols=",,",]
-|====================================================================
-|*Field (NVP)* |*Field (JSON)* |*JSON Parent*
-|transaction_id |transaction-id |payment (\{ })
-|transaction_state |transaction-state |payment (\{ })
-|completion_time_stamp |completion-time-stamp |payment (\{ })
-|api_id |api-id |payment (\{ })
-|status_description_n |status ([ \{} ])/ description |statuses (\{ })
-|status_severity_n |status ([ \{} ])/ severity |statuses (\{ })
-|status_code_n |status ([ \{} ])/ code |statuses (\{ })
-|====================================================================
-
-Attachments:
-~~~~~~~~~~~~
-
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704254/4391144.png[Logo_Klarna_PayNow_128x192.png]
-(image/png) +
-image:images/icons/bullet_blue.gif[image,width=8,height=8]
-link:attachments/3704254/4391145.jpg[sofort.jpg] (image/jpeg) +
-
-[[footer]]
-Document generated by Confluence on Feb 06, 2019 10:33
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
+|transaction_id |transaction-id |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|api_id |api-id |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
+|===
