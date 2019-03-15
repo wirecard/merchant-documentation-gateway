@@ -18,27 +18,20 @@ a step-by-step guide before continuing.
 All <<PPSolutions_WPP, WPP>> integrations share a
 <<PPSolutions_WPP_Workflow, common process flow>>﻿ for creating payments.
 
-Below, you find an example request for the ``debit`` transaction type,
+Below, you find an example request for the available transaction type
+<<WPP_Bancontact_TransactionType_debit, _debit_>>,
 including field lists with short descriptions.
 
-You need to complete these requests with your production credentials.
+NOTE: You need to complete these requests with your production credentials.
 You receive your credentials with your Wirecard contract. If you
-need your production credentials, contact our <<ContactUs, merchant support>>.
+need your production credentials, contact <<ContactUs, merchant support>>.
 
-////
-As combining Test data with production data is a very payment method specific
-issue, I'd rather put the sentence in line 24 to 26 in an infobox. And somehow
-combine it with the info given in lines 103, 104.
-////
-
-.Testing _Bancontact_
-
-////
-Why not providing this information in the section "Test Credentials"?
-////
+|===
+Testing _Bancontact_
 
 _Bancontact_ does not offer a payment testing sandbox.
 You need to test transactions with your production credentials.
+|===
 
 For more details on the ``redirect-url``, see the 
 <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿ 
@@ -50,7 +43,7 @@ the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
 [#WPP_Bancontact_About]
 ====== About _Bancontact_
 
-image::images/03-01-04-03-bancontact/bancontact_logo.png[Bancontact Logo,height=150]
+image::images/03-01-04-03-bancontact/bancontact_logo.png[Bancontact logo, 200]
 _Bancontact_ is the most popular online payment method in Belgium. It is
 used in more than 80% of Belgian web shops. It allows consumers to pay with
 Belgian credit cards.
@@ -77,12 +70,13 @@ Test Credentials for Transaction Type
 
 [cols="35h,65"]
 |===
-| URL(s) Endpoints           | ``\https://wpp-test.wirecard.com/api/payment/register``
+| URL (Endpoint)           | ``\https://wpp-test.wirecard.com/api/payment/register``
 | Merchant Account ID (MAID) | 86f03c98-6691-421d-94c8-232c3d5c2573
 | Username                   | 16390-testing
 | Password                   | 3!3013=D3fD8X7
 | Secret Key (used for response verification) | 2341ae35-aa13-4511-95d5-acd80f0fcb52
 |===
+
 
 [#WPP_Bancontact_TransactionType_debit]
 ====== Transaction Type _debit_
@@ -103,16 +97,7 @@ them below.
 
 <<WPP_Bancontact_TestCredentials, Endpoint>> for _Bancontact_ transactions.
 
-.Production/Live
-
-Please contact our <<ContactUs, merchant support>> for your production
-credentials.
-
-////
-Here we need a slightly different description, as we claim in the lines 24 - 31 that
-production credentials are essential to run a successful test. I will get in
-touch with the responsible BA to see what we can do here.
-////
+.Initial Request
 
 This example is an initial request which creates the payment session. If
 it is successful, you receive a URL as a response, which redirects to
@@ -174,9 +159,9 @@ to every merchant account (by Wirecard).
 (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
 
-Allowed characters:  [a - z], [0 - 9], [-_]
+Allowed characters:  [a-z0-9-_]
 3+|transaction-type |String |Required |36 |The requested transaction type. For
-Bancontact payments, the transaction-type must be set to ``debit``.
+_Bancontact_ payments, the ``transaction-type`` must be set to ``debit``.
 .2+|requested-amount  2+e|value |Numeric |Required |18 a|The full amount that is
 requested/contested in a transaction. 2 decimal digits allowed.
 
@@ -192,13 +177,10 @@ payment method used. Set this value to ``bancontact``.
 .2+|account-holder 2+e|first-name |String |Optional |32 |The first name of the account holder.
 2+|last-name |String |Requested |32 |The last name of the account holder.
 3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after a failed payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
 
@@ -220,24 +202,24 @@ form. Sent as a response to the initial request.
 |===
 
 At this point, you need to redirect your consumer to
-``payment-redirect-url`` (or render it in an ``iframe`` depending on your
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
 <<PPSolutions_WPP, integration method>>﻿).
 
-The consumers are redirected to the payment form. There they enter their
+Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
-- successful (``transaction-state``: _success_),
-- failed (``transaction-state``: _failed_),
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
 - canceled. The consumer canceled the payment before/after submission
-(``transaction-state``: _failed_).
+(``transaction-state: failed``).
 
 //-
 
 The transaction result is the value of ``transaction-state`` in the
 payment response. More details (including the status code) can also be
 found in the payment response in the ``statuses`` object. Canceled
-payments are returned as ``transaction-state``: _failed_, but the
-status description indicates it was canceled.
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
 
 In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
@@ -248,7 +230,7 @@ notifications.
 
 You can find a decoded payment response example below.
 
-.3. Parse and Process the Payment Response (Decoded Payment Response)*
+.3. Parse and Process the Payment Response (Decoded Payment Response)
 
 [source,json]
 ----
@@ -299,7 +281,7 @@ You can find a decoded payment response example below.
 merchant account (by Wirecard).
 3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
 3+|transaction-type |String |The requested transaction type. For _Bancontact_
-payments, the transaction-type must be set to ``debit``.
+payments, the ``transaction-type`` must be set to ``debit``.
 3+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
 |payment-methods e|payment-method e|name |String |The name of the payment method used.
 3+|transaction-state |String a|The current transaction state.
@@ -310,18 +292,18 @@ Possible values:
 - ``success``
 - ``failed``
 
-Typically, a transaction starts with state ``in-progress`` and finishes with
-state either ``success`` or ``failed``. This information is returned in the response
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
 only.
-3+|transaction-id |String |A unique identifier assigned to every transaction(by Wirecard). Used when searching for or referencing to it later.
+3+|transaction-id |String |A unique identifier assigned to every transaction (by Wirecard). Used when searching for or referencing to it later.
 3+|completion-time-stamp | YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
-.2+|requested-amount 2+|currency |String a|The currency of the requested/contested transaction amount. For Bancontact payments, the currency must be set to ``EUR``.
+.2+|requested-amount 2+e|currency |String a|The currency of the requested/contested transaction amount. For _Bancontact_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
 2+|value |Numeric |The full amount that is requested/contested in a transaction.
-.3+|statuses .3+|status |description |String |The description of the transaction
+.3+|statuses .3+e|status e|description |String |The description of the transaction
 status message.
 |severity |String a|The definition of the status message.
 
@@ -336,12 +318,9 @@ Possible values:
 |code |String |Status code of the status message.
 3+|api-id |String |Identifier of the currently used API.
 3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 3+|cancel-redirect-url |String |The URL to which the consumer is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 3+|fail-redirect-url |String |The URL to which the consumer is redirected after a failed payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
