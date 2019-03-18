@@ -1,0 +1,405 @@
+[#PaymentPageSolutions_WPP_EPP_Integration]
+===== EPP Integration Guide
+
+.Download the full integration demo from our GitHub
+image:images/03-01-02-01-epp-integration-guide/Available_on_Github_JAVA.png[Github Java, link="https://github.com/wirecard/wpp-integration-demo-java", 220,180]
+image:images/03-01-02-01-epp-integration-guide/Available_on_Github_PHP.png[Github PHP, link="https://github.com/wirecard/wpp-integration-demo-php", 220,180]
+
+[#PaymentPageSolutions_WPP_EPP_Integration_Overview]
+====== Overview
+
+To integrate the Embedded Payment Page (EPP) in your shop, use a simple
+backend-to-backend JSON
+<<PPSolutions_WPP_Workflow, workflow>> for
+the payment process.
+
+. *Create a payment session:* You send an initial POST request with
+details of the transaction to the Wirecard Payment Page (WPP). This POST
+request is secured by basic access authentication.
+
+. *Render/create the payment page:* WPP returns an initial response
+URL.
++
+====
+* *If the initial POST request is correct*, use the response URL to
+render the embedded payment page as an overlay to the checkout page. The
+consumer fills out the required fields on the payment page and submits
+the payment. *Continue with step 3.*
+
+* *If the initial POST request is faulty*, WPP returns an error code
+with a description of the problem in the response. *Return to step 1.*
+
+//-
+====
++
+. *Parse and process the payment response:* The payment is processed.
+Depending on the result (successful, pending, failed or canceled), the
+consumer is redirected to the respective page. The WPP sends a POST
+request containing base64 encoded payment data to the same URL. It is
+_highly recommended_ that you parse and process this base64 encoded
+response to verify the payment.
++
+*The payment process is complete.*
+
+//-
+
+[#PaymentPageSolutions_WPP_EPP_Integration_Example]
+====== Payment-Processing Example
+
+This is an example of a credit card transaction to show how to process a
+payment with the Embedded Payment Page. +
+For more supported payment methods and payment-method-specific
+integration guides, go to
+<<WPP_PaymentMethods, Payment Methods with WPP>>.
+
+The payment-processing example is *designed for the testing environment* 
+and *does not use real information.*
+
+|===
+a|*Payment processing with the Wirecard Payment Page generally follows the same steps:*
+
+. Create a payment session (initial request).
+. Render the embedded payment page.
+. Highly recommended: Parse and process the payment response.
+
+//-
+|===
+
+We provide ready-made JSON samples for each step of this process. Use a
+tool such as https://www.getpostman.com/postman[Postman] to test them.
+
+[#PaymentPageSolutions_WPP_EPP_Integration_Example_Setup]
+.Setup and Test Credentials
+
+Before you can send your first request, use the following information to
+set up your testing tool:
+
+.Test Credentials
+[%autowidth, cols="1s,2", stripes="none"]
+|===
+|URI (API Endpoint)
+|``\https://wpp-test.wirecard.com/api/payment/register``
+|Username
+|70000-APIDEMO-CARD
+|Password
+|ohysS0-dvfMx
+|MAID
+|7a6dd74f-06ab-4f3f-a864-adc52687270a
+|Secret Key
+|a8c3fce6-8df7-4fd6-a1fd-62fa229c5e55
+2+h|Test Card  
+|Card number |4200000000000018
+|Expiration date |01/23
+|CVV |018
+|===
+
+[#PaymentPageSolutions_WPP_EPP_Integration_Example_Create]
+.1. Create a Payment Session
+
+To create a payment session, send a *POST request* to the
+``/api/payment/register`` endpoint,
+e.g. ``\https://wpp-test.wirecard.com/api/payment/register``.
+
+This is an HTTP request with two headers:
+
+.Request Headers
+[source]
+----
+Content-Type: application/json
+Authorization: Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
+----
+
+The Authorization header must be formatted as:
+``Authorization=Basic `` + base64 (``username:password``)
+
+You can try it using the authorization headers above.
+
+.Create a Payment Session (Initial Request)
+[source,json]
+----
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "authorization",
+    "requested-amount": {
+      "value": 10,
+      "currency": "EUR"
+    },
+    "account-holder": {
+      "first-name": "John",
+      "last-name": "Doe"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    },
+    "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/success",
+    "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error",
+    "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/cancel"
+  },
+  "options": {
+    "mode": "embedded",
+    "frame-ancestor": "https://example.com"
+  }
+}
+----
+
+.Field Table
+[%autowidth, cols="1e,2,3,4,5,6"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned to every merchant account (by Wirecard).
+2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later. ``{{$guid}}`` serves as a
+placeholder for a random ``request-id``.
+Allowed characters: +
+a - z +
+0 - 9 +
+-_
+2+| transaction-type          | String | Required | 36 | The requested transaction type.
+.2+| requested-amount e| value | Numeric | Required | 18 | The full amount that is requested/contested in a transaction. 2 decimal
+places allowed. +
+Use ``.`` (decimal point) as the separator.
+| currency | String | Required | 3 | The currency of the requested/contested transaction amount. +
+Format: 3-character abbreviation according to ISO 4217.
+.2+|account holder e|first-name |String |Required |32 |The first name of the account holder.
+|last-name |String |Required |32 |The last name of the account holder.
+| payment-method      e| name     | String | Optional | 15 | The name of the payment method used. Set this value to ``creditcard``.
+2+| success-redirect-url         | String | Optional | 256 | The URL to which the consumer is redirected after a successful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
+2+| fail-redirect-url            | String | Optional | 256 | The URL to which the consumer is redirected after a unsucessful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
+2+| cancel-redirect-url          | String | Optional | 256 | The URL to which the consumer is redirected after having canceled a payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
+.2+|options e|mode |String |Required |8 |Indicates which mode of payment page is used for the payment. Currently supports ``seamless`` and ``embedded``.
+|frame-ancestor e|String |Required |256 |The URL of the checkout page where the iframe is rendered.
+|===
+
+[NOTE]
+====
+*Which Payment Methods Can I Choose?*
+
+Leave out the ``payment-methods`` object from the request. WPP will show a
+grid of all available payment methods (based on your merchant
+configuration).
+
+Alternatively, check out <<WPP_PaymentMethods, Payment Methods with WPP>>
+for an overview of all supported payment methods.
+====
+
+.Download the full integration demo from our GitHub
+image:images/03-01-02-01-epp-integration-guide/Available_on_Github_JAVA.png[Github Java, link="https://github.com/wirecard/wpp-integration-demo-java", 220,180]
+image:images/03-01-02-01-epp-integration-guide/Available_on_Github_PHP.png[Github PHP, link="https://github.com/wirecard/wpp-integration-demo-php", 220,180]
+ 
+[#PaymentPageSolutions_WPP_EPP_Integration_Example_Embed]
+.2. Embed the Payment Page
+
+The payment page is in this case an overlay window. It is created using
+the ``payment-redirect-url``, contained in the response to the initial
+authorization request.
+
+.Response to Authorization Request
+[source,json]
+----
+{
+  "payment-redirect-url": "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
+}
+----
+
+[#PaymentPageSolutions_WPP_EPP_Integration_Example_Embed_WPPEmbeddedPayUrl]
+*Embedding the Payment Page in your Checkout Page Using ``WPP.embeddedPayUrl``*
+
+You can use our predefined function to embed the payment page:
+
+. Add the ``paymentPage.js`` library to your checkout page HTML
+code.
++
+[source,html]
+----
+<script src="https://wpp.wirecard.com/loader/paymentPage.js" type="text/javascript"></script>
+----
++
+Make sure to pass the ``payment-redirect-url`` value from the initial
+response to the ``WPP.embeddedPayUrl`` function and call it to render the
+payment page.      
+
+. Submit the *initial payment request* on the backend.
+
+. Call the ``WPP.embeddedPayUrl(payment-redirect-url)`` function
+in your HTML code to render the new pop-up window.
++
+[source,html]
+----
+<script type="text/javascript">WPP.embeddedPayUrl("https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7")</script>
+----
+
+//-
+[NOTE]
+====
+The consumer is redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. The response can
+either:
+
+- be successful (``transaction-state: success``)
+- fail (``transaction-state: failed``)
+- or the consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is displayed as the value
+of ``transaction-state`` in the payment response. Canceled payments are
+returned as ``"transaction-state" : "failed"``, but the status description
+indicates it was canceled. More information (including the status code)
+can also be found in the payment response in the ``statuses`` object.
+
+In any case, a base64 encoded response containing payment information is
+sent to the corresponding redirection URL
+(``success-redirect-url``, ``cancel-redirect-url``, or ``fail-redirect-url``).
+
+See 
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>
+for more information on redirection targets
+after payment.
+====
+
+[#PaymentPageSolutions_WPP_EPP_Integration_Example_Parse]
+.Parse and Process the Payment Response (Highly Recommended)
+
+*Where Can I Find the Payment Response?*
+
+WPP sends the final response to the success/fail page where the consumer
+is redirected to at the end of the payment session. *This final response
+contains the payment data* in a base64 encoded JSON format. It is sent
+with a POST request as form data ``response-base64``.
+
+image::images/03-01-02-01-epp-integration-guide/EPP_Base64.png[Base64]
+
+Before you are able to parse and process the payment response, you need
+to decode it. 
+
+*To test this:*
+
+- Copy and paste the ``payment-redirect-url`` into your browser.
+- Open your browser's console and complete the payment with the credit
+card information provided above.
+- In your browser's console, find the form data ``response-base64`` (see
+screenshot).
+- Copy and paste the response into a base64 decoder of your choice, e.g.
+https://www.base64decode.org/[Base64 Decode].
+- Decode the response to view the payment response details.
+
+//-
+
+You can find a decoded payment response example below.
+
+.Parse and Process the Payment Response (Decoded Payment Response)
+[source,json]
+----
+{
+  "payment": {
+    "transaction-type": "authorization",
+    "transaction-id": "08649015-eb17-4c67-ab5f-d132af616e02",
+    "completion-time-stamp": "2018-12-19T12:02:26",
+    "card-token": {
+      "token-id": "4242796444090018",
+      "masked-account-number": "420000******0018"
+    },
+    "merchant-account-id": {
+      "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+    },
+    "transaction-state": "success",
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    },
+    "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/cancel",
+    "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/success",
+    "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#!/error",
+    "api-id": "wpp"
+  },
+  "request-id": "28285dbd-ecd3-49bd-a7e5-0239affa2448",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 10
+  },
+  "statuses": {
+    "status": [
+      {
+        "description": "3d-acquirer:The resource was successfully created.",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
+  },
+  "authorization-code": "801433",
+  "account-holder": {
+    "first-name": "John",
+    "last-name": "Doe"
+  },
+  "descriptor": "demo descriptor"
+}
+----
+
+.Field Table
+[%autowidth, cols="1e,2,3,4"]
+|===
+2+| Field (JSON) | Data Type | Description
+
+2+| transaction-type | String |The requested transaction type.
+2+| transaction-id | String |A unique identifier to every transaction (by Wirecard). Used when searching for or referencing to it later.
+2+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss |The UTC/ISO time-stamp documents the time & date when the transaction was executed.
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+| card token e| token-id |String |A unique identifier assigned to every card token.
+               | masked-account-number | String | This is the masked card account number of the consumer.
+|merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by Wirecard).
+2+| transaction-state |String a|The current transaction state. Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+Typically, a transaction starts with state ``in-progress`` and finishes with state either ``success`` or ``failed``. This information is returned in the response only.
+|payment-mode e|name |String |The name of the payment method used for the transaction.
+2+|cancel-redirect-url |String |The URL to which the consumer is redirected after having canceled payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
+2+|success-redirect-url |String |The URL to which the consumer is redirected after successful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
+2+|fail-redirect-url |String |The URL to which the consumer is redirected after unsuccessful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
+2+|api-id |String |Identifier of the currently used API.
+2+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
+.2+| requested-amount e|currency |String |The currency of the requested/contested transaction amount.
+                      e|value |Numeric |The full amount that is requested/contested in a transaction.
+.3+|status e|description |String |The description of the transaction status message.
+           e|severity |String a|The definition of the status message.
+           Possible values:
+
+           - ``information``
+           - ``warning ``
+           - ``error``
+
+           e| code |String |Status code of the status message
+2+| authorization-code |String |Output code for transaction type ``authorization``.
+.2+|account-holder e|first-name |String |The first name of the account holder.
+                   e|last-name |String |The last name of the account holder.
+2+|descriptor |String |Describes the transaction.
+|===
+
+[NOTE]
+====
+For more information on redirect URLs, see <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>. +
+For response verification examples, see <<PPSolutions_WPP_WPPSecurity, WPP Security>>. +
+For payment-method-specific requests, head over to the <<WPP_PaymentMethods, Payment Methods with WPP>>.
+====
