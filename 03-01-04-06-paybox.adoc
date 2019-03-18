@@ -5,7 +5,7 @@
 ====== General Information
 
 This is a reference page for _paybox_. Here you find all the
-information necessary for integrating this payment method in
+information necessary for integrating this payment method into
 your Hosted and Embedded Payment Page.
 
 .Are you unfamiliar with Wirecard Payment Page (WPP)?
@@ -18,23 +18,19 @@ a step-by-step guide before continuing.
 All <<WPP, WPP>> integrations share a
 <<PPSolutions_WPP_Workflow, common process flow>>﻿ for creating payments.
 
-Below, you find an example request for the _purchase_ and _authorization_
-transaction types, including field lists with short descriptions.
+Below, you find an example request for the available transaction types 
+_purchase_ and _authorization_, including field lists with short descriptions.
 
-You need to complete these requests with your production credentials.
+NOTE: You need to complete these requests with your production credentials.
 You receive your credentials with your Wirecard contract. If you
-need your production credentials, contact our <<ContactUs, merchant support>>.
+need your production credentials, contact <<ContactUs, merchant support>>.
 
-////
-paybox does not provide explicit test data. The merchant must perform his tests
-with the production credentials. This is a very specific case and should be
-described in an info box!
-////
+|===
+|Testing _paybox_
 
-.Testing _paybox_
-
-NOTE: _paybox_ does not offer a payment testing sandbox.
+_paybox_ does not offer a payment testing sandbox.
 You need to test transactions with your production credentials.
+|===
 
 For more details on the ``redirect-url``, see the 
 <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿ 
@@ -46,7 +42,7 @@ the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
 [#WPP_paybox_About]
 ====== About _paybox_
 
-image::images\03-01-04-06-paybox/paybox_logo.png[image,width=250]
+image::images\03-01-04-06-paybox/paybox_logo.png[paybox logo, 200]
 
 _paybox_ is an Austrian mobile payment provider for mobile payments in Austria.
 Consumers with a bank account in Austria, Switzerland or the European
@@ -70,6 +66,8 @@ Two transaction types are available for _paybox_:
 - _purchase_
 - <<WPP_paybox_TransactionType_authorization, _authorization_>>
 
+//-
+
 [#WPP_paybox_TransactionType_purchase]
 ====== Transaction Type _purchase_
 
@@ -78,18 +76,20 @@ consumer's account to the merchant's account.
 
 A purchase is
 
-. created during payment processing and
+. created during payment processing, and
 . finalized with the response (confirmation of the initial purchase
 request).
 
-*Purchase workflow in detail:*
+//-
+[#WPP_paybox_TransactionType_purchase_Workflow]
+*_Purchase_ workflow in detail:*
 
 1.  The consumer provides their phone number and initiates the purchase
 transaction (e.g. by clicking the "Pay Now" button).
 2.  The merchant sends an initial purchase request to Wirecard.
-3.  As a response, the merchant receives the `payment-redirect-url` with
-a `PaymentToken`.
-4.  The merchant must use this `payment-redirect-url` (hosted by
+3.  As a response, the merchant receives the ``payment-redirect-url`` with
+a ``PaymentToken``.
+4.  The merchant must use this ``payment-redirect-url`` (hosted by
 _paybox_) to redirect the consumer.
 5.  On the _paybox_ payment page, the consumer enters their _paybox_ PIN and
 submits the payment.
@@ -97,21 +97,12 @@ submits the payment.
 status to Wirecard.
 7.  The consumer is redirected to the WPP processing page.
 8.  After the transaction has been approved, the consumer is redirected
-back to the merchant's shop (redirection URLs,
-see link:#payboxwithWPP-PurchaseSampleRequest[sample request]). There,
-the consumer and the merchant are notified about the outcome of the
+back to the merchant's shop (redirection URLs, see <<WPP_paybox_TransactionType_purchase_InitialRequest, sample request>>). 
+There, the consumer and the merchant are notified about the outcome of the
 payment process. +
 We **recommend** that the merchant includes
-a **notification-URL** (see link:#payboxwithWPP-PurchaseSampleRequest[sample
-request]) to receive a payment notification directly from Wirecard
-Payment Gateway.
-
-////
-Why do we have here a detailed purchase workflow? We state in line 18, 19 that all
-payment process are the same. All other payment methods do not show such a
-detailed workflow.
-I didn't clean it up, because I'd suggest to remove it from here.
-////
+a **notification-URL** (see <<WPP_paybox_TransactionType_purchase_InitialRequest, sample request>>) to receive a 
+payment notification directly from Wirecard Payment Gateway.
 
 For a successful _purchase_ transaction:
 
@@ -119,26 +110,29 @@ For a successful _purchase_ transaction:
 . Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
 
+//-
+
 We provide JSON examples for each step of this process. You can find
 them below. You need to adapt the field values to your system.
 
-.API Endpoint Production/Live
 
-Please contact our <<ContactUs, merchant support>> for your production
+.API Endpoint Production/Live
+Please contact <<ContactUs, merchant support>> for your production
 credentials. You must use these credentials for test purposes.
 
 .Request Headers
-[cols="20,80"]
+[cols="20h,80"]
 |===
-h| Authorization
+| Authorization
 | needs to be formatted as: "Authorization"="Basic"  +
 base64(“username:password”). Use username and password as given in your
 Wirecard contract to base64 encode the authorization.
-h| Content-Type
+| Content-Type
 | application/json
 |===
 
-.1. Create a Payment Session (Initial Request)*
+[#WPP_paybox_TransactionType_purchase_InitialRequest]
+.1. Create a Payment Session (Initial Request)
 
 [source,json]
 ----
@@ -179,20 +173,20 @@ h| Content-Type
 }
 ----
 
-[cols="15,5,5,5,5,5,60"]
+[cols="15e,5,5,5,5,5,60"]
 |===
 3+|Field (JSON) |Data Type |Cardinality |Size |Description
 
-2+|merchant-account-id |value |String |required |36 |A unique identifier
+2+|merchant-account-id e|value |String |required |36 |A unique identifier
 assigned to every merchant account (by Wirecard). You receive a unique
-``merchant-account-id`` for each payment method.
+merchant account ID for each payment method.
 3+|request-id |String |required |64 a|A unique identifier assigned by the
 merchant to each request. Used when searching for or referencing it later.
 
-You may enter any request-id that has never been used before.
+You may enter any request ID that has never been used before.
 
-As the request-id must be unique, ``{{$guid}}`` serves as a placeholder; e.g.
-Postman uses it to generate a random request-id for testing.
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; e.g.
+Postman uses it to generate a random ``request-id`` for testing.
 
 Allowed characters: [a-zA-Z0-9-_]
 
@@ -207,35 +201,32 @@ Available transaction types for _paybox_:
 
 //-
 
-.2+|requested-amount  2+|value |Numeric |required |9.2 |The full amount that is
+.2+|requested-amount  2+e|value |Numeric |required |9.2 |The full amount that is
 requested/contested in a transaction. 2 decimals digits allowed.
 2+|currency |String |required |3 a|The currency of the requested/contested
-transaction amount. For paybox payments, the currency must be set to EUR.
+transaction amount. For _paybox_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
-2+|account-holder |phone |String |required |24 |The phone number of the account
+2+|account-holder e|phone |String |required |24 |The phone number of the account
 holder (= consumer). Has to be a valid Austrian mobile phone number starting
 with +43.
-|payment-methods |payment-method |name |String |required |256 |The name of the
-payment method used for the transaction, i.e. "paybox".
+|payment-methods e|payment-method e|name |String |required |256 |The name of the
+payment method used for the transaction, i.e. ``paybox``.
 3+|order-number |String |optional |40 |Merchant-side order number.
 3+|descriptor |String |optional |60 |The descriptor is the text representing an
 order on the bank statement issued to your consumer by their bank. It provides
 information for the consumer, as it associates a specific debit on the
 consumer's account to a specific purchase in your shop.
-2+|notification |url |String |optional |256 |The URL to which Wirecard Payment
+2+|notification e|url |String |optional |256 |The URL to which Wirecard Payment
 Gateway sends the transaction outcome.
 3+|success-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 3+|cancel-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 3+|fail-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after an unsuccessful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
 
@@ -249,7 +240,7 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 }
 ----
 
-[cols="<,<,<",]
+[cols="15e,10,75"]
 |===
 |Field (JSON) |Data Type |Description
 
@@ -257,16 +248,16 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 form (hosted by _paybox_). Sent as a response to the initial request.
 |===
 
-At this point, you need to redirect your customer to
+At this point, you need to redirect your consumer to
 ``payment-redirect-url`` (or render it in an _iframe_ depending on your
 <<WPP, integration method>>﻿).
 
-The customers are redirected to the payment form. There they enter their
+Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
 - successful (``transaction-state: success``),
 - failed (``transaction-state: failed``),
-- canceled. The customer canceled the payment before/after submission
+- canceled. The consumer canceled the payment before/after submission
 (``transaction-state: failed``).
 
 //-
@@ -274,10 +265,10 @@ data and submit the form to confirm the payment. A payment can be:
 The transaction result is the value of ``transaction-state`` in the
 payment response. More details (including the status code) can also be
 found in the payment response in the ``statuses`` object. Canceled
-payments are returned as  _failed_, but the status description indicates it
+payments are returned as  _failed_, but the ``status description`` indicates it
 was canceled.
 
-In any case (unless the customer cancels the transaction on a 3rd party
+In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
 is sent to the configured redirection URL. See
 <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
@@ -328,47 +319,48 @@ You can find a decoded payment response example below.
 }
 ----
 
-[cols="30,5,5,5,55"]
+[cols="30e,5,5,5,55"]
 |===
 3+|Field (JSON) |Data Type |Description
 
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard). You receive a unique merchant account ID for
 each payment method.
 3+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|account-holder |phone |String |The phone number of the account holder
+2+|account-holder e|phone |String |The phone number of the account holder
 (= consumer).
-3+|transaction-type |String |The requested transaction type, i.e. "purchase".
+3+|transaction-type |String |The requested transaction type, i.e. ``purchase``.
 3+|parent-transaction-id |String |The ID of the transaction being referenced
 as a parent. As a purchase transaction is internally split into
-sub-transactions, the parent-transaction-id serves to link these sub-transactions.
-|payment-methods |payment-method |name |String |The name of the payment method
-used for the transaction, i.e. "paybox".
+sub-transactions, the parent transaction ID serves to link these sub-transactions.
+|payment-methods e|payment-method e|name |String |The name of the payment method
+used for the transaction, i.e. ``paybox``.
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
 
 //-
+
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the
 response only.
 3+|transaction-id |String |A unique identifier assigned to every transaction.
 Used when searching for or referencing it later.
-3+|completion-time-stamp |Date |The UTC/ISO time-stamp documenting the time &
+3+|completion-time-stamp |Date |The UTC/ISO time-stamp documenting the time and
 date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+|value |Numeric |The full amount that was
+.2+|requested-amount  2+e|value |Numeric |The full amount that was
 requested/contested in the transaction.
 2+|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+|status |description  |String a|The description of the transaction status message.
+.3+|statuses .3+e|status e|description  |String a|The description of the transaction status message.
 
 <<StatusCodes, Complete list of status codes and descriptions>>.
 
@@ -376,9 +368,9 @@ Format: 3-character abbreviation according to ISO 4217.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
@@ -388,15 +380,13 @@ Possible values:
 
 3+|api-id |String |Identifier of the currently used API.
 3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 
 3+|cancel-redirect-url |String a|The URL to which the consumer is redirected after having canceled a payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 
 3+|fail-redirect-url |String a|The URL to which the consumer is redirected after an unsuccessful payment,
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
 
 [#WPP_paybox_TransactionType_authorization]
@@ -408,26 +398,25 @@ An _authorization_
 ships/delivers the goods/services).
 - does not trigger money transfer.  
 
-The authorization workflow is similar to
-the link:#payboxwithWPP-Purchase[purchase workflow].
+//-
 
-////
-According to my comment in line 110ff, we don't need the above link, as the
-workflow is obsolete.
-////
+The _authorization_ workflow is similar to
+the <<WPP_paybox_TransactionType_purchase_Workflow, _purchase_ workflow>>.
 
-For a successful _authorization_ transaction
+For a successful _authorization_ transaction:
 
 . Create an authorization session (initial authorization request).
 . Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
+
+//-
 
 We provide JSON examples for each step of this process. You can find
 them below. You need to adapt the field values to your system.
 
 .API Endpoint Production/Live
 
-Please contact our <<ContactUs, merchant support>> for your production
+Please contact <<ContactUs, merchant support>> for your production
 credentials. You must use these credentials for test purposes.
 
 .Request Headers
@@ -482,20 +471,20 @@ h| Content-Type
 }
 ----
 
-[cols="15,5,5,5,5,5,60"]
+[cols="15e,5,5,5,5,5,60"]
 |===
 3+|Field (JSON) |Data Type |Cardinality |Size |Description
 
-2+|merchant-account-id |value |String |required |36 |A unique identifier
+2+|merchant-account-id e|value |String |required |36 |A unique identifier
 assigned to every merchant account (by Wirecard). You receive a unique
-``merchant-account-id`` for each payment method.
+merchant account ID for each payment method.
 3+|request-id |String |required |64 a|A unique identifier assigned by the
 merchant to each request. Used when searching for or referencing it later.
 
-You may enter any request-id that has never been used before.
+You may enter any request ID that has never been used before.
 
-As the request-id must be unique, ``{{$guid}}`` serves as a placeholder; e.g.
-Postman uses it to generate a random request-id for testing.
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; e.g.
+Postman uses it to generate a random ``request-id`` for testing.
 
 Allowed characters: [a-zA-Z0-9-_]
 
@@ -510,35 +499,32 @@ Available transaction types for _paybox_:
 
 //-
 
-.2+|requested-amount  2+|value |Numeric |required |9.2 |The full amount that is
+.2+|requested-amount  2+e|value |Numeric |required |9.2 |The full amount that is
 requested/contested in a transaction. 2 decimals digits allowed.
 2+|currency |String |required |3 a|The currency of the requested/contested
-transaction amount. For paybox payments, the currency must be set to EUR.
+transaction amount. For _paybox_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
-2+|account-holder |phone |String |required |24 |The phone number of the account
+2+|account-holder e|phone |String |required |24 |The phone number of the account
 holder (= consumer). Has to be a valid Austrian mobile phone number starting
 with +43.
-|payment-methods |payment-method |name |String |required |256 |The name of the
-payment method used for the transaction, i.e. "paybox".
+|payment-methods e|payment-method e|name |String |required |256 |The name of the
+payment method used for the transaction, i.e. ``paybox``.
 3+|order-number |String |optional |40 |Merchant-side order number.
 3+|descriptor |String |optional |60 |The descriptor is the text representing an
 order on the bank statement issued to your consumer by their bank. It provides
 information for the consumer, as it associates a specific debit on the
 consumer's account to a specific purchase in your shop.
-2+|notification |url |String |optional |256 |The URL to which Wirecard Payment
+2+|notification e|url |String |optional |256 |The URL to which Wirecard Payment
 Gateway sends the transaction outcome.
 3+|success-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 3+|cancel-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 3+|fail-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after an unsuccessful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
 
@@ -592,47 +578,48 @@ similar way as described for _purchase_.
  
 ----
 
-[cols="30,5,5,5,55"]
+[cols="30e,5,5,5,55"]
 |===
 3+|Field (JSON) |Data Type |Description
 
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard). You receive a unique merchant account ID for
 each payment method.
 3+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|account-holder |phone |String |The phone number of the account holder
+2+|account-holder e|phone |String |The phone number of the account holder
 (= consumer).
-3+|transaction-type |String |The requested transaction type _authorization_.
+3+|transaction-type |String |The requested transaction type ``authorization``.
 3+|parent-transaction-id |String |The ID of the transaction being referenced
 as a parent. As a purchase transaction is internally split into
-sub-transactions, the parent-transaction-id serves to link these sub-transactions.
-|payment-methods |payment-method |name |String |The name of the payment method
-used for the transaction: _paybox_.
+sub-transactions, the parent transaction ID serves to link these sub-transactions.
+|payment-methods e|payment-method e|name |String |The name of the payment method
+used for the transaction: ``paybox``.
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
 
 //-
+
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the
 response only.
 3+|transaction-id |String |A unique identifier assigned to every transaction.
 Used when searching for or referencing it later.
-3+|completion-time-stamp |DateTime |The UTC/ISO time-stamp documenting the time &
+3+|completion-time-stamp |DateTime |The UTC/ISO time-stamp documenting the time and
 date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+|value |Numeric |The full amount that was
+.2+|requested-amount  2+e|value |Numeric |The full amount that was
 requested/contested in the transaction.
 2+|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+|status |description  |String a|The description of the transaction status message.
+.3+|statuses .3+e|status e|description  |String a|The description of the transaction status message.
 
 <<StatusCodes, Complete list of status codes and descriptions>>.
 
@@ -640,9 +627,9 @@ Format: 3-character abbreviation according to ISO 4217.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
@@ -652,15 +639,13 @@ Possible values:
 
 3+|api-id |String |Identifier of the currently used API.
 3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 
 3+|cancel-redirect-url |String a|The URL to which the consumer is redirected after having canceled a payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 
 3+|fail-redirect-url |String a|The URL to which the consumer is redirected after an unsuccessful payment,
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g.``\ https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
 
 .How to proceed after an authorization
@@ -671,28 +656,30 @@ the <<RestApi, REST API>>,
 
 if
 
-- the authorization was successful AND has not yet been captured AND has not
-been voided (which can also be done using the <<RestApi, REST API>>)
+- the _authorization_ was successful AND has not yet been captured AND has not
+been voided (which can also be done using the <<RestApi, REST API>>).
 - you provide the ``parent-transaction-id``: This is the ``transaction-id`` of
 the preceding _authorization_. You can gather it from the response to a
 successful _authorization_.
+
+//-
 
 Click the REST API <<API_paybox, _paybox_ specification>> for details.
 
 [#WPP_paybox_TransactionType_refund]
 ====== Transaction Type _refund_
 
-Basically, _paybox_ with WPP supports only _purchase_ and _authorization_.
-However, you can use
-the <<RestApi, REST API>> for refunds. _paybox_ supports _refund-capture_
-and _refund-purchase_.
+Basically, _paybox_ with WPP supports _purchase_ and _authorization_ only. 
+For refunds, use the <<RestApi, REST API>>.
 
 You must provide the necessary data:
 
 - ``parent-transaction-id``: This is the transaction ID of the preceding
 debit. You can gather it from the response to a successful debit.
 - ``amount`` (can be either the total amount for refunding the full
-amount, or a partial amount for a partial refund)
+amount, or a partial amount for a partial refund).
+
+//-
 
 Click the REST API <<API_paybox, _paybox_ specification>> for details.
 
@@ -706,13 +693,10 @@ Here you can:
 - find the NVP equivalents for JSON fields (for migrating merchants),
 - see the structure of a full request (optional fields included).
 
+//-
+
 [#WPP_paybox_JSONNVPFields_request]
 .JSON Structure for _paybox_ Requests
-
-////
-The following sample contains generic values such as "value = string". This is
-not conform with the samples of all the other WPP payment methods.
-////
 
 [source,json]
 ----
@@ -746,31 +730,26 @@ not conform with the samples of all the other WPP payment methods.
 }
 ----
 
-[cols=",,",]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
-|merchant_account_id |value |merchant-account-id (\{ })
-|request_id |request-id |payment (\{ })
-|transaction_type |transaction-type |payment (\{ })
-|requested_amount |value |requested-amount (\{ })
-|requested_amount_currency |currency |requested-amount (\{ })
-|phone |phone |account-holder (\{ })
-|payment_method |payment-method ([ ])/name |payment-methods (\{ })
-|order_number |order-number |payment (\{ })
-|descriptor |descriptor |payment (\{ })
-|success_redirect_url |success-redirect-url |payment (\{ })
-|cancel_redirect_url |cancel-redirect-url |payment (\{ })
-|fail_redirect_url |fail-redirect-url |payment (\{ })
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount |value |requested-amount ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|phone |phone |account-holder ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|order_number |order-number |payment ({ })
+|descriptor |descriptor |payment ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
 |===
 
-[#WPP_paybox_JSONNVPField_response]
-.JSON Structure for _paybox_ Responses
 
-////
-The following sample contains generic values such as "value = string". This is
-not conform with the samples of all the other WPP payment methods.
-////
+.Response-Only Fields
 
 [source,json]
 ----
@@ -791,17 +770,18 @@ not conform with the samples of all the other WPP payment methods.
 }
 ----
 
-[cols=",,",]
+[#WPP_paybox_JSONNVPField_response]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
-|transaction_id |transaction-id |payment (\{ })
-|transaction_state |transaction-state |payment (\{ })
-|completion_time_stamp |completion-time-stamp |payment (\{ })
-|api_id |api-id |payment (\{ })
-|status_description_n |status ([ \{} ])/ description |statuses (\{ })
-|status_severity_n |status ([ \{} ])/ severity |statuses (\{ })
-|status_code_n |status ([ \{} ])/ code |statuses (\{ })
+|transaction_id |transaction-id |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|api_id |api-id |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
 |===
 
 //-
