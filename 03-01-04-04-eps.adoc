@@ -125,9 +125,9 @@ h| Secret Key (used for response verification)
 
 
 [#WPP_eps_TransactionType_debit]
-===== Transaction Type _debit_
+====== Transaction Type _debit_
 
-A debit transaction charges the account holder's bank account with the
+A _debit_ transaction charges the account holder's bank account with the
 specified amount and transfers it immediately.
 
 *Debit workflow in detail:*
@@ -143,26 +143,21 @@ Operator).
 4.  The consumer is redirected to the WPP processing page.
 5.  After the transaction has been approved, the consumer is redirected
 back to the merchant's shop (redirection URLs,
-see <<WPP_eps_InitialRequest, sample request]). There, the
+see <<WPP_eps_InitialRequest, sample request>>). There, the
 consumer and the merchant are notified about the outcome of the payment
 process. +
 We **recommend** that the merchant includes
-a **notification-URL** (see link:#epswithWPP-DebitSampleRequest[sample
-request]) to receive a payment notification directly from Wirecard
+a **notification-URL** (see <<WPP_eps_InitialRequest, sample request>>) 
+to receive a payment notification directly from Wirecard
 Payment Gateway.
-
-////
-Why do we have here a detailed debit workflow? We state in line 18, 19 that all
-payment process are the same. All other payment methods do not show such a
-detailed workflow.
-I didn't clean it up, because I'd suggest to remove it from here.
-////
 
 For a successful _debit_ transaction:
 
-. Create a payment session (initial debit request).
+. Create a payment session (initial request).
 . Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
+
+//-
 
 We provide ready-made JSON examples for each step of this process. You
 find them below.
@@ -171,19 +166,19 @@ find them below.
 
 .Initial Request
 
-The initial request creates the payment session. If it's
+The initial request creates the payment session. If it is
 successful, you receive a URL as a response which redirects to the
-_eps_ payment form.
+payment form.
 
 .Request Headers
-[cols="20,80"]
+[cols="20h,80"]
 |===
-h| Authorization
-| Basic MTYzOTAtdGVzdGluZzozITMwMTM9RDNmRDhYNw==
-h| Content-Type
-| application/json
+| Authorization | Basic MTYzOTAtdGVzdGluZzozITMwMTM9RDNmRDhYNw==
+| Content-Type  | application/json
 |===
 
+
+[#WPP_eps_InitialRequest]
 .1. Create a Payment Session (Initial Request)
 
 [source,json]
@@ -231,16 +226,12 @@ h| Content-Type
 }
 ----
 
-////
-see below description of "merchant-account-id": Why is it mentioned here, that
-each PAYMENT METHOD receives a unique ID? This is mentioned nowhere else!
-////
 
-[cols="30,5,5,5,5,5,45"]
+[cols="30e,5,5,5,5,5,45"]
 |===
 3+|Field (JSON) |Data Type |Cardinality |Size |Description
 
-2+|merchant-account-id |value |String |Required |36 |A unique identifier assigned
+2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
 to every merchant account (by Wirecard). You receive a unique
 ``merchant-account-id`` for each payment method.
 3+|request-id |String |Required |64 a|A unique identifier assigned to every request
@@ -249,8 +240,8 @@ to every merchant account (by Wirecard). You receive a unique
 
 Allowed characters: [a-z0-9-_]
 3+|transaction-type |String |Required |n/a |The requested transaction type. For
-_eps_ payments, the transaction-type must be set to _debit_.
-.2+|requested-amount  2+|value |Numeric |Required |18.2 a|The full amount that is
+_eps_ payments, the transaction-type must be set to ``debit``.
+.2+|requested-amount  2+e|value |Numeric |Required |18.2 a|The full amount that is
 requested/contested in a transaction. 2 decimal digits allowed.
 
 Use . (decimal point) as the separator.
@@ -260,9 +251,9 @@ transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 
-|payment-methods |payment-method |name |String |Required | 15 |The name of the
-payment method used. Set this value to _eps_.
-.2+|bank-account 2+|bic |String |Optional |8 or 11 a|The bank identifier code (BIC)
+|payment-methods e|payment-method e|name |String |Required | 15 |The name of the
+payment method used. Set this value to ``eps``.
+.2+|bank-account 2+e|bic |String |Optional |8 or 11 a|The bank identifier code (BIC)
 of the account owner (consumer).
 
 Allowed characters and format: ([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})
@@ -275,7 +266,7 @@ Allowed characters and format:  [a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-
 .2+|account-holder 2+|first-name |String |Optional |32 |The first name of the
 account holder.
 2+|last-name |String |Required |32 |The last name of the account holder.
-3+|descriptor |String |Optional |140 a|The _descriptor_ is the text
+3+|descriptor |String |Optional |140 a|The descriptor is the text
 representing an order on the bank statement issued to your consumer by their
 bank. It provides information for the consumer, as it associates a specific
 _debit_ on the consumer's account to a specific purchase in your shop.
@@ -286,13 +277,13 @@ setup.
 
 Supports only limited character set:
 
-[a-z], [A-Z], [0 - 9],
+[a-zA-Z0-9],
 
 € - $ § % ! = # ~ ; + / ? : ( ) . , ' & > < " * { } [ ] @ \ _ ° ^ \|
 
 Ä Ö Ü ä ö ü ß
 
-The _Space_ key.
+The _space_ key.
 
 3+|order-number |String |Optional |32 a|Merchant-side order number.
 
@@ -304,15 +295,12 @@ the payment page is rendered in (ISO 639-1).
 Gateway_ sends the transaction outcome.
 3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
 3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
 redirected after a failed payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
 
@@ -325,12 +313,8 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 }
 ----
 
-////
-This table does not contain "Size" and "Cardinality"!
-Please ask BA for details.
-////
 
-[cols="<,<,<",]
+[cols="15e,10,75"]
 |===
 |Field (JSON) |Data Type |Description
 
@@ -339,28 +323,24 @@ form. Sent as a response to the initial request.
 |===
 
 At this point, you need to redirect your consumer to
-``payment-redirect-url`` (or render it in an ``iframe`` depending on your
-<<PPSolutions_WPP, integration method>>﻿).
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<WPP, integration method>>﻿).
 
 The consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
-- successful (``transaction-state``: _success_),
-- failed (``transaction-state``: _failed_),
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
 - canceled. The consumer canceled the payment before/after submission
-(``transaction-state``: _failed_).
+(``transaction-state: failed``).
 
-////
-I cannot set the link to "status code", as I cannot set an anchor in the middle
-of the table. But it is already said, that the status information can be
-found in the response. The same applies to "status description".
-////
+//-
 
 The transaction result is the value of ``transaction-state`` in the
 payment response. More details (including the status code) can also be
 found in the payment response in the ``statuses`` object. Canceled
-payments are returned as ``transaction-state``: _failed_, but the
-status description indicates it was canceled.
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
 
 In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
@@ -430,12 +410,7 @@ You can find a decoded payment response example below.
 }
 ----
 
-////
-This table does not contain "Size" and "Cardinality"!
-Please ask BA for details.
-////
-
-[cols="30,5,5,5,55"]
+[cols="30e,5,5,5,55"]
 |===
 3+|Field (JSON) |Data Type |Description
 
@@ -446,25 +421,26 @@ payment method.
 Used when searching for or referencing it later.
 3+|request-id |String |A unique identifier assigned by the merchant to each
 request. Used when searching for or referencing it later.
-3+|transaction-type |String |The requested transaction type. Must be _debit_
+3+|transaction-type |String |The requested transaction type. Must be ``debit``
 for _eps_ payments.
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
 
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the response
 only.
 3+|completion-time-stamp |DateTime a|The UTC/ISO time-stamp documents the
-time & date when the transaction was executed.
+time and date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.3+|status 2+|code |String |Status code of the status message. Click here for
-a complete list of status codes.
+.3+|status 2+e|code |String |Status code of the status message.
 
 2+|description |String |The description of the transaction status message.
 Click here  for a complete list of status descriptions.
@@ -473,23 +449,26 @@ Click here  for a complete list of status descriptions.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
-.2+|requested-amount 2+|currency |String |The currency of the
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+.2+|requested-amount 2+e|currency |String |The currency of the
 requested/contested transaction amount.
 2+|value |Numeric |The full amount that was requested/contested in the
 transaction.
 3+|parent-transaction-id |String |The ID of the transaction being referenced
-as a parent. As a debit transaction is internally split into sub-transactions,
+as a parent. As a _debit_ transaction is internally split into sub-transactions,
 the parent-transaction-id serves to link these sub-transactions.
 3+|order-number |String |Merchant-side order number as set in the request.
-.2+|account-holder 2+|first-name |String |The first name of the account holder.
+.2+|account-holder 2+e|first-name |String |The first name of the account holder.
 2+|last-name |String |The last name of the account holder.
 3+|ip-address |String a|The internet protocol address of the account holder as
 recorded by the entity receiving the transaction attempt from the account holder.
  Supported IP versions: IPv4 and IPv6.
-|payment-methods |payment-method |name |String |The name of the payment method
+|payment-methods e|payment-method |name |String |The name of the payment method
 used.
 .2+|bank-account 2+|iban |String |The international bank account number (IBAN)
 of the account holder.
@@ -499,39 +478,38 @@ of the account holder.
 rendered in (according to ISO 639-1).
 3+|descriptor |String |The descriptor is the text representing an order on the
 bank statement issued to your consumer by their bank. It provides information
-for the consumer, as it associates a specific debit on the consumer's account
+for the consumer, as it associates a specific _debit_ on the consumer's account
 to a specific purchase in your shop.
 3+|notification-url |String |The URL to which Wirecard Payment Gateway sends
 the transaction outcome.
 3+|success-redirect-url |String a|The URL to which the consumer is redirected
 after a successful payment,
-
 e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
 
 3+|fail-redirect-url |String a|The URL to which the consumer is redirected
 after an unsuccessful payment,
-
 e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
 
 3+|cancel-redirect-url |String a|The URL to which the consumer is redirected
 after having cancelled a payment,
-
 e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
 |===
 
 [#WPP_eps_refund]
-===== Transaction Type _refund_
+====== Transaction Type _refund_
 
-Basically, _eps_ with WPP supports debit only. For refund,
+Basically, _eps_ with WPP supports _debit_ only. For refund,
 use <<SEPACreditTransfer, SEPA Credit Transfer>> (if SEPA Credit Transfer is
-activated for your merchant account) through our <<RestApi, REST API>>
+activated for your merchant account) through our <<RestApi, REST API>>.
 
 You must provide the necessary data:
 
 - ``parent-transaction-id``: This is the transaction ID of the preceding
 debit. You can gather it from the response to a successful debit.
 - ``amount`` (can be either the total amount for refunding the full
-amount, or a partial amount for a partial refund)
+amount, or a partial amount for a partial refund).
+
+//-
 
 If the ``parent-transaction-id`` is not available, the following fields
 are mandatory:
@@ -541,6 +519,7 @@ are mandatory:
 - ``amount`` (can be either the total amount for refunding the full
 amount, or a partial amount for a partial refund)
 
+//-
 
 [#WPP_eps_JSONNVPFields]
 ===== JSON/NVP Field Reference
@@ -552,13 +531,10 @@ Here you can:
 - find the NVP equivalents for JSON fields (for migrating merchants),
 - see the structure of a full request (optional fields included).
 
+//-
+
 [#WPP_eps_JSONNVPFields_request]
 ====== JSON Structure for _eps_ Requests
-
-////
-The following sample contains generic values such as "value = string". This is
-not conform with the samples of all the other WPP payment methods.
-////
 
 [source,json]
 ----
@@ -598,7 +574,7 @@ not conform with the samples of all the other WPP payment methods.
 }
 ----
 
-[width="100%",cols="34%,33%,33%",]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
@@ -621,8 +597,8 @@ not conform with the samples of all the other WPP payment methods.
 |ip_address |ip-address |ip-address
 |===
 
-[#WPP_eps_JSONNVPFields_response]
-====== Response-only Fields
+
+.Response-Only Fields
 
 [source,json]
 ----
@@ -642,7 +618,8 @@ not conform with the samples of all the other WPP payment methods.
 }
 ----
 
-[cols=",,",]
+[#WPP_eps_JSONNVPFields_response]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
