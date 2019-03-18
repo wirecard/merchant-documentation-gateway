@@ -43,7 +43,7 @@ the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
 [#WPP_PayPal_About]
 ====== About _PayPal_
 
-image::images\03-01-04-07-paypal/paypal_logo.png[image,width=80]
+image::images/03-01-04-07-paypal/paypal_logo.png[PayPal Logo,width=80]
 
 _PayPal_ is a world wide online payment system which supports online money
 transfers and allows consumers to make and accept payments without
@@ -74,17 +74,15 @@ Test credentials for transaction types
 |===
 
 [#WPP_CC_TestCredentials_Additional]
-._PayPal_ Login Credentials
+.PayPal Login Credentials
 
 [cols="15h,85"]
 |===
-| Email
-|buyer@wirecard.com
-|Password
-|Einstein35
+| Email    | \buyer@wirecard.com
+| Password | Einstein35
 |===
 
-image::images\03-01-04-07-paypal/paypal_wd_merchant_test_store.jpg[image,width=700]
+image::images/03-01-04-07-paypal/paypal_wd_merchant_test_store.jpg[Merchant's Test Store Screenshot]
 
 [#WPP_PayPal_TransactionType_debit]
 ====== Transaction Type _debit_
@@ -96,7 +94,9 @@ For a successful transaction:
 
 . Create a payment session (initial request).
 . Redirect the customer to the payment page (initial response URL).
-. Highly recommended: Parse and process the payment response. +
+. Highly recommended: Parse and process the payment response.
+
+//-
 
 We provide ready-made JSON examples for each step of this process. You
 can find them below.
@@ -110,12 +110,10 @@ successful, you receive a URL as a response which redirects to the
 _PayPal_ payment form.
 
 .Request Headers
-[cols="20,80"]
+[cols="20h,80"]
 |===
-h| Authorization
-| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
-h| Content-Type
-| application/json
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
 |===
 
 .Optional fields
@@ -130,25 +128,25 @@ For a full structure of a request (optional fields included), see the
 
 [source,json]
 ----
- {
-    "payment": {
-        "merchant-account-id": {
-            "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
-            },
-        "request-id": "{{$guid}}",
-        "transaction-type": "debit",
-        "requested-amount": {
-            "currency": "EUR",
-            "value": "1.00"
-        },
-        "payment-methods": {
-            "payment-method": [
-                {
-                "name": "paypal"
-            }
-        ]
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "debit",
+    "requested-amount": {
+      "currency": "EUR",
+      "value": "1.00"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "paypal"
         }
+      ]
     }
+  }
 }
 ----
 
@@ -174,7 +172,7 @@ transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 |payment-method e|name |String |Optional |15 |The name of the payment method
-used. Set this value to _PayPal_.
+used. Set this value to ``paypal``.
 |===
 
 .2. Redirect the Customer to the Payment Page (Initial Response URL)
@@ -182,11 +180,11 @@ used. Set this value to _PayPal_.
 [source,json]
 ----
 {
-"payment-redirect-url" : "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
+  "payment-redirect-url": "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
 }
 ----
 
-[cols="<,<,<",]
+[cols="e,,"]
 |===
 |Field (JSON) |Data Type |Description
 
@@ -201,8 +199,8 @@ At this point, you need to redirect your customer to
 The customers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
-- successful (``transaction-state: success``),
-- failed (``transaction-state: failed``),
+- ``success``ful (``transaction-state: success``),
+- ``failed`` (``transaction-state: failed``),
 - canceled. The customer canceled the payment before/after submission
 (``transaction-state: failed``).
 
@@ -227,52 +225,56 @@ You can find a decoded payment response example below.
 
 [source,json]
 ----
- {
-  "api-id" : "up3-wpp",
-  "parent-transaction-id" : "3f792a90-3331-45fe-96ce-3961ff69edc1",
-  "shipping" : {
-    "last-name" : "Puente",
-    "first-name" : "Tito",
-    "address" : {
-      "street1" : "C/ La Cochibamba 3",
-      "city" : "Madrid",
-      "postal-code" : "28001",
-      "country" : "ES"
+{
+  "api-id": "up3-wpp",
+  "parent-transaction-id": "3f792a90-3331-45fe-96ce-3961ff69edc1",
+  "shipping": {
+    "last-name": "Puente",
+    "first-name": "Tito",
+    "address": {
+      "street1": "C/ La Cochibamba 3",
+      "city": "Madrid",
+      "postal-code": "28001",
+      "country": "ES"
     }
   },
-  "wallet" : {
-    "account-id" : "ZNKTXUBNSQE2Y"
+  "wallet": {
+    "account-id": "ZNKTXUBNSQE2Y"
   },
-  "payment-methods" : {
-    "payment-method" : [ {
-      "name" : "paypal"
-    } ]
+  "payment-methods": {
+    "payment-method": [
+      {
+        "name": "paypal"
+      }
+    ]
   },
-  "transaction-id" : "b026a9bc-618f-4750-9a00-4fb475c27ce1",
-  "completion-time-stamp" : "2018-03-21T17:22:25",
-  "requested-amount" : {
-    "currency" : "EUR",
-    "value" : 1.000000
+  "transaction-id": "b026a9bc-618f-4750-9a00-4fb475c27ce1",
+  "completion-time-stamp": "2018-03-21T17:22:25",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 1
   },
-  "statuses" : {
-    "status" : [ {
-      "description" : "The resource was successfully created.",
-      "provider-transaction-id" : "1PK89494VW075423R",
-      "severity" : "information",
-      "code" : "201.0000"
-    } ]
+  "statuses": {
+    "status": [
+      {
+        "description": "The resource was successfully created.",
+        "provider-transaction-id": "1PK89494VW075423R",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
   },
-  "instrument-country" : "DE",
-  "request-id" : "12eb44db-4d75-4cf4-bd52-9c047e024eee",
-  "merchant-account-id" : {
-    "value" : "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+  "instrument-country": "DE",
+  "request-id": "12eb44db-4d75-4cf4-bd52-9c047e024eee",
+  "merchant-account-id": {
+    "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
   },
-  "transaction-state" : "success",
-  "transaction-type" : "debit",
-  "account-holder" : {
-    "last-name" : "Puente",
-    "email" : "tito.puente@example.com",
-    "first-name" : "Tito"
+  "transaction-state": "success",
+  "transaction-type": "debit",
+  "account-holder": {
+    "last-name": "Puente",
+    "email": "tito.puente@example.com",
+    "first-name": "Tito"
   }
 }
 ----
@@ -284,14 +286,14 @@ You can find a decoded payment response example below.
 3+|api-id |String |Identifier of the currently used API.
 3+|parent-transaction-id |String |The ID of the transaction being referenced
 as a parent.
-.6+|shipping 2+|last-name |String |The last name of the shipping address.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
 2+|first-name |String |The first name of the shipping address.
-.4+|address |street1 |String |The first line of the shipping address street.
+.4+|address e|street1 |String |The first line of the shipping address street.
 |city |String |The city of the shipping address.
 |postal-code |String |The postal code/ZIP of the shipping address.
 |country |String |The country ID part of the shipping address.
 3+|account-id |String |Account holder's _PayPal_ Wallet identifier.
-|payment-methods |payment-method |name |String |The name of the payment method
+|payment-methods e|payment-method e|name |String |The name of the payment method
 used for the transaction.
 3+|transaction-id |String |A unique identifier assigned to every transaction
 (by Wirecard). Used when searching for or referencing to it later.
@@ -299,37 +301,39 @@ used for the transaction.
 documents the time & date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
-.2+|requested-amount 2+|currency |String a|The currency of the requested/contested transaction amount.
+.2+|requested-amount 2+e|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 2+|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimals allowed.
-.4+|statuses .4+|status |description |String |The description of the transaction status message.
+.4+|statuses .4+e|status e|description |String |The description of the transaction status message.
 |provider-transaction-id |String |A unique transaction identifier generated by the provider.
 |severity |String a|The definition of the status message.
 
 Possible values:
 
-- information
-- warning
-- error
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
 |code |String |Status code of the status message.
 3+|instrument-country |String |Payment origin country.
 3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
-2+|merchant-account-id |value |String |A unique identifier assigned to every merchant account (by Wirecard).
+2+|merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by Wirecard).
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- in-progress
-- success
-- failed
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
 
 Typically, a transaction starts with state in-progress and finishes with state either success or failed. This information is returned in the response only.
 3+|transaction-type |String |The requested transaction type.
-.3+|account-holder 2+|last-name |String |The last name of the account holder.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
 2+|email |String |Account holder's email address.
 2+|first-name |String |The first name of the account holder.
 |===
@@ -348,7 +352,9 @@ For a successful transaction:
 
 . Create a payment session (initial request).
 . Redirect the customer to the payment page (initial response URL).
-. Highly recommended: Parse and process the payment response. +
+. Highly recommended: Parse and process the payment response.
+
+//-
 
  We provide ready-made JSON examples for each step of this process. You
 can find them below. 
@@ -382,23 +388,23 @@ For a full structure of a request (optional fields included), see the
 
 [source,json]
 ----
- {
-  "payment" : {
-    "merchant-account-id" : {
-      "value" : "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
     },
-    "request-id" : "{{$guid}}",
-    "transaction-type" : "authorization",
-    "requested-amount" : {
-      "value" : 10.1,
-      "currency" : "EUR"
+    "request-id": "{{$guid}}",
+    "transaction-type": "authorization",
+    "requested-amount": {
+      "value": 10.1,
+      "currency": "EUR"
     },
-    "payment-methods" : {
-      "payment-method" : [
+    "payment-methods": {
+      "payment-method": [
         {
-        "name" : "paypal"
-      }
-        ]
+          "name": "paypal"
+        }
+      ]
     }
   }
 }
@@ -427,7 +433,7 @@ transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 |payment-method e|name |String |Optional |15 |The name of the payment method
-used. Set this value to _PayPal_.
+used. Set this value to ``paypal``.
 |===
 
 .2. Redirect the Customer to the Payment Page (Initial Response URL)
@@ -435,11 +441,11 @@ used. Set this value to _PayPal_.
 [source,json]
 ----
 {
-"payment-redirect-url" : "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
+  "payment-redirect-url": "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
 }
 ----
 
-[cols=",,",]
+[cols="e,,"]
 |===
 |Field (JSON) |Data Type |Description
 
@@ -452,116 +458,116 @@ form. Sent as a response to the initial request.
 [source,json]
 ----
 {
-  "api-id" : "up3-wpp",
-  "parent-transaction-id" : "b675f63c-2df0-420f-a081-7c6b4967c992",
-  "shipping" : {
-    "last-name" : "Puente",
-    "first-name" : "Tito",
-    "address" : {
-      "street1" : "C/ La Cochibamba 3",
-      "city" : "Madrid",
-      "postal-code" : "28001",
-      "country" : "ES"
+  "api-id": "up3-wpp",
+  "parent-transaction-id": "b675f63c-2df0-420f-a081-7c6b4967c992",
+  "shipping": {
+    "last-name": "Puente",
+    "first-name": "Tito",
+    "address": {
+      "street1": "C/ La Cochibamba 3",
+      "city": "Madrid",
+      "postal-code": "28001",
+      "country": "ES"
     }
   },
-  "wallet" : {
-    "account-id" : "ZNKTXUBNSQE2Y"
+  "wallet": {
+    "account-id": "ZNKTXUBNSQE2Y"
   },
-  "payment-methods" : {
-    "payment-method" : [ {
-      "name" : "paypal"
-    } ]
+  "payment-methods": {
+    "payment-method": [
+      {
+        "name": "paypal"
+      }
+    ]
   },
-  "transaction-id" : "ff0b8cf4-6fd3-4318-9e54-e8c035add938",
-  "completion-time-stamp" : "2018-03-21T16:49:30",
-  "requested-amount" : {
-    "currency" : "EUR",
-    "value" : 10.100000
+  "transaction-id": "ff0b8cf4-6fd3-4318-9e54-e8c035add938",
+  "completion-time-stamp": "2018-03-21T16:49:30",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 10.1
   },
-  "statuses" : {
-    "status" : [ {
-      "description" : "The resource was successfully created.",
-      "provider-transaction-id" : "86M17436478175249",
-      "severity" : "information",
-      "code" : "201.0000"
-    } ]
+  "statuses": {
+    "status": [
+      {
+        "description": "The resource was successfully created.",
+        "provider-transaction-id": "86M17436478175249",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
   },
-  "instrument-country" : "DE",
-  "request-id" : "2502cae8-91b6-4dac-8f60-6e9c6ef0cbe6",
-  "merchant-account-id" : {
-    "value" : "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+  "instrument-country": "DE",
+  "request-id": "2502cae8-91b6-4dac-8f60-6e9c6ef0cbe6",
+  "merchant-account-id": {
+    "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
   },
-  "transaction-state" : "success",
-  "transaction-type" : "authorization",
-  "account-holder" : {
-    "last-name" : "Puente",
-    "email" : "tito.puente@example.com",
-    "first-name" : "Tito"
+  "transaction-state": "success",
+  "transaction-type": "authorization",
+  "account-holder": {
+    "last-name": "Puente",
+    "email": "tito.puente@example.com",
+    "first-name": "Tito"
   }
 }
 ----
 
-[cols="30,5,5,5,55"]
+[cols="30e,5,5,5,55"]
 |===
 3+|Field (JSON) |Data Type |Description
 
 3+|api-id |String |Identifier of the currently used API.
 3+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
-.6+|shipping 2+|last-name |String |The last name of the shipping address.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
 2+|first-name |String |The first name of the shipping address.
-.4+|address |street1 |String |The first line of the shipping address street.
+.4+|address e|street1 |String |The first line of the shipping address street.
 |city |String |The city of the shipping address.
 |postal-code |String |The postal code/ZIP of the shipping address.
 |country |String |The country ID part of the shipping address.
 3+|account-id |String |Account holder's _PayPal_ Wallet identifier.
-|payment-methods |payment-method |name |String |The name of the payment method used for the transaction.
+|payment-methods e|payment-method e|name |String |The name of the payment method used for the transaction.
 3+|transaction-id |String |A unique identifier assigned to every transaction (by Wirecard). Used when searching for or referencing to it later.
 3+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
-.2+|requested-amount 2+|currency |String a|The currency of the requested/contested transaction amount.
+.2+|requested-amount 2+e|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 2+|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimals allowed.
-.4+|statuses .4+|status |description |String |The description of the transaction status message.
+.4+|statuses .4+e|status e|description |String |The description of the transaction status message.
 |provider-transaction-id |String |A unique transaction identifier generated by the provider.
 |severity |String a|The definition of the status message.
 
 Possible values:
 
-- information
-- warning
-- error
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
 |code |String |Status code of the status message.
 3+|instrument-country |String |Payment origin country.
 3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
-2+|merchant-account-id |value |String |A unique identifier assigned to every merchant account (by Wirecard).
+2+|merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by Wirecard).
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- in-progress
-- success
-- failed
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
 
 Typically, a transaction starts with state in-progress and finishes with state either success or failed. This information is returned in the response only.
 3+|transaction-type |String |The requested transaction type.
-.3+|account-holder 2+|last-name |String |The last name of the account holder.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
 2+|email |String |Account holder's email address.
 2+|first-name |String |The first name of the account holder.
 |===
 
 [#WPP_PayPal_TransactionType_authorizationonly]
 ====== Transaction Type _authorization-only_
-
-////
-Is an authorization-only really possible with WPP?
-If no, why do we describe it here? It is well described at API/PayPal,
-where we refer to.
-////
 
 An authorization-only transaction creates a _PayPal_ billing agreement
 between the merchant and account holder, obtaining authorization for
@@ -572,6 +578,8 @@ This transaction type requires specific fields in the request:
 - ``periodic-type``, set to value _recurring_ or _installment_.
 - ``sequence-type``, set to value _first_.
 - The ``value`` field of ``requested-amount`` set to zero.
+
+//-
 
 The periodic and sequence information indicates that this is the first
 transaction in a series. The zero transaction amount is required because
@@ -588,7 +596,9 @@ For a successful transaction:
 
 . Create a payment session (initial request).
 . Redirect the customer to the payment page (initial response URL).
-. Highly recommended: Parse and process the payment response. +
+. Highly recommended: Parse and process the payment response.
+
+//-
 
 We provide ready-made JSON examples for each step of this process. You
 can find them below.
@@ -602,12 +612,10 @@ successful, you receive a URL as a response which redirects to the
 _PayPal_ payment form.
 
 .Request Headers
-[cols="20,80"]
+[cols="20h,80"]
 |===
-h| Authorization
-| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
-h| Content-Type
-| application/json
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
 |===
 
 .Optional fields
@@ -622,29 +630,29 @@ For a full structure of a request (optional fields included), see the
 
 [source,json]
 ----
- {
-    "payment": {
-        "merchant-account-id": {
-        "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
-        },
-        "request-id": "{{$guid}}",
-        "transaction-type": "authorization-only",
-        "requested-amount": {
-            "currency": "EUR",
-            "value": "0"
-        },
-        "payment-methods": {
-            "payment-method": [
-                {
-                "name": "paypal"
-            }
-        ]
-        },
-        "periodic": {
-            "periodic-type": "recurring",
-            "sequence-type": "first"
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "authorization-only",
+    "requested-amount": {
+      "currency": "EUR",
+      "value": "0"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "paypal"
         }
+      ]
+    },
+    "periodic": {
+      "periodic-type": "recurring",
+      "sequence-type": "first"
     }
+  }
 }
 ----
 
@@ -652,16 +660,16 @@ For a full structure of a request (optional fields included), see the
 |===
 2+|Field (JSON) |Data Type |Required/Optional |Size |Description
 
-|merchant-account-id |value |String |Required |36 |A unique identifier assigned
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
 to every merchant account (by Wirecard).
 2+|request-id |String |Required |64 a|A unique identifier assigned to every
 request (by merchant). Used when searching for or referencing it later.
-{{$guid}} serves as a placeholder for a random request-id.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
 
 Allowed characters: [a-z0-9-_]
 
 2+|transaction-type |String |Required |36 |The requested transaction type.
-.2+|requested-amount |value |Numeric |Required |18 a|The full amount that is
+.2+|requested-amount e|value |Numeric |Required |18 a|The full amount that is
 requested/contested in a transaction. 2 decimals allowed.
 
 Use . (decimal point) as the separator.
@@ -760,14 +768,14 @@ form. Sent as a response to the initial request.
 3+|api-id |String |Identifier of the currently used API.
 3+|parent-transaction-id |String |The ID of the transaction being referenced as
 a parent.
-.6+|shipping 2+|last-name |String |The last name of the shipping address.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
 2+|first-name |String |The first name of the shipping address.
-.4+|address |street1 |String |The first line of the shipping address street.
+.4+|address e|street1 |String |The first line of the shipping address street.
 |city |String |The city of the shipping address.
 |postal-code |String |The postal code/ZIP of the shipping address.
 |country |String |The country ID part of the shipping address.
 3+|account-id |String |Account holder's _PayPal_ wallet identifier.
-|payment-methods |payment-method |name |String |The name of the payment method
+|payment-methods e|payment-method e|name |String |The name of the payment method
 used for the transaction.
 .2+|periodic 2+|periodic-type |String |Indicates if (and how) payment occurs more
 than once.
@@ -778,12 +786,12 @@ than once.
 documents the time & date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
-.2+|requested-amount 2+|currency |String a|The currency of the
+.2+|requested-amount 2+e|currency |String a|The currency of the
 requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 2+|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimals allowed.
-.4+|statuses .4+|status |description |String |The description of the
+.4+|statuses .4+e|status e|description |String |The description of the
 transaction status message.
 |provider-transaction-id |String |A unique transaction identifier generated
 by the provider.
@@ -791,9 +799,9 @@ by the provider.
 
 Possible values:
 
-- information
-- warning
-- error
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
@@ -801,20 +809,22 @@ Possible values:
 3+|instrument-country |String |Payment origin country.
 3+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard).
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- in-progress
-- success
-- failed
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
 
 Typically, a transaction starts with state in-progress and finishes with state
 either success or failed. This information is returned in the response only.
 3+|transaction-type |String |The requested transaction type.
-.3+|account-holder 2+|last-name |String |The last name of the account holder.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
 2+|email |String |Account holder's email address.
 2+|first-name |String |The first name of the account holder.
 |===
@@ -836,16 +846,19 @@ immediately after the order is placed, e.g.:
 needs separate authorizations for each shipment,
 - delayed shipping on items that are not in stock.
 
+//-
+
 As with other referenceable transaction types, you can use WPP only to
 create an order transaction. To register an additional authorization to
-capture it, you need to use our link:#PayPalwithWPP-Follow-up[REST
-API]. 
+capture it, you need to use our <<WPP_PayPal_PostProcessing, REST API>>.
 
 For a successful transaction:
 
 . Create a payment session (initial request).
 . Redirect the customer to the payment page (initial response URL).
-. Highly recommended: Parse and process the payment response. +
+. Highly recommended: Parse and process the payment response.
+
+//-
 
 We provide ready-made JSON examples for each step of this process. You
 can find them below. 
@@ -868,12 +881,10 @@ separate _authorizations_ for each shipment. Another example would be
 delayed shipping on items that are not in stock.
 
 .Request Headers
-[cols="20,80"]
+[cols="20h,80"]
 |===
-h| Authorization
-| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
-h| Content-Type
-| application/json
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
 |===
 
 .Optional fields
@@ -889,24 +900,24 @@ For a full structure of a request (optional fields included), see the
 [source,json]
 ----
 {
-    "payment": {
-        "merchant-account-id": {
-            "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
-            },
-        "request-id": "{{$guid}}",
-        "transaction-type": "order",
-        "requested-amount": {
-            "currency": "EUR",
-            "value": "1.00"
-        },
-        "payment-methods": {
-            "payment-method": [
-                {
-                "name": "paypal"
-            }
-        ]
+  "payment": {
+    "merchant-account-id": {
+      "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "order",
+    "requested-amount": {
+      "currency": "EUR",
+      "value": "1.00"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "paypal"
         }
+      ]
     }
+  }
 }
 ----
 
@@ -932,7 +943,7 @@ transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 |payment-method e|name |String |Optional |15 |The name of the payment method
-used. Set this value to _PayPal_.
+used. Set this value to ``paypal``.
 |===
 
 .2. Redirect the Customer to the Payment Page (Initial Response URL)
@@ -940,11 +951,11 @@ used. Set this value to _PayPal_.
 [source,json]
 ----
 {
-"payment-redirect-url" : "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
+  "payment-redirect-url": "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
 }
 ----
 
-[cols=",,",]
+[cols="e,,"]
 |===
 |Field (JSON) |Data Type |Description
 
@@ -956,73 +967,77 @@ form. Sent as a response to the initial request.
 
 [source,json]
 ----
- {
-  "api-id" : "up3-wpp",
-  "parent-transaction-id" : "6998700b-a573-4a39-b8e0-c0da1008c468",
-  "shipping" : {
-    "last-name" : "Puente",
-    "first-name" : "Tito",
-    "address" : {
-      "street1" : "C/ La Cochibamba 3",
-      "city" : "Madrid",
-      "postal-code" : "28001",
-      "country" : "ES"
+{
+  "api-id": "up3-wpp",
+  "parent-transaction-id": "6998700b-a573-4a39-b8e0-c0da1008c468",
+  "shipping": {
+    "last-name": "Puente",
+    "first-name": "Tito",
+    "address": {
+      "street1": "C/ La Cochibamba 3",
+      "city": "Madrid",
+      "postal-code": "28001",
+      "country": "ES"
     }
   },
-  "wallet" : {
-    "account-id" : "ZNKTXUBNSQE2Y"
+  "wallet": {
+    "account-id": "ZNKTXUBNSQE2Y"
   },
-  "payment-methods" : {
-    "payment-method" : [ {
-      "name" : "paypal"
-    } ]
+  "payment-methods": {
+    "payment-method": [
+      {
+        "name": "paypal"
+      }
+    ]
   },
-  "transaction-id" : "59b94534-edd3-4668-9c9d-567be60e4622",
-  "completion-time-stamp" : "2018-03-21T17:24:00",
-  "requested-amount" : {
-    "currency" : "EUR",
-    "value" : 1.000000
+  "transaction-id": "59b94534-edd3-4668-9c9d-567be60e4622",
+  "completion-time-stamp": "2018-03-21T17:24:00",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 1
   },
-  "statuses" : {
-    "status" : [ {
-      "description" : "The resource was successfully created.",
-      "provider-transaction-id" : "O-70W17875FY9058845",
-      "severity" : "information",
-      "code" : "201.0000"
-    } ]
+  "statuses": {
+    "status": [
+      {
+        "description": "The resource was successfully created.",
+        "provider-transaction-id": "O-70W17875FY9058845",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
   },
-  "custom-fields" : { },
-  "instrument-country" : "DE",
-  "request-id" : "649e2792-5af4-45c8-909c-7333b0a8f43c",
-  "merchant-account-id" : {
-    "value" : "9abf05c1-c266-46ae-8eac-7f87ca97af28"
+  "custom-fields": {},
+  "instrument-country": "DE",
+  "request-id": "649e2792-5af4-45c8-909c-7333b0a8f43c",
+  "merchant-account-id": {
+    "value": "9abf05c1-c266-46ae-8eac-7f87ca97af28"
   },
-  "transaction-state" : "success",
-  "transaction-type" : "order",
-  "account-holder" : {
-    "last-name" : "Puente",
-    "email" : "tito.puente@example.com",
-    "first-name" : "Tito"
+  "transaction-state": "success",
+  "transaction-type": "order",
+  "account-holder": {
+    "last-name": "Puente",
+    "email": "tito.puente@example.com",
+    "first-name": "Tito"
   }
 }
 ----
 
 
-[cols="30,5,5,5,55"]
+[cols="30e,5,5,5,55"]
 |===
 3+|Field (JSON) |Data Type |Description
 
 3+|api-id |String |Identifier of the currently used API.
 3+|parent-transaction-id |String |The ID of the transaction being referenced
 as a parent.
-.6+|shipping 2+|last-name |String |The last name of the shipping address.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
 2+|first-name |String |The first name of the shipping address.
-.4+|address |street1 |String |The first line of the shipping address street.
+.4+|address e|street1 |String |The first line of the shipping address street.
 |city |String |The city of the shipping address.
 |postal-code |String |The postal code/ZIP of the shipping address.
 |country |String |The country ID part of the shipping address.
-|wallet 2+|account-id |String |Account holder's _PayPal_ wallet identifier.
-|payment-methods |payment-method |name |String |The name of the payment method
+|wallet 2+e|account-id |String |Account holder's _PayPal_ wallet identifier.
+|payment-methods e|payment-method e|name |String |The name of the payment method
 used for the transaction.
 3+|transaction-id |String |A unique identifier assigned to every transaction
 (by Wirecard). Used when searching for or referencing to it later.
@@ -1030,13 +1045,13 @@ used for the transaction.
 documents the time & date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
-.2+|requested-amount 2+|currency |String a|The currency of the
+.2+|requested-amount 2+e|currency |String a|The currency of the
 requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
 2+|value |Numeric |The full amount that is requested/contested in a
 transaction. 2 decimals allowed.
-.4+|statuses .4+|status |description |String |The description of the
+.4+|statuses .4+e|status e|description |String |The description of the
 transaction status message.
 |provider-transaction-id |String |A unique transaction identifier generated
 by the provider.
@@ -1044,9 +1059,9 @@ by the provider.
 
 Possible values:
 
-- information
-- warning
-- error
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
@@ -1054,19 +1069,19 @@ Possible values:
 3+|instrument-country |String |Payment origin country.
 3+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard).
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- in-progress
-- success
-- failed
+- ``in-progress``
+- ``success``
+- ``failed``
 
 Typically, a transaction starts with state in-progress and finishes with state either success or failed. This information is returned in the response only.
 3+|transaction-type |String |The requested transaction type.
-.3+|account-holder 2+|last-name |String |The last name of the account holder.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
 2+|email |String |Account holder's email address.
 2+|first-name |String |The first name of the account holder.
 |===
@@ -1092,6 +1107,8 @@ There are multiple post processing operations available for _PayPal_:
 - void transactions
 - refunds
 
+//-
+
 For examples and more information, see the REST
 API <<API_PaymentMethods_PayPal, _PayPal_ specification>>.
 
@@ -1103,44 +1120,46 @@ Here you can:
 - find the NVP equivalents for JSON fields (for migrating merchants),
 - see the structure of a full request (optional fields included).
 
+//-
+
 [#WPP_PayPal_JSONNVPFields_request]
-.JSON Structure for _PayPal_ Requests
+.JSON Structure of a _PayPal_ Request
 
 [source,json]
 ----
 {
-"payment": {
- "merchant-account-id": {
+  "payment": {
+    "merchant-account-id": {
       "value": "string"
     },
- "request-id": "string",
- "transaction-type": "string",
- "requested-amount": {
+    "request-id": "string",
+    "transaction-type": "string",
+    "requested-amount": {
       "currency": "string",
       "value": 0
     },
- "payment-methods": {
+    "payment-methods": {
       "payment-method": [
         {
           "name": "string"
         }
       ]
     },
- "account-holder": {
+    "account-holder": {
       "address": {
         "city": "string",
         "country": "string",
         "postal-code": "string",
         "state": "string",
         "street1": "string",
-        "street2": "string",
+        "street2": "string"
       },
       "email": "string",
       "first-name": "string",
       "last-name": "string",
       "phone": "string"
     },
- "shipping": {
+    "shipping": {
       "address": {
         "city": "string",
         "country": "string",
@@ -1153,20 +1172,20 @@ Here you can:
       "last-name": "string",
       "phone": "string"
     },
- "descriptor": "string",
- "order-number": "string",
- "periodic": {
+    "descriptor": "string",
+    "order-number": "string",
+    "periodic": {
       "periodic-type": "string",
       "sequence-type": "string"
     },
- "success-redirect-url": "string",
- "fail-redirect-url": "string",
- "cancel-redirect-url": "string"
-}
+    "success-redirect-url": "string",
+    "fail-redirect-url": "string",
+    "cancel-redirect-url": "string"
+  }
 }
 ----
 
-[cols=",,",]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
@@ -1205,19 +1224,19 @@ Here you can:
 |===
 
 [#WPP_PayPal_JSONNVPField_response]
-.JSON Structure for _PayPal_ Responses
+.JSON Structure of a _PayPal_ Response
 
 [source,json]
 ----
 {
-"payment": {
- "api-id": "string",
- "wallet": {
+  "payment": {
+    "api-id": "string",
+    "wallet": {
       "account-id": "string"
     },
- "transaction-id": "string",
- "completion-time-stamp": "2017-11-21T09:38:57.645Z",
- "statuses": {
+    "transaction-id": "string",
+    "completion-time-stamp": "2019-02-21T09:38:57.645Z",
+    "statuses": {
       "status": [
         {
           "code": "string",
@@ -1226,14 +1245,14 @@ Here you can:
         }
       ]
     },
- "provider-transaction-reference-id": "string",
- "instrument-country": "string",
- "transaction-state": "string"
-    }
+    "provider-transaction-reference-id": "string",
+    "instrument-country": "string",
+    "transaction-state": "string"
+  }
 }
 ----
 
-[cols=",,",]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
@@ -1241,15 +1260,13 @@ Here you can:
 |wallet_account_id |account-id |wallet ({ })
 |transaction_id |transaction-id |payment ({ })
 |completion_time_stamp |completion-time-stamp |payment ({ })
-|status_code_n |status ([ {} ])/ code |statuses ({ })
-|provider_transaction_id_n |status ([ {} ])/ provider-transaction-id
+|status_code_n |status ([ { } ])/ code |statuses ({ })
+|provider_transaction_id_n |status ([ { } ])/ provider-transaction-id
 |statuses ({ })
-|status_description_n |status ([ {} ])/ description |statuses ({ })
-|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_description_n |status ([ { } ])/ description |statuses ({ })
+|status_severity_n |status ([ { } ])/ severity |statuses ({ })
 |provider_transaction_reference_id |provider-transaction-reference-id
 |payment ({ })
 |instrument_country |instrument-country |payment ({ })
 |transaction_state |transaction-state |payment ({ })
 |===
-
-//-
