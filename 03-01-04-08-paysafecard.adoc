@@ -41,7 +41,7 @@ the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
 [#WPP_paysafecard_About]
 ====== About _paysafecard_
 
-image::images\03-01-04-08-paysafecard/paysafecard_logo.png[image,width=200]
+image::images\03-01-04-08-paysafecard/paysafecard_logo.png[paysafecard logo,width=200]
 
 _paysafecard_ is a well-known prepaid electronic payment method for mainly
 online shopping e.g. in gaming, social media & communities and music, film &
@@ -159,7 +159,7 @@ can find them below.
 
 .Initial Request
 
-The initial request creates the payment session. If it's
+The initial request creates the payment session. If it is
 successful, you receive a URL as a response which redirects to the payment form.
 
 .Request Headers
@@ -211,53 +211,64 @@ h| Content-Type
 }
 ----
 
-[cols="30e,5,5,5,5,5,45"]
+[cols="5e,5,5,5,5,45"]
 |===
-3+|Field (JSON) |Data Type |Cardinality |Size |Description
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
 
-2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
 to every merchant account (by Wirecard).
-3+|request-id |String |Required |64 a|A unique identifier assigned to every request
-(by merchant). Used when searching for or referencing it later.
-``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+2+|request-id |String |Required |64 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
 
 Allowed characters:  [a-z0-9-_]
-3+|transaction-type |String |Required |n/a |The requested transaction type. For
-_paysafecard_ payments, the transaction-type must be set to ``debit``.
-.2+|requested-amount  2+e|value |Numeric |Required |9.2 a|The full amount that is
+
+2+|transaction-type |String |Required |n/a a|The requested transaction type, i.e.
+``debit``.
+
+Available transaction types for _paysafecard_:
+
+- ``authorization``
+- ``capture-authorization``
+- ``debit``
+
+//-
+
+.2+|requested-amount  e|value |Numeric |Required |9.2 a|The full amount that is
 requested/contested in a transaction. 2 decimal digits allowed.
 
 Use . (decimal point) as the separator.
 
-2+|currency |String |Required |3 a|The currency of the requested/contested
+|currency |String |Required |3 a|The currency of the requested/contested
 transaction amount. For _paysafecard_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
 
-2+|account-holder e|merchant-crm-id |String |Required |64 |The unique identifier
-of your consumer of your online shop, e.g. from your CRM system.
-The parameter must not be a human readable e-mail address. However, if an
-e-mail address is used, you have to hash it beforehand.
+|account-holder e|merchant-crm-id |String |Required |64 |Unique ID identifying
+the consumer of your online shop, e.g. from your CRM system. +
+The parameter must not be a human readable email address. However, if an
+email address is used, you have to hash it beforehand.
 |payment-method e|name |String |required |256 |The name of the payment method used for the transaction, i.e. ``paysafecard``
 
-3+|notification-url |String |Optional ||The URL to which _Wirecard Payment Gateway_
+2+|notification-url |String |Optional ||The URL to which Wirecard Payment Gateway
 sends the transaction outcome.
-3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
-3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
 redirected after a failed payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
-3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
 
 [#WPP_paysafecard_TransactionType_debit_redirect]
-.2. Redirect the consumer to the payment page (initial response URL)
+.2. Redirect the Consumer to the Payment Page (Initial Response URL)
 
 [source,json]
 ----
@@ -266,7 +277,7 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 }
 ----
 
-[cols="25,15,60"]
+[cols="25e,15,60"]
 |===
 |Field (JSON) |Data Type |Description
 
@@ -274,16 +285,16 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 form (hosted by _paysafecard_). Sent as a response to the initial request.
 |===
 
-At this point, you need to redirect your customer to
+At this point, you need to redirect your consumer to
 ``payment-redirect-url`` (or render it in an _iframe_ depending on your
 <<WPP, integration method>>﻿).
 
-The customers are redirected to the payment form. There they enter their
+Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
 - successful (``transaction-state: success``),
 - failed (``transaction-state: failed``),
-- canceled. The customer canceled the payment before/after submission
+- canceled. The consumer canceled the payment before/after submission
 (``transaction-state: failed``).
 
 //-
@@ -291,10 +302,10 @@ data and submit the form to confirm the payment. A payment can be:
 The transaction result is the value of ``transaction-state`` in the
 payment response. More details (including the status code) can also be
 found in the payment response in the ``statuses`` object. Canceled
-payments are returned as  _failed_, but the status description indicates it
+payments are returned as  _failed_, but the ``status description`` indicates it
 was canceled.
 
-In any case (unless the customer cancels the transaction on a 3rd party
+In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
 is sent to the configured redirection URL. See
 <<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
@@ -303,7 +314,7 @@ notifications.
 
 You can find a decoded payment response example below.
 
-.3. Parse and process the payment response (decoded payment response)
+.3. Parse and Process the Payment Response (Decoded Payment Response)
 
 [source,json]
 ----
@@ -345,48 +356,48 @@ You can find a decoded payment response example below.
 }
 ----
 
-[cols="10,10,10,5,65",]
+[cols="10e,10,10,70"]
 |===
-3+|Field (JSON) |Data Type |Description
+2+|Field (JSON) |Data Type |Description
 
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard). You receive a unique merchant account ID for
 each payment method.
-3+|request-id |String |A unique identifier assigned to every request
+2+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|account-holder |merchant-crm-id |String |Unique ID identifying the consumer
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
 of your online shop, e.g. from your CRM system.
-3+|transaction-type |String |The requested transaction type, here: _debit_.
-3+|parent-transaction-id |String |The ID of the transaction being referenced
+2+|transaction-type |String |The requested transaction type, here: ``debit``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
 as a parent. As a _debit_ transaction is internally split into sub-transactions,
 the ``parent-transaction-id`` serves to link these sub-transactions.
-|payment-methods |payment-method |name |String |The name of the payment method
-used for the transaction, here: _paysafecard_.
-3+|transaction-state |String a|The current transaction state.
+|payment-method e|name |String |The name of the payment method
+used for the transaction, here: ``paysafecard``.
+2+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
 
 //-
 
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the response
 only.
-3+|transaction-id |String |A unique identifier assigned to every transaction.
+2+|transaction-id |String |A unique identifier assigned to every transaction.
 Used when searching for or referencing it later.
-3+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time &
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
 date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+|value |Numeric |The full amount that was
+.2+|requested-amount  e|value |Numeric |The full amount that was
 requested/contested in the transaction.
-2+|currency |String a|The currency of the requested/contested transaction amount.
+|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+|status |description |String a|The description of the
+.3+|status e|description |String a|The description of the
 transaction status message.
 
 See the <<StatusCodes, complete list of status codes and descriptions>>.
@@ -394,27 +405,24 @@ See the <<StatusCodes, complete list of status codes and descriptions>>.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
-|code |String a|Status code of the status message.
+|code |String a|Status code of the status message. +
 See the <<StatusCodes, complete list of status codes and descriptions>>.
-3+|api-id |String |Identifier of the currently used API.
-3+|success-redirect-url |String a|The URL to which the consumer is redirected
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
 after a successful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
-3+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
 after having cancelled a payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
-3+|fail-redirect-url |String a|The URL to which the consumer is redirected
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
 after an unsuccessful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
 
 [#WPP_paysafecard_TransactionType_authorization]
@@ -426,6 +434,8 @@ An _authorization_
 merchant ships/delivers the goods/services).
 - does not trigger money transfer.  
 
+//-
+
 To transfer money, the amount has to be captured with the transaction
 type _capture-authorization_.
 
@@ -434,6 +444,8 @@ For a successful _authorization_ transaction
 . Create an _authorization_ session (initial _authorization_ request).
 . Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
+
+//-
 
 <<WPP_ideal_TestCredentials, Endpoint>> for _paysafecard_ payments.
 
@@ -453,7 +465,7 @@ h| Content-Type
 | application/json
 |===
 
-.1. Create a payment session (initial request)
+.1. Create a Payment Session (Initial Request)
 
 [source,json]
 ----
@@ -492,50 +504,62 @@ h| Content-Type
 }
 ----
 
-[cols="30e,5,5,5,5,5,45"]
+[cols="5e,5,5,5,5,45"]
 |===
-3+|Field (JSON) |Data Type |Cardinality |Size |Description
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
 
-2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
 to every merchant account (by Wirecard).
-3+|request-id |String |Required |64 a|A unique identifier assigned to every request
-(by merchant). Used when searching for or referencing it later.
-``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+2+|request-id |String |Required |64 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
 
 Allowed characters:  [a-z0-9-_]
-3+|transaction-type |String |Required |n/a |The requested transaction type. For
-_paysafecard_ payments, the transaction-type must be set to ``authorization``.
-.2+|requested-amount  2+e|value |Numeric |Required |9.2 a|The full amount that is
+
+2+|transaction-type |String |Required |n/a a|The requested transaction type, i.e.
+``authorization``.
+
+Available transaction types for _paysafecard_:
+
+- ``authorization``
+- ``capture-authorization``
+- ``debit``
+
+//-
+
+.2+|requested-amount  e|value |Numeric |Required |9.2 a|The full amount that is
 requested/contested in a transaction. 2 decimal digits allowed.
 
 Use . (decimal point) as the separator.
 
-2+|currency |String |Required |3 a|The currency of the requested/contested
+|currency |String |Required |3 a|The currency of the requested/contested
 transaction amount. For _paysafecard_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
 
-|payment-methods e|payment-method e|name |String |Required | 15 |The name of the
-payment method used. Set this value to ``paysafecard``.
-2+|account-holder e|merchant-crm-id |String |Required |64 |The unique identifier
-of your consumer of your online shop, e.g. from your CRM system.
-The parameter must not be a human readable e-mail address. However, if an
-e-mail address is used, you have to hash it beforehand.
-3+|notification-url |String |Optional ||The URL to which _Wirecard Payment Gateway_
+|account-holder e|merchant-crm-id |String |Required |64 |Unique ID identifying
+the consumer of your online shop, e.g. from your CRM system. +
+The parameter must not be a human readable email address. However, if an
+email address is used, you have to hash it beforehand.
+|payment-method e|name |String |required |256 |The name of the payment method used for the transaction, i.e. ``paysafecard``
+
+2+|notification-url |String |Optional ||The URL to which Wirecard Payment Gateway
 sends the transaction outcome.
-3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after a successful payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
-3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
 redirected after a failed payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
-3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
+
 
 .2. Redirect the Consumer to the Payment Page (Sample Response URL)
 
@@ -544,7 +568,7 @@ The response to this initial _authorization_ request is the 
 Proceed with <<WPP_paysafecard_TransactionType_debit_redirect, step 2>> in a
 similar way as described for _debit_.
 
-.3. Parse and process the _authorization_ response (decoded payment response)
+.3. Parse and Process the _authorization_ Response (Decoded Payment Response)
 
 [source,json]
 ----
@@ -586,77 +610,77 @@ similar way as described for _debit_.
 }
 ----
 
-[cols="10,10,10,5,65",]
+[cols="10e,10,10,70"]
 |===
-3+|Field (JSON) |Data Type |Description
+2+|Field (JSON) |Data Type |Description
 
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard). You receive a unique merchant account ID for
 each payment method.
-3+|request-id |String |A unique identifier assigned to every request
+2+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|account-holder |merchant-crm-id |String |Unique ID identifying the consumer
-of your online shop, e.g. from your CRM system.
-3+|transaction-type |String |The requested transaction type, here: _debit_.
-3+|parent-transaction-id |String |The ID of the transaction being referenced
-as a parent. As a _debit_ transaction is internally split into sub-transactions,
-the ``parent-transaction-id`` serves to link these sub-transactions.
-|payment-methods |payment-method |name |String |The name of the payment method
-used for the transaction, here: _paysafecard_.
-3+|transaction-state |String a|The current transaction state.
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
+of your online shop, e.g. from your CRM system. The parameter must not be a human
+readable email address. However, if an email address is used, you have to hash it
+beforehand.
+2+|transaction-type |String |The requested transaction type, i.e. ``authorization``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent (e.g. the transaction ID of a previous internal get-url).
+|payment-method e|name |String |The name of the payment method
+used for the transaction, here: ``paysafecard``.
+2+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
 
 //-
 
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the response
 only.
-3+|transaction-id |String |A unique identifier assigned to every transaction.
-Used when searching for or referencing it later.
-3+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time &
+2+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later. +
+The transaction ID of an authorization is the parent transaction ID of the following
+capture-authorization request.
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
 date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+|value |Numeric |The full amount that was
+.2+|requested-amount  e|value |Numeric |The full amount that was
 requested/contested in the transaction.
-2+|currency |String a|The currency of the requested/contested transaction amount.
+|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+|status |description |String a|The description of the
+.3+|status e|description |String a|The description of the
 transaction status message.
-
 See the <<StatusCodes, complete list of status codes and descriptions>>.
 |severity |String a|The definition of the status message.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
-|code |String a|Status code of the status message.
+|code |String a|Status code of the status message. +
 See the <<StatusCodes, complete list of status codes and descriptions>>.
-3+|api-id |String |Identifier of the currently used API.
-3+|success-redirect-url |String a|The URL to which the consumer is redirected
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
 after a successful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
-3+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
 after having cancelled a payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
-3+|fail-redirect-url |String a|The URL to which the consumer is redirected
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
 after an unsuccessful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
+
 
 [#WPP_paysafecard_TransactionType_capture]
 ====== Transaction Type _capture-authorization_
@@ -673,7 +697,7 @@ following _capture-authorization_ request.
 
 .Initial Request
 
-The initial request creates the payment session. If it's
+The initial request creates the payment session. If it is
 successful, you receive a URL as a response which redirects to the
 _paysafecard_ payment form.
 
@@ -727,53 +751,63 @@ h| Content-Type
 }
 ----
 
-[cols="30e,5,5,5,5,5,45"]
+[cols="5e,5,5,5,5,45"]
 |===
-3+|Field (JSON) |Data Type |Cardinality |Size |Description
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
 
-2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
 to every merchant account (by Wirecard).
-3+|request-id |String |Required |64 a|A unique identifier assigned to every request
-(by merchant). Used when searching for or referencing it later.
-``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+2+|request-id |String |Required |64 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
 
 Allowed characters:  [a-z0-9-_]
-3+|transaction-type |String |Required |n/a |The requested transaction type. For
-_paysafecard_ payments, the transaction-type must be set to ``capture-authorization``.
-3+|parent-transaction-id |String |Required |36 |Takes the ``transaction-id``
-value of the preceding _authorization_. You can only capture a transaction that
-has already been authorized.
-.2+|requested-amount  2+e|value |Numeric |Required |9.2 a|The full amount that is
+
+2+|transaction-type |String |Required |n/a a|The requested transaction type, i.e.
+``authorization``.
+
+Available transaction types for _paysafecard_:
+
+- ``authorization``
+- ``capture-authorization``
+- ``debit``
+
+//-
+2+|parent-transaction-id |String | Required | 36 | The ID of the transaction being referenced
+as a parent (e.g. the transaction ID of a previous internal get-url).
+.2+|requested-amount  e|value |Numeric |Required |9.2 a|The full amount that is
 requested/contested in a transaction. 2 decimal digits allowed.
 
 Use . (decimal point) as the separator.
 
-2+|currency |String |Required |3 a|The currency of the requested/contested
+|currency |String |Required |3 a|The currency of the requested/contested
 transaction amount. For _paysafecard_ payments, the currency must be set to ``EUR``.
 
 Format: 3-character abbreviation according to ISO 4217.
 
-|payment-methods e|payment-method e|name |String |Required | 256 |The name of the
-payment method used. Set this value to ``bancontact``.
-2+|account-holder e|merchant-crm-id |String |Required |64 |The unique
-identifier of your consumer of your online shop, e.g. from your CRM system.
-The parameter must not be a human readable e-mail address. However, if an
-e-mail address is used, you have to hash it beforehand.
-3+|notification-url |String |Optional |256 |The URL to which
-_Wirecard Payment Gateway_ sends the transaction outcome.
-3+|success-redirect-url |String |Required |2000 a|The URL to which the
-consumer is redirected after a successful payment,
+|account-holder e|merchant-crm-id |String |Required |64 |Unique ID identifying
+the consumer of your online shop, e.g. from your CRM system. +
+The parameter must not be a human readable email address. However, if an
+email address is used, you have to hash it beforehand.
+|payment-method e|name |String |required |256 |The name of the payment method used for the transaction, i.e. ``paysafecard``
 
+2+|notification-url |String |Optional ||The URL to which Wirecard Payment Gateway
+sends the transaction outcome.
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after a successful payment,
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
-3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer
-is redirected after a failed payment,
-
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+redirected after a failed payment,
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
-3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
 is redirected after having canceled a payment,
-
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 |===
+
 
 ._capture-authorization_ (response)
 
@@ -822,81 +856,78 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
 }
 ----
 
-[cols="10,10,10,5,65",]
+[cols="10e,10,10,70"]
 |===
-3+|Field (JSON) |Data Type |Description
+2+|Field (JSON) |Data Type |Description
 
-2+|merchant-account-id |value |String |A unique identifier assigned to every
+|merchant-account-id e|value |String |A unique identifier assigned to every
 merchant account (by Wirecard). You receive a unique merchant account ID for
 each payment method.
-3+|request-id |String |A unique identifier assigned to every request
+2+|request-id |String |A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
-2+|account-holder |merchant-crm-id |String |Unique ID identifying the consumer
-of your online shop, e.g. from your CRM system. The parameter must not be a
-human readable e-mail address. However, if an e-mail address is used, you have
-to hash it beforehand.
-3+|transaction-type |String |The requested transaction type, here: _capture-authorization_.
-3+|parent-transaction-id |String |Takes the ``transaction-id``
-value of the preceding _authorization_.
-|payment-methods |payment-method |name |String |The name of the payment method
-used for the transaction, here: _paysafecard_.
-3+|transaction-state |String a|The current transaction state.
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
+of your online shop, e.g. from your CRM system. The parameter must not be a human
+readable email address. However, if an email address is used, you have to hash it
+beforehand.
+2+|transaction-type |String |The requested transaction type, i.e. ``capture-authorization``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent, i.e. the transaction ID of the preceding authorization.
+|payment-method e|name |String |The name of the payment method
+used for the transaction, i.e. ``paysafecard``.
+2+|transaction-state |String a|The current transaction state.
 
 Possible values:
 
-- _in-progress_
-- _success_
-- _failed_
+- ``in-progress``
+- ``success``
+- ``failed``
 
 //-
 
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the response
 only.
-3+|transaction-id |String |A unique identifier assigned to every transaction.
+2+|transaction-id |String |A unique identifier assigned to every transaction.
 Used when searching for or referencing it later.
-3+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time &
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
 date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+|value |Numeric |The full amount that was
+.2+|requested-amount  e|value |Numeric |The full amount that was
 requested/contested in the transaction.
-2+|currency |String a|The currency of the requested/contested transaction amount.
+|currency |String a|The currency of the requested/contested transaction amount.
 
 Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+|status |description |String a|The description of the
+.3+|status e|description |String a|The description of the
 transaction status message.
-
 See the <<StatusCodes, complete list of status codes and descriptions>>.
 |severity |String a|The definition of the status message.
 
 Possible values:
 
-- _information_
-- _warning_
-- _error_
+- ``information``
+- ``warning``
+- ``error``
 
 //-
 
-|code |String a|Status code of the status message.
+|code |String a|Status code of the status message. +
 See the <<StatusCodes, complete list of status codes and descriptions>>.
-3+|api-id |String |Identifier of the currently used API.
-3+|success-redirect-url |String a|The URL to which the consumer is redirected
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
 after a successful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/success
-3+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/success``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
 after having cancelled a payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/cancel
-3+|fail-redirect-url |String a|The URL to which the consumer is redirected
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/cancel``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
 after an unsuccessful payment,
-
-e.g. https://demoshop-test.wirecard.com/demoshop/#!/error
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#!/error``
 |===
 
+
 [#WPP_paysafecard_void]
-_void-authorization_
+*_void-authorization_*
 
 You may cancel an _authorization_ using the <<RestApi, REST API>>, if the
 _authorization_ was successful and has neither been captured nor voided before.
@@ -908,7 +939,7 @@ For a void process you must provide a ``parent-transaction-id``. This is the
 response to a successful authorization.
 
 [#WPP_paysafecard_JSONNVPFields]
-NVP Field Reference
+====== NVP Field Reference
 
 NVP equivalents for JSON fields (for migrating merchants).
 
@@ -916,6 +947,8 @@ Here you can:
 
 - find the NVP equivalents for JSON fields (for migrating merchants),
 - see the structure of a full request (optional fields included).
+
+//-
 
 [#WPP_paysafecard_JSONNVPFields_request]
 .JSON Structure for _paybox_ Requests
@@ -949,7 +982,7 @@ Here you can:
 }
 ----
 
-[cols=",,",]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
@@ -966,10 +999,11 @@ Here you can:
 |ip_address |ip-address |payment ({ })
 |===
 
-[#WPP_paysafecard_JSONNVPFields_response]
-.JSON Structure for _paybox_ Responses
 
-[source,syntaxhighlighter-pre]
+.Response-Only Fields
+[#WPP_paysafecard_JSONNVPFields_response]
+
+[source,json]
 ----
 {
     "payment" : {
@@ -988,7 +1022,7 @@ Here you can:
 }
 ----
 
-[cols=",,",]
+[cols="e,e,e"]
 |===
 |Field (NVP) |Field (JSON) |JSON Parent
 
