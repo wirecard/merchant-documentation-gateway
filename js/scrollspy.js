@@ -20,6 +20,7 @@ function highlightTOC() {
         if(hasTitle == false) {
           hasTitle = true;
           $('#minitoc > ul').append('<li id="minitoc-title">' + subsectionTitleElement.text() + '</li>');
+          $('#minitoc-title').on('click touch', function() { location.href = '#' + subsectionTitleElement.attr('id'); } );
         }
         var e = $(this);
         var title = e.text();
@@ -29,7 +30,7 @@ function highlightTOC() {
                        "</li>";
         $('#minitoc > ul').append(navPoint);
       });
-      $('#minitoc > ul').delay(1).slideDown(500);
+      $('#minitoc > ul').delay(1).slideDown(300);
     } else if(subsectionTitleElement.is('h4') === false) {
       $('#minitoc > ul').html('');
     }
