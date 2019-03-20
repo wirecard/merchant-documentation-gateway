@@ -61,6 +61,8 @@ class Task extends Threaded {
                                 'asciidoctor' => array()
                               );
     }
+    // TODO put this in if(==index.adoc) bc index contains all valid anchors
+    $result['anchors'] = $asciidoctorOutput['anchors'];
     $this->resultsArray = (array)$result;
   }
 
@@ -335,7 +337,10 @@ function postprocessErrors( $testsResultsArray ) {
 
     // if it is an invalid reference error add it to the pile that we use later to search the files with
     if( isInvalidReferenceError( $adError['message'] ) ) {
-      $invalidReferencesArray[] = str_replace( 'invalid reference: ', '', $adError['message'] );
+      $invalidReferenceID = str_replace( 'invalid reference: ', '', $adError['message'] );
+      // make sure this is not a false positive created by asciidoctor by searching all anchors (contained in ['index.adoc']['anchors'])
+      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) !== false )
+        $invalidReferencesArray[] = $invalidReferenceID;
     }
   }
 
