@@ -104,7 +104,7 @@ class SearchFileTask extends Threaded {
     $fileContent = file( $this->filename );
 
     foreach( $this->references as $reference ) {
-      $matchingLines = preg_grep( '/<<'.$reference.'/', $fileContent );
+      $matchingLines = preg_grep( '/<<'.$reference.',/', $fileContent );
       foreach( $matchingLines as $lineNumber => $lineContent ) {
         $results[] = array( 'reference'   => $reference,
                             'lineNumber'  => $lineNumber + 1,
@@ -123,7 +123,7 @@ class SearchFileTask extends Threaded {
 
 // simple pattern matching for anchor validity check
 function testAnchors( $anchorsArray ) {
-  $anchorErrorsMap = array( 
+  $anchorErrorsMap = array(
                             array( 'type'     => 'missing',
                                    'pattern'  => '/^_/',
                                    'message'  => 'Missing Anchor',
@@ -167,7 +167,7 @@ function testUrls( $urlsArray ) {
   foreach ( $urlsArray as $url ) {
     $urlCheckTask = new UrlTest( $url );
     $urlCheckTasksArray[] = $urlCheckTask;
-    $urlCheckPool->submit( $urlCheckTask ); 
+    $urlCheckPool->submit( $urlCheckTask );
   }
   while ( $urlCheckPool->collect() );
   $urlCheckPool->shutdown();
@@ -207,7 +207,7 @@ function getAsciidoctorOutput( $filename ) {
 
 //  $asciidocPattern = '/asciidoctor: ([A-Z]+): (.*.adoc): line ([0-9]+): (.*)/';
 //  $result = array();
-  
+
   //$cmd = 'asciidoctor --failure-level=WARN -b html5 -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram "' . $filename . '" -o /dev/null 2>&1';
   //exec( $cmd, $result['consoleOutput'], $result['exitCode'] );
 
@@ -250,7 +250,7 @@ function getAsciidoctorOutput( $filename ) {
 function testPatterns( $filename ){
 
   $matchedLinesArray = array();
-  
+
   $patternListFile = file( 'buildscripts/tests/invalid_patterns_list.txt' );
   $testPatternsArrays = array();
   foreach( $patternListFile as $value ) {
@@ -398,7 +398,7 @@ function createSlackMessageFromErrors( $result ) {
   $branch = $result['branch'];
   $numErrors = 0;
 
-  $slackMessage = array( 'attachments'   => array(array( 
+  $slackMessage = array( 'attachments'   => array(array(
                          'pretext'   => '*<https://github.com/wirecard/merchant-documentation-gateway/blob/'.$branch.'/'.$filename.'|'.$filename.'>*PHP_EOLSource: *'.$branch.'*',
                          'mrkdwn_in' => [ 'text', 'pretext' ]
                           ))
@@ -451,7 +451,7 @@ function createSlackMessageFromErrors( $result ) {
 }
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
-  
+
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage ) );
   $ch = curl_init( $slackWebhookUrl );
     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'POST' );
@@ -479,9 +479,9 @@ function main() {
 
   $exitCode = 0;
   $numConcurrentThreads = 8;
-  
+
   $adocFilesArray = glob( '*.adoc' );
-  
+
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( 'index.adoc' ) );
 
   $pool = new Pool( $numConcurrentThreads );
