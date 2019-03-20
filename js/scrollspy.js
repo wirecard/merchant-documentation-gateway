@@ -2,8 +2,38 @@ var currentlyHighlightedElementID;
 
 function highlightTOC() {
   $( 'h2,h3,h4' ).isInViewport({ tolerance: 5 }).run(function(){
+    var subsectionTitleElement = $(this);
     var hID = $(this).attr('id');
     console.log('header in viewport: ' + hID);
+
+    var hasMinitoc = $('#minitoc > ul').has('li').length ?
+                                    $('#minitoc-title').html() == subsectionTitleElement.text() : true ? false
+                                  : false;
+    if(subsectionTitleElement.is('h4') && hasMinitoc === false) {
+      // Reset the MiniToc only before refilling
+      $('#minitoc > ul').stop(true, true);
+      $('#minitoc > ul').html('');
+      $('#minitoc > ul').hide(500);
+      var hasTitle = false;
+      subsectionTitleElement.nextAll('div.sect4').find('h5').each(function() {
+        // Avoid costly check of number of elements of find
+        if(hasTitle == false) {
+          hasTitle = true;
+          $('#minitoc > ul').append('<li id="minitoc-title">' + subsectionTitleElement.text() + '</li>');
+        }
+        var e = $(this);
+        var title = e.text();
+        var link = "#" + e.attr("id");
+        var navPoint = "<li>" +
+                         "<a href='" + link + "'>" + title + "</a>" +
+                       "</li>";
+        $('#minitoc > ul').append(navPoint);
+      });
+      $('#minitoc > ul').delay(1).slideDown(500);
+    } else if(subsectionTitleElement.is('h4') === false) {
+      $('#minitoc > ul').html('');
+    }
+
     if(currentlyHighlightedElementID !== hID){
       highlightTOCelement(hID);
       currentlyHighlightedElementID = hID;
@@ -82,5 +112,9 @@ function highlightTOCelement(id='none') {
     tocElement.parents('ul.tocify-subheader').show();
     tocElement.next('ul.tocify-subheader').show();
     tocElement.next('ul.tocify-subheader').children('li.tocify-item').show();
+    // TODO: should be handled cleaner in highlightTOC()
+    if( $('#' + id).is('h4') === false ) {
+      $('#minitoc > ul').html('');
+    }
   }
 }
