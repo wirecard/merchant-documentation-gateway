@@ -339,7 +339,7 @@ function postprocessErrors( $testsResultsArray ) {
     if( isInvalidReferenceError( $adError['message'] ) ) {
       $invalidReferenceID = str_replace( 'invalid reference: ', '', $adError['message'] );
       // make sure this is not a false positive created by asciidoctor by searching all anchors (contained in ['index.adoc']['anchors'])
-      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) !== false )
+      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) === false )
         $invalidReferencesArray[] = $invalidReferenceID;
     }
   }
