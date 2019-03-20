@@ -62,11 +62,14 @@ function documentReady() {
   $('pre > code').each(function (i, block) {
     hljs.highlightBlock(block);
   });
-
+.has( "li" ).length
   // clipboard functions
   $(function() {
      var pre = document.getElementsByTagName('pre');
      for (var i = 0; i < pre.length; i++) {
+       if( $(pre[i]).has('button.clipboard').length ) {
+         continue;
+       }
        var b = document.createElement('button');
        b.className = 'clipboard';
        b.textContent = 'Copy';
