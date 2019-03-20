@@ -62,7 +62,6 @@ function documentReady() {
   $('pre > code').each(function (i, block) {
     hljs.highlightBlock(block);
   });
-.has( "li" ).length
   // clipboard functions
   $(function() {
      var pre = document.getElementsByTagName('pre');
