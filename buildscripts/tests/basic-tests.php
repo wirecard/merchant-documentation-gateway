@@ -35,10 +35,12 @@ class Task extends Threaded {
     // filter http links
     $asciidoctorOutput['links'] = preg_grep( '/^https?:/', $asciidoctorOutput['links'] );
     $gitBranch = getBranchOfFile( $this->filename );
+    $gitAuthor = getAuthorOfFile( $this->filename );
 
     // Cast as array to prevent implicit conversion to a Volatile object
     $result = (array)array( 'filename' => $this->filename,
                             'branch'   => $gitBranch,
+                            'author'   => $gitAuthor,
                             'tests'    => array()
                           );
 
@@ -200,6 +202,14 @@ function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
 
   return exec( $cmd_origin ) ?: exec ( $cmd_current );
 }
+
+function getAuthorOfFile( $filename ) {
+  $cmd_git_log_email = 'git log --pretty=format:%ae "' . $filename . '" | tail -n 1';
+  $author_email_local_part = preg_replace( '/(.*)@.*/', '$1', exec( $cmd_git_log_email ) );
+  $author = ucwords( str_replace( '.', ' ', $author_email_local_part ) );
+  return $author;
+}
+
 
 // getAsciidoctorOutput parses asciidoctor helper json output
 // returns all links in document          as $result['links']
@@ -368,6 +378,7 @@ function postprocessErrors( $testsResultsArray ) {
     foreach( $results as $r ) {
       if( array_key_exists( 'filename', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['filename'] = $filename;
       if( array_key_exists( 'branch', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['branch'] = getBranchOfFile( $filename );
+      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = getAuthorOfFile( $filename );
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = array(
                                                                       'severity'   => 'WARN',
                                                                       'filename'   => $filename,
@@ -401,10 +412,11 @@ function createSlackMessageFromErrors( $result ) {
 
   $filename = $result['filename'];
   $branch = $result['branch'];
+  $author = $result['author'];
   $numErrors = 0;
 
   $slackMessage = array( 'attachments'   => array(array(
-                         'pretext'   => '*<https://github.com/wirecard/merchant-documentation-gateway/blob/'.$branch.'/'.$filename.'|'.$filename.'>*PHP_EOLSource: *'.$branch.'*',
+                         'pretext'   => '*'.$filename.'*PHP_EOLAuthor: *'.$author.'*',
                          'mrkdwn_in' => [ 'text', 'pretext' ]
                           ))
                         );
