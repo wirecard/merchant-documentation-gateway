@@ -332,7 +332,7 @@ function validateTests( $tests ) {
   return $failed;
 }
 
-function postprocessErrors( $testsResultsArray ) {
+function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 
   if( array_key_exists( 'index.adoc', $testsResultsArray ) === false ) return $testsResultsArray;
 
@@ -342,6 +342,10 @@ function postprocessErrors( $testsResultsArray ) {
   // index == filename
   foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $adError ) {
     $filename = $adError['filename'];
+    // skip file search for invalid references if not in index
+    if( in_array( $filename, $indexedFiles ) === false ) {
+      continue;
+    }
     if( $filename !== 'index.adoc' )
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = $adError;
 
@@ -499,7 +503,7 @@ function main() {
 
   $adocFilesArray = glob( '*.adoc' );
 
-  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( 'index.adoc' ) );
+  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( 'index.adoc', FILE_IGNORE_NEW_LINES ) );
 
   $pool = new Pool( $numConcurrentThreads );
 
@@ -521,7 +525,7 @@ function main() {
     $testsResultsArray[$filename] = $testsResult;
   }
 
-  $finalResults = postprocessErrors( $testsResultsArray );
+  $finalResults = postprocessErrors( $testsResultsArray, $indexedFiles );
   sendNotifications( $finalResults );
 
   return $exitCode;
