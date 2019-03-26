@@ -204,7 +204,7 @@ function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
 }
 
 function getAuthorOfFile( $filename ) {
-  $cmd_git_log_email = 'git log --pretty=format:%ae "' . $filename . '" | tail -n 1';
+  $cmd_git_log_email = 'git log --follow --pretty=format:%ae "' . $filename . '" | tail -n 1';
   $author_email_local_part = preg_replace( '/(.*)@.*/', '$1', exec( $cmd_git_log_email ) );
   $author = ucwords( str_replace( '.', ' ', $author_email_local_part ) );
   return $author;
@@ -263,7 +263,7 @@ function testPatterns( $filename ){
 
   $matchedLinesArray = array();
 
-  $patternListFile = file( 'buildscripts/tests/invalid_patterns_list.txt' );
+  $patternListFile = file( 'buildscripts/tests/invalid_patterns_list.txt', FILE_IGNORE_NEW_LINES );
   $testPatternsArrays = array();
   foreach( $patternListFile as $value ) {
     $testPatternsArrays[] = explode( ':::', $value );
