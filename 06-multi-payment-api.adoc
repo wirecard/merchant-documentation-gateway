@@ -5,8 +5,8 @@
 === Overview
 
 The _Multi Payment API_ allows a merchant to offer a combination of
-payment methods in his shop to the end customer. A classic example is
-that the customer can pay with one or more vouchers or a voucher and
+payment methods in his shop to the consumer. A classic example is
+that the consumer can pay with one or more vouchers or a voucher and
 credit card together.
 
 The _Multi Payment API_ currently supports the following data formats:
@@ -26,7 +26,7 @@ The _Multi Payment API_ currently supports the following data formats:
 | purchase           a| The transaction type ``purchase`` will be used to perform operations
 
 - Reserve and redeem amount on voucher(s)
-- Authorize and capture amount on credit card or Debit amount for EPS
+- Authorize and capture amount on credit card or debit amount for EPS
 
 //-
 
@@ -56,11 +56,11 @@ Please <<ContactUs, contact our Merchant Support Team>> for environment credenti
 With the query request function, the merchant can obtain information
 about the status of a multi payment transaction and the payments within.
 
-You can retrieve multi payment transactions via two different ways.
-Either by ``multi-payment-id`` or by ``multi-payment-request-id``.
+You can retrieve multi payment transactions via two different ways:
+either by ``multi-payment-id`` or by ``multi-payment-request-id``.
 
 [#MultiPaymentApi_RetrieveByPaymentId]
-==== By Payment-ID
+==== By multi-payment-id
 
 Retrieving a multi payment transaction using a ``multi-payment-id`` returns
 a single multi payment belonging to a merchant resolver. The
@@ -78,21 +78,22 @@ or by specifying an extension.
 | Request Methods   | GET
 |===
 
-[cols="30e,11,12,4"]
+[cols="v,,,"]
+[%autowidth]
 |===
 | Field                              | Cardinality | Datatype     | Size
 
-| merchant-account-resolver-category | Mandatory   | Alphanumeric | 36
-| multi-payment-id                   | Mandatory   | Alphanumeric | 36
+| ``merchant-account-resolver-category`` | Mandatory   | Alphanumeric | 36
+| ``multi-payment-id``                   | Mandatory   | Alphanumeric | 36
 |===
 
 [#MultiPaymentApi_RetrieveByRequestId]
-==== By Request-ID
+==== By multi-payment-request-id
 
-Retrieving a multi payment transaction using a _multi-payment-id_ returns
+Retrieving a multi payment transaction using a ``multi-payment-id`` returns
 a single multi payment belonging to a merchant resolver. The
-_multi-payment-id_ node must match the value that was included in the
-multi payment response. An error is returned if the _multi-payment-id_ is
+``multi-payment-id`` node must match the value that was included in the
+multi payment response. An error is returned if the ``multi-payment-id`` is
 not available or the requested user is not authorized to see the
 content. The desired content type can be set through the Accept header
 or by specifying an extension.
@@ -105,20 +106,21 @@ or by specifying an extension.
 | Request Methods   | GET
 |===
 
-[cols="30e,11,12,4"]
+[cols="v,,,"]
+[%autowidth]
 |===
 | Field                              | Cardinality | Datatype     | Size
 
-| merchant-account-resolver-category | Mandatory   | Alphanumeric | 36
-| multi-payment-request-id           | Mandatory   | Alphanumeric | 36
+| ``merchant-account-resolver-category`` | Mandatory   | Alphanumeric | 36
+| ``multi-payment-request-id``           | Mandatory   | Alphanumeric | 36
 |===
 
 [#MultiPaymentApi_Workflow]
-==== Workflow
+=== Workflow
 
 image::images/06-00-multi-payment-api/transaction-brace.png[Multipayments Workflow]
 
-The _Multi Payment API_ will first perform the validation of the incoming
+At first, the _Multi Payment API_ validates the incoming
 multi payment request. This validation includes
 
 - Verification of the payment request XML
@@ -129,38 +131,38 @@ the _Multi Payment API_
 
 //-
 
-If the validation fails, the entire transaction will be declined. 
+IMPORTANT: If the validation fails, the entire transaction will be declined. 
 
 After successful validation of a payment request, the _Multi Payment API_
 generates individual payment requests based on the multi payment request.
 
 - For each payment request, a mapped transaction type for the payment
 provider is chosen.
-- If the mapped transaction type is ``skip``, the _Multi Payment API_ will
+- If the mapped transaction type is ``skip``, the _Multi Payment API_ does
 not process that particular payment request.
-- The individual payments will be processed in order of priority:
-. The voucher payment requests will be processed first.
-. Financial payment requests will be processed last.
+- The individual payments are processed in order of priority:
+. The voucher payment requests are processed first.
+. Financial payment requests are processed last.
 
 //-
 
-The _Multi Payment API_ will send the individual payment request to the
+The _Multi Payment API_ sends the individual payment request to the
 respective payment provider.
 
-For any unsuccessful payment response, the _Multi Payment API_ will roll
-back the previous successfully processed payments.
+For any unsuccessful payment response, the _Multi Payment API_ rolls
+back the previously successfully processed payments.
 
-The pending payment requests will not be submitted.
+The pending payment requests are not submitted.
 
-_EPS_ transactions cannot be rolled back. 
+WARNING: _EPS_ transactions cannot be rolled back. 
 
-Finally, a multi payment response will be built with a collective status
+Finally, a multi payment response is built with a collective status
 and status of the individual payments.
 
-This response will be then sent to merchant.
+This response is then sent to merchant.
 
 [#MultiPaymentApi_Samples]
-===== Samples
+=== Samples
 
 .Request Purchase Credit Card and 2 Vouchers
 [source,xml]
