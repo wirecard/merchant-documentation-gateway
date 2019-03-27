@@ -25,54 +25,54 @@ Service. 
 
 It is possible to test batch transaction processing on the TEST
 environment using the credentials below. For more information, please
-contact Merchant Support.
+contact <<ContactUs, Merchant Support>>.
 
 [#BatchProcessingApi_SEPATransactions]
 ==== _SEPA_ Transactions
 
 [%autowidth,cols="h,"]
 |===
-| SFTP Folder                   | Please contact Merchant Support
+| SFTP Folder                   | Please contact <<ContactUs, Merchant Support>>
 | TEST Merchant Account ID      | 0f3dfbdd-df34-454f-9f2a-6c46e43ce6af
 | Username when using ReST API  | 3878-MerchantTest
 | Password when using ReST API  | 2m125m7Z`n824V
 |===
 
 [#BatchProcessingApi_CreditCardTransactions]
-==== _Credit Card_ Transactions
+==== _Credit Card_ Transactions
 
 [%autowidth,cols="h,"]
 |===
-| SFTP Folder              | Please contact Merchant Support
+| SFTP Folder              | Please contact <<ContactUs, Merchant Support>>
 | TEST Merchant Account ID | d0b01877-a4e2-4d50-9316-6190d4a008d4
 |===
 
-WARNING: For security reasons, it is recommended to avoid using live credit card
+WARNING: For security reasons, it is recommended to avoid using live _Credit Card_
 data when processing test batch files. Please always use
-<<AppendixK, TEST credit card data>>.
+<<AppendixK, TEST _Credit Card_ data>>.
 
 [#BatchProcessingApi_Workflow]
 === Workflow
 
 image::images/05-00-batch-processing-api/workflow-batch-processing-api.png[Batch Processing API Workflow]
 
-. The Merchant Operator applies PGP (Pretty Good Privacy) encryption
-using Wirecard’s Public Key and uploads the encrypted Request File via
-SFTP to the ``from/new`` folder (eg: ``from<foldername>/new`` folder).
-. The Batch Processing Service retrieves the Request File and moves
-the original Request File from the ``new`` to the ``processed`` subfolders
+. The Merchant Operator applies <<BatchProcessingApi_PGP, Pretty Good Privacy>>
+(PGP) encryption using Wirecard’s public key and uploads the encrypted request
+file via SFTP to the ``from/new`` folder (eg: ``from<foldername>/new`` folder).
+. The Batch Processing Service retrieves the request file and moves
+the original request file from the ``new`` to the ``processed`` subfolders
 if the upload was successful (eg: ``from<foldername>/new`` subfolder to
 the ``from<foldername>/processed`` subfolder). In case of uploading error,
-the Request File is moved to the ``error`` subfolder (eg:
+the request file is moved to the ``error`` subfolder (eg:
 ``from<foldername>/error``)
 . The Batch Processing Service processes each transaction in the
-Request File and generates a PGP encrypted Response File using the
+request file and generates a PGP encrypted response file using the
 Merchant’s Public Key.
-. When processing was successful, the encrypted Response File is
+. When processing was successful, the encrypted response file is
 deposited in the ``to<foldername>/new`` folder on the SFTP server. In
-case processing failed due to a corrupted Request File, the Request File
+case processing failed due to a corrupted request file, the request file
 is stored into folder ``to<foldername>/error``.
-. The Merchant Operator retrieves the encrypted Response File and
+. The merchant operator retrieves the encrypted response file and
 decrypts it using their private key.
 
 //-
@@ -105,10 +105,10 @@ Folder ``from<foldername>`` contains the following three subfolder.
 .Remote SFTP Server Subfolders
 image::images/05-00-batch-processing-api/sftp-server-directory-structure-subfolder.png[SFTP Server Directory Structure of Subfolders]
 
-- ``error`` The folder to where the Request File is moved
+- ``error`` The folder to where the request file is moved
 by the batch server in case an upload problem occurred.
 - ``new`` The folder where the Merchant uploads his
-(encrypted) Request Files.
+(encrypted) request files.
 - ``processed`` The folder to where the correctly processed Request
 Files are moved by the batch service.
 
@@ -117,9 +117,9 @@ Files are moved by the batch service.
 Folder ``to<foldername>`` contains the same named subfolders used for
 
 - ``error`` The folder where the batch processing service
-stores the Request File in case of the Request File was corrupted.
+stores the request file in case of the request file was corrupted.
 - ``new`` The folder where the batch processing service
-deposits the encrypted Response File.
+deposits the encrypted response file.
 - ``processed`` The folder where the Merchant stores the Response
 File after it is picked up.
 
@@ -154,7 +154,7 @@ to your local machine.
 
 WARNING: Wirecard stores the old copies of your processed batch files on the
 Wirecard file server for up to 3 months. After that time period they
-will be deleted automatically. Of course, it is at your discretion to
+will be deleted automatically. It is at your discretion to
 use this file repository.
 
 [#BatchProcessingApi_ProcessingTime]
@@ -172,8 +172,8 @@ fully processed.
 ==== URL and Credentials
 
 The URL and credentials for the SFTP Server must be provided prior to
-production integration. Please <<ContactUs, contact Wirecard support>> if you did not
-receive your credentials.
+production integration. Please contact <<ContactUs, Merchant Support>> if you
+did not receive your credentials.
 
 [#BatchProcessingApi_Files]
 === Files
@@ -183,12 +183,12 @@ receive your credentials.
 
 Request and response files must meet the following criteria:
 
-- Encrypted with PGP (mandatory for files including Credit Card
+- Encrypted with PGP (mandatory for files including _Credit Card_
 transactions)
 - Formatted as ``.csv``
-- This means only ``,`` (comma) is accepted as *separator*!
+- This means, only comma (``,``) is accepted as separator!
 +
-IMPORTANT: A field value *should not* contain a comma!
+IMPORTANT: A field value *must not* contain a comma!
 
 +
 - Linefeed: ``LF`` (Unix format) must be used as separator for the
@@ -200,25 +200,24 @@ table <<BatchProcessingApi_Request_Sepa, Batch Processing SEPA>>.
 
 //-
 
-Please refer
-to the <<BatchProcessingApi_Sample, Sample>> for Batch Processing.
+Please refer to the <<BatchProcessingApi_Sample, Sample>> for Batch Processing.
 
 [#BatchProcessingApi_Request]
 ===== Request
 
-[#BatchProcessingApi_Request_CreditCard]
-====== Credit Card
-
 Batch processing has been designed to accept transactions for several
 payment methods. Field requirements vary by different payment methods.
 
-The <<BatchProcessingApi_Fields_CreditCard, Credit Card Fields table>> describes the fields that must be provided for Credit Card
-transaction requests.
+[#BatchProcessingApi_Request_CreditCard]
+====== _Credit Card_
+
+The <<BatchProcessingApi_Fields_CreditCard, _Credit Card_ Fields table>>
+describes the fields that must be provided for _Credit Card_ transaction requests.
 
 - The fields must be defined in the ``.csv`` file in the order given in the
 following table to allow correct processing.
 - CSV format requires that each field must be specified. Empty fields
-(optional fields or fields not used by Credit Card) have to be defined
+(optional fields or fields not used by _Credit Card_) have to be defined
 as empty values separated by commas: ``,,``.
 
 //-
@@ -228,17 +227,18 @@ as empty values separated by commas: ``,,``.
 …3.33,EUR,4012000300001003,…
 ----
 
-WARNING: Batch processing for credit cards does not support submitting the CVV/CVC.
+WARNING: Batch processing for _Credit Card_ does not support submitting the CVV/CVC.
 +
-To process credit card transactions via batch, it is recommended to
+To process _Credit Card_ transactions via batch, it is recommended to
 first submit an online _authorization_ transaction via API and follow-up
 with a _capture_ transaction via batch. A _capture_ must be submitted
 with a parent-Transaction ID referring to a successful _authorization_
 transaction. 
 +
-Please refer to <<CreditCard, Credit Card>> for more information. The names used in the batch service may
-differ from the field names given in the API documentation. For details
-see the <<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>> table.
+Please refer to <<CreditCard, _Credit Card_>> for more information. The names
+used in the batch service may differ from the field names given in the API
+documentation. For details see the
+<<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>> table.
 
 [#BatchProcessingApi_Request_Sepa]
 ====== SEPA
@@ -246,8 +246,8 @@ see the <<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>> t
 Batch processing has been designed to accept transactions for several
 payment methods. Field requirements vary by different payment methods.
 
-The <<BatchProcessingApi_Fields_Sepa, Batch API SEPA Fields Table>> describes the fields that must be provided for SEPA transaction
-requests.
+The <<BatchProcessingApi_Fields_Sepa, Batch API SEPA Fields Table>> describes
+the fields that must be provided for SEPA transaction requests.
 
 - The fields must be defined in the ``.csv`` file in the order given in the
 following table to allow correct processing.
@@ -265,7 +265,8 @@ values separated by commas: ``,,``.
 Please refer to <<SEPADirectDebit, SEPA DD>> and <<SEPACreditTransfer, SEPA CT>>
 for more information. The names used in the batch service may
 differ from the field names given in the API documentation. For details
-see the <<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>> table.
+see the <<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>>
+table.
 
 [#BatchProcessingApi_Request_FileNaming]
 ====== Request File Naming 
@@ -287,7 +288,7 @@ within the response file content.
 
 //-
 
-NOTE: If the file is encrypted, the extension ``.pgp`` must be added to the file
+WARNING: If the file is encrypted, the extension ``.pgp`` must be added to the file
 name!
 
 [#BatchProcessingApi_Response]
@@ -317,7 +318,7 @@ request batch ID, timestamp and customer number:
 === Fields
 
 [#BatchProcessingApi_Fields_CreditCard]
-==== Credit Card
+==== _Credit Card_
 
 [cols="20e,10,10,10,50a"]
 |===
@@ -327,7 +328,7 @@ request batch ID, timestamp and customer number:
 | request_id                     | M           | Alphanumeric | 150  | Unique request ID for each Transaction (= Merchant Transaction ID).
 | payment_method_id              | M           | Alphanumeric | 15   | Payment method.
 
-NOTE: Only SEPA DD, SEPA CT and Credit Card are allowed.
+NOTE: Only SEPA DD, SEPA CT and _Credit Card_ are allowed.
 
 | transaction_type               | M           | Alphanumeric | 30   | Transaction type (direct relationship to payment method).
 | parent_transaction_id          | O           | Alphanumeric | 36   | Transaction ID of authorization or parent transaction, if either transaction is available and should be referred to.
@@ -353,10 +354,9 @@ NOTE: ``f`` and ``m`` are allowed values.
 
 | date_of_birth                  | O           | YYYY-MM-DD   | 10   | Consumer’s date of birth
 | phone                          | O           | Alphanumeric | 32   | Consumer’s phone number
-| street1                        | O           | Alphanumeric | 70   | Street information part 1 of consumer
+| street1                        | O           | Alphanumeric | 70   | Street information part 1 of consumer.
 
-NOTE: This field is optional, but mandatory if ``city`` or ``country`` is
-specified.
+NOTE: This field is optional, but mandatory if ``city`` or ``country`` is specified.
 
 | street2                        | O           | Alphanumeric | 128  | Street information part 2
 | city                           | O           | Alphanumeric | 32   | City of consumer
@@ -412,7 +412,7 @@ NOTE: Can be one of the following: ``installment``, ``recurring``.
 | request_id                     | M           | Alphanumeric | 150  | Unique request ID for each Transaction (= Merchant Transaction ID).
 | payment_method_id              | M           | Alphanumeric | 15   | Payment method.
 
-NOTE: Only SEPA DD, SEPA CT and Credit Card are allowed.
+NOTE: Only SEPA DD, SEPA CT and _Credit Card_ are allowed.
 
 | transaction_type               | M           | Alphanumeric | 30   | Transaction type (direct relationship to payment method).
 | parent_transaction_id          | O           | Alphanumeric | 36   | Transaction ID of authorization or parent transaction, if either transaction is available and should be referred to.
@@ -476,7 +476,7 @@ due date. For more information about ‘due date’ please refer to
 | periodic_type                  | O           | Alphanumeric | 11   | Periodic type – Supported for recurring Direct Debit not for Credit.
 
 NOTE: Only ``recurring`` is allowed.
-This field is optional, but if this field is defined, _sequence_ type_
+This field is optional, but if this field is defined, ``sequence_type``
 must also be provided.
 
 | sequence_type                  | C           | Alphanumeric | 10   | Sequence type, if periodic type is set to recurring.
@@ -565,14 +565,14 @@ Sample Request and Response for Batch Processing
 
 
 [#BatchProcessingApi_SEPAandCreditCard]
-SEPA and Credit Card
+SEPA and _Credit Card_
 
 
 The following samples contain one _SEPA DD_ recurring first
 Transaction, one _SEPA CT_, and one _Credit Card_ transaction:  
 
 .CSV SEPA DD, SEPA CT and CC Request
-[source]
+[source,csv]
 ----
 merchant_account_id,request_id,payment_method_id,transaction_type,parent_transaction_id,requested_amount,requested_amount_currency,account_number,iban,bic,token_id,card_type,expiration_month,expiration_year,first_name,last_name,email,gender,date_of_birth,phone,street1,street2,city,state,country,postal_code,entry_mode,ip_address,order_number,order_detail,descriptor,creditor_id,mandate_id,mandate_signature_date,due_date,custom_field_name_1,custom_field_value_1,custom_field_name_2,custom_field_value_2,custom_field_name_3,custom_field_value_3,notification_transaction_state,notification_transaction_url,merchant_crm_id,periodic_type,sequence_type
 0f3dfbdd-df34-454f-9f2a-6c46e43ce6af,201801021111,sepadirectdebit,pending-debit,,4.44,EUR,,DE42512308000000060004,WIREDEMMXXX,,,,,John,Smith,johnsmith@exampleemail.com,M,,,Example Street 1,,Munich,,DE,80333,,,987654321,test detail,testdescriptor SEPADebit,DE98ZZZ09999999999,12345678,2017-12-12,,,,,,,,,,,recurring,first
@@ -581,7 +581,7 @@ d0b01877-a4e2-4d50-9316-6190d4a008d4,201801020812,creditcard,capture,,3.33,EUR,4
 ----
 
 .CSV SEPA DD, SEPA CT and CC Response
-[source]
+[source,csv]
 ----
 batch_id,transaction_id,request_id,transaction_type,requested_amount,requested_amount_currency,transaction_state,token_id,status_code,status_description,completion_time_stamp,order_number
 A0041984A21A11E4BF3E39F7227D0BCB,0f3dfbdd-df34-454f-9f2a-6c46e43ce6af,201801021111,pending-debit,4.44,EUR,success,,201.0000,The resource was successfully created.,2018-01-02T09:39:57+00:00,987654321
@@ -600,7 +600,9 @@ file should not be confused with SEPA Conversion Service (EFT) request
 files.
 
 A merchant may send _Wirecard Payment Gateway_ request files and EFT
-transaction request files to the same SFTP directory. _Wirecard Payment
-Gateway_ files should be provided in CSV format, EFT request files must
-be submitted in xml. The batch service picks up the appropriate files
+transaction request files to the same SFTP directory. 
+_Wirecard Payment Gateway_ files should be provided in CSV format, EFT request
+files must be submitted in xml. The batch service picks up the appropriate files
 according to the file type automatically.
+
+//-
