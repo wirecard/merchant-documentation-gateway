@@ -93,342 +93,187 @@ level of security.
 
 [%autowidth]
 |===
-|XML |Request |Datatype |Size |Description
-
-|account-holder.account-info.authentication-method |O |String |  a|
-Mechanism used by the cardholder to authenticate to the 3DS Requestor. +
-
-Possible values:
-
-01, 02, 03, 04, 05, 06
-
-01 = No 3DS Requestor authentication occurred (i.e. cardholder “logged
-in” as guest). +
-02 = Login to the cardholder account at the 3DS Requestor system using
-3DS Requestor’s own credentials. +
-03 = Login to the cardholder account at the 3DS Requestor system using
-federated ID. +
-04 = Login to the cardholder account at the 3DS Requestor system using
-issuer credentials. +
-05 = Login to the cardholder account at the 3DS Requestor system using
-third-party authentication. +
-06 = Login to the cardholder account at the 3DS Requestor system using
-FIDO Authenticator.
-
-|account-holder.account-info.authentication-timestamp |O |Timestamp | 
-|Date and time in UTC of the cardholder authentication.
-Format: YYYY-MM-DDThh:mm:ss (ISO). +
-
-|account-holder.account-info.challenge-indicator |O |String |  a|
-Indicates whether a challenge is requested for this transaction.
-
-Possible values: 01, 02, 03, 04
-
-01 = No preference. +
-02 = No challenge requested. +
-03 = Challenge requested: 3DS Requestor Preference. +
-04 = Challenge requested: Mandate.
-
-|card.account-type |O |String |  a|
-Indicates the type of account.
-
-Accepted values: 01, 02, 03
-
-01 = Not Applicable +
-02 = Credit +
-03 = Debit
-
-|account-holder.account-info.creation-date |O |Date |  |Date that the
-cardholder opened the account with the 3DS Requestor.
-
-|account-holder.account-info.update-date |O |Date |  |Date that the
-cardholder’s account with the 3DS Requestor was last changed. Including
-Billing or Shipping address, new payment account, or new user(s) added.
-
-|account-holder.account-info.password-change-date |O |Date |  |Date that
-cardholder’s account with the 3DS Requestor had a password change or
-account reset.
-
-|account-holder.account-info.shipping-address-first-use |O |Date | 
-|Date when the shipping address used for this transaction was first used
-with the 3DS Requestor.
-
-|account-holder.account-info.transactions-last-day |O |Numeric | 
-|Number of transactions (successful and abandoned) for this cardholder
-account with the 3DS Requestor across all payment accounts in the
-previous 24 hours.
-
-|account-holder.account-info.transactions-last-year |O |Numeric | 
-|Number of transactions (successful and abandoned) for this cardholder
-account with the 3DS Requestor across all payment accounts in the
-previous year.
-
-|account-holder.account-info.card-transactions-last-day |O |Numeric | 
-|Number of Add Card attempts in the last 24 hours.
-
-|account-holder.account-info.purchases-last-six-months |O |Numeric | 
-|Number of purchases with this cardholder account during the previous
-six months.
-
-|account-holder.account-info.suspicious-activity |O |Boolean | 
-|Indicates whether the 3DS Requestor has experienced suspicious activity
-(including previous fraud) on the cardholder account.
-
-|account-holder.account-info.card-creation-date |O |Date |  |Date that
-the payment account was enrolled in the cardholder’s account with the
-3DS Requestor.
-
-|account-holder.address.street3 |C |String |50 |Third line of the street
-address or equivalent local portion of the cardholder billing address
-associated with the card use for this purchase. This field is limited to
-maximum 50 characters. +
-This field is required unless market or regional mandate restricts
-sending this information.
-
-|account-holder.home-phone.country-part |C |String |3 |Country code of
-the home phone provided by the cardholder. +
-This field is required if available, unless market or regional mandate
-restricts sending this information.
-
-|account-holder.home-phone.other-part |C |String |15 |Subscriber section
-of the home phone provided by the cardholder.
-
-|account-holder.mobile-phone.country-part |C |String |3 |Country code of
-the mobile phone provided by the cardholder. +
-This field is required if available, unless market or regional mandate
-restricts sending this information.
-
-|account-holder.mobile-phone.other-part |C |String |15 |Subscriber
-section of the mobile phone provided by the cardholder. +
-This field is required if available, unless market or regional mandate
-restricts sending this information.
-
-|account-holder.work-phone.country-part |C |String |3 |Country code of
-the mobile phone provided by the cardholder. +
-This field is required if available, unless market or regional mandate
-restricts sending this information.
-
-|account-holder.work-phone.other-part |C |String |15 |Subscriber section
-of the mobile phone provided by the cardholder. +
-This field is required if available, unless market or regional mandate
-restricts sending this information.
-
-|shipping.address.street3 |O |String |50 |Third line of the street
-address or equivalent local portion of the shipping address associated
-with the card use for this purchase. +
-This field is required unless shipping information is the same as
-billing information, or market or regional mandate restricts sending
-this information.
-
-a|
-shipping.shipping-method
-
- +
- +
-
- |O |String |  a|
-Indicates shipping method chosen for the transaction. Merchants must
-choose the Shipping Indicator code that most accurately describes the
-cardholder's specific transaction. If one or more items are included in
-the sale, use the shipping indicator code for the physical goods, or if
-all digital goods, use the code that describes the most expensive item.
-
-Accepted values are: 01, 02, 03, 04, 05, 06, 07
-
-01 = Ship to cardholder’s billing address. +
-02 = Ship to another verified address on file with merchant. +
-03 = Ship to address that is different than the cardholder's billing
-address. +
-04 = “Ship to Store” / Pick-up at local store (Store address shall be
-populated in shipping address fields). +
-05 = Digital goods (includes online services, electronic gift cards and
-redemption codes). +
-06 = Travel and Event tickets, not shipped. +
-07 = Other (for example, Gaming, digital services not shipped, e-media
-subscriptions, etc.).
-
-a|
-risk-info.delivery-timeframe
-
- +
- +
- +
- +
-
- |O |String |  a|
-Indicates the merchandise delivery time frame.
-
-Accepted values are: 01, 02, 03, 04
-
-01 = Electronic Delivery +
-02 = Same day shipping +
-03 = Overnight shipping +
-04 = Two-day or more shipping
-
-|risk-info.delivery-mail |O |String |254 |For electronic delivery, the
-email address to which the merchandise was delivered.
-
-|risk-info.reorder-items |O |String |  a|
-Indicates whether the cardholder is reordering previously purchased
-merchandise. 
-
-Accepted values are: 01, 02
-
-01 = First time ordered +
-02 = Reordered)
-
-|risk-info.availability |O |String |  a|
-Indicates whether cardholder is placing an order for merchandise with a
-future availability or release date.
-
-Accepted values are: 01, 02
-
-01 = Merchandise available +
-02 = Future availability
-
-|risk-info.preorder-date |O |Date |  |For a pre-ordered purchase, the
-expected date that the merchandise will be available.
-
-|risk-info.gift.amount |O |Numeric |  |For prepaid or gift card
-purchase, the purchase amount total of prepaid or gift card(s) in major
-units (for example, USD 123.45 is 123).
-
-|risk-info.gift.amount.currency |O |String |3 |For prepaid or gift card
-purchase, the currency code of the card as defined in ISO 4217
-except 955 - 964 and 999.
-
-|risk-info.gift.card-count |O |Numeric |  |For prepaid or gift card
-purchase, total count of individual prepaid or gift
-cards/codes purchased. Field is limited to 2 characters.
-
-|periodic.recurring-expire-date |O |Date |  |Date after which no further
-authorizations shall be performed.
-
-|periodic.recurring-frequency |O |Numeric |4 |Indicates the minimum
-number of days between authorizations.
-
-|iso-transaction-type |O |String |  a|
-Identifies the type of transaction being authenticated. The values are
-derived from ISO 8583.
-
-Accepted values are: 01, 03, 10, 11, 28
-
-01 = Goods/ Service Purchase +
-03 = Check Acceptance +
-10 = Account Funding +
-11 = Quasi-Cash Transaction +
-28 = Prepaid Activation and Load
-
-|device.render-options.interface |O |String |  a|
-Specifies all of the SDK interface types that the device supports for
-displaying specific challenge user interfaces within the SDK.
-
-Accepted values are: 01, 02, 03
-
-01 = Native +
-02 = HTML +
-03 = Both
-
-|device.render-options.ui-type |O |String |  a|
-Contains a list of all UI types that the device supports for displaying
-specific challenge user interfaces within the SDK.
-
-Accepted values for each UI type are: 01, 02, 03, 04, 05
-
-01 = Text +
-02 = Single Select +
-03 = Multi Select +
-04 = OOB +
-05 = HTML Other (valid only for HTML UI))
-
-|browser.java-enabled |O |Boolean |  |Boolean that represents the
-ability of the cardholder browser to execute Java. +
-Value is returned from the navigator.javaEnabled property.
-
-|browser.language |O |String |8 |Value representing the browser language
-as defined in IETF BCP47. The value is limited to 1-8 characters. +
-Value is returned from navigator.language property.
-
-|browser.color-depth |O |Numeric |  |Value representing the bit depth of
-the color palette for displaying images, in bits per pixel. Obtained
-from cardholder browser using the screen.colorDepth property. The field
-is limited to 1-2 characters.
-
-|browser.challenge-window-size +
- + |O |String |  a|
-Dimensions of the challenge window that has been displayed to the
-cardholder. The ACS shall reply with content that is formatted to
-appropriately render in this window to provide the best possible user
-experience. +
- Preconfigured sizes are width X height in pixels of the window
-displayed in the cardholder browser window. This is used only to prepare
-the CReq request and it is not part of the AReq flow. If not present it
-will be omitted.
-
-Accepted values are: 01, 02, 03, 04, 05
-
-01 = 250 x 400 +
-02 = 390 x 400 +
-03 = 500 x 600 +
-04 = 600 x 400 +
-05 = Full screen
-
-|three-d.riid |O |String |  a|
-Indicates the type of 3RI request.
-
-Accepted values are: 01, 02, 03, 04, 05
-
-01 = Recurring transaction +
-02 = Installment transaction +
-03 = Add card +
-04 = Maintain card information +
-05 = Account
-
-|device.sdk.application-id |O |String |36 |Universally unique ID created
-upon all installations and updates of the 3DS Requestor App on a
-consumer device. This will be newly generated and stored by the 3DS SDK
-for each installation or update. The field is limited to 36 characters
-and it shall have a canonical format as defined in IETF RFC 4122. This
-may utilize any of the specified versions as long as the output meets
-specified requirements.
-
-|device.sdk.encrypted-data |O |String |64000 |JWE Object containing data
-encrypted by the 3DS SDK for the DS to decrypt. This element is the only
-field encrypted in this version of the EMV 3-D Secure specification. The
-field is sent from the SDK and it is limited to 64.000 characters. The
-data will be present when sending to DS, but not present from DS to ACS.
-
-|device.sdk.public-key |O |String |256 |Public key component of the
-ephemeral key pair generated by the 3DS SDK and used to establish
-session keys between the 3DS SDK and ACS. In AReq, this data element is
-contained within the ACS Signed Content JWS Object. The field is limited
-to maximum 256 characters.
-
-|device.sdk.max-timeout |O |Numeric |  |Indicates the maximum amount of
-time (in minutes) for all exchanges. The field shall have value greater
-or equals than 05.
-
-|device.sdk.reference-number |O |String |32 |Identifies the vendor and
-version of the 3DS SDK that is integrated in a 3DS Requestor App,
-assigned by EMVCo when the 3DS SDK is approved. The field is limited to
-32 characters.
-
-|device.sdk.transaction-id |O |String |36 |Universally unique
-transaction identifier assigned by the 3DS SDK to identify a single
-transaction. The field is limited to 36 characters and it shall be in a
-canonical format as defined in IETF RFC 4122. This may utilize any
-of the specified versions as long as the output meets specific
-requirements.
+|XML                                                  |Request |Datatype  |Size  |Description
+
+|account-holder.account-info.authentication-method    |O       |String    |     a|Mechanism used by the cardholder to authenticate to the 3DS Requestor. +
+                                                                                  Possible values: +
+                                                                                  01, 02, 03, 04, 05, 06 +
+                                                                                  01 = No 3DS Requestor authentication occurred (i.e. cardholder “logged
+                                                                                  in” as guest). +
+                                                                                  02 = Login to the cardholder account at the 3DS Requestor system using
+                                                                                  3DS Requestor’s own credentials. +
+                                                                                  03 = Login to the cardholder account at the 3DS Requestor system using
+                                                                                  federated ID. +
+                                                                                  04 = Login to the cardholder account at the 3DS Requestor system using
+                                                                                  issuer credentials. +
+                                                                                  05 = Login to the cardholder account at the 3DS Requestor system using
+                                                                                  third-party authentication. +
+                                                                                  06 = Login to the cardholder account at the 3DS Requestor system using
+                                                                                  FIDO Authenticator.
+|account-holder.account-info.authentication-timestamp |O       |Timestamp |      |Date and time in UTC of the cardholder authentication. +
+                                                                                  Format: YYYY-MM-DDThh:mm:ss (ISO). 
+|account-holder.account-info.challenge-indicator      |O       |String    |     a|Indicates whether a challenge is requested for this transaction. +
+                                                                                  Possible values: 01, 02, 03, 04 +
+
+                                                                                  01 = No preference. +
+                                                                                  02 = No challenge requested. +
+                                                                                  03 = Challenge requested: 3DS Requestor Preference. +
+                                                                                  04 = Challenge requested: Mandate.
+|card.account-type                                     |O      |String    |     a|Indicates the type of account. +
+                                                                                  Accepted values: 01, 02, 03 +
+                                                                                  01 = Not Applicable +
+                                                                                  02 = Credit +
+                                                                                  03 = Debit
+|account-holder.account-info.creation-date             |O      |Date      |      |Date that the cardholder opened the account with the 3DS Requestor.
+|account-holder.account-info.update-date               |O      |Date      |      |Date that the cardholder’s account with the 3DS Requestor was last changed. Including
+                                                                                  Billing or Shipping address, new payment account, or new user(s) added.
+|account-holder.account-info.password-change-date      |O      |Date      |      |Date that cardholder’s account with the 3DS Requestor had a password change or
+                                                                                  account reset.
+|account-holder.account-info.shipping-address-first-use |O     |Date      |      |Date when the shipping address used for this transaction was first used
+                                                                                  with the 3DS Requestor.
+|account-holder.account-info.transactions-last-day     |O      |Numeric   |      |Number of transactions (successful and abandoned) for this cardholder
+                                                                                  account with the 3DS Requestor across all payment accounts in the
+                                                                                  previous 24 hours.
+|account-holder.account-info.transactions-last-year    |O      |Numeric   |      |Number of transactions (successful and abandoned) for this cardholder
+                                                                                  account with the 3DS Requestor across all payment accounts in the
+                                                                                  previous year.
+|account-holder.account-info.card-transactions-last-day |O     |Numeric   |      |Number of Add Card attempts in the last 24 hours.
+|account-holder.account-info.purchases-last-six-months |O      |Numeric   |      |Number of purchases with this cardholder account during the previous six months.
+|account-holder.account-info.suspicious-activity       |O      |Boolean   |      |Indicates whether the 3DS Requestor has experienced suspicious activity
+                                                                                  (including previous fraud) on the cardholder account.
+|account-holder.account-info.card-creation-date        |O      |Date      |      |Date that the payment account was enrolled in the cardholder’s account with the
+                                                                                  3DS Requestor.
+|account-holder.address.street3                        |C      |String    |50    |Third line of the street address or equivalent local portion of the cardholder billing address
+                                                                                  associated with the card use for this purchase. This field is limited to
+                                                                                  maximum 50 characters. +
+                                                                                  This field is required unless market or regional mandate restricts sending this information.
+|account-holder.home-phone.country-part                |C      |String    |3     |Country code of the home phone provided by the cardholder. +
+                                                                                  This field is required if available, unless market or regional mandate
+                                                                                  restricts sending this information.
+|account-holder.home-phone.other-part                  |C      |String    |15    |Subscriber section of the home phone provided by the cardholder.
+|account-holder.mobile-phone.country-part              |C      |String    |3     |Country code of the mobile phone provided by the cardholder. +
+                                                                                  This field is required if available, unless market or regional mandate
+                                                                                  restricts sending this information.
+|account-holder.mobile-phone.other-part                |C      |String    |15    |Subscriber section of the mobile phone provided by the cardholder. +
+                                                                                  This field is required if available, unless market or regional mandate
+                                                                                  restricts sending this information.
+|account-holder.work-phone.country-part                |C      |String    |3     |Country code of the mobile phone provided by the cardholder. +
+                                                                                  This field is required if available, unless market or regional mandate
+                                                                                  restricts sending this information.
+|account-holder.work-phone.other-part                  |C      |String    |15    |Subscriber section of the mobile phone provided by the cardholder. +
+                                                                                  This field is required if available, unless market or regional mandate
+                                                                                  restricts sending this information.
+|shipping.address.street3                              |O      |String    |50    |Third line of the street address or equivalent local portion of the shipping address associated
+                                                                                  with the card use for this purchase. +
+                                                                                  This field is required unless shipping information is the same as
+                                                                                  billing information, or market or regional mandate restricts sending this information.
+
+|shipping.shipping-method                              |O      |String    |     a|Indicates shipping method chosen for the transaction. Merchants must
+                                                                                  choose the Shipping Indicator code that most accurately describes the
+                                                                                  cardholder's specific transaction. If one or more items are included in
+                                                                                  the sale, use the shipping indicator code for the physical goods, or if
+                                                                                  all digital goods, use the code that describes the most expensive item. +
+                                                                                  Accepted values are: 01, 02, 03, 04, 05, 06, 07 +
+                                                                                  01 = Ship to cardholder’s billing address. +
+                                                                                  02 = Ship to another verified address on file with merchant. +
+                                                                                  03 = Ship to address that is different than the cardholder's billing address. +
+                                                                                  04 = “Ship to Store” / Pick-up at local store (Store address shall be populated in shipping address fields). +
+                                                                                  05 = Digital goods (includes online services, electronic gift cards and redemption codes). +
+                                                                                  06 = Travel and Event tickets, not shipped. +
+                                                                                  07 = Other (for example, Gaming, digital services not shipped, e-media subscriptions, etc.).
+|risk-info.delivery-timeframe                         |O       |String    |     a|Indicates the merchandise delivery time frame. +
+                                                                                  Accepted values are: 01, 02, 03, 04 +
+                                                                                  01 = Electronic Delivery +
+                                                                                  02 = Same day shipping +
+                                                                                  03 = Overnight shipping +
+                                                                                  04 = Two-day or more shipping
+|risk-info.delivery-mail                              |O       |String    |254   |For electronic delivery, the email address to which the merchandise was delivered.
+|risk-info.reorder-items                              |O       |String    |     a|Indicates whether the cardholder is reordering previously purchased merchandise. +
+                                                                                  Accepted values are: 01, 02 +
+                                                                                  01 = First time ordered +
+                                                                                  02 = Reordered
+|risk-info.availability                               |O       |String    |     a|Indicates whether cardholder is placing an order for merchandise with a future availability or release date. +
+                                                                                  Accepted values are: 01, 02 +
+                                                                                  01 = Merchandise available +
+                                                                                  02 = Future availability
+|risk-info.preorder-date                              |O       |Date      |      |For a pre-ordered purchase, the expected date that the merchandise will be available.
+|risk-info.gift.amount                                |O       |Numeric   |      |For prepaid or gift card purchase, the purchase amount total of prepaid or gift card(s) in major
+                                                                                  units (for example, USD 123.45 is 123).
+|risk-info.gift.amount.currency                       |O       |String    |3     |For prepaid or gift card purchase, the currency code of the card as defined in ISO 4217
+                                                                                  except 955 - 964 and 999.
+|risk-info.gift.card-count                            |O       |Numeric   |      |For prepaid or gift card purchase, total count of individual prepaid or gift
+                                                                                  cards/codes purchased. Field is limited to 2 characters.
+|periodic.recurring-expire-date                       |O       |Date      |      |Date after which no further authorizations shall be performed.
+|periodic.recurring-frequency                         |O       |Numeric   |4     |Indicates the minimum number of days between authorizations.
+|iso-transaction-type                                 |O       |String    |     a|Identifies the type of transaction being authenticated. The values are derived from ISO 8583. +
+                                                                                  Accepted values are: 01, 03, 10, 11, 28 +
+                                                                                  01 = Goods/ Service Purchase +
+                                                                                  03 = Check Acceptance +
+                                                                                  10 = Account Funding +
+                                                                                  11 = Quasi-Cash Transaction +
+                                                                                  28 = Prepaid Activation and Load
+|device.render-options.interface                      |O       |String    |     a|Specifies all of the SDK interface types that the device supports for
+                                                                                  displaying specific challenge user interfaces within the SDK. +
+                                                                                  Accepted values are: 01, 02, 03 +
+                                                                                  01 = Native +
+                                                                                  02 = HTML +
+                                                                                  03 = Both
+|device.render-options.ui-type                        |O       |String    |     a|Contains a list of all UI types that the device supports for displaying
+                                                                                  specific challenge user interfaces within the SDK. +
+                                                                                  Accepted values for each UI type are: 01, 02, 03, 04, 05 +
+                                                                                  01 = Text +
+                                                                                  02 = Single Select +
+                                                                                  03 = Multi Select +
+                                                                                  04 = OOB +
+                                                                                  05 = HTML Other (valid only for HTML UI))
+|browser.java-enabled                                 |O       |Boolean   |      |Boolean that represents the ability of the cardholder browser to execute Java. +
+                                                                                  Value is returned from the navigator.javaEnabled property.
+|browser.language                                     |O       |String    |8     |Value representing the browser language as defined in IETF BCP47. The value is limited to 1-8 characters. +
+                                                                                  Value is returned from navigator.language property.
+|browser.color-depth                                  |O       |Numeric   |      |Value representing the bit depth of the color palette for displaying images, in bits per pixel. Obtained
+                                                                                  from cardholder browser using the screen.colorDepth property. The field is limited to 1-2 characters.
+|browser.challenge-window-size                        |O       |String    |     a|Dimensions of the challenge window that has been displayed to the
+                                                                                  cardholder. The ACS shall reply with content that is formatted to
+                                                                                  appropriately render in this window to provide the best possible user
+                                                                                  experience. +
+                                                                                  Preconfigured sizes are width X height in pixels of the window
+                                                                                  displayed in the cardholder browser window. This is used only to prepare
+                                                                                  the CReq request and it is not part of the AReq flow. If not present it
+                                                                                  will be omitted. +
+                                                                                  Accepted values are: 01, 02, 03, 04, 05 +
+                                                                                  01 = 250 x 400 +
+                                                                                  02 = 390 x 400 +
+                                                                                  03 = 500 x 600 +
+                                                                                  04 = 600 x 400 +
+                                                                                  05 = Full screen
+|three-d.riid                                        |O        |String     |    a|Indicates the type of 3RI request. +
+                                                                                  Accepted values are: 01, 02, 03, 04, 05 +
+                                                                                  01 = Recurring transaction +
+                                                                                  02 = Installment transaction +
+                                                                                  03 = Add card +
+                                                                                  04 = Maintain card information +
+                                                                                  05 = Account
+|device.sdk.application-id                           |O        |String     |36   |Universally unique ID created upon all installations and updates of the 3DS Requestor App on a
+                                                                                  consumer device. This will be newly generated and stored by the 3DS SDK
+                                                                                  for each installation or update. The field is limited to 36 characters
+                                                                                  and it shall have a canonical format as defined in IETF RFC 4122. This
+                                                                                  may utilize any of the specified versions as long as the output meets
+                                                                                  specified requirements.
+|device.sdk.encrypted-data                           |O        |String    |64000 |JWE Object containing data
+                                                                                  encrypted by the 3DS SDK for the DS to decrypt. This element is the only
+                                                                                  field encrypted in this version of the EMV 3-D Secure specification. The
+                                                                                  field is sent from the SDK and it is limited to 64.000 characters. The
+                                                                                  data will be present when sending to DS, but not present from DS to ACS.
+|device.sdk.public-key                               |O        |String    |256   |Public key component of the ephemeral key pair generated by the 3DS SDK and used to establish
+                                                                                  session keys between the 3DS SDK and ACS. In AReq, this data element is
+                                                                                  contained within the ACS Signed Content JWS Object. The field is limited
+                                                                                  to maximum 256 characters.
+|device.sdk.max-timeout                              |O        |Numeric   |      |Indicates the maximum amount of time (in minutes) for all exchanges. The field shall have value greater
+                                                                                  or equals than 05.
+|device.sdk.reference-number                         |O        |String    |32    |Identifies the vendor and version of the 3DS SDK that is integrated in a 3DS Requestor App,
+                                                                                  assigned by EMVCo when the 3DS SDK is approved. The field is limited to 32 characters.
+|device.sdk.transaction-id                           |O        |String    |36    |Universally unique transaction identifier assigned by the 3DS SDK to identify a single
+                                                                                  transaction. The field is limited to 36 characters and it shall be in a
+                                                                                  canonical format as defined in IETF RFC 4122. This may utilize any
+                                                                                  of the specified versions as long as the output meets specific requirements.
 |===
-
- 
-
- 
-
- 
-
-[[footer]]
-Document generated by Confluence on Mar 27, 2019 16:30
-
-[[footer-logo]]
-http://www.atlassian.com/[Atlassian]
