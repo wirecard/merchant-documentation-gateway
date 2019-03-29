@@ -267,7 +267,7 @@ function testPatterns( $filename ){
   $testPatternsArrays = array();
   foreach( $patternListFile as $value ) {
     // if delimiter not found, skip the line
-    if( strpos( '$value', ':::', 1 ) !== false ) {
+    if( strpos( $value, ':::', 1 ) !== false ) {
       $testPatternsArrays[] = explode( ':::', $value );
     }
   }
