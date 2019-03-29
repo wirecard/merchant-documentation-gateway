@@ -266,7 +266,10 @@ function testPatterns( $filename ){
   $patternListFile = file( 'buildscripts/tests/invalid_patterns_list.txt', FILE_IGNORE_NEW_LINES );
   $testPatternsArrays = array();
   foreach( $patternListFile as $value ) {
-    $testPatternsArrays[] = explode( ':::', $value );
+    // if delimiter not found, skip the line
+    if( strpos( '$value', ':::', 1 ) !== false ) {
+      $testPatternsArrays[] = explode( ':::', $value );
+    }
   }
 
   $fileContent = file( $filename );
