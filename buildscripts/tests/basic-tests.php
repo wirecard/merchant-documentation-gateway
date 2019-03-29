@@ -204,7 +204,7 @@ function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
 }
 
 function getAuthorOfFile( $filename ) {
-  $cmd_git_log_email = 'git log --follow --reverse --pretty=format:%ae -- "' . $filename . '" | head -n 1';
+  $cmd_git_log_email = 'git log --follow --pretty=format:%ae -- "' . $filename . '" | tail -n 1';
   $author_email_local_part = preg_replace( '/([0-9\+]+)?(.*)@.*/', '$2', exec( $cmd_git_log_email ) );
   $author = ucwords( str_replace( '.', ' ', $author_email_local_part ) );
   return $author;
