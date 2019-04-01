@@ -1,0 +1,433 @@
+[#MultiPaymentApi]
+== Multi Payment API
+
+[#MultiPaymentApi_Overview]
+=== Overview
+
+The _Multi Payment API_ allows a merchant to offer a combination of
+payment methods in his shop to the consumer. A classic example is
+that the consumer can pay with one or more vouchers or a voucher and
+credit card together.
+
+The _Multi Payment API_ currently supports the following data formats:
+
+- for requests XML
+- for responses XML
+
+//-
+
+[#MultiPaymentApi_TransactionTypes]
+=== Transaction Types
+
+[cols="e,"]
+|===
+| Name                | Description
+
+| purchase           a| The transaction type ``purchase`` will be used to perform operations
+
+- Reserve and redeem amount on voucher(s)
+- Authorize and capture amount on credit card or debit amount for EPS
+
+//-
+
+This transaction type will be supported for all payment methods and
+combinations enabled for the merchant.
+
+| void-refund-purchase | The transaction type ``void-refund-purchase`` is used to cancel or refund a previously successful purchase transaction.
+|===
+
+[#MultiPaymentApi_GoingonProduction]
+=== Going on Production
+
+The following table shows the _Multi Payment API_ endpoints:
+
+|===
+| Test Environment | Production Environment
+
+| ``\https://api-test.wirecard.com/engine/rest/multi-payments``
+| ``\https://api.wirecard.com/engine/rest/multi-payments``
+|===
+
+Please <<ContactUs, contact our Merchant Support Team>> for environment credentials.
+
+[#MultiPaymentApi_RetrieveMultiPayments]
+=== Retrieve Multi Payments
+
+With the query request function, the merchant can obtain information
+about the status of a multi payment transaction and the payments within.
+
+You can retrieve multi payment transactions via two different ways:
+either by ``multi-payment-id`` or by ``multi-payment-request-id``.
+
+[#MultiPaymentApi_RetrieveByPaymentId]
+==== By multi-payment-id
+
+Retrieving a multi payment transaction using a ``multi-payment-id`` returns
+a single multi payment belonging to a merchant resolver. The
+``multi-payment-id`` node must match the value that was included in the
+multi payment response. An error is returned if the ``multi-payment-id`` is
+not available or the requested user is not authorized to see the
+content. The desired content type can be set through the Accept header
+or by specifying an extension.
+
+[cols="2h,5"]
+|===
+| Test system       | ``\https://api-test.wirecard.com/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/\{multi-payment-id}``
+| Production system | ``\https://api.wirecard.com/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/\{multi-payment-id}``
+| Response Formats  | XML, HTML
+| Request Methods   | GET
+|===
+
+[cols="v,,,"]
+[%autowidth]
+|===
+| Field                              | Cardinality | Datatype     | Size
+
+| ``merchant-account-resolver-category`` | Mandatory   | Alphanumeric | 36
+| ``multi-payment-id``                   | Mandatory   | Alphanumeric | 36
+|===
+
+[#MultiPaymentApi_RetrieveByRequestId]
+==== By multi-payment-request-id
+
+Retrieving a multi payment transaction using a ``multi-payment-id`` returns
+a single multi payment belonging to a merchant resolver. The
+``multi-payment-id`` node must match the value that was included in the
+multi payment response. An error is returned if the ``multi-payment-id`` is
+not available or the requested user is not authorized to see the
+content. The desired content type can be set through the Accept header
+or by specifying an extension.
+
+[cols="2h,5"]
+|===
+| Test system       | ``\https://api-test.wirecard.com/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/search?multiPaymentRequestId=\{multi-payment-request-id}``
+| Production system | ``\https://api.wirecard.com/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/search?multiPaymentRequestId=\{multi-payment-request-id}``
+| Response Formats  | XML, HTML
+| Request Methods   | GET
+|===
+
+[cols="v,,,"]
+[%autowidth]
+|===
+| Field                              | Cardinality | Datatype     | Size
+
+| ``merchant-account-resolver-category`` | Mandatory   | Alphanumeric | 36
+| ``multi-payment-request-id``           | Mandatory   | Alphanumeric | 36
+|===
+
+[#MultiPaymentApi_Workflow]
+=== Workflow
+
+image::images/06-00-multi-payment-api/transaction-brace.png[Multipayments Workflow]
+
+At first, the _Multi Payment API_ validates the incoming
+multi payment request. This validation includes
+
+- Verification of the payment request XML
+- Check if transaction type is configured for the merchant
+- Check if payment method is configured for the merchant
+- Check if transaction type – payment method combination is supported by
+the _Multi Payment API_
+
+//-
+
+IMPORTANT: If the validation fails, the entire transaction will be declined. 
+
+After successful validation of a payment request, the _Multi Payment API_
+generates individual payment requests based on the multi payment request.
+
+- For each payment request, a mapped transaction type for the payment
+provider is chosen.
+- If the mapped transaction type is ``skip``, the _Multi Payment API_ does
+not process that particular payment request.
+- The individual payments are processed in order of priority:
+. The voucher payment requests are processed first.
+. Financial payment requests are processed last.
+
+//-
+
+The _Multi Payment API_ sends the individual payment request to the
+respective payment provider.
+
+For any unsuccessful payment response, the _Multi Payment API_ rolls
+back the previously successfully processed payments.
+
+The pending payment requests are not submitted.
+
+WARNING: _EPS_ transactions cannot be rolled back. 
+
+Finally, a multi payment response is built with a collective status
+and status of the individual payments.
+
+This response is then sent to merchant.
+
+[#MultiPaymentApi_Samples]
+=== Samples
+
+.Request Purchase Credit Card and 2 Vouchers
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<multi-payments xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-resolver-category>xyzLimited-Resolver-Multipayment</merchant-account-resolver-category>
+    <multi-payment-request-id>Purchase-CC-Voucher-8923</multi-payment-request-id>
+    <multi-payment-transaction-type>purchase</multi-payment-transaction-type>
+    <multi-payment-amount currency="EUR">25</multi-payment-amount>
+    <transaction-count>3</transaction-count>
+    <order-number>CC-Voucher-4590</order-number>
+    <payments>
+        <payment>
+            <payment-methods>
+                <payment-method name="creditcard"/>
+            </payment-methods>
+            <requested-amount currency="EUR">10</requested-amount>
+            <account-holder>
+                <first-name>John</first-name>
+                <last-name>Doe</last-name>
+                <email>John.Doe@wirecard.com</email>
+                <phone/>
+                <address>
+                    <street1>200.000</street1>
+                    <city>Munich</city>
+                    <state>ON</state>
+                    <country>CA</country>
+                </address>
+            </account-holder>
+            <card>
+                <account-number>4444333322221111</account-number>
+                <expiration-month>12</expiration-month>
+                <expiration-year>2025</expiration-year>
+                <card-type>visa</card-type>
+                <card-security-code>123</card-security-code>
+            </card>
+            <ip-address>127.0.0.1</ip-address>
+        </payment>
+        <payment>
+            <requested-amount currency="EUR">10</requested-amount>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <order-detail>xyzLimited</order-detail>
+            <additional-merchant-data>ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiLA0KInRlc3QiOiAiQ0ktVFJBVkVMIg0KfQ==</additional-merchant-data>
+            <voucher>
+                <voucher-code>8396586683723949</voucher-code>
+                <voucher-brand-id>xyz</voucher-brand-id>
+                <voucher-description>This is Test Voucher 1</voucher-description>
+            </voucher>
+        </payment>
+        <payment>
+            <requested-amount currency="EUR">5</requested-amount>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <order-detail>xyzLimited</order-detail>
+            <additional-merchant-data>ew0KIkxNTyI6ICI3ODkiLA0KIlJlYWQiOiAiMzIxIiwNCiJ0ZXN0IjogIkNJLVRSQVZFTCINCn0=</additional-merchant-data>
+            <voucher>
+                <voucher-code>8101100662655059</voucher-code>
+                <voucher-brand-id>xyz</voucher-brand-id>
+                <voucher-description>This is Test Voucher 2</voucher-description>
+            </voucher>
+        </payment>
+    </payments>
+</multi-payments>
+----
+
+.Response Purchase Successful
+[source,xml]
+----
+<multi-payments self="https://api-test.wirecard.com/engine/rest/multi-payments/resolver-category/xyzLimited-Resolver-Multipayment/multi-payments/a1d8b47e-b7ba-4cda-ac23-b7540dfb59f4" xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-resolver-category>xyzLimited-Resolver-Multipayment</merchant-account-resolver-category>
+    <multi-payment-request-id>Purchase-CC-Voucher-8923</multi-payment-request-id>
+    <multi-payment-amount currency="EUR">25</multi-payment-amount>
+    <transaction-count>3</transaction-count>
+    <multi-payment-id>a1d8b47e-b7ba-4cda-ac23-b7540dfb59f4</multi-payment-id>
+    <order-number>CC-Voucher-4590</order-number>
+    <multi-payment-transaction-type>purchase</multi-payment-transaction-type>
+    <multi-payment-state>success</multi-payment-state>
+    <completion-time-stamp>2019-02-14T12:33:06.644Z</completion-time-stamp>
+    <multi-payment-statuses>
+        <status code="200.0000" description="The request completed successfully." severity="information"/>
+    </multi-payment-statuses>
+    <payments>
+        <payment self="https://api-test.wirecard.com/engine/rest/merchants/4beb6362-faab-4603-9a5f-efa8233c071e/payments/57a668b7-bbcf-4e3e-826d-4a8d3eebdd4d">
+            <merchant-account-id>4beb6362-faab-4603-9a5f-efa8233c071e</merchant-account-id>
+            <transaction-id>57a668b7-bbcf-4e3e-826d-4a8d3eebdd4d</transaction-id>
+            <request-id>{{$guid}}</request-id>
+            <transaction-type>purchase</transaction-type>
+            <transaction-state>success</transaction-state>
+            <completion-time-stamp>2019-02-14T12:33:06.000Z</completion-time-stamp>
+            <statuses>
+                <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information" provider-transaction-id="C019405148707558120865"/>
+            </statuses>
+            <requested-amount currency="EUR">10</requested-amount>
+            <account-holder>
+                <first-name>John</first-name>
+                <last-name>Doe</last-name>
+                <email>John.Doe@wirecard.com</email>
+                <phone/>
+                <address>
+                    <street1>200.000</street1>
+                    <city>Munich</city>
+                    <state>ON</state>
+                    <country>CA</country>
+                </address>
+            </account-holder>
+            <card-token>
+                <token-id>4498936198431111</token-id>
+                <masked-account-number>444433******1111</masked-account-number>
+            </card-token>
+            <ip-address>127.0.0.1</ip-address>
+            <order-number>CC-Voucher-4590</order-number>
+            <descriptor>demo descriptor</descriptor>
+            <payment-methods>
+                <payment-method name="creditcard"/> 
+            </payment-methods>
+            <authorization-code>689481</authorization-code>
+            <api-id>---</api-id>
+        </payment>
+        <payment self="https://api-test.wirecard.com/engine/rest/merchants/02ac174b-f453-4017-bb8e-c675dcf80e6c/payments/351e61d6-bde7-4d11-b605-e261a40409f8">
+            <merchant-account-id>02ac174b-f453-4017-bb8e-c675dcf80e6c</merchant-account-id>
+            <transaction-id>351e61d6-bde7-4d11-b605-e261a40409f8</transaction-id>
+            <request-id>{{$guid}}</request-id>
+            <transaction-type>purchase</transaction-type>
+            <transaction-state>success</transaction-state>
+            <completion-time-stamp>2019-02-14T12:32:59.000Z</completion-time-stamp>
+            <statuses>
+                <status code="201.0000" description="voucher:The resource was successfully created." severity="information"/>
+            </statuses>
+            <requested-amount currency="EUR">10</requested-amount>
+            <order-number>CC-Voucher-4590</order-number>
+            <order-detail>xyzLimited</order-detail>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <voucher>
+                <voucher-code>8396586683723949</voucher-code>
+                <voucher-brand-id>xyz</voucher-brand-id>
+                <voucher-token-id>h8r1l3v9b64mblqthfjro24jt3</voucher-token-id>
+                <voucher-description>This is Test Voucher 1</voucher-description>
+            </voucher>
+            <additional-merchant-data>ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiLA0KInRlc3QiOiAiQ0ktVFJBVkVMIg0KfQ==</additional-merchant-data>
+        </payment>
+        <payment self="https://api-test.wirecard.com/engine/rest/merchants/02ac174b-f453-4017-bb8e-c675dcf80e6c/payments/fe419900-85ae-45d6-9959-642cf2b78200">
+            <merchant-account-id>02ac174b-f453-4017-bb8e-c675dcf80e6c</merchant-account-id>
+            <transaction-id>fe419900-85ae-45d6-9959-642cf2b78200</transaction-id>
+            <request-id>{{$guid}}</request-id>
+            <transaction-type>purchase</transaction-type>
+            <transaction-state>success</transaction-state>
+            <completion-time-stamp>2019-02-14T12:33:00.000Z</completion-time-stamp>
+            <statuses>
+                <status code="201.0000" description="voucher:The resource was successfully created." severity="information"/>
+            </statuses>
+            <requested-amount currency="EUR">5</requested-amount>
+            <order-number>CC-Voucher-4590</order-number>
+            <order-detail>xyzLimited</order-detail>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <voucher>
+                <voucher-code>8101100662655059</voucher-code>
+                <voucher-brand-id>xyz</voucher-brand-id>
+                <voucher-token-id>v2n74tqktgg5kp5j2dl0n83gpl</voucher-token-id>
+                <voucher-description>This is Test Voucher 2</voucher-description>
+            </voucher>
+            <additional-merchant-data>ew0KIkxNTyI6ICI3ODkiLA0KIlJlYWQiOiAiMzIxIiwNCiJ0ZXN0IjogIkNJLVRSQVZFTCINCn0=</additional-merchant-data>
+        </payment>
+    </payments>
+</multi-payments>
+----
+
+.Request Void-Refund-Purchase
+[source,xml]
+----
+<multi-payments xmlns="http://www.elastic-payments.com/schema/payment">
+    <multi-payment-request-id>Void-Refund-Purchase-CC-Voucher-9955</multi-payment-request-id>
+    <multi-payment-parent-id>a1d8b47e-b7ba-4cda-ac23-b7540dfb59f4</multi-payment-parent-id>
+    <multi-payment-transaction-type>void-refund-purchase</multi-payment-transaction-type>
+</multi-payments> 
+----
+
+.Response Void-Refund-Purchase – Voucher 2 failed, Voucher 1 Rolled Back
+[source,xml]
+----
+<multi-payments self="https://api-test.wirecard.com/engine/rest/multi-payments/resolver-category/xyzLimited-Resolver-Multipayment/multi-payments/d4cbfc4b-c755-4b38-814c-1856a5ebba75" xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-resolver-category>xyzLimited-Resolver-Multipayment</merchant-account-resolver-category>
+    <multi-payment-request-id>Void-Refund-Purchase-CC-Voucher-9955</multi-payment-request-id>
+    <transaction-count>3</transaction-count>
+    <multi-payment-id>d4cbfc4b-c755-4b38-814c-1856a5ebba75</multi-payment-id>
+    <multi-payment-parent-id>a1d8b47e-b7ba-4cda-ac23-b7540dfb59f4</multi-payment-parent-id>
+    <multi-payment-transaction-type>void-refund-purchase</multi-payment-transaction-type>
+    <multi-payment-state>failed</multi-payment-state>
+    <completion-time-stamp>2019-02-14T12:34:08.868Z</completion-time-stamp>
+    <multi-payment-statuses>
+        <status code="500.4001" description="Multi Payments request has failed." severity="error"/>
+        <status code="500.4003" description="creditcard : Transaction is not submitted." severity="warning"/>
+        <status code="500.4005" description="Rollback was successful." severity="warning"/>
+    </multi-payment-statuses>
+    <payments>
+        <payment self="https://api-test.wirecard.com/engine/rest/merchants/02ac174b-f453-4017-bb8e-c675dcf80e6c/payments/b32f6007-afc3-4e80-91ac-3adcdc668207">
+            <merchant-account-id>02ac174b-f453-4017-bb8e-c675dcf80e6c</merchant-account-id>
+            <transaction-id>b32f6007-afc3-4e80-91ac-3adcdc668207</transaction-id>
+            <request-id>{{$guid}}</request-id>
+            <transaction-type>void-purchase</transaction-type>
+            <transaction-state>success</transaction-state>
+            <completion-time-stamp>2019-02-14T12:34:06.000Z</completion-time-stamp>
+            <statuses>
+                <status code="201.0000" description="voucher:The resource was successfully created." severity="information"/>
+            </statuses>
+            <parent-transaction-id>351e61d6-bde7-4d11-b605-e261a40409f8</parent-transaction-id>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <voucher>
+                <voucher-code>8396586683723949</voucher-code>
+                <voucher-brand-id>oebb</voucher-brand-id>
+                <voucher-token-id>h8r1l3v9b64mblqthfjro24jt3</voucher-token-id>
+                <voucher-description>This is Test Voucher 1</voucher-description>
+            </voucher>
+        </payment>
+        <payment self="https://api-test.wirecard.com/engine/rest/merchants/02ac174b-f453-4017-bb8e-c675dcf80e6c/payments/f039b66b-3106-4aa2-8543-afce070b4a7a">
+            <merchant-account-id>02ac174b-f453-4017-bb8e-c675dcf80e6c</merchant-account-id>
+            <transaction-id>f039b66b-3106-4aa2-8543-afce070b4a7a</transaction-id>
+            <request-id>{{$guid}}</request-id>
+            <transaction-type>void-cancel-redeem</transaction-type>
+            <transaction-state>success</transaction-state>
+            <completion-time-stamp>2019-02-14T12:34:08.000Z</completion-time-stamp>
+            <statuses>
+                <status code="201.0000" description="voucher:The resource was successfully created." severity="information"/>
+            </statuses>
+            <parent-transaction-id>b32f6007-afc3-4e80-91ac-3adcdc668207</parent-transaction-id>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <voucher>
+                <voucher-code>8396586683723949</voucher-code>
+                <voucher-brand-id>oebb</voucher-brand-id>
+                <voucher-token-id>h8r1l3v9b64mblqthfjro24jt3</voucher-token-id>
+                <voucher-description>This is Test Voucher 1</voucher-description>
+            </voucher>
+        </payment>
+        <payment self="https://api-test.wirecard.com/engine/rest/merchants/02ac174b-f453-4017-bb8e-c675dcf80e6c/payments/368c53ca-6c24-4a05-962b-87792d403101">
+            <merchant-account-id>02ac174b-f453-4017-bb8e-c675dcf80e6c</merchant-account-id>
+            <transaction-id>368c53ca-6c24-4a05-962b-87792d403101</transaction-id>
+            <request-id>{{$guid}}</request-id>
+            <transaction-type>void-purchase</transaction-type>
+            <transaction-state>failed</transaction-state>
+            <completion-time-stamp>2019-02-14T12:34:07.000Z</completion-time-stamp>
+            <statuses>
+                <status code="500.2377" description="voucher:Already settled referenced authorization found." severity="error"/>
+            </statuses>
+            <parent-transaction-id>fe419900-85ae-45d6-9959-642cf2b78200</parent-transaction-id>
+            <payment-methods>
+                <payment-method name="voucher"/>
+            </payment-methods>
+            <voucher>
+                <voucher-code>8101100662655059</voucher-code>
+                <voucher-brand-id>oebb</voucher-brand-id>
+                <voucher-token-id>v2n74tqktgg5kp5j2dl0n83gpl</voucher-token-id>
+                <voucher-description>This is Test Voucher 2</voucher-description>
+            </voucher>
+        </payment>
+    </payments>
+</multi-payments>
+----
