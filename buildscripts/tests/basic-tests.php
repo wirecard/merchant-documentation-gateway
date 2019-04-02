@@ -358,9 +358,6 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
   foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $adError ) {
     $filename = $adError['filename'];
     // skip file search for invalid references if not in index
-    if( in_array( $filename, $indexedFiles ) === false ) {
-      continue;
-    }
     if( $filename !== 'index.adoc' )
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = $adError;
 
@@ -368,8 +365,9 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     if( isInvalidReferenceError( $adError['message'] ) ) {
       $invalidReferenceID = str_replace( 'invalid reference: ', '', $adError['message'] );
       // make sure this is not a false positive created by asciidoctor by searching all anchors (contained in ['index.adoc']['anchors'])
-      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) === false )
+      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) === false ) {
         $invalidReferencesArray[] = $invalidReferenceID;
+      }
     }
   }
 
@@ -383,6 +381,9 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
   $pool = new Pool( 50 );
 
   foreach( $testsResultsArray as $filename => $value ) {
+    if( in_array( $filename, $indexedFiles ) === false ) {
+      continue;
+    }
     $searchFileTask = new SearchFileTask( $filename, $invalidReferencesArray );
     $searchFileTasksArray[$filename] = $searchFileTask;
     $pool->submit( $searchFileTask );
