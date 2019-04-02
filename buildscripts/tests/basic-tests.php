@@ -218,6 +218,11 @@ function getLastEditedByOfFile( $filename ) {
   return $author;
 }
 
+function getCurrentBranch() {
+  $cmd_git_branch = 'git name-rev --name-only HEAD';
+  return exec( $cmd_git_branch );
+}
+
 // getAsciidoctorOutput parses asciidoctor helper json output
 // returns all links in document          as $result['links']
 //         all anchors                    as $result['anchors']
@@ -401,6 +406,13 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
                                                                       'lineNumber' => $r['lineNumber']
                                                                       );
     }
+
+    // remove empty entries from results
+    $numErrors = 0;
+    foreach( $testsResultsArray[$filename]['tests'] as $test ) {
+      if( sizeof( $test ) > 0 ) $numErrors++;
+    }
+    if( $numErrors == 0 ) unset( $testsResultsArray[$filename] );
   }
   // remove index.adoc from results after adding all error messages to their files
   unset( $testsResultsArray['index.adoc'] );
@@ -412,9 +424,18 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
-  foreach( $results as $filename => $result ) {
-    $slackMessage = createSlackMessageFromErrors( $result );
-    $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
+  $currentBranch = getCurrentBranch();
+  $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
+  if( sizeof( $results ) > 0 ) {
+    foreach( $results as $filename => $result ) {
+      $slackMessage = createSlackMessageFromErrors( $result, $currentBranch );
+      if( $slackMessage !== false )
+        $status = postToSlack( $slackWebhookUrl, $slackMessage );
+    }
+  }
+  else {
+    // empty error array creates "success" msg in createSlackMessageFromErrors
+    $slackMessage = createSlackMessageFromErrors( array(), $currentBranch );
     if( $slackMessage !== false )
       $status = postToSlack( $slackWebhookUrl, $slackMessage );
   }
@@ -422,68 +443,71 @@ function sendNotifications ( $results ) {
 }
 
 // creates a single error message
-function createSlackMessageFromErrors( $result ) {
+function createSlackMessageFromErrors( $result, $currentBranch ) {
 
-  $filename = $result['filename'];
-  $branch = $result['branch'];
-  $author = $result['author'];
   $numErrors = 0;
-
-  $slackMessage = array( 'attachments'   => array(array(
-                         'pretext'   => '*'.$filename.'*PHP_EOLLast edited by: *'.$author.'*',
-                         'mrkdwn_in' => [ 'text', 'pretext' ]
-                          ))
-                        );
-
-  if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
-    $slackItem = array( 'title' => 'Anchors', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
-    foreach( $result['tests']['anchors'] as $key => $test ) {
-      if( $test['errorType'] == 'format')
-        $slackItem['text'] .= $test['errorMessage'].': `'.$test['anchorID'].'`PHP_EOL';
-      else
-        $slackItem['text'] .= $test['errorMessage'].': `'.$test['anchorText'].'`PHP_EOL';
+  if( sizeof( $result ) > 0 ){
+    $filename = $result['filename'];
+    $branch = $result['branch'];
+    $author = $result['author'];
+    $slackMessage = array( 'attachments' => array(array(
+                             'pretext'     => '*'.$filename.'* (<https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*',
+                             'mrkdwn_in'   => [ 'text', 'pretext' ]
+                              ))
+                          );
+    if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
+      $slackItem = array( 'title' => 'Anchors', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      foreach( $result['tests']['anchors'] as $key => $test ) {
+        if( $test['errorType'] == 'format')
+          $slackItem['text'] .= $test['errorMessage'].': `'.$test['anchorID'].'`PHP_EOL';
+        else
+          $slackItem['text'] .= $test['errorMessage'].': `'.$test['anchorText'].'`PHP_EOL';
+      }
+      $numErrors += sizeof( $result['tests']['anchors'] );
+      $slackMessage['attachments'][] = $slackItem;
     }
-    $numErrors += sizeof( $result['tests']['anchors'] );
+
+    if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0 ){
+      $slackItem = array( 'title' => 'Patterns', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      foreach( $result['tests']['patterns'] as $key => $test ) {
+        $slackItem['text'] .= 'Line '.$test['lineNumber'].': '.$test['type'].': "'.$test['match'].'"PHP_EOL';
+      }
+      $numErrors += sizeof( $result['tests']['patterns'] );
+      $slackMessage['attachments'][] = $slackItem;
+    }
+
+    if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 ){
+      $slackItem = array( 'title' => 'Links', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      foreach( $result['tests']['links'] as $key => $test ) {
+        $slackItem['text'] .= $test['httpErrorMessage'].' (`'.$test['httpStatusCode'].'`) for `'.$test['url'].'`PHP_EOL';
+      }
+      $numErrors += sizeof( $result['tests']['links'] );
+      $slackMessage['attachments'][] = $slackItem;
+    }
+
+    if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0 ){
+      $slackItem = array( 'title' => 'Asciidoctor Diagnosis', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      foreach( $result['tests']['asciidoctor'] as $key => $test ) {
+        $testMessage = ucfirst( preg_replace( '/(.*:\ )(.*)$/', '$1`$2`', $test['message'] ) );
+        $slackItem['text'] .= 'Line '.$test['lineNumber'].': '.$testMessage.'PHP_EOL';
+      }
+      $numErrors += sizeof( $result['tests']['asciidoctor'] );
+      $slackMessage['attachments'][] = $slackItem;
+    }
+  } else {
+    $slackMessage = array( 'attachments' => array(array(
+                             'pretext'     => 'Branch: *'.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)',
+                             'mrkdwn_in'   => [ 'text', 'pretext' ]
+                              ))
+                          );
+    $slackItem = array( 'title' => 'Success!', 'text' => 'No errors found in '.$currentBranch.'. 😊', 'mrkdwn_in' => [ 'text', 'pretext' ] );
     $slackMessage['attachments'][] = $slackItem;
   }
-
-  if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0 ){
-    $slackItem = array( 'title' => 'Patterns', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
-    foreach( $result['tests']['patterns'] as $key => $test ) {
-      $slackItem['text'] .= 'Line '.$test['lineNumber'].': '.$test['type'].' `'.str_replace($test['pattern'][0], '', $test['pattern']).'` in "'.$test['match'].'"PHP_EOL';
-    }
-    $numErrors += sizeof( $result['tests']['patterns'] );
-    $slackMessage['attachments'][] = $slackItem;
-  }
-
-  if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 ){
-    $slackItem = array( 'title' => 'Links', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
-    foreach( $result['tests']['links'] as $key => $test ) {
-      $slackItem['text'] .= $test['httpErrorMessage'].' (`'.$test['httpStatusCode'].'`) for `'.$test['url'].'`PHP_EOL';
-    }
-    $numErrors += sizeof( $result['tests']['links'] );
-    $slackMessage['attachments'][] = $slackItem;
-  }
-
-  if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0 ){
-    $slackItem = array( 'title' => 'Asciidoctor Diagnosis', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
-    foreach( $result['tests']['asciidoctor'] as $key => $test ) {
-      $testMessage = ucfirst( preg_replace( '/(.*:\ )(.*)$/', '$1`$2`', $test['message'] ) );
-      $slackItem['text'] .= 'Line '.$test['lineNumber'].': '.$testMessage.'PHP_EOL';
-    }
-    $numErrors += sizeof( $result['tests']['asciidoctor'] );
-    $slackMessage['attachments'][] = $slackItem;
-  }
-
-  if( $numErrors > 0 )
-    return $slackMessage;
-  else
-    return false;
+  return $slackMessage;
 }
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
-
-  $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage ) );
+  $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
   $ch = curl_init( $slackWebhookUrl );
     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'POST' );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $messageString );
