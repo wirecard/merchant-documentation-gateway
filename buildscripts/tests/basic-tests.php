@@ -35,7 +35,7 @@ class Task extends Threaded {
     // filter http links
     $asciidoctorOutput['links'] = preg_grep( '/^https?:/', $asciidoctorOutput['links'] );
     $gitBranch = getBranchOfFile( $this->filename );
-    $gitAuthor = getAuthorOfFile( $this->filename );
+    $gitAuthor = getLastEditedByOfFile( $this->filename );
 
     // Cast as array to prevent implicit conversion to a Volatile object
     $result = (array)array( 'filename' => $this->filename,
@@ -203,6 +203,7 @@ function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
   return exec( $cmd_origin ) ?: exec ( $cmd_current );
 }
 
+// not reliable across branches. use last edited by
 function getAuthorOfFile( $filename ) {
   $cmd_git_log_email = 'git log --follow --pretty=format:%ae -- "' . $filename . '" | tail -n 1';
   $author_email_local_part = preg_replace( '/([0-9\+]+)?(.*)@.*/', '$2', exec( $cmd_git_log_email ) );
@@ -210,6 +211,12 @@ function getAuthorOfFile( $filename ) {
   return $author;
 }
 
+function getLastEditedByOfFile( $filename ) {
+  $cmd_git_log_email = 'git log -n 1 --follow --pretty=format:%ae -- "' . $filename . '" | head -n 1';
+  $author_email_local_part = preg_replace( '/([0-9\+]+)?(.*)@.*/', '$2', exec( $cmd_git_log_email ) );
+  $author = ucwords( str_replace( '.', ' ', $author_email_local_part ) );
+  return $author;
+}
 
 // getAsciidoctorOutput parses asciidoctor helper json output
 // returns all links in document          as $result['links']
@@ -385,7 +392,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     foreach( $results as $r ) {
       if( array_key_exists( 'filename', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['filename'] = $filename;
       if( array_key_exists( 'branch', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['branch'] = getBranchOfFile( $filename );
-      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = getAuthorOfFile( $filename );
+      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = getLastEditedByOfFile( $filename );
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = array(
                                                                       'severity'   => 'WARN',
                                                                       'filename'   => $filename,
@@ -423,7 +430,7 @@ function createSlackMessageFromErrors( $result ) {
   $numErrors = 0;
 
   $slackMessage = array( 'attachments'   => array(array(
-                         'pretext'   => '*'.$filename.'*PHP_EOLAuthor: *'.$author.'*',
+                         'pretext'   => '*'.$filename.'*PHP_EOLLast edited by: *'.$author.'*',
                          'mrkdwn_in' => [ 'text', 'pretext' ]
                           ))
                         );
