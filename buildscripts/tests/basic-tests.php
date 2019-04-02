@@ -407,8 +407,9 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
                                                                       'lineNumber' => $r['lineNumber']
                                                                       );
     }
-
-    // remove empty entries from results
+  }
+  // remove empty entries from results
+  foreach( $testsResultsArray as $filename => $value ) {
     $numErrors = 0;
     foreach( $testsResultsArray[$filename]['tests'] as $test ) {
       if( sizeof( $test ) > 0 ) $numErrors++;
