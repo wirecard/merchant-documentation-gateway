@@ -1,19 +1,56 @@
-language: ruby
+language: php
+php: 7.2
+before_script:
+  - INIT_DIR=$(pwd)
+  - cd /home/travis/build/
+  - echo | pecl install channel://pecl.php.net/yaml-2.0.2
+  - git clone https://github.com/krakjoe/pthreads.git
+  - cd pthreads
+  - git checkout 6c6b15138c923b69cfa46ee05fc2dd45da587287
+  - phpize
+  - ./configure && make && make install
+  - cd ..
+  - echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - cd ${INIT_DIR}
 install:
-  - gem install asciidoctor --pre
-  - gem install asciidoctor-diagram --pre
+  - gem install asciidoctor -v 1.5.8
+  - gem install asciidoctor-diagram -v 1.5.14
   - gem install asciidoctor-pdf --pre
   - gem install rouge
+  - gem install concurrent-ruby
   - npm install -g inline-source-cli
   - npm install --save cheerio
   - npm install --save lunr
+  - npm install --save asciidoctor.js
+  - npm install --save minimist
 script:
   - mkdir -p build/html/css
-  - cp css/font-awesome-*.css build/html/css
+  - cp css/font-awesome*.css build/html/css
   - cp -r images js fonts build/html/
-  - RUBYOPT="-E utf-8" asciidoctor -b html5 -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html
+  - php buildscripts/tests/basic-tests.php || true
+  - RUBYOPT="-E utf-8" asciidoctor -b html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html
   - cp index.html custom-mode.html
   - node buildscripts/split-pages/create-toc.js
-  - RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
-  - mv toc.json *.html build/html/
+  - node buildscripts/search/lunr-index-builder.js
+  - RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
+  - mv toc.json searchIndex.json *.html build/html/
   - mv errorpages/* build/html/
+deploy:
+  - provider: s3
+    access_key_id: $S3ACCESSID
+    secret_access_key: $S3ACCESSKEY
+    bucket: wirecard-docs-internal
+    region: eu-central-1
+    skip_cleanup: true
+    local-dir: build/html
+    on:
+      branch: staging
+  - provider: s3
+    access_key_id: $S3ACCESSID
+    secret_access_key: $S3ACCESSKEY
+    bucket: wirecard-docs
+    region: eu-central-1
+    skip_cleanup: true
+    local-dir: build/html
+    on:
+      branch: master
