@@ -42,7 +42,7 @@ function buildTOC(data) {
 }
 
 function addTOCbindings() {
-  $('li.tocify-item > a, #content a').click(function(event){
+  $('li.tocify-item > a').click(function(event){
     // workaround for smoothState
     // uses window.location bc body id doesn't reliably change
     var currentPageID = location.pathname.substring(location.pathname.lastIndexOf("/") + 1).replace(/\.html.*/, '');
