@@ -1,0 +1,5612 @@
+[#Klarna]
+=== Klarna Guaranteed Invoice and Installments
+
+[#Klarna_Introduction]
+==== Introduction
+[.clearfix]
+--
+[.right]
+image::images/11-13-klarna/klarna_logo_black.png[Klarna Logo,width=200]
+
+Klarna Invoice and Klarna Installments are online payment methods
+offering guaranteed payments using the corresponding product provided by
+Klarna. It removes the risk to the merchant that the consumer does not
+pay. It only requires "top of mind" information for the consumer to
+shop, for Scandinavian countries the social security number, address,
+phone number and email address. Also basket items must be specified.
+Klarna takes over the risk of payment default thus the payment is
+guaranteed for the merchant.
+--
+
+NOTE: Only physical persons are supported as consumers.
+
+- *Klarna guaranteed invoice* allows the consumer to pay by invoice
+first after the goods were delivered. It also makes possible for the
+consumer to shop even if the consumer’s bank account is empty for the
+moment since the consumer has at least 14 days in which to pay. This
+payment method is available for the following countries: *Germany,*
+*Netherlands,* *Austria,* *Sweden,* *Norway,* *Finland* and *Denmark.*
+- *Klarna guaranteed installments* allows the consumer to pay by
+installments first after the goods were delivered. It also makes
+possible for the consumer to shop even if the consumer’s bank account is
+empty for the moment since the consumer can pay by installments using
+available installment plans. This payment method is available for the
+following countries: *Germany,* *Sweden,* *Norway,* *Finland* and *Denmark.*
+
+//-
+
+The payment flows of Klarna guaranteed Invoice, Klarna guaranteed
+installments are similar and can include following transactions:
+authorization, _adjust-authorization_, _capture-authorization_,
+_void-authorization_, _refund-capture_ (incl. additional fees and
+goodwill refunds) and _authorization-renewal_ for prolongation of the
+authorization expiration date. For further information please read the
+description of the transaction types.
+
+[#Klarna_GeneralInformation]
+==== General Information
+
+[#Klarna_CountriesandCurrencies]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _Klarna Invoice and Klarna
+Installments_ belong to. It also provides detailed information about
+the countries and currencies which are relevant for _Klarna Invoice and
+Klarna Installments_.
+
+.Payment Mode, Countries and Currencies of Klarna
+[cols="h,"]
+|===
+| Payment Mode | <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
+| Countries    | DE, AT, NL, SE, NO, DK, FI
+| Currencies   | EUR, SEK, DKK, NOK
+|===
+
+[#Klarna_CommunicationFormats]
+===== Communication Formats
+
+This table illustrates how _Klarna Invoice and Klarna Installments_
+notifications are encoded and which formats and methods can be used for
+requests and responses.
+
+[%autowidth]
+|===
+.2+h| Requests/Responses | Format   | XML, JSON
+                         | Methods  | POST, GET
+   h| IPN Encodement   2+| Base64
+|===
+
+[#Klarna_TransactionTypes]
+==== Transaction Types
+
+For
+<<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB, Appendix B: Transaction Types>>.
+
+
+|===
+|Transaction Type |Description |Link to the sample
+
+|_authorization_ |Performs a risk check of the order and order
+reservation. An order reservation guarantees also the payment once
+activated.
+|<<Klarna_Samples_authorization, authorization samples>>
+
+|_adjust-authorization_ |Updates an order which has been already
+reserved but not activated yet.
+|<<Klarna_Samples_adjustAuthorization, adjust-authorization samples>>
+
+|_authorization-renewal_ |Extends the reservation period for an order
+which has been already reserved but not activated yet.
+|<<Klarna_Samples_authorizationRenewal, authorization-renewal samples>>
+
+|_void-authorization_ |Cancels an reserved and not yet activated order.
+No further operations on the order are possible after cancellation.
+|<<Klarna_Samples_voidAuthorization, void-authorization samples>>
+
+|_capture-authorization_ |Full or partial activation of an reserved
+order. Once reserved the invoice is generated and sent to the
+end consumer. The order amount will be paid out to the merchant
+according to the agreed billing period.
+|<<Klarna_Samples_captureAuthorization, capture-authorization samples>>
+
+|_refund-capture_ |Full or partial refund for an activated order with
+additional fees optionally.
+|<<Klarna_Samples_refundCapture, refund-capture samples>>
+|===
+
+[#Klarna_TestCredentials]
+==== Test Credentials
+
+[cols="h,"]
+|===
+| URLs (Endpoints)    | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+
+| Merchant Account ID | 8ea482bc-796c-42b4-a698-9a2db4b2edef
+| Username            | 16390-testing
+| Password            | 3!3013=D3fD8X7
+| Secret Key          | 11cbbbf6-93fa-4514-a9a5-359385607041
+|===
+
+[#Klarna_AcceptanceChecks]
+==== Acceptance Checks
+
+Every shop integration needs to pass a special set of acceptance checks
+on the Wirecard test environment before going live. Wirecard Merchant
+Support provides the description of the tests to be executed to the
+merchant by email. Once the test results are verified and confirmed that
+they are passed successfully the merchant will receive access
+credentials for the production environment and can proceed with the
+integration.
+
+The following test data needs to be used for the acceptance tests in
+order to trigger specific behavior.
+
+[#Klarna_AcceptanceChecks_DE]
+===== For DE
+
+.Acceptance Checks Fields for Germany
+[cols="e,,,,"]
+|===
+|WPG Field                                  |Approved          |Denied            |Pending Approved             |Pending Denied
+
+|payment/account-holder/gender              |m                 |m                 |m                            |m
+|payment/account-holder/date-of-birth       |1960-07-07        |1960-07-07        |1960-07-07                   |1960-07-07
+|payment/account-holder/first-name          |Testperson-de     |Testperson-de     |Testperson-de                |Testperson-de
+|payment/account-holder/last-name           |Approved          |Denied            |Approved                     |Denied
+|payment/account-holder/address/street1     |Hellersbergstraße |Hellersbergstraße |Hellersbergstraße            |Hellersbergstraße
+|payment/account-holder/address/street2     |14                |14                |14                           |14
+|payment/account-holder/address/postal-code |41460             |41460             |41460                        |41460
+|payment/account-holder/address/city        |Neuss             |Neuss             |Neuss                        |Neuss
+|payment/account-holder/phone               |01522113356       |01522113356       |01522113356                  |01522113356
+|payment/account-holder/email               |\your@email.com   |\your@email.com   |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_AT]
+===== For AT
+
+.Acceptance Checks Fields for Austria
+[cols="e,,,,"]
+|===
+|WPG Field                                  |Approved            |Denied              |Pending Approved             |Pending Denied
+
+|payment/account-holder/gender              |m                   |f                   |m                            |f
+|payment/account-holder/date-of-birth       |1960-04-14          |1980-04-14          |1960-04-14                   |1980-04-14
+|payment/account-holder/first-name          |Testperson-at       |Testperson-at       |Testperson-at                |Testperson-at
+|payment/account-holder/last-name           |Approved            |Denied              |Approved                     |Denied
+|payment/account-holder/address/street1     |Klarna-Straße 1/2/3 |Klarna-Straße 1/2/3 |Klarna-Straße 1/2/3          |Klarna-Straße 1/2/3
+|payment/account-holder/address/street2     |                    |                    |                             | 
+|payment/account-holder/address/postal-code |8071                |8070                |8071                         |8070
+|payment/account-holder/address/city        |Hausmannstätten     |Hausmannstätten     |Hausmannstätten              |Hausmannstätten
+|payment/account-holder/phone               |0676 2600000        |0676 2600000        |0676 2600000                 |0676 2600000
+|payment/account-holder/email               |\your@email.com     |\your@email.com     |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_DK]
+===== For DK
+
+.Acceptance Checks Fields for Denmark
+[cols="e,,,,"]
+|===
+|WPG Field                                     |Approved               |Denied                 |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |0801363945             |0801373501             |0801363945                   |0801373501
+|payment/account-holder/date-of-birth          |1960-07-07             |1960-07-07             |1960-07-07                   |1960-07-07
+|payment/account-holder/first-name             |Testperson-dk          |Testperson-dk          |Testperson-dk                |Testperson-dk
+|payment/account-holder/last-name              |Approved               |Denied                 |Approved                     |Denied
+|payment/account-holder/address/street1        |Sæffleberggate 56,1 mf |Sæffleberggate 56,1 mf |Sæffleberggate 56,1 mf       |Sæffleberggate 56,1 mf
+|payment/account-holder/address/postal-code    |6800                   |6800                   |6800                         |6800
+|payment/account-holder/address/city           |Varde                  |Varde                  |Varde                        |Varde
+|payment/account-holder/phone                  |20 123 456             |20 123 456             |20 123 456                   |20 123 456
+|payment/account-holder/email                  |\your@email.com        |\your@email.com        |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_FI]
+===== For FI
+
+.Acceptance Checks Fields for Finland
+[cols="e,,,,"]
+|===
+|WPG Field                                     |Approved        |Denied          |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |190122-829F     |190122-333F     |190122-829F                  |190122-333F
+|payment/account-holder/first-name             |Testperson-fi   |Testperson-fi   |Testperson-fi                |Testperson-fi
+|payment/account-holder/last-name              |Approved        |Denied          |Approved                     |Denied
+|payment/account-holder/address/street1        |Kiväärikatu 10  |Kiväärikatu 10  |Kiväärikatu 10               |Kiväärikatu 10
+|payment/account-holder/address/postal-code    |28100           |28100           |28100                        |28100
+|payment/account-holder/address/city           |Pori            |Pori            |Pori                         |Pori
+|payment/account-holder/phone                  |0401234567      |0401234567      |0401234567                   |0401234567
+|payment/account-holder/email                  |\your@email.com |\your@email.com |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_NL]
+===== For NL
+
+.Acceptance Checks Fields for the Netherlands
+[cols="e,,,,"]
+|===
+|WPG Field                                  |Approved        |Denied          |Pending Approved             |Pending Denied
+
+|payment/account-holder/gender              |m               |m               |m                            |m
+|payment/account-holder/date-of-birth       |1970-07-10      |1970-07-10      |1970-07-10                   |1970-07-10
+|payment/account-holder/first-name          |Testperson-nl   |Testperson-nl   |Testperson-nl                |Testperson-nl
+|payment/account-holder/last-name           |Approved        |Denied          |Approved                     |Denied
+|payment/account-holder/address/street1     |Neherkade       |Neherkade       |Neherkade                    |Neherkade
+|payment/account-holder/address/street2     |1               |1               |1                            |1
+|payment/account-holder/house-extension     |XI              |XI              |XI                           |XI
+|payment/account-holder/address/postal-code |2521VA          |2521VA          |2521VA                       |2521VA
+|payment/account-holder/address/city        |Gravenhage      |Gravenhage      |Gravenhage                   |Gravenhage
+|payment/account-holder/phone               |0612345678      |0612345678      |0612345678                   |0612345678
+|payment/account-holder/email               |\your@email.com |\your@email.com |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_NO]
+===== For NO
+
+.Acceptance Checks Fields for Norway
+[cols="e,,,,"]
+|===
+|WPG Field                                     |Approved          |Denied            |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |01087000571       |01087000148       |01087000571                  |01087000148
+|payment/account-holder/first-name             |Testperson-no     |Testperson-no     |Testperson-no                |Testperson-no
+|payment/account-holder/last-name              |Approved          |Denied            |Approved                     |Denied
+|payment/account-holder/address/street1        |Sæffleberggate 56 |Sæffleberggate 56 |Sæffleberggate 56            |Sæffleberggate 56
+|payment/account-holder/address/postal-code    |0563              |0563              |0563                         |0563
+|payment/account-holder/address/city           |Oslo              |Oslo              |Oslo                         |Oslo
+|payment/account-holder/phone                  |40 123 456        |40 123 456        |40 123 456                   |40 123 456
+|payment/account-holder/email                  |\your@email.com   |\your@email.com   |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_SE]
+===== For SE
+
+.Acceptance Checks Fields for Sweden
+[cols="e,,,,"]
+|===
+|WPG Field                                     |Approved        |Denied          |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |410321-9202     |411028-8083     |410321-9202                  |411028-8083
+|payment/account-holder/first-name             |Testperson-se   |Testperson-se   |Testperson-se                |Testperson-se
+|payment/account-holder/last-name              |Approved        |Denied          |Approved                     |Denied
+|payment/account-holder/address/street1        |Stårgatan 1     |Stårgatan 1     |Stårgatan 1                  |Stårgatan 1
+|payment/account-holder/address/postal-code    |12345           |12345           |12345                        |12345
+|payment/account-holder/address/city           |Ankeborg        |Ankeborg        |Ankeborg                     |Ankeborg
+|payment/account-holder/phone                  |0765260000      |0765260000      |0765260000                   |0765260000
+|payment/account-holder/email                  |\your@email.com |\your@email.com |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_Workflows]
+==== Workflows
+
+[#Klarna_Workflows_authorization]
+===== authorization
+image::images/11-13-klarna/Klarna_Workflow_Authorization.png[Klarna Workflow authorization,height=250]
+
+- Merchant starts with an _authorization_ of the payment by sending a
+transaction of the type _authorization_ to _Wirecard Payment Gateway_
+containing the order data like amount, order number and order items
+along with information about the consumer which includes name, billing
+and shipment address, client IP address and optionally some additional
+information based on the merchant category.
+- Wirecard performs a risk check for the payment using Klarna service
+call _reserve_amount_.
+- If Klarna authorizes the payment, it is guaranteed for the merchant
+once captured.
+- If Klarna cannot guarantee the payment, the _authorization_ is
+rejected with a corresponding error code.
+- The result of the risk check is returned with the status code inside
+the _authorization_ response to the merchant.
+
+//-
+
+[#Klarna_Workflows_pendingAuthorization]
+===== pending-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_PendingAuthorization.png[Klarna Workflow pending-authorization,height=250]
+
+- In case no immediate decision can be made and a manual check of the
+payment must be performed by Klarna. In this case the _Wirecard Payment
+Gateway_ creates a transaction of the type _pending-authorization_
+instead and returns it in the response. It means the _authorization_ is
+pending and cannot be immediately activated.
+- Wirecard takes care of the requesting the actual status of a pending
+_authorization_ and will notify the merchant system about the status
+change using the standard
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> (IPN) mechanism.
+With such a notification
+an _authorization_ transaction with the corresponding state
+_success/failed_ and status code and description is sent to the merchant
+system asynchronously.
+- This new _authorization_ transaction is stored in the system and has
+the parent transaction ID referencing the pending-authorization
+transaction.
+- The check of the _authorization_ status is performed every 2 hours and
+thus the IPN can only be sent out in regular time periods.
+- The maximum time period for a decision at Klarna is 24 hours after the
+_authorization_ and thus a corresponding IPN will be delivered within 26
+hours.
+- It still can occur that no IPN is received after 26 hours e.g. due to
+a technical error. The merchant has the possibility to check the status
+of a _pending-authorization_ using the request retrieving transaction by
+the request ID used for the _authorization_ as described here
+<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Request ID>>.
+In case a manual decision has been made, the
+new _authorization_ transaction is returned with the response. If not,
+the HTTP code 404 is returned.
+- Please contact Wirecard Customer Support if a pending-authorization
+transaction still has no corresponding _authorization_ transaction after
+26 hours.
+
+//-
+
+[#Klarna_Workflows_authorizationRenewal]
+===== authorization-renewal
+
+image::images/11-13-klarna/Klarna_Workflow_AuthorizationRevewal.png[Klarna Workflow authorization-renewal,height=250]
+
+NOTE: It is only possible to extend the reservation expiry date after it has
+already expired.
+
+- An _authorization_ is valid by default for 14 days.
+- After the _authorization_ is expired, it cannot be activated, but can
+be prolonged using the _authorization-renewal_ transaction using Klarna
+service call _extend_expiry_date_.
+- A new expiration data is returned with the _authorization-renewal_
+response.
+
+//-
+
+[#Klarna_Workflows_adjustAuthorization]
+===== adjust-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_AdjustAuthorization.png[Klarna Workflow adjust-authorization,height=250]
+
+NOTE: A risk check can be performed with every update, if the total order
+amount is increased. A new risk check can lead to rejection of the
+_authorization_ adjustment. In this case the last _authorization_ is
+still valid and can be updated or captured.
+
+- An order can be updated before it is activated.
+- Multiple updates are possible.
+- Merchant sends an _adjust-authorization_ transaction with parent
+transaction ID referencing the previous _authorization_ or
+_adjust-authorization_ transaction. Wirecard is using Klarna call
+_update._
+ The following data can be updated: order number, the order items and
+thus the amount, the consumer’s name, billing and shipment address.
+- The data sent with the _adjust-authorization_ transaction will replace
+the data from the parent _authorization_ /_adjust-authorization_
+transaction.
+- The result of the adjustment is returned with the status code inside
+the _adjust-authorization_ response to the merchant.
+
+//-
+
+[#Klarna_voidAuthorization]
+===== void-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_VoidAuthorization.png[Klarna Workflow void-authorization,height=250]
+
+NOTE: A partial captured reservation still can be cancelled. In this case only
+not yet captured order items are cancelled.
+
+- It is possible to cancel a payment authorization before it is fully
+captured.
+- It should be performed in case the goods or service are not available
+or the consumer would like to cancel his order.
+- Not cancelled authorizations can influence the risk decisions for the
+further payments of a particular consumer or even other consumers.
+- Merchant sends a _void-authorization_ transaction with parent
+transaction ID referencing the _authorization_/_adjust-authorization_
+transaction to be cancelled. Wirecard is using Klarna call
+_cancel_reservation_.
+- A pending-authorization can be cancelled as well.
+- The cancellation can be approved or rejected which is reported by the
+transaction state and status code in the response.
+- The reservation is not valid after cancellation any longer and cannot
+be updated or activated.
+
+//-
+
+[#Klarna_captureAuthorization]
+===== capture-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_CaptureAuthorization.png[Klarna Workflow capture-authorization,height=250]
+
+NOTE: In case of the payment instructions, the merchant is responsible to send
+by himself the invoices to his consumers. The Klarna bank account
+requisites, where the payment should be provided to, can be taken from
+the payment instructions.
+
+- Merchant must capture an _authorization_ when the goods or services
+are ready to be delivered.
+- This call will inform Wirecard and Klarna using _activate_ call that
+the order is being shipped.
+- Depending on the merchant configuration Klarna will then send an
+invoice or payment instructions to the consumer according to the
+provided invoice delivery option: via email, via post or it can be
+downloaded and enclosed in the delivered package.
+- The download link is provided regardless of the invoice delivery
+option inside the response. The link is valid for 30 days and will be
+removed afterwards.
+- Once _authorization_ is captured the due date for payment is set. The
+default invoice due date is 14 days after activation.
+- The payout to merchant will only occur for the captured payments.
+- To capture an order merchant sends a _capture-authorization_
+transaction with parent transaction ID referencing the
+_authorization_/_adjust-authorization_ transaction to be captured.
+- If no order items are provided with the _capture-authorization_
+transaction, this is a full capture, i.e. all order items of the
+referenced transaction are activated and must be delivered.
+- Multiple partial captures are possible by sending
+_capture-authorization_ transactions with order items to be activated.
+- Please note that no new articles can be added.
+- The price of the existing articles cannot be changed as well,
+otherwise the _capture-authorization_ transaction will be rejected.
+- With every partial capture a new invoice and payment instructions are
+generated and sent out.
+
+//-
+
+[#Klarna_refundCapture]
+===== refund-capture
+
+image::images/11-13-klarna/Klarna_Workflow_RefundCapture.png[Klarna Workflow refund-capture,height=250]
+
+- If a consumer returns all or some items, the merchant needs to issue a
+refund by sending a _refund-capture_ transaction with parent transaction
+ID referencing the _capture-authorization_ transaction to be refunded.
+Wirecard is using the Klarna call _credit_part_.
+- For every separate captured payment (invoice) made by a
+_capture-authorization_ transaction a separate refund must be issued by
+a _refund-capture_ transaction.
+- If no order items are provided with the _refund-capture_ transaction,
+a full refund of the referenced captured payment will be executed.
+- For partial refunds order items to be refunded need to be provided in
+the request.
+- The price of the articles to be refunded cannot be changed, otherwise
+the _refund-capture_ transaction will be rejected.
+- It is also possible to issue a so-called good-will refund which is a
+new discount item in the _refund-capture_ transaction. It can be also
+used to issue change vouchers. The new order item must explicitly have
+the type _discount_ in order to be processed as good-will refund,
+otherwise it will be rejected as not existing item to be refunded.
+- The other possibility is to add some additional shipment or handling
+fees for a refund. It increases the order amount but the fee amount
+itself cannot go over the total amount of the refunded items. To add
+additional fees that may occur at the merchant side (shipping fee or
+handling fee) merchant has to provide new order item(s) with the type
+_shipment_fee_ or _handling_fee._
+
+//-
+
+[#Klarna_revokeCapture]
+===== revoke-capture
+
+In case of fraud if the Merchant has violated the Klarna shipping
+policies, Klarna might revoke the payment guarantee afterwards. In this
+case the corresponding payment amount will be subtracted from the
+payout. A new transaction of the type _revoke-capture_ referencing  the
+_capture-authorization_ transaction will be created internally, the
+amount of the revoke transaction will be equal to the amount of the
+referenced _capture_ transaction.
+
+[#Klarna_adjustCapture]
+===== adjust-capture
+
+In case of fraud where Klarna fulfills the payment guarantee, the amount
+paid out to the merchant will be reduced by the VAT value. A new
+transaction of the type _adjust-capture_ referencing  the
+_capture-authorization_ transaction will be created internally, the
+amount of the adjust transaction will be equal to the VAT amount of the
+referenced _capture_ transaction.
+
+[#Klarna_VoucherHandling]
+===== Voucher Handling
+
+Vouchers can be provided as order items with the type _discount_ in the
+_authorization_/_adjust-authorization_ request. Every voucher must have
+its unique article number. The voucher amount cannot be higher than the
+total amount of the articles.
+
+[#Klarna_VoucherHandling_captureVoucher]
+====== capture Voucher
+
+In case of full _capture_ vouchers are captured among with the other
+articles.
+
+In case of partial _capture_ the captured voucher amount cannot be
+higher than the total amount of all captured articles. The merchant can
+use the following options for voucher handling in partial _capture_
+scenario:
+
+[#Klarna_VoucherHandling_ReCalculation]
+====== Re-Calculation and Split of Voucher Amount Based on Partially Activated Article
+
+.General formula for calculation
+----
+voucher proportion for single article = single article amount / amount of all articles voucher is related to * total voucher amount
+----
+
+.Example Basket
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher C (discount item) = 10 Euro (10% of total basket amount)
+
+//-
+
+.Example Adjustment authorization
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher for Article A: 5/100*10 = 0,5 Euro
+- Voucher for Article B: 95/100*10 = 9,5 Euro
+
+//-
+
+.Example Partial capture:
+- Article A = 5 Euro
+- Voucher for Article A = 0,5 Euro
+
+//-
+
+[#Klarna_ReCalculate_AvoidNegative]
+====== Re-Calculate and Split Voucher to avoid Negative Invoice for Partial Activation
+
+.Example Basket
+- Voucher for article A: 5 Euro (<= max. amount of partial
+activation)         
+- Voucher for article B: 5 Euro (remaining voucher amount after
+subtracting value
+- of voucher of partial activation)
+
+//-
+
+.Example Adjustment authorization
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher for article A = 5 Euro
+- Voucher for article B = 5 Euro
+
+//-
+
+.Example Partial capture
+- Article A = 5 Euro
+- Voucher for Article A = 5 Euro
+
+//-
+
+NOTE: In case of uneven amounts the calculation and rounding of amounts should
+be done with 2 decimal numbers. Since Klarna ignores more than 2 decimal
+digits this is important to guarantee identical prices in the
+_authorization_ and in the order in the shop system.
+
+If the voucher is based on the overall basket amount and a partial
+capture (article + voucher) is going to be performed, followed by a
+cancellation of the remaining (not captured) articles, the merchant has
+the possibility to change (decrease) the amount of the voucher before
+activation using adjust authorization request. After a capture it will
+not be possible to decrease the amount of the already captured voucher.
+
+Voucher is refunded like all other articles (using refund-capture call
+without any order items or including all order items). It must be
+possible to identify every voucher through its unique article number. If
+you refund a voucher, it means its amount is subtracted from the total
+refund amount.
+
+[#Klarna_PartialVoucherRefund]
+===== Partial Voucher Refund
+
+- If other articles are to be refunded, a remaining voucher must not
+lead to a negative invoice amount.
+- A refund of a voucher may not lead to an increased total invoice
+amount. This would be a special case which needs additional contractual
+agreements and general approving for a merchant by Wirecard and Klarna
+Business Underwriting beforehand, otherwise the call would be rejected.
+- In case of a partial refund, the merchant might want to reduce a given
+voucher. In this case the voucher can either be refunded completely and
+a new voucher be added in the credit_part call, or a correcting
+voucher/article can be added to decrease the total discount.
+
+//-
+
+The following example depicts both cases:
+
+.Reservation
+- Article A = 100 Euro
+- Article B = 100 Euro
+- Voucher C = 20 Euro (10% on basket given for baskets exceeding 150 Euros)
+
+//-
+
+.Activation
+- Article A = 100 Euro
+- Article B = 100 Euro
+- Voucher C = 20 Euro
+
+//-
+
+NOTE: Consumer returns article A, total basket amount is lower than
+150 Euro, therefore merchant does not want to give a voucher anymore or
+wants to decrease the voucher.
+
+.Option 1 - remove voucher completely
+- Refund
+* Article A = 100 Euro
+* Voucher C = 20 Euro
+
+//-
+
+.Option 2 - remove voucher completely and add new lower voucher
+- Refund
+* Article A = 100 Euro
+* Voucher C = 20 Euro
+* Add new voucher D (new item with discount type) = 10 Euro
+
+//-
+
+.Option 3 - keep voucher and add fee item to decrease overall given discount
+- Refund
+* Refund A = 100 Euro
+* Add a new item with the fee type to decrease Voucher = 10 Euro
+
+//-
+
+NOTE: If the decrease of the voucher is based on the overall basket
+amount, a calculation as in the first example should be performed.
+
+[#Klarna_Fields]
+==== Fields
+
+The following elements are either mandatory *M*, optional *O* or
+conditional *C* in a transaction process.
+
+[#Klarna_Fields_authorization]
+.authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request   |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id |M |M |Alphanumeric |36 |Unique identifier for a
+merchant account | 
+
+|request-id |M |M |Alphanumeric |150 |This is the identification number
+of the request. |It has to be unique for each request.
+
+|transaction-type |M |M |Enumeration |30 |The type for the transaction -
+_authorization_ | 
+
+|requested-amount |M |M |Numeric |18,3 |Amount of the order to be
+reserved. The amount of the decimal place is dependent of the currency.
+|The requested amount must be equal to the amount sum of all order
+items.
+
+|requested-amount@currency |M |M |Alphanumeric |3 |Amount currency of
+the order to be reserved. |Currency, country of the consumer and
+language must match.
+
+|account-holder |M |M |Complex |  |The end consumer. | 
+
+|account-holder.social-security-number |C |C |Alphanumeric |14 |Social
+security number of the end consumer. |Mandatory for SE, DM, FI, NO.
+
+|account-holder.date-of-birth |C |C |Date |  |Birth date of the
+end consumer. |Mandatory for DE, AT, NL.
+
+|account-holder.first-name |M |M |Alphanumeric |32 |First name of the
+end consumer. | 
+
+|account-holder.last-name |M |M |Alphanumeric |32 |Last name of the
+end consumer. | 
+
+|account-holder.email |M |M |Alphanumeric |64 |Email address of the
+end consumer. | 
+
+|account-holder.gender |C |C |Alphanumeric |1 |Gender of the
+end consumer. |Mandatory for DE, AT, NL.
+
+|account-holder.phone |M |M |Alphanumeric |32 |The phone number of the
+end consumer. |Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|account-holder.address |M |M |Complex |  |The address of the
+end consumer. | 
+
+|account-holder.address.street1 |M |M |Alphanumeric |128 |Street name of
+the end consumer. | 
+
+|account-holder.address.street2 |M |M |Alphanumeric |128 |House number
+of the end consumer. |Mandatory for DE and NL.
+
+|account-holder.address.house-extension |C |C |Alphanumeric |32 |House
+extension of the end consumer. |Mandatory for NL.
+
+|account-holder.address.city |M |M |Alphanumeric |32 |City of the
+end consumer. | 
+
+|account-holder.address.country |M |M |Alphanumeric |3 |Country of the
+end consumer. |Currency, country of the consumer and language must
+match.
+
+|account-holder.address.postal-code |M |M |Alphanumeric |16 |Postal code
+of the the end consumer. | 
+
+|shipping |M |M |Complex |  |The shipping information of the recipient.
+| 
+
+|shipping.first-name |M |M |Alphanumeric |32 |First name of the
+recipient. |Must be identical to the first name of the invoice recipient
+(account holder).
+
+|shipping.last-name |M |M |Alphanumeric |32 |Last name of the recipient.
+|Must be identical to the last name of the invoice recipient (account
+holder).
+
+|shipping.email |M |M |Alphanumeric |64 |Email address of the recipient.
+| 
+
+|shipping.phone |M |M |Alphanumeric |32 |The phone number of the
+recipient. |Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|shipping.address |M |M |Complex |  |The address of the recipient. | 
+
+|shipping.address.street1 |M |M |Alphanumeric |128 |Street name of the
+recipient. | 
+
+|shipping.address.street2 |M |M |Alphanumeric |128 |House number of the
+recipient. |Mandatory for DE and NL.
+
+|shipping.address.house-extension |C |C |Alphanumeric |32 |House
+extension of the recipient. |Mandatory for NL.
+
+|shipping.address.city |M |M |Alphanumeric |32 |City of the recipient.
+| 
+
+|shipping.address.country |M |M |Alphanumeric |3 |Country of the
+recipient. |Country of the consumer and of the recipient must be the
+same.
+
+|shipping.address.postal-code |M |M |Alphanumeric |16 |Postal code of
+the the recipient. | 
+
+|ip-address |M |M |Alphanumeric |15 |Global (internet) IP address of the
+consumer's computer. | 
+
+|order-number |O |O |Alphanumeric |64 |Order number of the merchant. | 
+
+|order-detail |O |O |Alphanumeric |  |Message or other important
+information to the consumer on the invoice. |Requires a setting which
+can be made by Wirecard Merchant Support.
+
+|descriptor |O |O |Alphanumeric |256 |Message or other important
+information to the consumer on the invoice. |Requires a setting which
+can be made by Wirecard Merchant Support.
+
+|locale |O |O |Alphanumeric |5 |Language to be used on the invoice. If
+not provided derived from the consumer's country. |Currency, country of
+the consumer and language must match.
+
+|order-items |M |M |Complex |  |List of order items. | 
+
+|order-items.order-item |M |M |Complex |  |Order item. | 
+
+|order-items.order-item.quantity |M |M |Numeric |  |Quantity of the
+order item. | 
+
+|order-items.order-item.article-number |M |M |Alphanumeric |256 |Article
+ID unique for the order. | 
+
+|order-items.order-item.name |M |M
+|Alphanumeric |256 |Order item name. | 
+
+|order-items.order-item.amount |M |M |Numeric |18,3 |Price of one order
+item unit. | 
+
+|order-items.order-item.amount@currency |M |M |Alphanumeric |3 |Currency
+of the order item. |Order item currency must match the order currency
+(requested amount currency).
+
+|order-items.order-item.tax-rate |M |M |Numeric |5,2 |Tax rate as
+percentage value or the order item. | 
+
+|order-items.order-item.discount |O |O |Numeric |18,3 |The discount
+value as percentage value for one order item. |Currently not supported
+and should not be used. Please calculate the order item value with
+discount if needed.
+
+|order-items.order-item.type |O |O |Enumeration |  |The type of the
+order item: _shipment_fee, handling_fee, discount_. If not provided, it
+is treated as a regular article. |Discount is currently not supported
+yet and will be treated as a regular article.
+
+|additional-merchant-data |O |O |Alphanumeric |  |Special data might be
+needed for specific merchant categories like travel or event tickets in
+addition to order items. The benefit for the merchant is that Klarna
+will be better able to score the merchant’s consumers which in turn will
+result in a higher acceptance rate. It will be decided before the
+integration if additional data is required. For details regarding the
+content and format of this field please see
+<<Klarna_AdditionalMerchantData, Extra Merchant Data>> chapter. | 
+
+|transaction-id |  |M |Alphanumeric |36 |Transaction ID is the unique
+identifier for a transaction. It is generated by Wirecard. | 
+
+|request-id |M |M |Alphanumeric |150 |Identification number of the
+request generated by merchant. It has to be unique for each request. | 
+
+|transaction-state |  |M |Alphanumeric |12 |Transaction status _success_
+/ _failed._ | 
+
+|completion-time-stamp |  |M |DateTime |  |Timestamp of completion of
+request. | 
+
+|statuses |  |M |Complex |  |List of transaction statuses. | 
+
+|statuses.status |  |M |Complex |  |Transaction status. | 
+
+|statuses.status.code |  |M |Alphanumeric |12 |Status code of the
+transaction. | 
+
+|statuses.status.description |  |M |Alphanumeric |256 |Description to
+the status code of the transaction. | 
+
+|statuses.status.severity |  |M |Enumeration |20 |This field gives
+information if a status is a _warning_, an _error_ or an _information_.
+| 
+
+|statuses.status@provider-code |  |O |Alphanumeric |34 |Original Klarna
+error code | 
+
+|statuses.status@provider-message |  |O |Alphanumeric |  |Error message
+to be shown to the end consumer as required by Klarna | 
+
+|statuses.status@provider-transaction-id |  |O |Alphanumeric |36 |Klarna
+reservation number | 
+
+|notifications.notification@url |O |O |Alphanumeric |256 |URL to be used
+for the Instant Payment Notification for pending reservations.
+It overwrites the notification URL that is set up in the merchant
+configuration. | 
+
+|custom-fields.custom-field/@field-name |C |C |Alphanumeric |36 |The
+name of the custom field keeping the value of the selected Klarna pclass
+which is defining the corresponding installment plan. |Mandatory for
+payment method _klarna-install_. Must have the hardcoded value
+“klarna.pclass”.
+
+|custom-fields.custom-field/@field-value |C |C |Alphanumeric |256 |The
+value of the custom field keeping the value of the selected Klarna
+pclass which is defining the corresponding installment plan. |Mandatory
+for payment method _klarna-install_. The value of the Klarna pclass -
+Klarna's identifier of the chosen installment plan (for details please
+see
+<<Klarna_InstallmentCalculator, Klarna Installment Calculator service for guaranteed payment on installments>>).
+
+|payment-methods.payment-method-name |M |M |Alphanumeric |15 |Name of
+the payment method: _klarna-invoice_, _klarna-install_ | 
+|===
+
+[#Klarna_Fields_adjustAuthorization]
+.adjust-authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _adjust-authorization_.
+|
+ 
+|requested-amount
+|M
+|M
+|Numeric
+|18,3
+|Amount of the changed order. The amount of the decimal place is
+dependent of the currency.
+|The requested amount must be equal to the amount sum of all order items.
+
+|requested-amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Amount currency of the changed order.
+|Currency, country of the consumer and language must match.
+
+|account-holder
+|O
+|O
+|Complex
+|
+|The end consumer whose data has changed.
+|
+
+|account-holder.social-security-number
+|C
+|C
+|Alphanumeric
+|14
+|Social security number of the end consumer.
+|Mandatory for SE, DM, FI, NO.
+
+|account-holder.date-of-birth
+|C
+|C
+|Date
+|
+|Birth date of the end consumer.
+|Mandatory for DE, AT, NL.
+
+|account-holder.first-name
+|M
+|M
+|Alphanumeric
+|32
+|First name of the end consumer.
+|
+
+|account-holder.last-name
+|M
+|M
+|Alphanumeric
+|32
+|Last name of the end consumer.
+|
+
+|account-holder.email
+|M
+|M
+|Alphanumeric
+|64
+|Email address of the end consumer.
+|
+
+|account-holder.gender
+|C
+|C
+|Alphanumeric
+|1
+|Gender of the end consumer.
+|Mandatory for DE, AT, NL.
+
+|account-holder.phone
+|M
+|M
+|Alphanumeric
+|32
+|The phone number of the end consumer.
+|Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|account-holder.address
+|M
+|M
+|Complex
+|
+|The address of the end consumer.
+| 
+
+|account-holder.address.street1
+|M
+|M
+|Alphanumeric
+|128
+|Street name of the end consumer.
+|
+
+|account-holder.address.street2
+|M
+|M
+|Alphanumeric
+|128
+|House number of the end consumer.
+|Mandatory for DE and NL.
+
+|account-holder.address.house-extension
+|C
+|C
+|Alphanumeric
+|32
+|House extension of the end consumer.
+|Mandatory for NL.
+
+|account-holder.address.city
+|M
+|M
+|Alphanumeric
+|32
+|City of the end consumer.
+|
+ 
+
+|account-holder.address.country
+|M
+|M
+|Alphanumeric
+|3
+|Country of the end consumer.
+|Currency, country of the consumer and language must match.
+
+|account-holder.address.postal-code
+|M
+|M
+|Alphanumeric
+|16
+|Postal code of the the end consumer.
+|
+
+|shipping
+|O
+|O
+|complex
+|
+|The changed shipping data of the recipient.
+|
+
+
+|shipping.first-name
+|M
+|M
+|Alphanumeric
+|32
+|First name of the recipient.
+|
+
+|shipping.last-name
+|M
+|M
+|Alphanumeric
+|32
+|Last name of the recipient.
+|
+
+|shipping.email
+|M
+|M
+|Alphanumeric
+|64
+|Email address of the recipient.
+|
+
+|shipping.phone
+|M
+|M
+|Alphanumeric
+|32
+|The phone number of the recipient.
+|Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|shipping.address
+|M
+|M
+|Complex
+|
+|The address of the recipient.
+|
+
+|shipping.address.street1
+|M
+|M
+|Alphanumeric
+|128
+|Street name of the recipient.
+|
+
+|shipping.address.street2
+|M
+|M
+|Alphanumeric
+|128
+|House number of the recipient.
+|Mandatory for DE and NL.
+
+|shipping.address.house-extension
+|C
+|C
+|Alphanumeric
+|32
+|House extension of the recipient.
+|Mandatory for NL.
+
+|shipping.address.city
+|M
+|M
+|Alphanumeric
+|32
+|City of the recipient.
+|
+
+|shipping.address.country
+|M
+|M
+|Alphanumeric
+|3
+|Country of the recipient.
+|Country of the consumer and of the recipient must be the same.
+
+|shipping.address.postal-code
+|M
+|M
+|Alphanumeric
+|16
+|Postal code of the the recipient.
+|
+ 
+|order-number
+|O
+|O
+|Alphanumeric
+|64
+|Changed order number of the merchant.
+|
+
+|order-items
+|O
+|O
+|Complex
+|
+|Changed list of order items.
+|The provided order items will completely replace those from the parent
+transaction.
+
+|order-items.order-item
+|O
+|O
+|Complex
+|
+|Order item.
+| 
+
+|order-items.order-item.quantity
+|M
+|M
+|Numeric
+|
+|Quantity of the order item.
+|
+
+|order-items.order-item.article-number
+|M
+|M
+|Alphanumeric
+|256
+|Article ID unique for the order.
+|
+
+|order-items.order-item.name
+|M
+|M
+|Alphanumeric
+|256
+|Order item name.
+|
+
+|order-items.order-item.amount
+|M
+|M
+|Numeric
+|18,6
+|Price of one order item unit.
+|
+
+|order-items.order-item.amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Currency of the order item.
+|Order item currency must match the order currency (requested amount
+currency).
+
+|order-items.order-item.tax-rate
+|M
+|M
+|Numeric
+|5,2
+|Tax rate as percentage value or the order item.
+|
+
+|order-items.order-item.discount
+|O
+|O
+|Numeric
+|18,2
+|The discount value as percentage value for one order item.
+|Currently not supported and should not be used. Please calculate the
+order item value with discount if needed.
+
+|order-items.order-item.type
+|O
+|O
+|Enumeration
+|
+|The type of the order item: _shipment_fee, handling_fee, discount_. If
+not provided, it is treated as a regular article.
+|Discount is currently not supported and will be treated as a regular
+article.
+
+|transaction-id
+|
+|M
+|Alphanumeric
+|36
+|Transaction ID is the unique identifier for a transaction. It is
+generated by Wirecard.
+|
+
+|transaction-state
+|
+|M
+|Enumeration
+|12
+|Transaction status _success_ / _failed_
+|
+
+|completion-time-stamp
+|
+|M
+|DateTime
+|
+|Timestamp of completion of request.
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+|
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+|
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+ 
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction.
+|
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_authorizationRenewal]
+.authorization-renewal
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _authorization-renewal_
+|
+
+|expiration-date
+|
+|M
+|dateTime
+|
+|The new expiration timestamp
+| 
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+| 
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+| 
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+| 
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+| 
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Text
+|
+|Error message to be shown to the end consumer as required by Klarna
+| 
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction to be prolonged.
+| 
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_voidAuthorization]
+.void-authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _void-authorization_
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+| 
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+| 
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+|
+
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Alphanumeric
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction to be voided.
+| 
+
+|payment-methods.payment-method-name
+|M
+|M
+|Alphanumeric
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_captureAuthorization]
+.capture-authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _capture-authorization_
+| 
+
+|requested-amount
+|M
+|M
+|Numeric
+|18,3
+|Amount of the changed order. The amount of the decimal place is
+dependent of the currency.
+|The requested amount must be equal to the amount sum of all order items.
+
+|requested-amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Amount currency of the changed order.
+|Currency, country of the consumer and language must match.
+
+|descriptor
+|O
+|O
+|Alphanumeric
+|256
+|Message or other important information to the consumer on the invoice/
+payment instructions.
+|Requires a setting which can be made by Wirecard merchant support.
+
+|invoice.delivery-method
+|O
+|O
+|Enumeration
+|
+|The delivery method of the invoice/payment instructions. Possible
+values: mail, email.
+|Regardless of this element the link to the invoice/payment instructions
+document is provided in payment-methods/payment-method/@url.
+
+|invoice.invoice-number
+|
+|M
+|Alphanumeric
+|32
+|The OCR number identifying the captured order
+| 
+
+|invoice.invoice_url
+|
+|M
+|Alphanumeric
+|2000
+|The link to the Klarna invoice/payment instructions document in PDF
+format to download.
+|The URL is valid for 30 days after creation. After this time it will be
+deleted.
+
+|order-detail
+|O
+|O
+|Alphanumeric
+|
+|Message or other important information to the consumer on the
+invoice/payment instructions.
+|Requires a setting which can be made by Wirecard merchant support.
+
+|order-number
+|O
+|O
+|Alphanumeric
+|64
+|Order number of the merchant if not provided with the authorization.
+| 
+
+|order-items
+|O
+|O
+|Complex
+|
+|The list of the order items for partial capture.
+|
+ 
+|order-items.order-item
+|O
+|O
+|Complex
+|
+|Order item.
+| 
+
+|order-items.order-item.quantity
+|M
+|M
+|Numeric
+|
+|Quantity of the order item.
+| 
+
+|order-items.order-item.article-number
+|M
+|M
+|Alphanumeric
+|256
+|Article ID unique for the order.
+| 
+
+|order-items.order-item.name
+|M
+|M
+|Alphanumeric
+|256
+|Order item name.
+| 
+
+|order-items.order-item.amount
+|M
+|M
+|Numeric
+|18,6
+|Price of one order item unit.
+|Must be equal to the price in the authorization/adjust-authorization
+call.
+
+|order-items.order-item.amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Currency of the order item.
+|Order item currency must match the order currency (requested amount
+currency).
+
+|shipping.tracking-number
+|O
+|O
+|Alphanumeric
+|64
+|Tracking number for the outgoing parcel
+|
+
+|shipping.tracking-url
+|O
+|O
+|Alphanumeric
+|2000
+|URL to the shipping company's page for the outgoing parcel
+|
+
+|shipping.shipping-company
+|O
+|O
+|Alphanumeric
+|64
+|The name of the shipping company for the outgoing parcel
+| 
+
+|shipping.shipping-method
+|O
+|O
+|Enumeration
+| 
+a|
+.Use one of the following options
+- store_pick_up - An online purchase is picked up in the
+merchants own physical store.
+- home_delivery -  Goods are sent home directly to consumer’s
+home address via an external shipping company. This can either be a
+traceable or a non-traceable shipment.
+- registered_box - Goods are sent to a delivery box where the
+consumer needs to be registered to pick them up. Example: DHL
+Packstation.
+- unregistered_box - Goods are sent to a delivery box where the
+consumer does not need to be registered to pick them up. Example: Itella
+smartpost, Hermes PaketShop.
+- pick_up_point - Goods are sent to a manned pick-up point by an
+external shipping company. External personnel hands over goods to the
+consumer.
+- own_delivery - Goods are sent home directly to consumers home
+address via merchants own delivery service.
+
+//-
+
+| 
+
+|shipping.return-tracking-number
+|O
+|O
+|Alphanumeric
+|64
+|Tracking number for the return parcel
+| 
+
+|shipping.return-tracking-url
+|O
+|O
+|Alphanumeric
+|2000
+|URL to the shipping company's page for the return parcel
+| 
+
+|shipping.return-shipping-company
+|O
+|O
+|Alphanumeric
+|36
+|The name of the shipping company for the return parcel
+| 
+
+|transaction-id
+|
+|M
+|Alphanumeric
+|36
+|Transaction ID is the unique identifier for a transaction.
+|It is generated by Wirecard.
+
+|transaction-state
+|
+|M
+|Alphanumeric
+|12
+|Transaction status _success_ / _failed_
+| 
+
+|completion-time-stamp
+|
+|M
+|DateTime
+|
+|Timestamp of completion of request.
+| 
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+| 
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+| 
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+| 
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+| 
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|Error message to be shown to the end consumer as required by Klarna
+| 
+
+|statuses.status@provider-transaction-id
+|
+|O
+|Alphanumeric
+|36
+|Klarna invoice number (OCR number)
+| 
+
+|invoice/invoice-number
+|
+|M
+|Alphanumeric
+|36
+|Klarna invoice number (OCR number)
+| 
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction.
+| 
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_refundCapture]
+.refund-capture
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Alphanumeric
+|30
+|The type for a transaction – _refund-capture_
+| 
+
+|requested-amount
+|M
+|M
+|Numeric
+|18,3
+|Amount of the changed order. The amount of the decimal place is
+dependent of the currency.
+|The requested amount must be equal to the amount sum of all order items.
+
+|requested-amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Amount currency of the changed order.
+|Currency, country of the consumer and language must match.
+
+|order-items
+|O
+|O
+|Complex
+|
+|List of order items to be refunded.
+| 
+
+|order-items.order-item
+|O
+|O
+|Complex
+|
+|Order item.
+| 
+
+|order-items.order-item.quantity
+|M
+|M
+|Numeric
+|
+|Quantity of the order item.
+|
+ 
+|order-items.order-item.article-number
+|M
+|M
+|Alphanumeric
+|256
+|Article ID unique for the order.
+| 
+
+|order-items.order-item.name
+|M
+|M
+|Alphanumeric
+|256
+|Order item name.
+| 
+
+|order-items.order-item.amount
+|M
+|M
+|Numeric
+|18,6
+|Price of one order item unit.
+| 
+
+|order-items.order-item.amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Currency of the order item.
+|Order item currency must match the order currency (requested amount
+currency).
+
+|order-items.order-item.tax-rate
+|M
+|M
+|Numeric
+|5,2
+|Tax rate as percentage value or the order item.
+| 
+
+|order-items.order-item.type
+|O
+|O
+|Enumeration
+| 
+a|
+.Order item types
+- shipment_fee, handling_fee – marks the item as a new additional
+fee decreasing the total refund amount
+- discount – marks the item as a voucher (good-will refund)
+increasing the total refund amount.
+
+//-
+
+|If not provided, the item is treated as an existing item to be refunded.
+
+|transaction-id
+|
+|M
+|Alphanumeric
+|36
+|Transaction ID is the unique identifier for a transaction. It is
+generated by Wirecard.
+| 
+
+|transaction-state
+|
+|M
+|Alphanumeric
+|12
+|Transaction status _success_ / _failed_
+| 
+
+|completion-time-stamp
+|
+|M
+|DateTime
+|
+|Timestamp of completion of request.
+| 
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+| 
+
+|statuses.staus
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+ 
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+| 
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+| 
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+| 
+
+|statuses.status@provider-message
+|
+|O
+|Text
+|
+|Error message to be shown to the end consumer as required by Klarna
+| 
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction.
+| 
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_getAdress]
+.get-address
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|get-address-request.merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+| 
+
+|get-address-request.payment-method
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_ or _klarna-install_.
+|
+
+|get-address-request.social-security-number
+|M
+|M
+|Alphanumeric
+|14
+|Social security number of the end consumer which addresses have to be
+returned by the service.
+|It has the following format for SE: (yy)yymmdd-nnnn where yymmdd – the
+date of birth of the consumer. It can be sent with or without dash "-"
+or with or without the two first numbers in the year.
+
+|get-address-request.country
+|M
+|M
+|Alphanumeric
+|3
+|Country of the end consumer.
+|Currently only SE is supported.
+
+|get-address-request.ip-address
+|M
+|M
+|Alphanumeric
+|15
+|Global (internet) IP address of the consumers computer.
+|
+
+|get-address-response.addresses
+|
+|M
+|Complex
+|
+|The list of found addresses.
+| 
+
+|get-address-response.addresses.address
+|
+|M
+|Complex
+|
+|The found address.
+| 
+
+|get-address-response.addresses.address.first-name
+|
+|M
+|Alphanumeric
+|32
+|First name of the person registered for the current address.
+| 
+
+|response.addresses.address.last-name
+|
+|M
+|Alphanumeric
+|32
+|Last name of the person registered for the current address.
+| 
+
+|get-address-response.addresses.address.street
+|
+|M
+|Alphanumeric
+|128
+|Street name + house number of the found address.
+|
+
+|get-address-response.addresses.address.house-number
+|
+|M
+|Alphanumeric
+|
+|Empty for Klarna.
+| 
+
+|get-address-response.addresses.address.postal-code
+|
+|M
+|Alphanumeric
+|16
+|Postal code of the found address.
+|
+
+|get-address-response.addresses.address.city
+|
+|M
+|Alphanumeric
+|32
+|City of the found address.
+|
+|===
+
+[#Klarna_Fields_installmentCalculator]
+.installment-calculator
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|installment-calculator-request.merchant-account-id
+|M
+|
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|installment-calculator-request.payment-method
+|M
+|
+|Enumeration
+|15
+|Name of the payment method: _klarna-install_
+| 
+
+|installment-calculator-request.amount
+|M
+|
+|Numeric
+|18,3
+|Amount of the order.
+|The amount of the decimal place is dependent of the currency.
+
+|installment-calculator-request.amount@currency
+|M
+|
+|Alphanumeric
+|3
+|Amount currency of the order.
+| 
+
+|installment-calculator-request.locale
+|M
+|
+|Alphanumeric
+|5
+|Locale code containing country and language code. E.g. de_de. The
+language defines the localized labels of the result fields.
+| 
+
+|installment-calculator-response.merchant-account-id
+|
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+| 
+
+|installment-calculator-response.payment-method
+|
+|M
+|Enumeration
+|15
+|Name of the payment method: klarna-install
+| 
+
+|installment-calculator-response.amount
+|
+|M
+|Numeric
+|18,3
+|Amount of the order.
+|The amount of the decimal place is dependent of the currency.
+
+|installment-calculator-response.amount@currency
+|
+|M
+|Alphanumeric
+|3
+|Amount currency of the order.
+| 
+
+|installment-calculator-response.locale
+|
+|M
+|Alphanumeric
+|5
+|Locale code containing country and language code. E.g. de_de. The
+language defines the localized labels of the result fields.
+| 
+
+|installment-calculator-response.state
+|
+|M
+|Enumeration
+|
+|The state of the response: success, failed.
+| 
+
+|installment-calculator-response.statuses
+|
+|M
+|Complex
+|
+|List of response statuses.
+| 
+
+|installment-calculator-response.statuses.status
+|
+|M
+|Complex
+|
+|Response status
+|
+
+|installment-calculator-response.statuses.status@code
+|
+|M
+|Alphanumeric
+|12
+|The status code of the response. For the complete list of status codes
+please see
+<<StatusCodes, Status Codes and Transaction Status>>.
+|
+
+|installment-calculator-response.statuses.status@description
+|
+|M
+|Alphanumeric
+|256
+|The description to the status code of the response.
+|
+
+|installment-calculator-response.statuses.status@severity
+|
+|M
+|Enumeration
+|
+|This field gives information if a status is a warning, an error or
+an information.
+| 
+
+|installment-calculator-response.statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code.
+| 
+
+|installment-calculator-response.statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|The original Klarna error message.
+|It does not need to be shown to the end consumer.
+
+|installment-calculator-response.installments
+|
+|O
+|Complex
+|
+|List of available installment plans.
+| 
+
+|installment-calculator-response.installments.installment
+|
+|O
+|Complex
+|
+|Installment plan.
+| 
+
+|installment-calculator-response.installments.installment.product-id
+|
+|M
+|Numeric
+|
+|The Klarna ID uniquely identifying the corresponding payment option /
+installment plan.
+|
+
+|installment-calculator-response.installments.installment.name
+|
+|O
+|Alphanumeric
+|
+|Name of the payment option in English.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.terms
+|
+|O
+|Alphanumeric
+|
+|Absolute URL to the terms for this payment method.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.logo
+|
+|O
+|Alphanumeric
+|
+|Absolute URL to the logo used for this payment method.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.type
+|
+|O
+|Alphanumeric
+|
+|Payment option group: invoice for payment on invoice and for “Buy now,
+pay in X months”, part_payment for payment by installments.
+| 
+
+|installment-calculator-response.installments.installment.type@title
+|
+|O
+|Alphanumeric
+|
+|Title to display the payment option group in the corresponding language.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.details
+|
+|O
+|Complex
+|
+|The details of the installment plan.
+| 
+
+|installment-calculator-response.installments.installment.details.interest-rate
+|
+|O
+|Alphanumeric
+|
+|Interest rate for payment option.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.interest-rate@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the interest rate in the corresponding language.
+| 
+
+|installment-calculator-response.installments.installment.details.interest-rate@symbol
+|
+| 
+|Alphanumeric
+|
+|The unit of the interest rate. Usually %.
+| 
+
+|installment-calculator-response.installments.installment.details.monthly-invoice-fee
+|
+|O
+|Alphanumeric
+|
+|Monthly administrator invoice fee.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.monthly-invoice-fee@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the monthly invoice fee in the corresponding language.
+| 
+
+|installment-calculator-response.installments.installment.details.monthly-invoice-fee@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the monthly invoice fee.
+|Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details.setup-fee
+|
+|O
+|Alphanumeric
+|
+|The start fee of the installment.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.setup-fee@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the setup fee in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.setup.fee@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the setup fee.
+|Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details.monthly-pay
+|
+|O
+|Alphanumeric
+|
+|Calculated monthly payment. For the flexible installment plans for
+Germany, Sweden, Finland and Norway it contains the minimal monthly
+payment amount.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.monthly-pay@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the monthly payment in the corresponding language.
+| 
+
+|installment-calculator-response.installments.installment.details.monthly-pay@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the monthly payment.
+|Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details.annual-percentage-rate
+|
+|O
+|Alphanumeric
+|
+|Calculated annual percentage rate.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.annual-percentage-rate@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the annual percentage rate in the corresponding
+language.
+| 
+
+|installment-calculator-response.installments.installment.details.annual-percentage-rate@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the annual percentage rate. Usually %.
+| 
+
+|installment-calculator-response.installments.installment.details.months
+|
+|O
+|Alphanumeric
+|
+|Number of installments (months) for payment option.
+|Only available for fixed installment plans.
+
+|installment-calculator-response.installments.installment.details.months@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the number of installments (months) in the
+corresponding language.
+| 
+
+|installment-calculator-response.installments.installment.details.month
+|
+|O
+|Alphanumeric
+|
+|The name of the month when the order must be paid in English.
+|Only available for Pay now, pay in X months.
+
+|installment-calculator-response.installments.installment.details.month@label
+|
+|O
+|Alphanumeric
+|
+|The name of the month in the corresponding language.
+| 
+
+|installment-calculator-response.installments.installment.details.total-credit-purchase-price
+|
+|O
+|Alphanumeric
+|
+|The total amount that is payable for this purchase, including starting
+fee, administrative fees and interest rates.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.total-credit-purchase-price@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the total amount in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.total-credit-purchase-price@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the total amount.
+|Usually the currency code in the corresponding language
+
+|installment-calculator-response.installments.installment.details.minimum-amount
+|
+|O
+|Alphanumeric
+|
+|Minimum purchase amount for the payment option.
+|Only available for Netherlands, Austria, and Denmark.
+
+|installment-calculator-response.installments.installment.title
+|
+|O
+|Alphanumeric
+|
+|Title to display the payment option in the corresponding language.
+| 
+
+|installment-calculator-response.installments.installment.description
+|
+|O
+|Alphanumeric
+|
+|Detailed information about payment option.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.use-case
+|
+|O
+|Alphanumeric
+|
+|Calculation example of payment option.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.expiration-date
+|
+|O
+|Alphanumeric
+|
+|Payment option expiry date in the format YYYY-MM-DD.
+|This is used for Buy now, pay in X months. Only available for
+Netherlands, Austria, and Denmark.
+|===
+
+[#Klarna_phoneNumberValidation]
+==== Phone Number Validation
+
+For the transaction types _authorization_ and _adjust-authorization_,
+both the consumer's phone number ``account-holder.phone`` and the
+phone number that corresponds to the shipping address
+``shipping.phone`` are mandatory. +
+According to Klarna developer guidelines, you have to validate phone
+numbers in order to meet the requirements provided in the table below.
+As Klarna declines phone numbers that do not adhere to the required
+format, be sure to check the phone numbers before sending the request. 
+
+|===
+|Country |Cellular |Landline
+
+|Austria a|
+- Numbers start with 0650 to 0653, 0655, 0657, 0659 to 0661, 0663 to 0699. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0043 or +43).
+
+ a|
+- Area codes for landline numbers start with 01, 02, 03, 04, 05, 06
+(unless cell) or 07, followed by a number of 4 - 13 digits. +
+Remove area code's leading zero when using country code.
+- Country code prefix is optional (0043 or +43).
+
+|Denmark a|
+- Numbers have 8 digits.
+- Numbers start with 20-29, 30, 31, 40-42, 50-53, 60, 61 71 or 81.
+- Country code prefix is optional (0045 or +45).
+
+ a|
+- Numbers have 8 digits.
+- Numbers start with 32-39, 43-49, 54-59, 62-69, 72-79, 82-89, 96-99.
+- Country code prefix is optional (0045 or +45).
+
+|  a|
+- Numbers have 6 - 12 digits.
+- Numbers start with 040-049 or 050. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (00358 or +358).
+
+ a|
+- Numbers have 6 - 12 digits.
+- Numbers start with 01-03, 05-09. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (00358 or +358).
+
+|Germany a|
+- Numbers have 8 - 12 digits.
+- Numbers start with 015-017. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0049 or +49).
+
+ a|
+- Numbers have 4 - 12 digits.
+- Numbers start with 010-014, 018-019, 02-09. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0049 or +49).
+
+|Netherlands a|
+- Numbers have 9 - 10 digits.
+- Numbers start with 06. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0031 or +31).
+
+ a|
+- Numbers have 9 - 10 digits.
+- Numbers start with 01-05, 07-08. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0031 or +31).
+
+|Norway a|
+- Numbers have 8 digits.
+- Numbers start with 40-49 or 90-99.
+- Country code prefix is optional (0047 or +47).
+
+ a|
+- Numbers have 8 digits.
+- Numbers start with 2,3,5-8.
+- Country code prefix is optional (0047 or +47).
+
+|Sweden a|
+- Numbers have 7-13 digits.
+- Numbers start with 010, 070, 072, 073, 076. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0046 or +46).
+
+ a|
+- Numbers have 7-13 digits.
+- Numbers start with 011-019, 02-06, 071, 075, 077-079, 08-09. +
+Remove number's leading zero when using country code.
+- Country code prefix is optional (0046 or +46).
+|===
+
+[#Klarna_Features]
+==== Features
+
+[#Klarna_AdditionalMerchantData]
+===== Additional Merchant Data
+
+Extra Merchant Data (EMD) is additional data variables that a merchant
+can send in to Wirecard in the API call in excess of the goods list. The
+added value from the merchant’s perspective is that Klarna will to a
+higher extent have the possibility of scoring the merchant’s consumers,
+which in turn will result in an improved likelihood of higher acceptance
+rate. It also allows Klarna to gain valuable data in segments/concepts
+where it otherwise would be hard for Klarna to operate in (for example
+business concepts such as travel, digital goods, marketplaces etc.).
+
+The content of this field is a JSON alphanumeric presenting the
+hierarchical additional merchant data for Klarna. Please contact your
+Wirecard sales account manager in order to clarify what packages are
+required for your integration.
+
+[#Klarna_FrontendIntegrationRequirements]
+===== Frontend Integration Requirements
+
+image::images/11-13-klarna/Klarna_Workflow_FrontendIntegrationRequirements.png[Klarna Workflow Frontend Integration Requirements,height=250]
+
+Klarna has detailed requirements for the look & feel style of the
+integration on the shop’s checkout page. These requirements must be
+fulfilled and will be checked in scope of the integration acceptance
+checks with Klarna. The description of the requirements can be found on
+the following Klarna online developer portal pages:
+
+|===
+|Requirement |URL
+
+|Guidelines |https://developers.klarna.com/kpm/guidelines/
+|Consumer terms and conditions |https://developers.klarna.com/kpm/consumer-terms-and-conditions/
+|Country specific requirements |https://developers.klarna.com/kpm/country-specific/
+|Logos |https://developers.klarna.com/kpm/logos/
+|Tool tips |https://developers.klarna.com/kpm/tooltip/
+|===
+
+NOTE: The merchant requires the Klarna _Merchant ID_ in order to be able to
+use some of the solutions. Please contact your Wirecard account manager
+in order to get the Klarna _Merchant ID_.
+
+[#Klarna_getAddress]
+===== get-address for Swedish Consumers
+
+image::images/11-13-klarna/Klarna_Workflow_Get-Address.png[Klarna Workflow get-address for Swedish Customers,height=250]
+
+For the Swedish private persons Klarna requires exact match of the
+address data in the ``authorization``/``adjust-authorization`` requests. In case
+of some deviations, the internal risk check might fail and the
+transaction gets rejected. In order to avoid the address mismatches
+Wirecard and Klarna offer a special online service which retrieves the
+official address(es) of the consumer by his social security number. The
+found address(es) need to be displayed on the checkout page to the
+consumer where he needs to choose and confirm one. The confirmed address
+should be used in the corresponding ``authorization``/``adjust-authorization``
+request.
+
+Please note the following requirements:
+
+- The function can only used for private consumers with a Swedish social
+security number.
+- Consumer data is only retrieved for Klarna's payment methods in the
+checkout.
+- The function may not be used for consumer registration out of payment
+scope.
+- The function may only be used after providing the consumer with
+Klarna’s terms & conditions.
+- The Get Address UI elements and received data must disappear if the
+consumer chooses another payment method.
+- The consumer needs to actively press a button to collect the data, it
+may not be triggered by completion of a form field.
+- The button is not allowed to be named Get Address (hämta address).
+Approved names: Fetch (Hämta), Continue (Fortsätt), Search (Sök),
+Proceed (Vidare).
+//-
+
+[#Klarna_getAddress_TestCredentials]
+====== get-address Test Credentials
+
+.URLs (Endpoints)
+[cols="1h,3"]
+|===
+|Test URL       |``\https://api-test.wirecard.com/engine/rest/utils/getaddress``
+|Production URL |``\https://api.wirecard.com/engine/rest/utils/getaddress``
+|===
+
+.Test Credentials
+[cols="1h,3"]
+|===
+|Merchant Account ID |8ea482bc-796c-42b4-a698-9a2db4b2edef
+|Username            |16390-testing
+|Password            |3!3013=D3fD8X7
+|Countries           |SE
+|===
+
+.Communication Formats
+[cols="1h,3"]
+|===
+| Format   | XML
+| Methods  | POST
+|===
+
+[#Klarna_InstallmentCalculator]
+===== Installment Calculator for Guaranteed Payment on Installment
+
+image::images/11-13-klarna/Klarna_Workflow_InstallmentCalculator.png[Klarna Workflow of Installment Calculator,height=250]
+
+The Installment Calculator service can be used to retrieve the available
+installment plans offered by Klarna. Merchant sends the order amount and
+the ISO locale code including country and language, and retrieves the
+list of available installment plans for these input data. The available
+installment plans (also called payment options) need to be shown to the
+buyer on the checkout page. When the buyer chooses the appropriate
+installment plan, its pclass needs to be sent with the payment
+authorization request to the _Wirecard Payment Gateway_. For Germany,
+Sweden, Finland and Norway there are additional UI related information
+returned in the response (e.g. the description of the particular
+installment plan localized for the corresponding locale) which helps
+displaying the installment plans on the checkout page. Please note the
+country specific requirements for displaying the installment plans and
+additional information and confirmations on the shop checkout page
+described in chapter https://developers.klarna.com/en/de/kpm/guidelines
+(Link for presentation guidelines in Germany, please use country
+selector at the top of the page to change to guidelines for other
+countries). For the flexible installment plans there is no calculation
+of monthly payment amount, annual percentage rate and total purchase
+amount performed and thus these fields are not returned for the
+corresponding installment plan in the response. Although for Germany,
+Sweden, Finland, Norway and Denmark the field *use-case* still
+contains a text with the calculation example.
+
+[#Klarna_InstallmentCalculator_TestCredentials]
+====== Installment Calculator Test Credentials
+
+.URLs (Endpoints)
+[cols="1h,3"]
+|===
+|Test URL       |``\https://api-test.wirecard.com/engine/rest/utils/getaddress``
+|Production URL |``\https://api.wirecard.com/engine/rest/utils/getaddress``
+|===
+
+.Test Credentials
+[cols="1h,3"]
+|===
+|Merchant Account ID |8ea482bc-796c-42b4-a698-9a2db4b2edef
+|Username            |16390-testing
+|Password            |3!3013=D3fD8X7
+|Countries           |DE, AT, NL, SE, NO, DK, FI
+|Currencies          |EUR, SEK, DKK, NOK
+|===
+
+.Communication Formats
+[cols="1h,3"]
+|===
+| Format   | XML
+| Methods  | POST
+|===
+
+[#Klarna_Samples]
+==== Samples
+[#Klarna_Samples_authorization]
+===== authorization
+
+.XML Klarna Invoice Authorization request for DE (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>${unique for each request}</request-id>
+        <transaction-type>authorization</transaction-type>
+        <requested-amount currency="EUR">10.01</requested-amount>
+        <account-holder>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Approved</last-name>
+                 <gender>m</gender>
+                 <date-of-birth>1960-07-07</date-of-birth>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>youremail@email.com</email>
+        </account-holder>
+        <shipping>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Approved</last-name>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>youremail@email.com</email>
+        </shipping>
+        <ip-address>127.0.0.1</ip-address>
+        <order-number>180305133552543</order-number>
+        <order-detail>This is a test order!</order-detail>
+        <order-items>
+                 <order-item>
+                         <name>shoes</name>
+                         <article-number>123</article-number>
+                         <amount currency="EUR">10.01</amount>
+                         <tax-rate>20</tax-rate>
+                         <quantity>1</quantity>
+                 </order-item>
+        </order-items>
+        <descriptor>descriptor</descriptor>
+        <notifications>
+                 <notification url="https://merchant.com/success" transaction-state="success" />
+                 <notification url="https://merchant.com/failed" transaction-state="failed" />
+        </notifications>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+        <locale>de</locale>
+        <country>DE</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization Response for DE (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>4f7d426f-04fb-4004-9d33-09731a9eab3d</transaction-id>
+  <request-id>4903c0bf-a95e-43af-a8ec-c1c3b156f8bd</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-05T12:35:54.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385943880" provider-code="1" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180305133552543</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>de</locale>
+  <country>DE</country>
+</payment>
+----
+
+.XML Klarna Installments Authorization request for DE (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>${unique for each request}</request-id>
+        <transaction-type>authorization</transaction-type>
+        <requested-amount currency="EUR">10.01</requested-amount>
+        <account-holder>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Approved</last-name>
+                 <gender>m</gender>
+                 <date-of-birth>1960-07-07</date-of-birth>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>youremail@email.com</email>
+        </account-holder>
+        <shipping>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Approved</last-name>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>youremail@email.com</email>
+        </shipping>
+        <ip-address>127.0.0.1</ip-address>
+        <order-number>180305134230029</order-number>
+        <order-detail>This is a test order!</order-detail>
+        <order-items>
+                 <order-item>
+                         <name>shoes</name>
+                         <article-number>123</article-number>
+                         <amount currency="EUR">10.01</amount>
+                         <tax-rate>20</tax-rate>
+                         <quantity>1</quantity>
+                 </order-item>
+        </order-items>
+        <descriptor>descriptor</descriptor>
+        <notifications>
+                 <notification url="https://merchant.com/success" transaction-state="success" />
+                 <notification url="https://merchant.com/failed" transaction-state="failed" />
+        </notifications>
+        <custom-fields>
+                 <custom-field field-name="klarna.pclass" field-value="3677" />
+        </custom-fields>
+        <payment-methods>
+                 <payment-method name="klarna-install" />
+        </payment-methods>
+        <locale>de</locale>
+        <country>DE</country>
+</payment>
+----
+
+.XML Klarna Installments Authorization Response for DE (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>ca054e8c-7cfb-4edb-961b-99b22fff080c</transaction-id>
+  <request-id>c6e71b4f-6e98-4f17-91a8-acbf62da9798</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-05T12:42:31.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385944070" provider-code="1" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180305134230029</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <custom-fields>
+    <custom-field field-name="klarna.pclass" field-value="3677"></custom-field>
+  </custom-fields>
+  <payment-methods>
+    <payment-method name="klarna-install" />
+  </payment-methods>
+  <locale>de</locale>
+  <country>DE</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization request for NL (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">10.01</requested-amount>
+    <account-holder>
+        <first-name>Testperson-nl</first-name>
+        <last-name>Approved</last-name>
+        <!-- optional in SE, FI, NO, DK -->
+        <gender>m</gender>
+        <!-- optional for SE, DM, FI, NO -->
+        <date-of-birth>1970-07-10</date-of-birth>
+        <address>
+            <street1>Neherkade</street1>
+            <!-- optional for AT, SE, FI, NO, DK -->
+            <street2>1</street2>
+            <postal-code>2521VA</postal-code>
+            <city>Gravenhage</city>
+            <country>NL</country>
+            <!-- optional for DE, AT, SE, FI , NO , DK -->
+            <house-extension>XI</house-extension>
+        </address>
+        <phone>0612345678</phone>
+        <email>youremail@email.com</email>
+    </account-holder>
+    <shipping>
+        <first-name>Testperson-nl</first-name>
+        <last-name>Approved</last-name>
+        <address>
+            <street1>Neherkade</street1>
+            <!-- optional for AT, SE, FI, NO, DK -->
+            <street2>1</street2>
+            <postal-code>2521VA</postal-code>
+            <city>Gravenhage</city>
+            <country>NL</country>
+            <!-- optional for DE, AT, SE, FI , NO , DK -->
+            <house-extension>XI</house-extension>
+        </address>
+        <phone>0612345678</phone>
+        <email>youremail@email.com</email>
+    </shipping>
+    <ip-address>127.0.0.1</ip-address>
+    <!-- optional -->
+    <order-number>180306083525282</order-number>
+    <!-- optional -->
+    <order-detail>This is a test order!</order-detail>
+    <order-items>
+        <order-item>
+            <name>ümlaut article 1.1</name>
+            <article-number>123-1-1</article-number>
+            <amount currency="EUR">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>1</quantity>
+        </order-item>
+    </order-items>
+    <!-- optional -->
+    <descriptor>descriptor</descriptor>
+    <notifications>
+          <notification url="https://merchant.com/success" transaction-state="success" />
+          <notification url="https://merchant.com/failed" transaction-state="failed" />
+    </notifications>
+    <payment-methods>
+        <payment-method name="klarna-invoice" />
+    </payment-methods>
+    <!-- derived payment/country if not provided -->
+    <locale>nl</locale>
+    <country>NL</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization Response for NL (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>4b417698-42e7-4754-b77e-096c00133430</transaction-id>
+  <request-id>f0241572-043c-4201-b084-565a6f227f21</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T07:35:26.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385962480" provider-code="1" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-nl</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>0612345678</phone>
+    <address>
+      <street1>Neherkade</street1>
+      <street2>1</street2>
+      <city>Gravenhage</city>
+      <country>NL</country>
+      <postal-code>2521VA</postal-code>
+      <house-extension>XI</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-nl</first-name>
+    <last-name>Approved</last-name>
+    <phone>0612345678</phone>
+    <address>
+      <street1>Neherkade</street1>
+      <street2>1</street2>
+      <city>Gravenhage</city>
+      <country>NL</country>
+      <postal-code>2521VA</postal-code>
+      <house-extension>XI</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306083525282</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>?mlaut article 1.1</name>
+      <article-number>123-1-1</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>nl</locale>
+  <country>NL</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization request for AT (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">50.05</requested-amount>
+    <account-holder>
+        <first-name>Testperson-at</first-name>
+        <last-name>Approved</last-name>
+        <!-- optional in SE, FI, NO, DK -->
+        <gender>m</gender>
+        <!-- optional for SE, DM, FI, NO -->
+        <date-of-birth>1960-04-14</date-of-birth>
+        <address>
+            <street1>Klarna-Straße 1/2/3</street1>
+            <postal-code>8071</postal-code>
+            <city>Hausmannstätten</city>
+            <country>AT</country>
+        </address>
+        <phone>0676 2600000</phone>
+        <email>youremail@email.com</email>
+    </account-holder>
+    <shipping>
+        <first-name>Testperson-at</first-name>
+        <last-name>Approved</last-name>
+        <address>
+            <street1>Klarna-Straße 1/2/3</street1>
+            <postal-code>8071</postal-code>
+            <city>Hausmannstätten</city>
+            <country>AT</country>
+        </address>
+        <phone>0676 2600000</phone>
+        <email>youremail@email.com</email>
+    </shipping>
+    <ip-address>127.0.0.1</ip-address>
+    <!-- optional -->
+    <order-number>180306083649044</order-number>
+    <!-- optional -->
+    <order-detail>This is a test order!</order-detail>
+    <order-items>
+        <order-item>
+            <name>article 2.1</name>
+            <article-number>123-2-1</article-number>
+            <amount currency="EUR">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>2</quantity>
+        </order-item>
+        <order-item>
+            <name>article 2.2</name>
+            <article-number>123-2-2</article-number>
+            <amount currency="EUR">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>3</quantity>
+        </order-item>
+    </order-items>
+    <!-- optional -->
+    <descriptor>descriptor</descriptor>
+    <notifications>
+          <notification url="https://merchant.com/success" transaction-state="success" />
+          <notification url="https://merchant.com/failed" transaction-state="failed" />
+    </notifications>
+    <payment-methods>
+        <payment-method name="klarna-invoice" />
+    </payment-methods>
+    <!-- derived payment/country if not provided -->
+    <locale>de</locale>
+    <country>AT</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization response for AT (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>50edf5c9-a226-49b9-88ce-d253e6a53b14</transaction-id>
+  <request-id>0125f98a-ebf6-42c4-a0f5-467b21a3440f</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T07:36:49.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385962550" provider-code="1" />
+  </statuses>
+  <requested-amount currency="EUR">50.05</requested-amount>
+  <account-holder>
+    <first-name>Testperson-at</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>0676 2600000</phone>
+    <address>
+      <street1>Klarna-Stra?e 1/2/3</street1>
+      <city>Hausmannst?tten</city>
+      <country>AT</country>
+      <postal-code>8071</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-at</first-name>
+    <last-name>Approved</last-name>
+    <phone>0676 2600000</phone>
+    <address>
+      <street1>Klarna-Stra?e 1/2/3</street1>
+      <city>Hausmannst?tten</city>
+      <country>AT</country>
+      <postal-code>8071</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306083649044</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>article 2.1</name>
+      <article-number>123-2-1</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>2</quantity>
+    </order-item>
+    <order-item>
+      <name>article 2.2</name>
+      <article-number>123-2-2</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>3</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>de</locale>
+  <country>AT</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization request for SE (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <request-id>8d7226f2-256d-4169-a374-41f9a1ebd417</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="SEK">90.09</requested-amount>
+    <account-holder>
+        <first-name>Testperson-se</first-name>
+        <last-name>Approved</last-name>
+        <email>youremail@email.com</email>
+        <phone>0765260000</phone>
+        <address>
+            <street1>Stårgatan 1</street1>
+            <postal-code>12345</postal-code>
+            <city>Ankeborg</city>
+            <country>SE</country>
+        </address>
+        <!-- optional for DE, AT, NL-->
+        <social-security-number>410321-9202</social-security-number>
+    </account-holder>
+    <shipping>
+        <first-name>Testperson-se</first-name>
+        <last-name>Approved</last-name>
+        <address>
+            <street1>Stårgatan 1</street1>
+            <postal-code>12345</postal-code>
+            <city>Ankeborg</city>
+            <country>SE</country>
+        </address>
+        <phone>0765260000</phone>
+        <email>youremail@email.com</email>
+    </shipping>
+    <ip-address>127.0.0.1</ip-address>
+    <!-- optional -->
+    <order-number>180306084133904</order-number>
+    <!-- optional -->
+    <order-detail>This is a test order!</order-detail>
+    <order-items>
+        <order-item>
+            <name>article 3.1</name>
+            <article-number>123-3-1</article-number>
+            <amount currency="SEK">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>2</quantity>
+        </order-item>
+        <order-item>
+            <name>article 3.2</name>
+            <article-number>123-3-2</article-number>
+            <amount currency="SEK">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>3</quantity>
+        </order-item>
+        <order-item>
+            <name>article 3.3</name>
+            <article-number>123-3-3</article-number>
+            <amount currency="SEK">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>4</quantity>
+        </order-item>
+    </order-items>
+    <!-- optional -->
+    <descriptor>descriptor</descriptor>
+    <notifications>
+          <notification url="https://merchant.com/success" transaction-state="success" />
+          <notification url="https://merchant.com/failed" transaction-state="failed" />
+    </notifications>
+    <payment-methods>
+        <payment-method name="klarna-invoice" />
+    </payment-methods>
+    <!-- derived payment/country if not provided -->
+    <locale>sv</locale>
+    <country>SE</country></payment>
+----
+
+.XML Klarna Invoice Authorization Response for SE (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>c90d9c81-3eb5-4138-b859-2f6044f5b4c5</transaction-id>
+  <request-id>8d7226f2-256d-4169-a374-41f9a1ebd417</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T07:41:34.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385962700" provider-code="1" />
+  </statuses>
+  <requested-amount currency="SEK">90.09</requested-amount>
+  <account-holder>
+    <first-name>Testperson-se</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <phone>0765260000</phone>
+    <address>
+      <street1>St?rgatan 1</street1>
+      <city>Ankeborg</city>
+      <country>SE</country>
+      <postal-code>12345</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-se</first-name>
+    <last-name>Approved</last-name>
+    <phone>0765260000</phone>
+    <address>
+      <street1>St?rgatan 1</street1>
+      <city>Ankeborg</city>
+      <country>SE</country>
+      <postal-code>12345</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306084133904</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>article 3.1</name>
+      <article-number>123-3-1</article-number>
+      <amount currency="SEK">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>2</quantity>
+    </order-item>
+    <order-item>
+      <name>article 3.2</name>
+      <article-number>123-3-2</article-number>
+      <amount currency="SEK">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>3</quantity>
+    </order-item>
+    <order-item>
+      <name>article 3.3</name>
+      <article-number>123-3-3</article-number>
+      <amount currency="SEK">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>4</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>sv</locale>
+  <country>SE</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization request for NO (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>${unique for each request}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="NOK">10.01</requested-amount>
+    <account-holder>
+        <first-name>Testperson-no</first-name>
+        <last-name>Approved</last-name>
+        <email>youremail@email.com</email>
+        <phone>40 123 456</phone>
+        <address>
+            <street1>Sæffleberggate 56</street1>
+            <postal-code>0563</postal-code>
+            <city>Oslo</city>
+            <country>NO</country>
+        </address>
+        <!-- optional for DE, AT, NL-->
+        <social-security-number>01087000571</social-security-number>
+ </account-holder>
+    <shipping>
+        <first-name>Testperson-no</first-name>
+        <last-name>Approved</last-name>
+        <address>
+            <street1>Sæffleberggate 56</street1>
+            <postal-code>0563</postal-code>
+            <city>Oslo</city>
+            <country>NO</country>
+        </address>
+        <phone>40 123 456</phone>
+        <email>youremail@email.com</email>
+    </shipping>
+    <ip-address>127.0.0.1</ip-address>
+    <!-- optional -->
+    <order-number>180306084214976</order-number>
+    <!-- optional -->
+    <order-detail>This is a test order!</order-detail>
+    <order-items>
+        <order-item>
+            <name>ümlaut article 1.1</name>
+            <article-number>123-1-1</article-number>
+            <amount currency="NOK">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>1</quantity>
+        </order-item>
+    </order-items>
+    <!-- optional -->
+    <descriptor>descriptor</descriptor>
+    <notifications>
+          <notification url="https://merchant.com/success" transaction-state="success" />
+          <notification url="https://merchant.com/failed" transaction-state="failed" />
+    </notifications>
+    <payment-methods>
+        <payment-method name="klarna-invoice" />
+    </payment-methods>
+    <locale>nb</locale>
+    <country>NO</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization Response for NO (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>7965e582-ec12-4fec-a423-ebe27c569b78</transaction-id>
+  <request-id>c8facf6d-7bc8-45d1-b712-372de1e3244c</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T07:42:15.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385962730" provider-code="1" />
+  </statuses>
+  <requested-amount currency="NOK">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-no</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <phone>40 123 456</phone>
+    <address>
+      <street1>S?ffleberggate 56</street1>
+      <city>Oslo</city>
+      <country>NO</country>
+      <postal-code>0563</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-no</first-name>
+    <last-name>Approved</last-name>
+    <phone>40 123 456</phone>
+    <address>
+      <street1>S?ffleberggate 56</street1>
+      <city>Oslo</city>
+      <country>NO</country>
+      <postal-code>0563</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306084214976</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>?mlaut article 1.1</name>
+      <article-number>123-1-1</article-number>
+      <amount currency="NOK">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>nb</locale>
+  <country>NO</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization request for FI (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <request-id>f6c4a5a2-903c-4c28-96c6-b8e3bf6459a6</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">10.01</requested-amount>
+    <account-holder>
+        <first-name>Testperson-fi</first-name>
+        <last-name>Approved</last-name>
+        <email>youremail@email.com</email>
+        <phone>0401234567</phone>
+        <address>
+            <street1>Kiväärikatu 10</street1>
+            <postal-code>28100</postal-code>
+            <city>Pori</city>
+            <country>FI</country>
+        </address>
+        <!-- optional for DE, AT, NL-->
+        <social-security-number>190122-829F</social-security-number>
+    </account-holder>
+    <shipping>
+        <first-name>Testperson-fi</first-name>
+        <last-name>Approved</last-name>
+        <address>
+            <street1>Kiväärikatu 10</street1>
+            <postal-code>28100</postal-code>
+            <city>Pori</city>
+            <country>FI</country>
+        </address>
+        <phone>0401234567</phone>
+        <email>youremail@email.com</email>
+    </shipping>
+    <ip-address>127.0.0.1</ip-address>
+    <!-- optional -->
+    <order-number>180306084258543</order-number>
+    <!-- optional -->
+    <order-detail>This is a test order!</order-detail>
+    <order-items>
+        <order-item>
+            <name>ümlaut article 1.1</name>
+            <article-number>123-1-1</article-number>
+            <amount currency="EUR">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>1</quantity>
+        </order-item>
+    </order-items>
+    <!-- optional -->
+    <descriptor>descriptor</descriptor>
+    <notifications>
+          <notification url="https://merchant.com/success" transaction-state="success" />
+          <notification url="https://merchant.com/failed" transaction-state="failed" />
+    </notifications>
+    <payment-methods>
+        <payment-method name="klarna-invoice" />
+    </payment-methods>
+    <locale>fi</locale>
+    <country>FI</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization Response for FI (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>fe2d42db-d113-4aff-a605-13c8f728b5ce</transaction-id>
+  <request-id>f6c4a5a2-903c-4c28-96c6-b8e3bf6459a6</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T07:42:59.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385962750" provider-code="1" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-fi</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <phone>0401234567</phone>
+    <address>
+      <street1>Kiv??rikatu 10</street1>
+      <city>Pori</city>
+      <country>FI</country>
+      <postal-code>28100</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-fi</first-name>
+    <last-name>Approved</last-name>
+    <phone>0401234567</phone>
+    <address>
+      <street1>Kiv??rikatu 10</street1>
+      <city>Pori</city>
+      <country>FI</country>
+      <postal-code>28100</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306084258543</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>?mlaut article 1.1</name>
+      <article-number>123-1-1</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>fi</locale>
+  <country>FI</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization request for DK (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <request-id>93356f5c-8e2d-49bc-afdd-f15f181fb855</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="DKK">10.01</requested-amount>
+    <account-holder>
+        <first-name>Testperson-dk</first-name>
+        <last-name>Approved</last-name>
+        <email>youremail@email.com</email>
+        <phone>20 123 456</phone>
+        <address>
+            <street1>Sæffleberggate 56,1 mf</street1>
+            <postal-code>6800</postal-code>
+            <city>Varde</city>
+            <country>DK</country>
+        </address>
+        <!-- optional for DE, AT, NL-->
+        <social-security-number>0801363945</social-security-number>
+    </account-holder>
+    <shipping>
+        <first-name>Testperson-dk</first-name>
+        <last-name>Approved</last-name>
+        <email>youremail@email.com</email>
+        <phone>20 123 456</phone>
+        <address>
+            <street1>Sæffleberggate 56,1 mf</street1>
+            <postal-code>6800</postal-code>
+            <city>Varde</city>
+            <country>DK</country>
+        </address>
+    </shipping>
+    <ip-address>127.0.0.1</ip-address>
+    <!-- optional -->
+    <order-number>180306084334662</order-number>
+    <!-- optional -->
+    <order-detail>This is a test order!</order-detail>
+    <order-items>
+        <order-item>
+            <name>ümlaut article 1.1</name>
+            <article-number>123-1-1</article-number>
+            <amount currency="DKK">10.01</amount>
+            <tax-rate>19.00</tax-rate>
+            <quantity>1</quantity>
+        </order-item>
+    </order-items>
+    <!-- optional -->
+    <descriptor>descriptor</descriptor>
+    <notifications>
+          <notification url="https://merchant.com/success" transaction-state="success" />
+          <notification url="https://merchant.com/failed" transaction-state="failed" />
+    </notifications>
+    <payment-methods>
+        <payment-method name="klarna-invoice" />
+    </payment-methods>
+    <locale>da</locale>
+    <country>DK</country>
+</payment>
+----
+
+.XML Klarna Invoice Authorization Response for DK (successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>49567d32-8f6b-421c-855a-c77cf5964348</transaction-id>
+  <request-id>93356f5c-8e2d-49bc-afdd-f15f181fb855</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T07:43:35.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="2385962770" provider-code="1" />
+  </statuses>
+  <requested-amount currency="DKK">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-dk</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <phone>20 123 456</phone>
+    <address>
+      <street1>S?ffleberggate 56,1 mf</street1>
+      <city>Varde</city>
+      <country>DK</country>
+      <postal-code>6800</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-dk</first-name>
+    <last-name>Approved</last-name>
+    <phone>20 123 456</phone>
+    <address>
+      <street1>S?ffleberggate 56,1 mf</street1>
+      <city>Varde</city>
+      <country>DK</country>
+      <postal-code>6800</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306084334662</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>?mlaut article 1.1</name>
+      <article-number>123-1-1</article-number>
+      <amount currency="DKK">10.01</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>da</locale>
+  <country>DK</country>
+</payment>
+----
+
+.XML Authorization Request (Failed)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <!--unique for each request-->
+        <request-id>c062e0d0-ad11-4236-aa91-fde2695c33d4</request-id>
+        <transaction-type>authorization</transaction-type>
+        <requested-amount currency="EUR">10.01</requested-amount>
+        <account-holder>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Denied</last-name>
+                 <gender>m</gender>
+                 <date-of-birth>1960-07-07</date-of-birth>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>youremail@email.com</email>
+        </account-holder>
+        <shipping>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Denied</last-name>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>youremail@email.com</email>
+        </shipping>
+        <ip-address>127.0.0.1</ip-address>
+        <order-number>180306102342116</order-number>
+        <order-detail>This is a denied test order!</order-detail>
+        <order-items>
+                 <order-item>
+                         <name>shoes</name>
+                         <article-number>123</article-number>
+                         <amount currency="EUR">10.01</amount>
+                         <tax-rate>20</tax-rate>
+                         <quantity>1</quantity>
+                 </order-item>
+        </order-items>
+        <descriptor>descriptor</descriptor>
+        <notifications>
+                 <notification url="https://merchant.com/success" transaction-state="success" />
+                 <notification url="https://merchant.com/failed" transaction-state="failed" />
+        </notifications>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+        <locale>de</locale>
+        <country>DE</country>
+</payment>
+----
+
+.XML Authorization Response (Failed)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>0df5906f-5597-454c-bed8-64cf6c5fb51e</transaction-id>
+  <request-id>c062e0d0-ad11-4236-aa91-fde2695c33d4</request-id>
+  <transaction-type>authorization</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-03-06T09:23:42.000Z</completion-time-stamp>
+  <statuses>
+    <status code="500.3002" description="Risk: General risk management rejection" severity="error" provider-code="2102" provider-message="Leider können wir diesen Einkauf nicht über Klarna abwickeln. Bitte wählen Sie eine alternative Zahlungsoption aus, um Ihre Bestellung abzuschließen." />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Denied</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Denied</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306102342116</order-number>
+  <order-detail>This is a denied test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>de</locale>
+  <country>DE</country>
+</payment>
+----
+
+.XML Pending Authorization Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <!--unique for each request-->
+        <request-id>44073392-b5d4-4daa-a7e0-ed805f14d249</request-id>
+        <transaction-type>authorization</transaction-type>
+        <requested-amount currency="EUR">10.01</requested-amount>
+        <account-holder>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Approved</last-name>
+                 <gender>m</gender>
+                 <date-of-birth>1960-07-07</date-of-birth>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>pending_accepted@klarna.com</email>
+        </account-holder>
+        <shipping>
+                 <first-name>Testperson-de</first-name>
+                 <last-name>Approved</last-name>
+                 <address>
+                         <street1>Hellersbergstraße</street1>
+                         <street2>14</street2>
+                         <postal-code>41460</postal-code>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <phone>01522113356</phone>
+                 <email>pending_accepted@klarna.com</email>
+        </shipping>
+        <ip-address>127.0.0.1</ip-address>
+        <order-number>180306090428705</order-number>
+        <order-detail>This is a test order!</order-detail>
+        <order-items>
+                 <order-item>
+                         <name>shoes</name>
+                         <article-number>123</article-number>
+                         <amount currency="EUR">10.01</amount>
+                         <tax-rate>20</tax-rate>
+                         <quantity>1</quantity>
+                 </order-item>
+        </order-items>
+        <descriptor>descriptor</descriptor>
+        <notifications>
+                 <notification url="https://merchant.com/success" transaction-state="success" />
+                 <notification url="https://merchant.com/failed" transaction-state="failed" />
+        </notifications>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+        <locale>de</locale>
+        <country>DE</country>
+</payment>
+----
+
+.XML Pending Authorization Response(Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>bdd318e3-d714-4a61-af41-478c328105ec</transaction-id>
+  <request-id>44073392-b5d4-4daa-a7e0-ed805f14d249</request-id>
+  <transaction-type>pending-authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T08:04:30.000Z</completion-time-stamp>
+  <statuses>
+    <status code="200.0000" description="The request completed successfully." severity="information" provider-transaction-id="2385963840" provider-code="2" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>pending_accepted@klarna.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>pending_accepted@klarna.com</email>
+  </shipping>
+  <ip-address>127.0.0.1</ip-address>
+  <order-number>180306090428705</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10.01</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success"></notification>
+    <notification transaction-state="failed" url="https://merchant.com/failed"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <locale>de</locale>
+  <country>DE</country>
+</payment>
+----
+
+[#Klarna_Samples_adjustAuthorization]
+===== adjust-authorization
+
+.XML Adjust Authorization Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <request-id>03bac724-4e15-4bab-b9c3-411ea1b9ea22</request-id>
+  <transaction-type>adjust-authorization</transaction-type>
+  <requested-amount currency="EUR">26.01</requested-amount>
+  <parent-transaction-id>4f7d426f-04fb-4004-9d33-09731a9eab3d</parent-transaction-id>
+ <account-holder>
+                 <first-name>Testperson-de updated</first-name>
+                 <last-name>Approved</last-name>
+                 <email>youremail@email.com</email>
+                 <gender>m</gender>
+                 <phone>01522113356</phone>
+                 <address>
+                         <street1>Hellersbergstraße updated</street1>
+                         <street2>14</street2>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <postal-code>41460</postal-code>
+                         <house-extension>abc</house-extension>
+                 </address>
+        </account-holder>
+        <shipping>
+                 <first-name>Testperson-de updated</first-name>
+                 <last-name>Approved</last-name>
+                 <phone>01522113356</phone>
+                 <address>
+                         <street1>Hellersbergstraße updated</street1>
+                         <street2>14</street2>
+                         <city>Neuss</city>
+                         <country>DE</country>
+                         <postal-code>41460</postal-code>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <email>youremail@email.com</email>
+        </shipping>
+  <order-number>180306091204408</order-number>
+  <order-items>
+    <order-item>
+        <name>shoes updated</name>
+                 <article-number>123</article-number>
+                 <amount currency="EUR">6.01</amount>
+                 <tax-rate>20</tax-rate>
+                 <quantity>1</quantity>
+    </order-item>
+    <order-item>
+        <name>shoes</name>
+                 <article-number>124</article-number>
+                 <amount currency="EUR">20</amount>
+                 <tax-rate>19</tax-rate>
+                 <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+</payment>
+----
+
+.XML Adjust Authorization Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>2d3f0b1a-3e7a-4f7a-a9cd-0e883e8a2cf6</transaction-id>
+  <request-id>03bac724-4e15-4bab-b9c3-411ea1b9ea22</request-id>
+  <transaction-type>adjust-authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T08:12:05.000Z</completion-time-stamp>
+  <statuses>
+    <status code="200.0000" description="The request completed successfully." severity="information" provider-code="true" />
+  </statuses>
+  <requested-amount currency="EUR">26.01</requested-amount>
+  <parent-transaction-id>4f7d426f-04fb-4004-9d33-09731a9eab3d</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-de updated</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e updated</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de updated</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e updated</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306091204408</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes updated</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">6.01</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+    <order-item>
+      <name>shoes</name>
+      <article-number>124</article-number>
+      <amount currency="EUR">20</amount>
+      <tax-rate>19</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>de</locale>
+  <country>DE</country>
+</payment>
+----
+
+.XML Adjust Authorization Request (Failed)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <request-id>369c60e6-3c20-48c2-808e-4169d2340507</request-id>
+  <transaction-type>adjust-authorization</transaction-type>
+  <requested-amount currency="EUR">26.01</requested-amount>
+  <parent-transaction-id>4b417698-42e7-4754-b77e-096c00133430</parent-transaction-id>
+ <account-holder>
+                 <first-name>Testperson-de updated</first-name>
+                 <last-name>Approved</last-name>
+                 <email>youremail@email.com</email>
+                 <gender>m</gender>
+                 <phone>01522113356</phone>
+                 <address>
+                         <street1>Hellersbergstraße updated</street1>
+                         <street2>14</street2>
+                         <city>Neuss</city>
+                         <country>AT</country>
+                         <postal-code>41460</postal-code>
+                         <house-extension>abc</house-extension>
+                 </address>
+        </account-holder>
+        <shipping>
+                 <first-name>Testperson-de updated</first-name>
+                 <last-name>Approved</last-name>
+                 <phone>01522113356</phone>
+                 <address>
+                         <street1>Hellersbergstraße updated</street1>
+                         <street2>14</street2>
+                         <city>Neuss</city>
+                         <country>AT</country>
+                         <postal-code>41460</postal-code>
+                         <house-extension>abc</house-extension>
+                 </address>
+                 <email>youremail@email.com</email>
+        </shipping>
+  <order-number>180306091407814</order-number>
+  <order-items>
+    <order-item>
+        <name>shoes updated</name>
+                 <article-number>123</article-number>
+                 <amount currency="EUR">6.01</amount>
+                 <tax-rate>20</tax-rate>
+                 <quantity>1</quantity>
+    </order-item>
+    <order-item>
+        <name>shoes</name>
+                 <article-number>124</article-number>
+                 <amount currency="EUR">20</amount>
+                 <tax-rate>19</tax-rate>
+                 <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+</payment>
+----
+
+.XML Adjust Authorization Response (Failed)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>e0a84353-4c5a-4205-a9b3-1a3097aa1185</transaction-id>
+  <request-id>369c60e6-3c20-48c2-808e-4169d2340507</request-id>
+  <transaction-type>adjust-authorization</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-03-06T08:14:07.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1418" description="The payment, shipment and account holder country must be the same. Please check your input and try again." severity="error" />
+  </statuses>
+  <requested-amount currency="EUR">26.01</requested-amount>
+  <parent-transaction-id>4b417698-42e7-4754-b77e-096c00133430</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-de updated</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e updated</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>AT</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de updated</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e updated</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>AT</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306091407814</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes updated</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">6.01</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+    <order-item>
+      <name>shoes</name>
+      <article-number>124</article-number>
+      <amount currency="EUR">20</amount>
+      <tax-rate>19</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>nl</locale>
+  <country>NL</country>
+</payment>
+----
+
+[#Klarna_Samples_authorizationRenewal]
+===== authorization-renewal
+
+.XML Authorization Renewal Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>fb41dfc6-f09b-4fee-a2b7-594c6737c296</request-id>
+        <transaction-type>authorization-renewal</transaction-type>
+        <parent-transaction-id>7965e582-ec12-4fec-a423-ebe27c569b78</parent-transaction-id>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+</payment>
+----
+
+.XML Authorization Renewal Response(Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>8ff3d1ad-2007-49b2-bb8c-9f9547a358ca</transaction-id>
+  <request-id>fb41dfc6-f09b-4fee-a2b7-594c6737c296</request-id>
+  <transaction-type>authorization-renewal</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-20T11:42:52.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-code="1" />
+  </statuses>
+  <requested-amount currency="NOK">10.01</requested-amount>
+  <parent-transaction-id>7965e582-ec12-4fec-a423-ebe27c569b78</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-no</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <phone>40 123 456</phone>
+    <address>
+      <street1>S?ffleberggate 56</street1>
+      <city>Oslo</city>
+      <country>NO</country>
+      <postal-code>0563</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-no</first-name>
+    <last-name>Approved</last-name>
+    <phone>40 123 456</phone>
+    <address>
+      <street1>S?ffleberggate 56</street1>
+      <city>Oslo</city>
+      <country>NO</country>
+      <postal-code>0563</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306084214976</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>?mlaut article 1.1</name>
+      <article-number>123-1-1</article-number>
+      <amount currency="NOK">10.010000</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>nb</locale>
+  <expiration-date>2018-04-03T12:42:51.000+02:00</expiration-date>
+  <country>NO</country>
+</payment>
+----
+
+.XML Authorization Renewal Request (Failed)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>a7fdf4b6-1373-4ad0-a9e5-85001e168300</request-id>
+        <transaction-type>authorization-renewal</transaction-type>
+        <parent-transaction-id>fe2d42db-d113-4aff-a605-13c8f728b5ce</parent-transaction-id>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+</payment>
+----
+
+.XML Authorization Renewal Response(Failed)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>a61f369e-828d-4114-a813-ed2616215cfb</transaction-id>
+  <request-id>a7fdf4b6-1373-4ad0-a9e5-85001e168300</request-id>
+  <transaction-type>authorization-renewal</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-03-06T08:17:08.000Z</completion-time-stamp>
+  <statuses>
+    <status code="500.1999" description="The acquirer returned an unknown response.  Contact Technical Support." severity="error" provider-code="8203" provider-message="Reservationen som du försöker förlänga är fortfarande aktiv och går därför ej att förlänga." />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <parent-transaction-id>fe2d42db-d113-4aff-a605-13c8f728b5ce</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-fi</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <phone>0401234567</phone>
+    <address>
+      <street1>Kiv??rikatu 10</street1>
+      <city>Pori</city>
+      <country>FI</country>
+      <postal-code>28100</postal-code>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-fi</first-name>
+    <last-name>Approved</last-name>
+    <phone>0401234567</phone>
+    <address>
+      <street1>Kiv??rikatu 10</street1>
+      <city>Pori</city>
+      <country>FI</country>
+      <postal-code>28100</postal-code>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306084258543</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>?mlaut article 1.1</name>
+      <article-number>123-1-1</article-number>
+      <amount currency="EUR">10.010000</amount>
+      <tax-rate>19.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>fi</locale>
+  <country>FI</country>
+</payment>
+----
+
+[#Klarna_Samples_voidAuthorization]
+===== void-authorization
+
+.XML Void Authorization Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <request-id>d6e5d600-4dc8-49fa-862c-bc75851617ac</request-id>
+  <transaction-type>void-authorization</transaction-type>
+  <parent-transaction-id>b9e50fc5-bbcf-47e7-a455-edd0ce7b054f</parent-transaction-id>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+</payment>
+----
+
+.XML Void Authorization Response(Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>85f4db87-03f3-45bc-a187-234d3434bc72</transaction-id>
+  <request-id>d6e5d600-4dc8-49fa-862c-bc75851617ac</request-id>
+  <transaction-type>void-authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T08:26:54.000Z</completion-time-stamp>
+  <statuses>
+    <status code="200.0000" description="The request completed successfully." severity="information" provider-code="true" />
+  </statuses>
+  <requested-amount currency="EUR">40.00</requested-amount>
+  <parent-transaction-id>b9e50fc5-bbcf-47e7-a455-edd0ce7b054f</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306092314330</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>de</locale>
+  <country>DE</country>
+  <provider-transaction-reference-id>3068492071</provider-transaction-reference-id>
+</payment>
+----
+
+[#Klarna_Samples_captureAuthorization]
+===== capture-authorization
+
+.XML Full Capture Authorization Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <request-id>308923d8-83bf-4739-8b1c-5dc8963d5bc0</request-id>
+  <transaction-type>capture-authorization</transaction-type><parent-transaction-id>35bdae97-487f-47bc-a137-7b630230b14a</parent-transaction-id>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+</payment>
+----
+
+.XML Full Capture Authorization Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>82e6ce09-4ed5-4514-bfe7-633bfdbfc1ff</transaction-id>
+  <request-id>308923d8-83bf-4739-8b1c-5dc8963d5bc0</request-id>
+  <transaction-type>capture-authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T08:30:59.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="1005766090433" provider-code="5" />
+  </statuses>
+  <requested-amount currency="EUR">10.01</requested-amount>
+  <parent-transaction-id>35bdae97-487f-47bc-a137-7b630230b14a</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306093025629</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10.010000</amount>
+      <tax-rate>20.00</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>de</locale>
+  <invoice>
+    <invoice-number>1005766090433</invoice-number>
+    <invoice-url>https://online.testdrive.klarna.com/invoices/1005766090433.pdf?secret=NkNuPvYhxK9bgzQ6Kxsl%2BGz3%2FejOkG8E6Ss8FjzOU4RlGnLvTLrX8V7y6oQrE9KRUDuCUSRVoDa97HlckgIKRg%3D%3D</invoice-url>
+  </invoice>
+  <country>DE</country>
+  <provider-transaction-reference-id>3611619048</provider-transaction-reference-id>
+</payment>
+----
+
+.XML Partial Capture Authorization Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <request-id>9bf99908-e5e5-4b8c-b49c-2afc5822f940</request-id>
+  <transaction-type>capture-authorization</transaction-type>
+  <requested-amount currency="EUR">30</requested-amount>
+  <parent-transaction-id>b9e50fc5-bbcf-47e7-a455-edd0ce7b054f</parent-transaction-id>
+ <order-items>
+        <order-item>
+            <name>shoes</name>
+            <article-number>123</article-number>
+            <amount currency="EUR">10</amount>
+            <tax-rate>20</tax-rate>
+            <quantity>3</quantity>
+        </order-item>
+    </order-items>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+</payment>
+----
+
+.XML Partial Capture Authorization Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>b8b35f2d-4666-49ff-9b3a-25396e2dd368</transaction-id>
+  <request-id>9bf99908-e5e5-4b8c-b49c-2afc5822f940</request-id>
+  <transaction-type>capture-authorization</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T08:25:21.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="1005766080434" provider-code="5" />
+  </statuses>
+  <requested-amount currency="EUR">30</requested-amount>
+  <parent-transaction-id>b9e50fc5-bbcf-47e7-a455-edd0ce7b054f</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306092314330</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>3</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>de</locale>
+  <invoice>
+    <invoice-number>1005766080434</invoice-number>
+    <invoice-url>https://online.testdrive.klarna.com/invoices/1005766080434.pdf?secret=AtEvoagEpqsjBycU3Xi1rd1pIX2Bb9WcdLXp0qHQKwho7JszmHLYnRKmGA0R6oXtGBxfqUItc72MuqxTt9zopA%3D%3D</invoice-url>
+  </invoice>
+  <country>DE</country>
+  <provider-transaction-reference-id>5507507409</provider-transaction-reference-id>
+</payment>
+----
+
+[#Klarna_Samples_refundCapture]
+===== refund-capture
+
+.XML Full Refund Capture Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>d6bb59dd-387c-4a6c-8af7-e472bcf76585</request-id>
+        <transaction-type>refund-capture</transaction-type>
+        <requested-amount currency="EUR">10.01</requested-amount>
+        <parent-transaction-id>82e6ce09-4ed5-4514-bfe7-633bfdbfc1ff</parent-transaction-id>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+</payment>
+----
+
+.XML Full Refund Capture Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>d6bb59dd-387c-4a6c-8af7-e472bcf76585</request-id>
+        <transaction-type>refund-capture</transaction-type>
+        <requested-amount currency="EUR">10.01</requested-amount>
+        <parent-transaction-id>82e6ce09-4ed5-4514-bfe7-633bfdbfc1ff</parent-transaction-id>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+</payment>
+----
+
+.XML Partial Refund Capture Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+        <request-id>3ff5a760-0cc4-4b4e-bc4a-d3a916e68928</request-id>
+        <transaction-type>refund-capture</transaction-type>
+        <requested-amount currency="EUR">10</requested-amount>
+        <parent-transaction-id>b8b35f2d-4666-49ff-9b3a-25396e2dd368</parent-transaction-id>
+        <order-items>
+                 <order-item>
+                         <name>shoes</name>
+                         <article-number>123</article-number>
+                         <amount currency="EUR">10</amount>
+                         <tax-rate>20</tax-rate>
+                         <quantity>1</quantity>
+                 </order-item>
+        </order-items>
+        <payment-methods>
+                 <payment-method name="klarna-invoice" />
+        </payment-methods>
+</payment>
+----
+
+.XML Partial Refund Capture Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <transaction-id>4017a6d6-20a6-4d39-ad5e-5ac1f3b36c73</transaction-id>
+  <request-id>3ff5a760-0cc4-4b4e-bc4a-d3a916e68928</request-id>
+  <transaction-type>refund-capture</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-03-06T08:28:50.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="1005766080434" provider-code="1" />
+  </statuses>
+  <requested-amount currency="EUR">10</requested-amount>
+  <parent-transaction-id>b8b35f2d-4666-49ff-9b3a-25396e2dd368</parent-transaction-id>
+  <account-holder>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <email>youremail@email.com</email>
+    <gender>m</gender>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+  </account-holder>
+  <shipping>
+    <first-name>Testperson-de</first-name>
+    <last-name>Approved</last-name>
+    <phone>01522113356</phone>
+    <address>
+      <street1>Hellersbergstra?e</street1>
+      <street2>14</street2>
+      <city>Neuss</city>
+      <country>DE</country>
+      <postal-code>41460</postal-code>
+      <house-extension>abc</house-extension>
+    </address>
+    <email>youremail@email.com</email>
+  </shipping>
+  <order-number>180306092314330</order-number>
+  <order-detail>This is a test order!</order-detail>
+  <order-items>
+    <order-item>
+      <name>shoes</name>
+      <article-number>123</article-number>
+      <amount currency="EUR">10</amount>
+      <tax-rate>20</tax-rate>
+      <quantity>1</quantity>
+    </order-item>
+  </order-items>
+  <descriptor>descriptor</descriptor>
+  <notifications>
+    <notification transaction-state="success" url="https://merchant.com/success" />
+    <notification transaction-state="failed" url="https://merchant.com/failed" />
+  </notifications>
+  <payment-methods>
+    <payment-method name="klarna-invoice" />
+  </payment-methods>
+  <api-id>---</api-id>
+  <locale>de</locale>
+  <invoice>
+    <invoice-number>1005766080434</invoice-number>
+    <invoice-url>https://online.testdrive.klarna.com/invoices/1005766080434.pdf?secret=AtEvoagEpqsjBycU3Xi1rd1pIX2Bb9WcdLXp0qHQKwho7JszmHLYnRKmGA0R6oXtGBxfqUItc72MuqxTt9zopA%3D%3D</invoice-url>
+  </invoice>
+  <country>DE</country>
+  <provider-transaction-reference-id>5510862557</provider-transaction-reference-id>
+</payment>
+----
+
+[#Klarna_Samples_getAddress]
+===== get-address
+
+NOTE: The ``get-address`` request is being sent to
+``\https://api-test.wirecard.com/engine/rest/utils/getaddress``
+
+.XML Get Address Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<get-address-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-invoice</payment-method>
+    <social-security-number>410321-9202</social-security-number>
+    <country>SE</country>
+    <ip-address>127.0.0.1</ip-address></get-address-request>
+----
+
+.XML Get Address Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<get-address-response xmlns="http://www.elastic-payments.com/schema/utils">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <payment-method>klarna-invoice</payment-method>
+  <state>success</state>
+  <statuses>
+    <status code="200.0000" description="Successful Response" severity="information" />
+  </statuses>
+  <social-security-number>410321-9202</social-security-number>
+  <addresses>
+    <address>
+      <first-name>Testperson-se</first-name>
+      <last-name>Approved</last-name>
+      <street>Stårgatan 1</street>
+      <postal-code>12345</postal-code>
+      <city>Ankeborg</city>
+      <country>SE</country>
+    </address>
+  </addresses>
+  <ip-address>127.0.0.1</ip-address>
+</get-address-response>
+----
+
+[#Klarna_Samples_klarnaInstall]
+===== klarna-install
+
+NOTE: The _Installment Calculator_ request is being sent to
+``\https://api-test.wirecard.com/engine/rest/utils/installmentcalculator``
+
+.XML Installment Calculator Request for DE (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <amount currency="EUR">100</amount>
+    <locale>de_de</locale>
+</installment-calculator-request>
+----
+
+.XML Installment Calculator Response for DE (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <payment-method>klarna-install</payment-method>
+  <state>success</state>
+  <statuses>
+    <status code="200.0000" description="Successful Response" severity="information" />
+  </statuses>
+  <amount currency="EUR">100</amount>
+  <locale>de_de</locale>
+  <installments>
+    <installment>
+      <product-id>-1</product-id>
+      <name>Invoice</name>
+      <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/de_de/invoice?fee=</terms>
+      <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/de_de/basic/blue-black.png</logo>
+      <title>In 14 Tagen bezahlen</title>
+      <type label="Rechnung">invoice</type>
+    </installment>
+    <installment>
+      <product-id>3677</product-id>
+      <name>Account</name>
+      <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/de_de/account</terms>
+      <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/de_de/basic/blue-black.png</logo>
+      <details>
+        <interest-rate label="Variabler Sollzinssatz" symbol="%">0,00</interest-rate>
+        <monthly-invoice-fee label="Zzgl. fester Monatsbetrag" symbol="€">3,95</monthly-invoice-fee>
+        <setup-fee label="Einmalige Gebühr" symbol="€">0,00</setup-fee>
+        <monthly-pay label="Monatliche Mindestrate" symbol="€">6,95</monthly-pay>
+      </details>
+      <title>Flexible Laufzeit</title>
+      <description>Variabler Sollzinssatz 0,00 %, zzgl. fester Monatsbetrag 3,95 €, Ab 6,95 € pro Monat.</description>
+      <use-case>Beispiel: Verfügungsrahmen 199,99 €. Bei Ausnutzung des vollen Verfügungsrahmens und Rückzahlung in 12 Monatlichen Raten zu je 18,21 € beträgt der effektive Jahreszins 18,07% und der Gesamtbetrag 218,57 €.</use-case>
+      <type label="Ratenkauf">part-payment</type>
+    </installment>
+  </installments>
+</installment-calculator-response>
+----
+
+.XML Installment Calculator Request for DK (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <amount currency="DKK">40</amount>
+    <locale>da_dk</locale>
+</installment-calculator-request>
+----
+
+.XML Installment Calculator Response for DK (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <state>success</state>
+    <statuses>
+        <status code="200.0000" description="Successful Response" severity="information" />
+    </statuses>
+    <amount currency="DKK">40</amount>
+    <locale>da_dk</locale>
+    <installments>
+        <installment>
+            <product-id>3107</product-id>
+            <name>Afbetaling</name>
+            <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/da_dk/account</terms>
+            <logo>http://cdn.klarna.com/1.0/shared/image/generic/badge/da_dk/slice_it/standard/pink.svg</logo>
+            <details>
+                <interest-rate label="Rørlig årsrente" symbol="%">19.95</interest-rate>
+                <monthly-invoice-fee label="Administrationsgebyr" symbol="kr/md">39.0</monthly-invoice-fee>
+                <setup-fee label="Oprettelsegebyr" symbol="kr">0.0</setup-fee>
+                <monthly-pay label="Delbetala fra" symbol="kr/md">80.0</monthly-pay>
+                <months>24</months>
+                <minimum-amount>0.0</minimum-amount>
+            </details>
+            <title>Konto - Betal I dit eget tempo</title>
+            <description>Rørlig årsrente 19.95 %, Administrationsgebyr 39.0 kr/md, Delbetala fra 80.0 kr/md.</description>
+            <use-case>Lad os sige, at du køber for 10.000 kr. Administrativt gebyr er 39 kr./md., og rørlig årsrente er 22,70 %. Du betaler 978 kr. af hver måned i 12 mdr. Den årlige effektive rente bliver da 35,41 %, kreditomkostningerne 1740 kr og kreditkøbspris bliver 11.740 kr.</use-case>
+            <type label="Afbetaling">part-payment</type>
+        </installment>
+        <installment>
+            <product-id>3516</product-id>
+            <details>
+                <interest-rate>0.0</interest-rate>
+                <monthly-invoice-fee>29.0</monthly-invoice-fee>
+                <setup-fee>0.0</setup-fee>
+                <months>0</months>
+                <minimum-amount>0.0</minimum-amount>
+            </details>
+            <title>K&amp;#248;b nu - Betal om 5 m&amp;#229;neder</title>
+            <type>invoice</type>
+        </installment>
+        <installment>
+            <product-id>3860</product-id>
+            <name>Afbetaling</name>
+            <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/da_dk/account</terms>
+            <logo>http://cdn.klarna.com/1.0/shared/image/generic/badge/da_dk/slice_it/standard/pink.svg</logo>
+            <details>
+                <interest-rate label="Årlig rente" symbol="%">0.0</interest-rate>
+                <monthly-invoice-fee label="Administrationsgebyr" symbol="kr/md">0.0</monthly-invoice-fee>
+                <setup-fee label="Oprettelsegebyr" symbol="kr">0.0</setup-fee>
+                <monthly-pay label="Månedlig omkostning" symbol="kr/md">40.0</monthly-pay>
+                <annual-percentage-rate label="Effektiv rente" symbol="%">0.2</annual-percentage-rate>
+                <months label="Måneder">1</months>
+                <total-credit-purchase-price label="Kreditkøbspris" symbol="kr">40.0</total-credit-purchase-price>
+                <minimum-amount>0.0</minimum-amount>
+            </details>
+            <title>40.0 kr/måned i 1 måneder</title>
+            <description>Årlig rente 0.0 %, administrationsgebyr 0.0 kr/md, oprettelsegebyr 0.0, månedlig omkostning 40.0 kr/md i 1 måneder, effektiv rente 0.2, kreditkøbspris 40.0.</description>
+            <type label="Afbetaling">part-payment</type>
+        </installment>
+    </installments>
+</installment-calculator-response>
+----
+
+.XML Installment Calculator Request for NO (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <amount currency="NOK">100</amount>
+    <locale>nb_no</locale>
+</installment-calculator-request>
+----
+
+.XML Installment Calculator Response for NO (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <payment-method>klarna-install</payment-method>
+  <state>success</state>
+  <statuses>
+    <status code="200.0000" description="Successful Response" severity="information" />
+  </statuses>
+  <amount currency="NOK">100</amount>
+  <locale>nb_no</locale>
+  <installments>
+    <installment>
+      <product-id>-1</product-id>
+      <name>Invoice</name>
+      <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/nb_no/invoice?fee=</terms>
+      <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/nb_no/basic/blue-black.png</logo>
+      <title>Betal om 14 dager</title>
+      <type label="Faktura">invoice</type>
+    </installment>
+    <installment>
+      <product-id>3100</product-id>
+      <name>Account</name>
+      <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/nb_no/account</terms>
+      <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/nb_no/basic/blue-black.png</logo>
+      <details>
+        <interest-rate label="Årsrente" symbol="%">22,00</interest-rate>
+        <monthly-invoice-fee label="Administrajonsgebyr" symbol="kr">45,00</monthly-invoice-fee>
+        <setup-fee label="Etableringsgebyr" symbol="kr">0,00</setup-fee>
+        <monthly-pay label="Delbetal fra">95 kr/manad, minst 1/24 av totalbeløpet</monthly-pay>
+      </details>
+      <title>Konto - delbetal i din egen takt</title>
+      <description>Rente 22,00 %, gebyr 45,00 kr, etableringsgebyr 0,00 kr.</description>
+      <use-case>Ved for eksempel et kjøp på 5000 kr med Klarna konto basisvilkår tilkommer det ingen etableringsgebyr. Årsrenten er 22 % og nedbetaling over 12 måneder på 513 kr stk har en effektiv rente på 48,56 %. Total kredittkjøpspris er 6156 kr.</use-case>
+      <type label="Delbetaling">part-payment</type>
+    </installment>
+  </installments>
+</installment-calculator-response>
+----
+
+NOTE: Please request the Installment Calculator for Finland with a minimum
+amount of 100 Euros.
+
+.XML Installment Calculator Request for FI (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <amount currency="EUR">100</amount>
+    <locale>fi_fi</locale>
+</installment-calculator-request>
+----
+
+.XML Installment Calculator Response for FI (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <state>success</state>
+    <statuses>
+        <status code="200.0000" description="Successful Response" severity="information"/>
+    </statuses>
+    <amount currency="EUR">100</amount>
+    <locale>fi_fi</locale>
+    <installments>
+        <installment>
+            <product-id>-1</product-id>
+            <name>Invoice</name>
+            <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/fi_fi/invoice?fee=</terms>
+            <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/fi_fi/basic/blue-black.png</logo>
+            <title>Maksa 14 päivän kuluessa</title>
+            <type label="Lasku">invoice</type>
+        </installment>
+        <installment>
+            <product-id>3093</product-id>
+            <name>Account</name>
+            <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/fi_fi/account</terms>
+            <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/fi_fi/basic/blue-black.png</logo>
+            <details>
+                <interest-rate label="vuosikorko" symbol="%">0,00</interest-rate>
+                <monthly-invoice-fee label="hallinnointimaksu" symbol="€">2,95</monthly-invoice-fee>
+                <setup-fee label="perustamismaksu" symbol="€">0,00</setup-fee>
+                <monthly-pay label="kuukausierä" symbol="€">8,95</monthly-pay>
+                <annual-percentage-rate label="todellinen vuosikorko" symbol="%">79,61</annual-percentage-rate>
+                <total-credit-purchase-price label="luoton kokonaissumma" symbol="€">344,85</total-credit-purchase-price>
+            </details>
+            <title>Joustava Erämaksu - maksa omaan tahtiin</title>
+            <description>Vaihtuva vuosikorko 0,00 %, aloitusmaksu 0,00 eur, hallinnointimaksu 2,95 eur/kk, maksa alkaen 8,95 eur/kk.</description>
+            <use-case>Esimerkki: Ostoksesi maksaa 1 000 eur. Hallinnointimaksu on 2,90 eur/kk och vaihtuva vuosikorko on 19,9 %. Maksat 95,50 eur/kk 12 kuukauden ajan. Todellinen vuosikorko on tällöin 29,22 % ja 1 000 eur ostoksen kokonaissummaksi tulee 1 145,80 eur.</use-case>
+            <type label="Erämaksu">part-payment</type>
+        </installment>
+    </installments>
+</installment-calculator-response> 
+----
+
+.XML Installment Calculator Request for SE (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <amount currency="SEK">100</amount>
+    <locale>sv_se</locale>
+</installment-calculator-request>
+----
+
+.XML Installment Calculator Response for SE (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <payment-method>klarna-install</payment-method>
+  <state>success</state>
+  <statuses>
+    <status code="200.0000" description="Successful Response" severity="information" />
+  </statuses>
+  <amount currency="SEK">100</amount>
+  <locale>sv_se</locale>
+  <installments>
+    <installment>
+      <product-id>-1</product-id>
+      <name>Invoice</name>
+      <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/sv_se/invoice?fee=</terms>
+      <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/sv_se/basic/blue-black.png</logo>
+      <title>Betala om 14 dagar</title>
+      <type label="Faktura">invoice</type>
+    </installment>
+    <installment>
+      <product-id>100</product-id>
+      <name>Account</name>
+      <terms>https://cdn.klarna.com/1.0/shared/content/legal/terms/1168/sv_se/account</terms>
+      <logo>https://cdn.klarna.com/1.0/shared/image/generic/logo/sv_se/basic/blue-black.png</logo>
+      <details>
+        <interest-rate label="Årsränta" symbol="%">19,90</interest-rate>
+        <monthly-invoice-fee label="Administrativ avgift" symbol="kr">29,00</monthly-invoice-fee>
+        <setup-fee label="Uppläggningsavgift" symbol="kr">0,00</setup-fee>
+        <monthly-pay label="Månadsbelopp" symbol="kr">50,00</monthly-pay>
+      </details>
+      <title>Konto - delbetala i din egen takt</title>
+      <description>Rörlig årsränta 19,90 %, uppläggningsavgift 0,00 kr, administrationsavgift 29,00 kr, delbetala från 50,00 kr.</description>
+      <use-case>Exempel: Säg att du köper för 10 000 kr. Administrativ avgift är 29 kr/mån och rörlig årsänta är 19,9 %. Du betalar 955 kr/mån i 12 mån. Årlig effektiv ränt blir då 29,22 % och totalbeloppet för ditt köp om 10 000 kr blir 11 458 kr.</use-case>
+      <type label="Delbetalning">part-payment</type>
+    </installment>
+  </installments>
+</installment-calculator-response>
+----
+
+.XML Installment Calculator Request for AT
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+    <payment-method>klarna-install</payment-method>
+    <amount currency="EUR">100</amount>
+    <locale>de_at</locale>
+</installment-calculator-request>
+----
+NOTE: Payment on installments not available
+
+.XML Installment Calculator Response for AT
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <payment-method>klarna-install</payment-method>
+  <state>success</state>
+  <statuses>
+    <status code="200.0000" description="Successful Response" severity="information" />
+  </statuses>
+  <amount currency="EUR">100</amount>
+  <locale>de_at</locale>
+</installment-calculator-response>
+----
+NOTE: payment on installments not available
+
+.XML Installment Calculator Response (failed - connection issue)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+  <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+  <payment-method>klarna-install</payment-method>
+  <state>failed</state>
+  <statuses>
+    <status code="500.1087" description="The connection to the provider was never made and timed out. Please try again later." severity="error" />
+  </statuses>
+  <amount currency="EUR">1000</amount>
+  <locale>de_de</locale>
+  <months>0</months>
+</installment-calculator-response>
+----
+
+.XML Installment Calculator Response (failed - provider response issue)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+   <merchant-account-id>8ea482bc-796c-42b4-a698-9a2db4b2edef</merchant-account-id>
+   <payment-method>klarna-install</payment-method>
+   <state>failed</state>
+   <statuses>
+      <status code="500.1999" description="The acquirer returned an unknown response. Contact Technical Support." severity="error" />
+   </statuses>
+   <amount currency="NOK">50.03</amount>
+   <locale>nb_no</locale>
+   <months>0</months>
+</installment-calculator-response>
+----
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB, Appendix B: Transaction Types>>.
+//-

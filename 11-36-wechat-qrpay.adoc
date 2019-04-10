@@ -1,0 +1,678 @@
+[#API_WeChatQRPay]
+=== WeChat QR Pay
+
+[#API_WeChatQRPay_Introduction]
+==== Introduction
+
+[#API_WeChatQRPay_Introduction_WeChat]
+===== WeChat
+[.clearfix]
+--
+[.right]
+image::images/11-36-wechat-qrpay/WeChat_QRCode_logo.png[alt=WeChat QR Pay logo, width=200]
+
+With over 650 million monthly active user accounts as of the third
+quarter of 2015, WeChat has become one of the most impactful mobile
+products on the planet. Since its start as a chat app, WeChat has grown
+to become a market-leading platform by connecting people, services, and
+businesses in China and around the world.
+--
+
+[#API_WeChatQRPay_Introduction_WeChatQRPay]
+===== WeChat QRPay
+
+_WeChat QRPay_ allows merchants to generate a QR code which is then
+scanned by the consumer's WeChat App in order to complete the payment. +
+This payment method is applicable to payments made on websites and in
+physical stores, media advertising, and other scenarios.
+
+[#API_WeChatQRPay_GeneralInformation]
+==== General Information
+
+
+[#API_WeChatQRPay_GeneralInformation_PaymentMode]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _WeChat QRPay_ belongs to. It
+also provides detailed information about the countries and currencies
+which are relevant for _WeChat QRPay_.
+
+[cols="20h,80a"]
+|===
+|Payment Mode |<<PaymentMethods_PaymentMode_Wallet, Wallet>>
+|Countries |International
+|Currencies |
+Consumers pay in CNY, and major settlement currencies are included but not
+limited to GBP, HKD, USD, JPY, CAD, AUD, EUR, NZD, KRW, THB. For
+unsupported currencies, transactions can be made in USD.
+[NOTE]
+One merchant account only supports one settlement currency.
+
+|===
+
+[#API_WeChatQRPay_GeneralInformation_Communication]
+===== Communication Formats
+
+This table illustrates how _WeChat QRPay_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+
+[cols="20,20,60"]
+|===
+.2+h|Requests/Responses |Format |XML, NVP
+|Methods |POST, GET
+h|IPN Encodements 2+|Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_WeChatQRPay_TransactionTypes]
+==== Transaction Types
+
+For
+<<Glossary_TransactionType, transaction type>> details, which are not given here look at 
+<<AppendixB, Appendix B: Transaction Types>>.
+
+
+[cols="25,85"]
+|===
+|Transaction Type |Link to the Sample
+
+|get-url |<<API_WeChatQRPay_Samples_debitgeturl, _debit/get-url_ sample>> (REST API)
+|check-signature |
+|debit | <<API_WeChatQRPay_Samples_debitgeturl, _debit/get-url_ sample>> (REST API)  +
+
+         <<API_WeChatQRPay_Samples_debit, _debit_ sample>> (Payment Page)
+
+|refund-debit | <<API_WeChatQRPay_Samples_refunddebit, _refund-debit_ sample>>
+|void-debit | <<API_WeChatQRPay_Samples_voiddebit, _void-debit_ sample>>
+|===
+
+[#WeChatQRPay_TestCredentials]
+==== Test Credentials
+
+|===
+.2+h|URL(s) Endpoints |For the transaction type _debit._ |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+                      |For the transaction types _refund-debit_ and _void-debit_. |``\https://api-test.wirecard.com/engine/rest/payments/``
+
+h|Merchant Account ID (MAID) 2+|236d1c79-5146-496b-af00-3399c9097edc
+
+h|Username 2+|16390-testing
+
+h|Password 2+|3!3013=D3fD8X7
+
+h|Secret Key 2+| 024edfffae32c829b012c98a61686f3b
+|===
+
+[#API_WeChatQRPay_Workflow]
+==== Workflow
+
+image::images/11-36-wechat-qrpay/WeChat_QRCode_flowchart.png[WeChat QRPay Workflow]
+
+. Consumers approach the cashier to pay for the selected items.
+. The merchants create a request to the _Wirecard Payment
+Gateway_ to generate the QR code so that the consumers can execute the
+payment.
+. _Wirecard Payment Gateway_ transmits the request to WeChat.
+. WeChat responds to the _Wirecard Payment Gateway_ with a message
+that contains URLs containing the generated QR code in different sizes.
+. The merchants receive the QR code based on the returned payment URL
+from WeChat.
+. The consumers scan the QR code with WeChat Wallet and confirm
+payment on their device.
+. WeChat returns the payment result to the _Wirecard Payment Gateway_.
+. The _Wirecard Payment Gateway_ notifies the merchants about the
+payment result.
+//-
+
+[#API_WeChatQRPay_Fields]
+==== Fields
+
+The fields used for WeChat QR Pay requests, responses and notifications
+are the same as the 
+<<RestApi_Fields, REST API Fields>>.
+
+[#API_WeChatQRPay_Samples]
+==== Samples
+
+[#API_WeChatQRPay_Samples_RestAPI]
+===== REST API
+
+[#API_WeChatQRPay_Samples_debitgeturl]
+====== _debit/get-url_
+
+*XML*
+
+.XML debit Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <request-id>2c5970f8-9970-442a-b67b-bf3e2fe40d7f</request-id>
+  <transaction-type>debit</transaction-type>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+  <order-detail>wechat test payment</order-detail>
+  <payment-methods>
+    <payment-method name="wechat-qrpay" />
+  </payment-methods>
+</payment>
+----
+
+.XML get-url Response (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <transaction-id>7851102b-c1ce-4e7b-a833-632f9f7e780b</transaction-id>
+  <request-id>2c5970f8-9970-442a-b67b-bf3e2fe40d7f-get-url</request-id>
+  <transaction-type>get-url</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-06-05T08:00:45.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <order-detail>wechat test payment</order-detail>
+  <payment-methods>
+    <payment-method url="https://api-test.wirecard.com:443/engine/hpp/wechat-qrpay/7851102b-c1ce-4e7b-a833-632f9f7e780b/?request_time_stamp=20180605080045&amp;request_id=2c5970f8-9970-442a-b67b-bf3e2fe40d7f&amp;merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&amp;transaction_id=7851102b-c1ce-4e7b-a833-632f9f7e780b&amp;transaction_type=debit&amp;requested_amount=1.01&amp;requested_amount_currency=USD&amp;redirect_url=&amp;ip_address=127.0.0.1&amp;request_signature=b6216f789a1866febeb5e9e453a338c7e6f11c6591c8f85e132f43e56eccf371&amp;psp_name=elastic-payments&amp;country=CA" name="wechat-qrpay" />
+  </payment-methods>
+  <authorization-code>weixin://wxpay/s/An4baqw</authorization-code>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+</payment>
+----
+
+.XML get-url Notification (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <transaction-id>7851102b-c1ce-4e7b-a833-632f9f7e780b</transaction-id>
+  <request-id>2c5970f8-9970-442a-b67b-bf3e2fe40d7f-get-url</request-id>
+  <transaction-type>get-url</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-06-05T08:00:45.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <order-detail>wechat test payment</order-detail>
+  <payment-methods>
+    <payment-method url="https://api-test.wirecard.com:443/engine/hpp/wechat-qrpay/7851102b-c1ce-4e7b-a833-632f9f7e780b/?request_time_stamp=20180605080045&amp;request_id=2c5970f8-9970-442a-b67b-bf3e2fe40d7f&amp;merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&amp;transaction_id=7851102b-c1ce-4e7b-a833-632f9f7e780b&amp;transaction_type=debit&amp;requested_amount=1.01&amp;requested_amount_currency=USD&amp;redirect_url=&amp;ip_address=127.0.0.1&amp;request_signature=b6216f789a1866febeb5e9e453a338c7e6f11c6591c8f85e132f43e56eccf371&amp;psp_name=elastic-payments&amp;country=CA" name="wechat-qrpay" />
+  </payment-methods>
+  <authorization-code>weixin://wxpay/s/An4baqw</authorization-code>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+</payment>
+----
+
+.XML debit Request (Failure)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <request-id>83ba5d1c-8731-4581-8800-e4f3291f2b63</request-id>
+  <transaction-type>debit</transaction-type>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <notifications>
+    <notification url="mailto:merchant@wirecard.com" />
+  </notifications>
+  <ip-address>127.0.0.1</ip-address>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+  <payment-methods>
+    <payment-method name="wechat-qrpay" />
+  </payment-methods>
+</payment>
+----
+
+.XML get-url Response (Failure)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <transaction-id>c4588815-d43e-4010-8d33-491ce076fcd4</transaction-id>
+  <request-id>83ba5d1c-8731-4581-8800-e4f3291f2b63-get-url</request-id>
+  <transaction-type>get-url</transaction-type>
+  <transaction-state>failed</transaction-state>
+  <completion-time-stamp>2018-06-05T08:02:40.000Z</completion-time-stamp>
+  <statuses>
+    <status code="400.1230" description="Order detail has not been provided. Please check your input and try again.." severity="error" />
+  </statuses>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <notifications>
+    <notification url="mailto:merchant@wirecard.com"></notification>
+  </notifications>
+  <payment-methods>
+    <payment-method name="wechat-qrpay" />
+  </payment-methods>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+</payment>
+----
+
+*NVP*
+
+.NVP Debit Request (Successful)
+[source]
+----
+POST /engine/hpp/ HTTP/1.1
+Host: 10.0.0.114:8080
+Connection: keep-alive
+Content-Length: 3227
+Cache-Control: max-age=0
+Origin: http://10.0.0.114:8080
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.101 Safari/537.36
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+DNT: 1
+Referer: http://10.0.0.114:8080/shop/index_new.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+
+requested_amount=1.01&requested_amount_currency=USD&locale=en&order_number=123456&order_detail=1+widget&form_url=http%3A%2F%2F10.0.0.114%3A8080%2Fengine%2Fhpp%2F&secret_key=c50a8e09-0648-4d2c-b638-2c14fc7606bc&request_id=65f68483-9bfa-0b62-0ef2-ac994dd541e1&request_time_stamp=20170828150841&merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&payment_method=wechat-qrpay&transaction_type=debit&redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&ip_address=127.0.0.1&request_signature=95398bc2ac9747b72767d0ab577348a374a005996f366bc2fcada03816f3f646&psp_name=demo&attempt_three_d=false&descriptor=&notification_url=&notification_transaction_state=&success_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&fail_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dfailed%26&cancel_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dcancel%26&processing_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dprocessing%26&first_name=John&last_name=Doe&email=john.doe%40wirecard.com&phone=1+555+555+5555&street1=123+test&street2=&city=Toronto&state=ON&postal_code=M4P1E8&country=CA
+----
+
+.NVP Debit Notification (Successful)
+[source]
+----
+HEADERS
+Total-Route-Time: 0
+Host: requestb.in
+Accept-Encoding: gzip
+X-Request-Id: e3f5984b-741f-4bc2-b6fb-2e93abfb3d2e
+Cf-Visitor: {"scheme":"https"}
+Cf-Connecting-Ip: 71.19.162.198
+Connect-Time: 1
+User-Agent: Apache-HttpClient/4.5.3 (Java/1.8.0_144)
+Content-Length: 1481
+Subject:
+Connection: close
+Cf-Ray: 3959f2373b143f8f-YUL
+Cf-Ipcountry: CA
+Via: 1.1 vegur
+Content-Type: text/plain; charset=UTF-8
+Breadcrumbid: ID-dev-app-n01-49276-1503950724847-0-308
+RAW BODY
+country=CA&merchant_account_resolver_category=&response_signature=c28fc646f7fb9dc2d4a7ad724c057c2fb03b37b810fa791e7064314a6bc2bc97&city=Toronto&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9ZDE4MzM2NDMtOGUxNi00NGFmLWI2MTItZjBlMjU4MTIxZjQwCmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTcwODI4MjAxNjAzCm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD0xM2NkODJlNC1lNzhmLTQ4MGQtYTFhZi03MTQ3NzYzZDk5YzcKdHJhbnNhY3Rpb25fc3RhdGU9c3VjY2VzcwppcF9hZGRyZXNzPTEyNy4wLjAuMQpzZWNyZXQ9YzUwYThlMDktMDY0OC00ZDJjLWI2MzgtMmMxNGZjNzYwNmJjCnRyYW5zYWN0aW9uX3R5cGU9ZGViaXQKcmVxdWVzdF9pZD1kOThhNTUxNy0wNWQ4LTQ1N2YtNTRkMS0yMjc3ZTkxOTIyNmQK.HH215%2BsLTnxt9Rr%2BbEIQ%2BAcsNF1%2Fk6mld2UXSyaCAsI%3D&locale=en&requested_amount=0.010000&completion_time_stamp=20170828201603&provider_status_description_1=&authorization_code=&merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40wirecard.com&transaction_id=d1833643-8e16-44af-b612-f0e258121f40&provider_transaction_id_1=4004372001201708298845219296&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=201.0000&status_description_1=wechat-qrpay%3AThe+resource+was+successfully+created.&phone=1+555+555+5555&transaction_state=success&requested_amount_currency=USD&postal_code=M4P1E8&request_id=d98a5517-05d8-457f-54d1-2277e919226d&
+----
+
+.NVP Debit Request (Failure)
+[source]
+----
+POST /engine/hpp/ HTTP/1.1
+Host: 10.0.0.114:8080
+Connection: keep-alive
+Content-Length: 3227
+Cache-Control: max-age=0
+Origin: http://10.0.0.114:8080
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+DNT: 1
+Referer: http://10.0.0.114:8080/shop/index_new.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+requested_amount=1.01&requested_amount_currency=USD&locale=en&order_number=123456&order_detail=1+widget&form_url=http%3A%2F%2F10.0.0.114%3A8080%2Fengine%2Fhpp%2F&secret_key=c50a8e09-0648-4d2c-b638-2c14fc7606bc&request_id=aabb44fa-8b67-2932-d613-83e3e85c246f&request_time_stamp=20170817193010&merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&payment_method=wechat-qrpay&transaction_type=debit&redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&ip_address=127.0.0.1&request_signature=aada25c7a369dc1080b6a25dd7502aa269eee8debd1d08fe4adba8aee3b204f2&psp_name=demo&attempt_three_d=false&descriptor=&notification_url=&notification_transaction_state=&success_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&fail_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dfailed%26&cancel_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dcancel%26&processing_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dprocessing%26&first_name=John&last_name=Doe&email=john.doe%40wirecard.com&phone=1+555+555+5555&street1=123+test&street2=&city=Toronto&state=ON&postal_code=M4P1E8&country=CA 
+----
+
+[#API_WeChatQRPay_Samples_refunddebit]
+====== _refund-debit_
+
+*XML*
+
+.XML refund-debit Request (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+    <request-id>d4eac82b-c771-47c9-bf4b-37f5798f0d13</request-id>
+    <transaction-type>refund-debit</transaction-type>
+    <parent-transaction-id>{from-notification-of-previous-debit-transaction}</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <payment-methods>
+        <payment-method name="wechat-qrpay" />
+    </payment-methods></payment>
+----
+
+.XML refund-debit Response (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/236d1c79-5146-496b-af00-3399c9097edc/payments/e2c34a3e-8ea4-42bc-886c-5308910d7963">
+  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/236d1c79-5146-496b-af00-3399c9097edc">236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <transaction-id>e2c34a3e-8ea4-42bc-886c-5308910d7963</transaction-id>
+  <request-id>d462694d-e8cd-40d1-8f52-f27517d9826e-refund-request</request-id>
+  <transaction-type>refund-request</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-06-05T08:07:17.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="wechat-qrpay:The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <parent-transaction-id>cb0c0b5f-9a7c-4611-97e4-388dcf43434d</parent-transaction-id>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <order-detail>wechat test payment</order-detail>
+  <payment-methods>
+    <payment-method name="wechat-qrpay" />
+  </payment-methods>
+  <parent-transaction-amount currency="USD">1.010000</parent-transaction-amount>
+  <api-id>elastic-api</api-id>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+</payment>
+----
+
+.XML refund-debit Notification (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+ <transaction-id>e2c34a3e-8ea4-42bc-886c-5308910d7963</transaction-id>
+ <request-id>d462694d-e8cd-40d1-8f52-f27517d9826e-refund-request</request-id>
+ <transaction-type>refund-request</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-06-05T08:07:17.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="wechat-qrpay:The resource was successfully created." severity="information"/>
+ </statuses>
+ <requested-amount currency="USD">1.01</requested-amount>
+ <parent-transaction-id>cb0c0b5f-9a7c-4611-97e4-388dcf43434d</parent-transaction-id>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+  <email>john.constantine@wirecard.com</email>
+  <phone/>
+  <address>
+   <street1>4950 Yonge Street</street1>
+   <city>Toronto</city>
+   <country>CA</country>
+  </address>
+ </account-holder>
+ <ip-address>127.0.0.1</ip-address>
+ <order-detail>wechat test payment</order-detail>
+ <payment-methods>
+  <payment-method name="wechat-qrpay"/>
+ </payment-methods>
+ <parent-transaction-amount currency="USD">1.010000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <sub-merchant-info>
+  <id>12152566</id>
+  <name>Merchant Store</name>
+ </sub-merchant-info>
+</payment>
+----
+
+[#API_WeChatQRPay_Samples_voiddebit]
+====== _void-debit_
+
+*XML*
+
+.XML void-debit Request (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+    <request-id>57a94bad-3365-4fa4-b1fd-942e3175345a</request-id>
+    <transaction-type>void-debit</transaction-type>
+    <parent-transaction-id>{from-notification-of-previous-debit-transaction}</parent-transaction-id>
+    <ip-address>127.0.0.1</ip-address>
+    <payment-methods>
+        <payment-method name="wechat-qrpay" />
+    </payment-methods></payment>
+----
+
+.XML void-debit Response (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/236d1c79-5146-496b-af00-3399c9097edc/payments/fe5bec45-3355-4ad6-bde4-9405f8bacf9e">
+  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/236d1c79-5146-496b-af00-3399c9097edc">236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+  <transaction-id>fe5bec45-3355-4ad6-bde4-9405f8bacf9e</transaction-id>
+  <request-id>1b4af610-5744-4f57-acfb-843ee494a100</request-id>
+  <transaction-type>void-debit</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2018-06-05T08:25:01.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="wechat-qrpay:The resource was successfully created." severity="information" />
+  </statuses>
+  <requested-amount currency="USD">1.01</requested-amount>
+  <parent-transaction-id>6e9e80d9-1edb-4a9b-95e3-8cfe86b2182f</parent-transaction-id>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Constantine</last-name>
+    <email>john.constantine@wirecard.com</email>
+    <phone></phone>
+    <address>
+      <street1>4950 Yonge Street</street1>
+      <city>Toronto</city>
+      <country>CA</country>
+    </address>
+  </account-holder>
+  <ip-address>127.0.0.1</ip-address>
+  <order-detail>wechat test payment</order-detail>
+  <payment-methods>
+    <payment-method name="wechat-qrpay" />
+  </payment-methods>
+  <parent-transaction-amount currency="USD">1.010000</parent-transaction-amount>
+  <api-id>elastic-api</api-id>
+  <sub-merchant-info>
+    <id>12152566</id>
+    <name>Merchant Store</name>
+  </sub-merchant-info>
+</payment>
+----
+
+.XML void-debit Notification (Successful)
+[source,xml]
+----
+ <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id>
+ <transaction-id>fe5bec45-3355-4ad6-bde4-9405f8bacf9e</transaction-id>
+ <request-id>1b4af610-5744-4f57-acfb-843ee494a100</request-id>
+ <transaction-type>void-debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2018-06-05T08:25:01.000Z</completion-time-stamp>
+ <statuses>
+  <status code="201.0000" description="wechat-qrpay:The resource was successfully created." severity="information"/>
+ </statuses>
+ <requested-amount currency="USD">1.01</requested-amount>
+ <parent-transaction-id>6e9e80d9-1edb-4a9b-95e3-8cfe86b2182f</parent-transaction-id>
+ <account-holder>
+  <first-name>John</first-name>
+  <last-name>Constantine</last-name>
+  <email>john.constantine@wirecard.com</email>
+  <phone/>
+  <address>
+   <street1>4950 Yonge Street</street1>
+   <city>Toronto</city>
+   <country>CA</country>
+  </address>
+ </account-holder>
+ <ip-address>127.0.0.1</ip-address>
+ <order-detail>wechat test payment</order-detail>
+ <payment-methods>
+  <payment-method name="wechat-qrpay"/>
+ </payment-methods>
+ <parent-transaction-amount currency="USD">1.010000</parent-transaction-amount>
+ <api-id>elastic-api</api-id>
+ <sub-merchant-info>
+  <id>12152566</id>
+  <name>Merchant Store</name>
+ </sub-merchant-info>
+</payment>
+----
+
+[#API_WeChatQRPay_Samples_PaymentPage]
+===== Payment Page
+
+[#API_WeChatQRPay_Samples_debit]
+====== _debit_
+
+*NVP*
+
+This request opens the Payment Page.
+
+.NVP Request Debit (Successful)
+[source]
+----
+POST /engine/hpp/ HTTP/1.1
+Host: 10.0.0.114:8080
+Connection: keep-alive
+Content-Length: 3263
+Cache-Control: max-age=0
+Origin: http://10.0.0.114:8080
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+DNT: 1
+Referer: http://10.0.0.114:8080/shop/index_new.html
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+
+requested_amount=1.01&requested_amount_currency=USD&locale=en&order_number=123456&order_detail=1+widget&form_url=http%3A%2F%2F10.0.0.114%3A8080%2Fengine%2Fhpp%2F&secret_key=18d32f9b-0fcd-420d-a88b-f795325b953b&request_id=38b59acf-18c0-867b-ce4f-43449e0d0ac5&request_time_stamp=20170912174108&merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&payment_method=wechat-qrpay&transaction_type=debit&redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&ip_address=127.0.0.1&request_signature=cc460956676595e9e512aa6f3b83290b153549d216c451131b8ddf758ec47630&psp_name=demo&attempt_three_d=false&descriptor=&notification_url=https%3A%2F%2Frequestb.in%2F1irly1f1&notification_transaction_state=&success_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&fail_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dfailed%26&cancel_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dcancel%26&processing_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dprocessing%26&field_name_1=&field_value_1=&field_name_2=&field_value_2=&field_name_3=&field_value_3=&field_name_4=&field_value_4=&hpp_processing_timeout=&first_name=John&last_name=Doe&email=john.doe%40wirecard.com&phone=1+555+555+5555&street1=123+test&street2=&city=Toronto&state=ON&postal_code=M4P1E8&country=CA&sub_merchant_info_id=12152566
+----
+
+This response is sent back to merchant's page.
+
+.NVP Response Debit (Successful)
+[source]
+----
+POST /shop/complete.jsp?state=success& HTTP/1.1
+Host: 10.0.0.114:8080
+Connection: keep-alive
+Content-Length: 1444
+Cache-Control: max-age=0
+Origin: null
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36
+Content-Type: application/x-www-form-urlencoded
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+DNT: 1
+Accept-Encoding: gzip, deflate
+Accept-Language: en-US,en;q=0.8
+Cookie: JSESSIONID=D06724F01E8537213BBC4076EFC6CC0D
+
+country=CA&merchant_account_resolver_category=&response_signature=11479f2eb1806a4e58414f4a431e0198ad2815071fed1f7c4a30bab69c3d77fe&city=Toronto&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9NWRkODRjMmYtYzhmMy00ZTliLWExNDAtNDEyMTljNzNlYTQ4CmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTcwOTEyMTc0NDA2Cm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD1iOTA5NjFiNC02MGE1LTQ1OTEtOWJkYS1lNjk4ZDk4OTMzMDcKdHJhbnNhY3Rpb25fc3RhdGU9c3VjY2VzcwppcF9hZGRyZXNzPTEyNy4wLjAuMQpzZWNyZXQ9MThkMzJmOWItMGZjZC00MjBkLWE4OGItZjc5NTMyNWI5NTNiCnRyYW5zYWN0aW9uX3R5cGU9ZGViaXQKcmVxdWVzdF9pZD0zOGI1OWFjZi0xOGMwLTg2N2ItY2U0Zi00MzQ0OWUwZDBhYzUK.JVXY9og5LfOsPG6VTO98mkvunHW6BlTBDnAtDE%2BCR2w%3D&requested_amount=1.010000&completion_time_stamp=20170912174406&provider_status_description_1=&authorization_code=&merchant_account_id=236d1c79-5146-496b-af00-3399c9097edc&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40wirecard.com&transaction_id=5dd84c2f-c8f3-4e9b-a140-41219c73ea48&provider_transaction_id_1=20170913014406123124044&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=201.0000&status_description_1=The+resource+was+successfully+created.&phone=1+555+555+5555&transaction_state=success&requested_amount_currency=USD&postal_code=M4P1E8&request_id=38b59acf-18c0-867b-ce4f-43449e0d0ac5
+----
+
+.NVP Notification Debit (Successful)
+[source]
+----
+HEADERS
+
+Accept-Encoding: gzip
+Connect-Time: 1
+Content-Type: application/xml; charset=UTF-8
+Cf-Connecting-Ip: 71.19.162.198
+User-Agent: Apache-HttpClient/4.5.3 (Java/1.8.0_144)
+Content-Length: 1972
+Subject:
+Host: requestb.in
+Cf-Ipcountry: CA
+Connection: close
+Via: 1.1 vegur
+Cf-Visitor: {"scheme":"https"}
+Total-Route-Time: 0
+X-Request-Id: 4ad7d913-8776-4722-bd24-113982bbcd3e
+Breadcrumbid: ID-dev-app-n01-60035-1505226135237-0-1130
+Cf-Ray: 39d4ac42d9353fa7-YUL
+
+RAW BODY
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?><payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction"><merchant-account-id>236d1c79-5146-496b-af00-3399c9097edc</merchant-account-id><transaction-id>5dd84c2f-c8f3-4e9b-a140-41219c73ea48</transaction-id><request-id>38b59acf-18c0-867b-ce4f-43449e0d0ac5</request-id><transaction-type>debit</transaction-type><transaction-state>success</transaction-state><completion-time-stamp>2017-09-12T17:44:06.000Z</completion-time-stamp><statuses><status code="201.0000" description="wechat-qrpay:The resource was successfully created." severity="information" provider-transaction-id="20170913014406123124044"/></statuses><requested-amount currency="USD">1.010000</requested-amount><parent-transaction-id>3109a176-c5e2-4376-a6bf-0cedb22e189c</parent-transaction-id><account-holder><first-name>John</first-name><last-name>Doe</last-name><email>john.doe@wirecard.com</email><phone>1 555 555 5555</phone><address><street1>123 test</street1><city>Toronto</city><state>ON</state><country>CA</country><postal-code>M4P1E8</postal-code></address></account-holder><ip-address>127.0.0.1</ip-address><order-number>123456</order-number><order-detail>1 widget</order-detail><notifications><notification url="https://requestb.in/1irly1f1"/></notifications><payment-methods><payment-method name="wechat-qrpay"/></payment-methods><api-id>elastic-payment-page-nvp</api-id><processing-redirect-url>http://10.0.0.114:8080/shop/complete.jsp?state=processing&amp;</processing-redirect-url><cancel-redirect-url>http://10.0.0.114:8080/shop/complete.jsp?state=cancel&amp;</cancel-redirect-url><fail-redirect-url>http://10.0.0.114:8080/shop/complete.jsp?state=failed&amp;</fail-redirect-url><success-redirect-url>http://10.0.0.114:8080/shop/complete.jsp?state=success&amp;</success-redirect-url><locale>en</locale><sub-merchant-info><id>12152566</id></sub-merchant-info></payment>
+----

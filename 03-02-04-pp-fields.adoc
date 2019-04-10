@@ -1,0 +1,389 @@
+[#PaymentPageSolutions_Fields]
+==== Payment Page Fields
+
+Most of the fields from REST API are also available for Hosted Payment
+Page (HPP), Embedded Payment Page (EPP) and Seamless integration,
+differing only in the usage of an underscore instead of a hyphen.
+
+The following table describes the fields that may appear in the HTML
+form in case of Hosted Payment Page (HPP) or as data for a JavaScript
+call in case of Embedded Payment Page (EPP) or Seamless integration.
+
+[cols="19e,8,8,5,60a"]
+[#PaymentPageSolutions_Fields_Request]
+.Request Fields
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+|request_time_stamp |Mandatory |yyyyMMddHHmmss |14 |The UTC time-stamp that represents the request.
+|request_signature |Mandatory |Alphanumeric |64 a|Refer to <<PP_Security, SHA-256>> request signature.
+|merchant_account_id |Mandatory |Alphanumeric |36 |A unique identifier assigned for every Merchant Account.
+|request_id |Mandatory |Alphanumeric |64 |The unique string that the merchant sends with every transaction in order to uniquely identify it.
+The merchant system can subsequently request the status or existence of a transaction using this identifier.
+|entry_mode |Optional |Alphanumeric |n/a a|The method in which the account holder information was collected. Possible
+values are:
+
+[cols="1,2"]
+!===
+! Value ! Meaning
+
+! empty ! unknown source
+! ecommerce ! collected over the internet
+! mcommerce ! collected over mobile devices
+! mail-order ! collected over mail order
+! telephone-order ! collected over telephone
+! pos ! collected by the primary payment instrument
+!===
+
+|periodic_type |Optional |Alphanumeric |n/a |Indicates how and why a
+payment occurs more than once. Possible values include ``installment``:
+one in a set that completes a financial transaction and ``recurring``: one
+in a set that occurs repeatedly, such as a subscription.
+|sequence_type |Optional |Alphanumeric |n/a |Used in conjunction with
+periodic_type to indicate the sequence. Possible values include ``first``:
+first transaction in a set, ``recurring``: subsequent transactions in the
+set, ``final``: the last transaction in the set.
+|transaction_type |Mandatory |Alphanumeric |30 |A unique identifier assigned for every transaction type.
+|requested_amount |Mandatory |Decimal |11,2 |The only amount that accompanies the transaction when it is created and/or requested. In the
+case of a sale or refund, this is what the merchant requests. In the case of a chargeback, this is the amount that is being contested.
+|requested_amount_currency |Mandatory |Alphanumeric |3 |The currency in which a transaction is originally completed.
+|first_name |Optional |Alphanumeric |32 |The first name of the account holder.
+|last_name |Mandatory |Alphanumeric |32 |The last name of the account holder.
+|token_id |Optional   - Or Card Number |Numeric |36 |A unique identifier assigned for every card token. This is a surrogate value for the primary account number.
+|card_type |Mandatory   - Or Card Token |Alphanumeric |15 |A card scheme accepted by the processing system. This includes physically issued cards.
+|account_number |Mandatory   - Or Card Token |Numeric |36 |The  embossed or encoded number that identifies the card issuer to which a transaction
+is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In the case of a credit card,
+this is the primary account number.
+|expiration_month |Mandatory   - Or Card Token |Numeric |2 |The 2-digit representation of the expiration month of the card account.
+|expiration_year |Mandatory   - Or Card Token |Numeric |4 |The 4-digit representation of the expiration year of the card account.
+|card_security_code |Optional   - Depending on merchant account settings |Numeric |4 |A security feature for credit or debit card transactions,
+providing increased protection against credit card fraud. The Card
+Security Code is located on the back of Mastercard, Visa and Discover
+credit or debit cards and is typically a separate group of 3 digits to
+the right of the signature strip. On American Express cards, the Card
+Security Code is a printed, not embossed,  group of four digits on the
+front towards the right.
+|redirect_url |Optional |Alphanumeric |256 |The URL where the account holder will be redirected to following transaction completion.
+|ip_address |Optional |Alphanumeric |15 |The IP address of the cardholder as recorded by the entity receiving the transaction attempt from the cardholder.
+|email |Optional |Alphanumeric |64 |The email address of the account holder.
+|phone |Optional |Alphanumeric |32 |The phone number of the account holder.
+|order_detail |Optional |Alphanumeric |256 |Merchant-provided string to store the order detail for the transaction.
+|order_number |Optional |Alphanumeric |64 |Merchant-provided string to store the order detail for the transaction.
+|merchant_crm_id |Optional |Alphanumeric |64 |The merchant CRM ID for the account holder.
+|field_name_n[1-10] |Optional |Alphanumeric |36 |Text used to name the transaction custom field. Possible values for n can be in the range from 1 to 10.
+|field_value_n[1-10] |Optional |Alphanumeric |256 |Used with a key, the content used to define the value of the transaction custom field.
+Possible values for n can be in the range from 1 to 10.
+|notification_url_n[1-3] |Optional |Alphanumeric |256 |WPG uses the notification URL to inform the merchant about the outcome of the payment
+process. Usually the merchant provides one URL, to which WPG will send the notification to. If required, the merchant can define more than one
+notification URL.
+|notification_transaction_state_n[1-3] |Optional |Alphanumeric |12 | The merchants can provide notification URLs which correspond to the
+transaction state. The merchants define one URL for success and one for failure. +
+If the merchants want to do that, they must use both fields in parallel:
+``notification_url_n[1-3]`` and ``notification_transaction_state_n[1-3]``.
+|descriptor |Optional |Alphanumeric |64 |The field which is shown on the customer’s card statement. This feature is not supported by all the
+acquirers. The size of this field depends on the acquirer. Please contact technical support for further clarification.
+|parent_transaction_id |Optional |Alphanumeric |36 |A  unique identifier assigned for every parent transaction.
+|payment_method |Optional |Alphanumeric |15 |Text used to name the payment method.
+|locale |Optional |Alphanumeric |6 |Code to indicate which default language the payment page should be rendered in. 
+|device_fingerprint |Optional |Alphanumeric |4096 |A device fingerprint is information collected about a remote computing device for the purpose
+of identification. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
+|processing_redirect_url |Optional |Alphanumeric |2000 |The URL to which the Account Holder will be re-directed during payment processing. This
+is normally a page on the Merchant's website.
+|cancel_redirect_url |Optional |Alphanumeric |2000 |The URL to which the Account Holder will be re-directed after he has cancelled a payment.
+This is normally a page on the Merchant's website.
+|fail_redirect_url |Optional |Alphanumeric |2000 |The URL to which the
+Account Holder will be re-directed after an unsuccessful payment. This
+is normally a page on the Merchant's website notifying the Account
+Holder of a failed payment often with the option to try another Payment
+Method.
+|success_redirect_url |Optional |Alphanumeric |2000 |The URL to which the Account Holder will be re-directed after a successful payment. This
+is normally a success confirmation page on the Merchant's website.
+|merchant_account_resolver_category |Mandatory |Alphanumeric |32 |Configuration specific category name for automatic merchant account
+resolving based on logged in user or "super merchant account".
+|notification_transaction_url |Mandatory |Alphanumeric |2000 |This field
+has been replaced by ``notification_url_n[1-3]`` (see above). It can still be used but it can only provide a single URL for notifications.
+|cryptogram_type |Optional |Alphanumeric |11 |Cryptogram type enumeration – ``android-pay`` or ``apple-pay``.
+|cryptogram_value |Optional |Alphanumeric |  |Cryptogram value for android or apple creditcard payments.
+|mandate_signature_image |Optional |Alphanumeric |  |The signature of the Mandate Transaction.
+|mandate_signed_city |Optional |Alphanumeric |36 |The city that the Mandate was signed in.
+|mandate_signed_date |Optional |YYYY-MM-DD |16 |The date that the Mandate was signed.
+|mandate_due_date |Optional |Alphanumeric |  |The date that the Mandate Transaction is due.
+|mandate_mandate_id |Optional |Alphanumeric |35 |The Mandate ID for the Mandate Transaction.
+|capture_date |Optional |Alphanumeric | a| <<SEPADirectDebit_Fields_SpecificFields_DelayedProcessing, Date when transaction should be processed (SEPA)>>.
+|bank_account_bank_code |Optional |Alphanumeric |15 |The national bank sorting code for national bank transfers.
+|bank_account_bank_name |Optional |Alphanumeric |100 |The name of the consumer's bank.
+|bank_account_account_number |Mandatory |Alphanumeric |34 |The number designating a bank account used nationally.
+|bank_account_account_owner |  |  |  |Bank account owner name (not used anymore – ``last_name`` and ``first_name`` used instead).
+|bank_account_iban |Optional |Alphanumeric |34 |The International Bank Account Number required in a Bank Transfer. It is an international
+standard for identifying bank accounts across national borders. The current standard is ISO 13616:2007, which indicates SWIFT as the formal
+registrar.
+|bank_account_bic |Optional |Alphanumeric |15 |The Bank Identifier Code information required in a Bank Transfer.
+|bank_account_branch_city |Optional |Alphanumeric |64 |The city that the bank is located in. Typically required for Chinese Bank Transfers.
+|bank_account_branch_state |Optional |Alphanumeric |64 |The state that the bank is located in. Typically required for Chinese Bank Transfers.
+|bank_account_branch_address |Optional |Alphanumeric |64 |The address of the bank. Typically required for Chinese Bank Transfers.
+|postal_code |Optional |Alphanumeric |16 |ZIP postal Code
+|country |Mandatory |Alphanumeric |3 |Account holder country code.
+|payment_country |Optional |Alphanumeric |3 |Payment related country code – usually used for payment method specific validation (country
+restrictions)
+|state |Optional |Alphanumeric |32 |State
+|city |Mandatory |Alphanumeric |32 |City
+|street1 |Mandatory |Alphanumeric |128 |Primary Street Address
+|street2 |Optional |Alphanumeric |128 |Secondary Street Address
+|social_security_number |Optional |Alphanumeric |14 |The Social Security
+number of the Account Holder.
+|payment_method_url |Optional |Alphanumeric |  |URL of payment method
+provider that user should be redirected to so payment can be finished.
+(not needed and ignored in request.)
+|attempt_three_d |Optional |TRUE/FALSE |  |Indicates that the
+Transaction Request should proceed with the 3D Secure workflow if the
+Card Holder is enrolled. Otherwise, the transaction proceeds without
+3D Secure. This field is used in conjunction with Hosted Payment Page.
+|psp_name |Optional |Alphanumeric |256 |The assigned skin name for a
+merchant's customized HPP skin. This will display the merchant's skin
+instead of the default skin.
+|psp_id |Optional |Alphanumeric |36 |Not needed in request. EE internal Payment Service Provider ID.
+|file_name |Optional |Alphanumeric |255 |_Batch payment…_
+|record_number |Optional |Numeric |11 |_Batch payment…_
+|consumer_id |Optional |Alphanumeric |50 |The Identifier of the Consumer.
+|consumer_email |Optional |Alphanumeric |64 |Consumer email address.
+|risk_reference_id |Optional |Alphanumeric |24 | 
+|api_id |Optional |Alphanumeric |36 |Reserved for future use.
+|group_transaction_id |Optional |Alphanumeric |36 |Common ID for all
+referenced transactions. It is usually transaction ID of the first
+transaction in chain.
+|notifications_format |Optional |Alphanumeric |256 |Content type of the
+IPN (application/xml, application/json,
+application/x-www-form-urlencoded).
+|date_of_birth |Optional |YYYY-MM-DD |  |Account holder birth date.
+|creditor_id |Optional |Alphanumeric |35 |The Creditor Id for the
+Merchant Account SEPA.
+|gender |Optional |Alphanumeric |1 |Enumeration – ``m `` or ``f``
+|shipping_country |Mandatory |Alphanumeric |3 |The Country ID portion of
+the address of the Shipping Address.
+|shipping_state |Optional |Alphanumeric |32 |The state or province
+portion of the address of the Shipping Address.
+|shipping_city |Mandatory |Alphanumeric |32 |The city of the address of
+the Shipping Address.
+|shipping_postal_code |Optional |Alphanumeric |16 |The postal code or
+ZIP of the address of the Shipping Address.
+|shipping_street1 |Mandatory |Alphanumeric |128 |The first line of the
+street address of the Shipping Address.
+|shipping_street2 |Optional |Alphanumeric |128 |The second line of the
+street address of the Shipping Address.
+|shipping_first_name |Mandatory |Alphanumeric |32 |The first name of the
+Shipping Address.
+|shipping_last_name |Mandatory |Alphanumeric |32 |The last name of the
+Shipping Address.
+|shipping_block_no |Optional |Alphanumeric |  |Additional shipping
+information (paylah).
+|shipping_level |Optional |Alphanumeric |  |Additional shipping
+information (paylah).
+|shipping_unit |Optional |Alphanumeric |  |Additional shipping
+information (paylah).
+|shipping_phone |Optional |Alphanumeric |32 |The phone number of the
+Shipping Address.
+|pares |Optional |Alphanumeric |  |Digitally signed, base64-encoded
+authentication response message received from the issuer (3-D Secure
+transaction).
+|custom_css_url |Optional |Alphanumeric |2000 |URL specified by merchant
+pointing to the CSS resource customizing HPP/EPP.
+|item_name_1 |O/Mandatory | Alphanumeric | 256 | Order item name.
+| item_id_1 | Optional | Alphanumeric | 256 | Order item article identifier.
+| item_amount_1 | O/Mandatory | Numeric | 18,6 | Order item amount.
+| item_quantity_1 | O/Mandatory | Numeric | 5 | Order item quantity.
+| item_description_1 | Optional | Alphanumeric | 1024 | Order item description.
+|otp |Optional |Alphanumeric |  |One time password (icashcard).
+|wallet_account_id |Mandatory |Alphanumeric |128 |The unique identifier of the Account Holder's Wallet Account.
+|browser_ip_address |Optional |Alphanumeric |32 |IP address of consumer obtained by payment page in time of payment.
+|browser_hostname |Optional |Alphanumeric |255 |Consumer’s web browser obtained by payment page in time of payment.
+|browser_version |Optional |Alphanumeric |255 |Version number of consumer’s web browser obtained by payment page in time of payment.
+|browser_os |Optional |Alphanumeric |255 |Consumer’s operating system obtained by payment page in time of payment.
+|browser_screen_resolution |Optional |Alphanumeric |32 |Consumer’s screen resolution obtained by payment page in time of payment.
+|browser_referrer |Optional |Alphanumeric |4096 |URL referring to previous page consumer visited before payment page.
+|liability_shift_indicator |Optional |Alphanumeric |1 a|
+Indicating liability shift in case of 3D Secure transactions. Possible
+values:
+
+Y - Liability Shift transferred to issuer +
+N - No Liability Shift +
+U - LI information unavailable
+
+|consumer_date_of_birth |Optional |Alphanumeric |  |Consumer date of birth.
+|consumer_social_security_number |Optional |Alphanumeric |14 |Social security number of the consumer.
+|consumer_gender |Optional |Alphanumeric |1 |Gender of consumer.
+| order_item_amount | Mandatory | Numeric | 18,6 | Order item(s) price(s) per unit.
+| order_item_quantity | Mandatory | Numeric | 5 | Total count(s) of the item(s) in the order.
+| order_item_article_number | Optional | Alphanumeric | 256 | Item EAN(s) or other article(s) identifier(s).
+| order_item_name | Mandatory | Alphanumeric | 256 | Name(s) of the item(s) in the basket.
+| order_item_amount_currency | Mandatory | Alphanumeric | 3 | Currency(ies) of the order item amount(s).
+| order_item_tax_rate | Optional | Numeric | 5,2 | Order item tax rate(s) in percentage already included within order item price (``order_item_amount``).
+| order_item_tax_amount | Optional | Numeric | 18,6 | Order item tax(es) per unit already included within the order item price (``order_item_amount``).
+|orderItems[n].name |O/Mandatory |Alphanumeric |256 |Order item name.
+|orderItems[n].articleNumber |Optional |Alphanumeric |256 |Order item article identifier.
+|orderItems[n].amount.value |O/Mandatory |Numeric |18,6 |Order item price.
+|orderItems[n].amount.currency |O/Mandatory |Alphanumeric |3 |Currency of the order item price (``amount.value``).
+|orderItems[n].taxRate |Optional |Numeric |5,2 |Order item tax rate in percentage already included within order item price (``amount.value``).
+|orderItems[n].taxAmount.value |Optional |Numeric |18,6 |Order item tax per unit already included within the order item price (``amount.value``).
+|orderItems[n].taxAmount.currency |Optional |Alphanumeric |3 |Tax amount currency.
+|orderItems[n].quantity |O/Mandatory |Numeric |5 |Total count of the item in the order.
+|airline_industry_airline_code |Optional |Alphanumeric |3 |The airline code assigned by IATA.
+|airline_industry_airline_name |Optional |Alphanumeric |64 |Name of the airline.
+|airline_industry_passenger_code |Optional |Alphanumeric |10 |The file key of the Passenger Name Record (PNR). This information is mandatory
+for transactions with AirPlus UATP cards.
+|airline_industry_passenger_name |Optional |Alphanumeric |10 |The name of the Airline Transaction passenger.
+|airline_industry_passenger_phone |Optional |Alphanumeric |32 |The phone number of the Airline Transaction passenger.
+|airline_industry_passenger_email |Optional |Alphanumeric |64 |The Email Address of the Airline Transaction passenger.
+|airline_industry_passenger_ip_address |Optional |Alphanumeric |45 |The IP Address of the Airline Transaction passenger.
+|airline_industry_ticket_issue_date |Optional |Date |  |The date the ticket was issued.
+|airline_industry_ticket_number |Optional |Alphanumeric |11 |The airline
+ticket number, including the check digit. If no airline ticket number
+(IATA) is used, the element field must be populated with 99999999999.
+|airline_industry_ticket_restricted_flag |Optional |0/1 |  |Indicates
+that the Airline Transaction is restricted. 0 = No restriction, 1 =
+Restricted (non-refundable).
+|airline_industry_pnr_file_key |Optional |Alphanumeric |  |The Passenger Name File ID for the Airline Transaction.
+|airline_industry_ticket_check_digit |Optional |Numeric |  |The airline ticket check digit.
+|airline_industry_agent_code |Optional |Alphanumeric |  |The agency code
+assigned by IATA. If no IATA code is used, the element field must be
+populated with 99999999.
+|airline_industry_agent_name |Optional |Alphanumeric |  |The agency name.
+|airline_industry_non_taxable_net_amount |Optional |Numeric |  |This
+field must contain the net amount of the purchase transaction in the
+specified currency for which the tax is levied. Two decimal places are
+implied. If this field contains a value greater than zero, the indicated
+value must differ to the content of the transaction amount.
+|airline_industry_ticket_issuer_street1 |Mandatory |Alphanumeric |  |The
+Issuer Address Street for the Airline Transaction.
+|airline_industry_ticket_issuer_street2 |Optional |Alphanumeric |  |The
+Issuer Address Street 2 for the Airline Transaction.
+|airline_industry_ticket_issuer_city |Mandatory |Alphanumeric |32 |The
+city of the address of the Airline Transaction issuer.
+|airline_industry_ticket_issuer_state |Optional |Alphanumeric |  |The
+state of the address of the Airline Transaction issuer.
+|airline_industry_ticket_issuer_country |Mandatory |Alphanumeric |3 |The
+Issuer Address Country ID for the Airline Transaction.
+|airline_industry_ticket_issuer_postal_code |Optional |Alphanumeric |16
+|An alphanumeric numeric code used to represent the Airline Transaction
+issuer Postal.
+|airline_industry_number_of_passengers |Optional |Numeric |3 |The number
+of passengers on the Airline Transaction.
+|airline_industry_reservation_code |Optional |Alphanumeric |32 |The
+reservation code of the Airline Transaction passenger.
+|airline_industry_itinerary_segment_n[1-10]_carrier_code |Mandatory |Alphanumeric |3 |The 2-letter airline code (e.g. LH, BA, KL) supplied
+by IATA for each leg of a flight.
+|airline_industry_itinerary_segment_n[1-10]_departure_airport_code |Mandatory |Alphanumeric |3 |The departure airport code. IATA assigns
+the airport codes.
+|airline_industry_itinerary_segment_n[1-10]_departure_city_code |Mandatory |Alphanumeric |32 |The departure City Code of the Itinerary
+Segment. IATA assigns the airport codes.
+|airline_industry_itinerary_segment_n[1-10]_arrival_airport_code |Mandatory |Alphanumeric |3 |The arrival airport code of the Itinerary
+Segment. IATA assigns the airport codes.
+|airline_industry_itinerary_segment_n[1-10]_arrival_city_code |Mandatory |Alphanumeric |32 |The arrival city code of the Itinerary
+Segment. IATA assigns the airport codes.
+|airline_industry_itinerary_segment_n[1-10]_departure_date |Mandatory |Date |  |The departure date for a given leg.
+|airline_industry_itinerary_segment_n[1-10]_arrival_date |Mandatory |Date |  |The arrival date of the Itinerary Segment. IATA assigns the
+airport codes.
+|airline_industry_itinerary_segment_n[1-10]_flight_number |Optional |Alphanumeric |6 |The flight number of the Itinerary Segment.
+|airline_industry_itinerary_segment_n[1-10]_fare_class |Optional |Alphanumeric |6 |Used to distinguish between First Class, Business
+Class and Economy Class, but also used to distinguish between different
+fares and booking codes within the same type of service.
+|airline_industry_itinerary_segment_n[1-10]_fare_basis |Optional |Alphanumeric |6 |Represents a specific fare and class of service with
+letters, numbers, or a combination of both.
+|airline_industry_itinerary_segment_n[1-10]_stop_over_code |Optional |0/1 |  |0 = allowed, 1 = not allowed
+|airline_industry_itinerary_segment_n[1-10]_tax_amount |Optional |Numeric |18,6 |The amount of the Value Added Tax levied on the
+transaction amount in the specified currency.
+|cruise_industry_carrier_code |Optional |Alphanumeric |10 |The airline code assigned by IATA.
+|cruise_agent_code |Optional |Alphanumeric |10 |The agency code assigned by IATA.
+|cruise_industry_travel_package_type_code |Optional |Alphanumeric |10 |This indicates if the package includes car rental, airline flight, both
+or neither. Valid entries include: ``C`` = Car rental reservation included,
+``A`` = Airline flight reservation included, ``B`` = Both car rental and airline
+flight reservations included, ``N`` = Unknown.
+|cruise_industry_ticket_number |Optional |Alphanumeric |15 |The ticket
+number, including the check digit.
+|cruise_passenger_name |Optional |Alphanumeric |100 |The name of the passenger.
+|cruise_lodging_check_in_date |Optional |Date |  |The cruise departure date also known as the sail date.
+|cruise_lodging_check_out_date |Optional |Date |  |The cruise return date also known as the sail end date.
+|cruise_lodging_room_rate |Optional |Numeric |18,6 |The total cost of the cruise.
+|cruise_number_of_nights |Optional |Numeric |3 |The length of the cruise in days.
+|cruise_lodging_name |Optional |Alphanumeric |100 |The ship name booked for the cruise.
+|cruise_lodging_city_name |Optional |Alphanumeric |20 |The name of the city where the lodging property is located.
+|cruise_lodging_region_code |Optional |Alphanumeric |10 |The region code where the lodging property is located.
+|cruise_lodging_country_code |Optional |Alphanumeric |10 |The country code where the lodging property is located.
+|cruise_industry_itinerary_segment_n[1-10]_carrier_code |Mandatory |Alphanumeric |3 |The 2-letter airline code (e.g. LH, BA, KL) supplied
+by IATA for each leg of a flight.
+|cruise_industry_itinerary_segment_n[1-10]_departure_airport_code |Mandatory |Alphanumeric |3 |The departure airport code. IATA assigns
+the airport codes.
+|cruise_industry_itinerary_segment_n[1-10]_departure_city_code |Mandatory |Alphanumeric |32 |The departure City Code of the Itinerary
+Segment. IATA assigns the airport codes.
+|cruise_industry_itinerary_segment_n[1-10]_arrival_airport_code |Mandatory |Alphanumeric |3 |The arrival airport code of the Itinerary
+Segment. IATA assigns the airport codes.
+|cruise_industry_itinerary_segment_n[1-10]_arrival_city_code |Mandatory |Alphanumeric |32 |The arrival city code of the Itinerary
+Segment. IATA assigns the airport codes.
+|cruise_industry_itinerary_segment_n[1-10]_departure_date |Mandatory |Date |  |The departure date for a given leg.
+|cruise_industry_itinerary_segment_n[1-10]_arrival_date |Mandatory |Date |  |The arrival date of the Itinerary Segment. IATA assigns the
+airport codes.
+|cruise_industry_itinerary_segment_n[1-10]_flight_number |Optional |Alphanumeric |6 |The flight number of the Itinerary Segment.
+|cruise_industry_itinerary_segment_n[1-10]_fare_class |Optional |Alphanumeric |6 |Used to distinguish between First Class, Business
+Class and Economy Class, but also used to distinguish between different
+fares and booking codes within the same type of service.
+|cruise_industry_itinerary_segment_n[1-10]_fare_basis |Optional |Alphanumeric |6 |Represents a specific fare and class of service with
+letters, numbers, or a combination of both.
+|cruise_industry_itinerary_segment_n[1-10]_stop_over_code |Optional |0/1 |  |0 = allowed, 1 = not allowed
+|cruise_industry_itinerary_segment_n[1-10]_tax_amount |Optional |Numeric |18,6 |The amount of the Value Added Tax levied on the
+transaction amount in the specified currency.
+|hpp_processing_timeout |Optional |String (Cardinal Number) |8 |This
+field uses cardinal numbers which are treated like a string. It
+determines the timeout of an HPP page in milliseconds when this HPP page
+uses popup. During an open popup, Wirecard’s Payment Gateway polls query
+requests. If these poll requests are not accomplished until
+timeout, polling stops and displays a message. Default timeout is 10
+minutes (value = "600000").
+|===
+
+[cols="19e,8,8,5,60a"]
+[#PaymentPageSolutions_Fields_Response]
+.Response Fields
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+|response_signature |Mandatory |Alphanumeric |64 |Refer to SHA-256 response signature.
+|transaction_type |Mandatory |Alphanumeric |30 |A unique identifier assigned for every transaction type.
+|transaction_state |Mandatory |Alphanumeric |12 |The current status of a
+transaction. Typically, a transaction will start from a submitted state,
+to an in-progress, and then finish in either the success or failed
+state.
+|transaction_id |Mandatory |Alphanumeric |36 |A unique identifier assigned for every transaction.
+|request_id |Mandatory |Alphanumeric |64 |The unique string that the
+merchant sends with every transaction in order to uniquely identify it.
+The merchant system can subsequently request the status or existence of
+a transaction using this identifier.
+|requested_amount |Mandatory |Numeric |18,2 |The only amount that
+accompanies the transaction when it is created and/or requested. In the
+case of a sale or refund, this is what the merchant requests. In the
+case of a chargeback, this is the amount that is being contested.
+|merchant_account_id |Mandatory |Alphanumeric |36 |A unique identifier
+assigned for every Merchant Account.
+|completion_time_stamp |Mandatory |yyyyMMddHHmmss |14 |The UTC
+time-stamp that represents the response.
+|status_code_n |Mandatory |Alphanumeric |12 |The status of a
+transaction. This is primarily used in conjunction with the transaction
+state to determine the exact details of the status of the transaction.
+|status_description_n |Mandatory |Alphanumeric |256 |Text used to
+describe the transaction status.
+|status_severity_n |Mandatory |Alphanumeric |20 |The severity of the
+transaction, can be information, warning, error.
+|provider_transaction_id_n |Optional |Alphanumeric |36 |The unique
+identifier for a provider transaction, typically generated by
+the provider.
+|provider_transaction_reference_id |Optional |Alphanumeric |36
+|Provider's reference ID. This may be non-unique.
+|authorization_code |Mandatory |Alphanumeric |36 |An alphanumeric
+numeric code used to represent the provider authorization.
+|token_id |Optional   - Or Card Number |Alphanumeric |36 |A  unique
+identifier assigned for every card token. This is a surrogate value for
+the primary account number.
+|masked_account_number |Optional |Alphanumeric |36 |A  code used to
+represent the card masked account.
+|ip_address |Optional |Alphanumeric |15 |The IP address of the
+cardholder as recorded by the entity receiving the transaction attempt
+from the cardholder.
+|===

@@ -1,0 +1,421 @@
+[#CreditCard_Fields]
+==== Fields (Credit Card)
+
+The following elements are either mandatory (M), optional (O) or
+conditional \(C) in a transaction process.
+
+[#CreditCard_Fields_Payment]
+.payment
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|merchant-account-id |C |M |M |String |36 |Unique identifier for a merchant-account.
+|merchant-account-resolver-category |C |M |M |String |36 |The category used to resolve the merchant-account based on rules on input.
+|transaction-id | |M |M |String |36 |This is the unique identifier for a transaction.
+|request-id |M |M |M |String |32 |This is the identification number of the request. It has to be unique for each request. The following characters are allowed: ASCII characters Code 32-38 and 40-126.
+|transaction-type |M |M |M |String |30 |This is the type for a transaction.
+|descriptor |M |M |M |String |64 |Description on the settlement of the account holder's account about a transaction. The following characters are allowed: 0-9, a-z, A-Z
+|transaction-state | |M |M |String |12 |This is the status of a transaction.
+|completion-time-stamp | |M |M |Timestamp | |This is the time-stamp of completion of request.
+|avs-code | |O |O |String |24 |This is the result of address's validation.
+|order-detail |O |O |O |String |65535 |This is a field for details of an order filled by the merchant.
+|order-items |O |O |O | | |This is a field for order's items filled by the merchant.
+|order-number |M |M |M |String |32 |This is the order number of the merchant. The following characters are allowed: ASCII characters Code 32-38 and 40-126.
+|csc-code | |O |O |String |12 |Code indicating Card Verification Value (CVC/CVV) verification results.
+|parent-transaction-id |C |C |C |String |36 |This is the unique identifier of the referenced transaction. This might be mandatory if "merchant-account-id" or "merchant-account-resolver-category" is not used
+|group-transaction-id |C |C |C |String |36 |A unique ID assigned to a group of related transactions. For example, an authorization and capture and refund will all share the same group-transaction-id.
+|authorization-code |C |C |C |String |36 |the authorization-code can be +
+
+. input for "capture" without reference on "authorization"
+. output for "authorization"
+//-
+
+|ip-address |O |O |O |String |45 |The global (internet) IP address of the consumers computer.
+|non-gambling-oct-type |O |O |O |String |7 |A transfer type of non-gambling Original Credit Transaction (OCT). +
+Allowed values are: "p2p", "md", "acc2acc", "ccBill" and "fd".
+|consumer-id | | |M |String |50 |The id of the consumer.
+|api-id | | |M |String |36 |The api-id is always returned in the notification.
+|processing-redirect-url |O |O |O |String |256 |The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page on the merchant's website.
+|success-redirect-url |M |M |M |String |256 |The URL to which the consumer will be re-directed after a successful payment. This is normally a success confirmation page on the merchant's website.
+| cancel-redirect-url |M |M |M |String |256 |The URL to which the consumer will be re-directed after he has cancelled a payment. This is normally a page on the merchant's Website.
+|instrument-country |O |O |O |String |256 |The instrument country retrieves the issuer country of a certain credit card.
+|locale |M |M |M |String |6 |Code of the language. Can be any of CZ, DA, EN, DE, ES, FI, FR, IT, NL, PL, GR, RO, RU, SV and TR. +
+Can be sent in the format <language> or in the format <language_country>.
+|entry-mode |O |O |O |String |24 |This is information about the channel used for this transaction. +
+Can be one of the following: mail-order, telephone-order, ecommerce, mcommerce, pos.
+|periodic |O |O |O |String |24 |This is information about the periodicity of this transaction. +
+Can be one of the following: +
+installment, recurring
+|signature | | |O | | |The Signature info, consisting of SignedInfo, SignatureValue and KeyInfo.
+|instrument-country	| |O | | | |If this field is configured it will be sent in the response. Use a two-digit country code, such as DE (Germany), ES (Spain), FR (France), IT (Italy). If you want to know the exact list of applying countries, please contact Wirecard's Merchant Support.
+|===
+
+[#CreditCard_Fields_Statuses]
+.statuses
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|statuses.status | |M |M |String |12 |This is the status of a transaction.
+|status@code | |M |M |String |12 |This is the code of the status of a transaction.
+|status@description | |M |M |String |256 |This is the description to the status code of a transaction.
+|status@severity | |M |M |String |20 |This field gives information if a status is a warning, an error or an information.
+|requested-amount | |M |M |Numeric |18,2 |This is the amount of the transaction. The amount of the decimal place is dependent of the currency.
+|requested-amount@currency |M |M |M |String |3 |This is the currency of the transaction.
+|===
+
+[#CreditCard_Fields_AccountHolder]
+.account-holder
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|account-holder.first-name |O |O |O |String |32 |This is the first name of the end-consumer.
+|account-holder.last-name |M |M |M |String |32 |This is the last name of the end-consumer.
+|account-holder.email |O |O |O |String |64 |This is the end-consumer's email-address.
+|account-holder.gender |O |O |O |String |1 |This is the end-consumer's gender.
+|account-holder.date-of-birth |O |O |O |Date | |This is the end-consumer's birth date.
+|account-holder.phone |O |O |O |String |32 |This is the phone number of the end- consumer.
+|account-holder.social-security-number |O |O |O |String |14 |This is the social security number of the end-consumer.
+|account-holder.tax-number |O |O |O |String |14 |This is the social security number of the end-consumer.
+|account-holder.merchant-crm-id |O |O |O |String |64 |This is the merchant-crm-id of end-consumer.
+|===
+
+[#CreditCard_Fields_AccountHolderAddress]
+.account-holder.address
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|account-holder.address.block-no |O |O |O |String |12 |This is the block-no of the end-consumer.
+|account-holder.address.level |O |O |O |String |3 |This is the level of the end-consumer.
+|account-holder.address.unit |O |O |O |String |12 |This is the unit of the end-consumer.
+|account-holder.address.street1 |M |M |M |String |128 |This is the first part of the end-consumer's street.
+|account-holder.address.street2 |O |O |O |String |128 |This is the second part of the end-consumer's street.
+|account-holder.address.city |M |M |M |String |32 |This is the end-consumer's city.
+|account-holder.address.state |O |O |O |String |32 |This is the end-consumer's state.
+|account-holder.address.country |M |M |M |String |2	|This is the end-consumer's country.
+|account-holder.address.postal-code |O |O |O |String |16 |This is the end-consumer's postal code.
+|account-holder.address.house-extension |O |O |O |String |16 |This is the end-consumer's house extension.
+|===
+
+[#CreditCard_Fields_Shipping]
+.shipping
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|shipping.first-name |M |M |M |String |32 |This is first name from shipping information.
+|shipping.last-name |M |M |M |String |32 |This is last name from shipping information.
+|shipping.phone |O |O |O |String |3 |This is used to specify the phone from shipping information.
+|shipping.address |M |M |M |String | |This is used to specify the address from shipping information.
+|shipping.email |O |O |O |String |64 |This is used to specify the email from shipping information.
+|shipping.shipping-method |O |O |O |String |36 |This is used to specify the shipping method from shipping information.
+|shipping.tracking-number |O |O |O |String |64 |This is used to specify the tracking number from shipping information.
+|shipping.tracking-url |O |O |O |String |2000 |This is used to specify the tracking url from shipping information.
+|shipping.shipping-company |O |O |O |String |64 |This is used to specify the shipping company from shipping information.
+|shipping.return-tracking-number |O |O |O |String |64 |This is used to specify the return tracking number from shipping information.
+|shipping.return-tracking-url |O |O |O |String |2000 |This is used to specify the return tracking URL from shipping information.
+|shipping.return-shipping-company |O |O |O |String |36 |This is used to specify the return shipping company from shipping information.
+|===
+
+[#CreditCard_Fields_Card]
+.card
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|card.account-number |C | | |String |36 |This is the card account number of the end-consumer. If is mandatory if "card-token" is not used.
+|card.expiration-month |M |O | |Numeric	|2 |This is the card's expiration month of the end-consumer. If this field is configured it will be sent in the response. +
+
+[NOTE]
+ONLY transaction type _detokenize_ returns card elements in response. All the other transaction types return "card"/"card-token" in response.
+
+|card.expiration-year |M |O | |Numeric |4 |This is the card's expiration year of the end-consumer. If this field is configured it will be sent in the response. +
+
+[NOTE]
+ONLY transaction type _detokenize_ returns card elements in response. All the other transaction types return "card"/"card-token" in response.
+
+|card.card-security-code |C | | |String |4 |This is the card's security code of the end-consumer. Depending on configuration it might be mandatory.
+|card.card-type |M |O | |String |15 |This is the card's type of the end-consumer. If this field is configured it will be sent in the response. +
+
+[NOTE]
+ONLY transaction type _detokenize_ returns card elements in response. All the other transaction types return "card"/"card-token" in response.
+
+|card.issue-number |M | | |Numeric |4 |This is the card's issue number of the end-consumer.
+|card.start-month |M | | |Numeric |2 |This is the card's issue start month of the end-consumer.
+|card.start-year |M | | |Numeric |4 |This is the card's issue start year of the end-consumer.
+|card.track-2 |O | | |String |256 |This is the card's track-2 of the end-consumer.
+|card.card-emv |O | | | | |This is used for EMV data for credit card of the end-consumer.
+|card.card-pin |O | | | | |This is used for PIN data for credit card of the end-consumer.
+|card.card-raw |O | | | | |This is the raw card data.
+|card.merchant-tokenization-flag |O | | | Boolean | |The value is to be set to true as soon as Cardholder card data was stored by Merchant for future transactions. Maps the Visa field _Stored Credential_.
+|===
+
+[#CreditCard_Fields_CardToken]
+.card-token
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|card-token.token-id |C |M |M |String |36 |This is the token corresponding to  "card.account-number" of the end-consumer. It is mandatory if "card.account-number" is not specified. It is unique per instance.
+|card-token.token-ext-id |O |O |O |String |36 |Identifier used for credit card in external system which will be used in mapping to token-id.
+|card-token.masked-account-number |O |M |M |String |36 |This is the masked version of  "card.account-number" of the end-consumer. E.g. 440804******7893
+|===
+
+[#CreditCard_Fields_OrderItems]
+.order-items
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|order-items.order-item.name |O	| | |Alphanumeric | |Name of the item in the basket.
+|order-items.order-item.article-number |O	| | |Alphanumeric | |EAN or other article identifier for merchant.
+|order-items.order-item.amount |O	| | |Number | |Item's price per unit.
+|order-items.order-item.tax-rate |O	| | |Number | |Item's tax rate per unit.
+|order-items.order-item.quantity |O	| | |Number | |Total count of items in the order.
+|===
+
+[#CreditCard_Fields_Notifications]
+.notifications
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|notifications.notification |O |O |O | | |This is used for IPN (Instant Payment Notification).
+|notifications.notification@transaction-state |O |O |O |String |12 |This is the status of a transaction when IPN will be sent.
+|notifications.notification@url |O |O |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
+|===
+
+[#CreditCard_Fields_Device]
+.device
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|device.fingerprint |O |O |O |String |4096 |A device fingerprint is information collected about a remote computing device for the purpose of identification retrieved on merchants side. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
+|===
+
+[#CreditCard_Fields_CustomFields]
+.custom-fields
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|custom-fields.custom-field |O |O |O | | |This is used for adding custom information related to transaction.
+|custom-field@field-name |O |O |O |String |36 |This is the name for the custom field.
+|custom-field field-name="CardCategoryExt" field-value="M/C" | |O | | | |If this field has been configured by Wirecard, it will be sent in the response. Possible field values are: M (Consumer), C (Commercial)
+|custom-field field-name="CardProductID" field-value="See description for possible field values" | |O	| | | |If this field has been configured by Wirecard, it will be sent in the response. For possible field values see the following selected examples. If you need the values of other card products, please contact Wirecard's Merchant Support. +
+VISA: A (VISA Traditional), F (ViSA Classic), G (VISA Business), I (VISA Infinite) +
+MasterCard: MCC (MasterCard® Consumer), MCD (Debit MasterCard® Card), MCS (MasterCard® Consumer - Standard)
+|custom-field field-name="CardCategory" field-value="D/C/P" | |O | | | |	If this field has been configured by Wirecard, it will be sent in the response. Possible field values are: D (Debit), C (Credit), P (Prepaid)
+|custom-field@field-value |O |O |O |String |256 |This is the content of the custom field. In this field the merchant can send additional information.
+|===
+
+[#CreditCard_Fields_PaymentMethods]
+.payment-methods
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|payment-methods.payment-method |M |M |M | | |This is used for specifying the payment method used for this transaction.
+|payment-methods.card-types.card-type |O |O |O |String |15 |This specifies the types of card supported for this payment-method.
+|payment-methods.payment-method@name |M |M |M |String |15 |This is the name of the payment method that that is chosen from the end-consumer. +
+Value "creditcard" should be used.
+|payment-methods.payment-method@url |O |O |O |String |256 |The URL to be used for proceeding with payment on provider side.
+|===
+
+[#CreditCard_Fields_ThreeD]
+.three-d
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|three-d.attempt-three-d |O |O |O |String |1 |Indicates that the Transaction Request should proceed with the 3D Secure workflow if the [Card Holder] is enrolled.  Otherwise, the transaction proceeds without 3D Secure. This field is used in conjunction with Hosted Payment Page.
+|three-d.pares |C |C |C |String |2048 |In a 3-D Secure transaction, this is the digitally signed, base64-encoded authentication response message received from the issuer.
+|three-d.eci |C |C |C |String |2 |In a 3-D Secure process, this indicates the status of the VERes.
+|three-d.xid |C |C |C |String |36 |In a 3-D Secure process, this is the unique transaction identifier.
+|three-d.cardholder-authentication-value |C |C |C |String |1024 |The CAVV is a cryptographic value generated by the Issuer. For Visa transaction it is called CAVV (Cardholder Authentication Verification Value) for MasterCard it is either called Accountholder Authentication Value (AAV) or Universal Cardholder Authentication Field (UCAF).
+|three-d.cardholder-authentication-status |C |C |C |String |1 |Status of 3-D Secure check.
+|three-d.pareq |C |C |C |String |16000 |In a 3-D Secure transaction, this is a base64-encoded request message created for cards participating in the 3-D program. The PaReq is returned by the issuer's ACS via the VISA or MasterCard directory to the payment gateway and from here passed on to the merchant.
+|three-d.liability-shift-indicator | |O |O |String |2048 |Liability shift can be enabled for 3-D Secure enabled customers.
+|three-d.acs-url |C |C |C |String |2048 |The issuer URL to where the merchant must direct the enrolment check request via the cardholder's browser. It is returned only in case the cardholder is enrolled in 3-D Secure program.
+|===
+
+[#CreditCard_Fields_Browser]
+.browser
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|browser.accept |O | |M |String |2048 |This is the HTTP Accept Header as retrieved from the cardholder's browser in the HTTP request. In case it is longer than 2048 it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
+|browser.user-agent |O |  |M |String |256 |This is the User Agent as retrieved from the card holder's browser in the HTTP request. In case it is longer than 256 Byte it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
+|===
+
+[#CreditCard_Fields_Avs]
+.avs
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|avs.result-code | |O |O |String |5 |AVS result code.
+|avs.result-message | |O |O |String |256 |AVS result message.
+|avs.provider-result-code | |O |O |String |5 |AVS provider result code.
+|avs.provider-result-message | |O |O |String |256 |AVS provider result message.
+|===
+
+[#CreditCard_Fields_CreditSenderData]
+.credit-sender-data
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|credit-sender-data.receiver-name |C | | |String |35 |Mandatory for cross-border transactions. +
+Maximum length for Visa: 30
+|credit-sender-data.receiver-last-name |C | | |String |35 |Mandatory for cross-border transactions.
+|credit-sender-data.reference-number |O | | |String |19 |Maximum length for Visa: 16
+|credit-sender-data.sender-account-number |C | | |String |20 |_Mastercard:_ Mandatory +
+_Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
+|credit-sender-data.sender-name |C | | |String |24 |_Mastercard:_ Mandatory +
+_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
+|credit-sender-data.sender-last-name |C | | |String |35 |_Mastercard:_ Mandatory +
+_Visa:_ Optional
+|credit-sender-data.sender-address |C | | |String |50 |_Mastercard:_ Optional +
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
+|credit-sender-data.sender-city |C | | |String |25 |_Mastercard:_ Optional +
+_Visa:_ Mandatory for US domestic and cross-border transactions
+|credit-sender-data.sender-country |C | | |String |3 |_Mastercard:_ Optional +
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 2
+|credit-sender-data.sender-state |C | | |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada +
+_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
+|credit-sender-data.sender-postal-code |O | | |String |10 |No specific requirements for _Mastecard_ and _Visa_.
+|credit-sender-data.sender-funds-source |O | | |String |2 |Accepted characters are: +
+_Mastercard_ +
+- US: 01, 02, 03, 04, 05, 07
+- Non-US: 01, 02, 03, 04, 05, 06, 07 +
+//-
+_Visa_ +
+- US: 1, 2, 3
+- Non-US: 01, 02, 03, 04, 05, 06
+//-
+|===
+
+[#CreditCard_Fields_SubMerchantInfo]
+.sub-merchant-info
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|sub-merchant-info.id |O | | |Alphabetic, Numeric and Special Characters |15	|If you want to use <sub-merchant-info> _id_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|sub-merchant-info.name	|O | | |Alphabetic, Numeric and Special Characters |22 |If you want to use <sub-merchant-info> _name_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|sub-merchant-info.country |O | | |Alphabetic, Numeric and Special Characters	|2	|If you want to use <sub-merchant-info> _country_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|sub-merchant-info.state |C | | | |3 |Mandatory, when _country_ =  US or CA. +
+For all other countries _state_ is optional. If _country_ is neither US nor CA, do not send this field at all in the request.
+|sub-merchant-info.city |O | | |Alphabetic, Numeric and Special Characters |13 |If you want to use <sub-merchant-info> _city_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|sub-merchant-info.street |O | | |Alphabetic, Numeric and Special Characters |38 |If you want to use <sub-merchant-info> _street_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|sub-merchant-info.postal-code |O | | |Alphabetic, Numeric and Special Characters	|10	|If you want to use <sub-merchant-info> _postal-code_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|===
+
+[#CreditCard_Fields_AirlineIndustry]
+.airline-industry
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|airline-industry.airline-code |O |O | |String |3	|The airline code assigned by IATA.
+|airline-industry.airline-name |O |O | |String	|64	|Name of the airline.
+|airline-industry.passenger-code |O |O | |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
+|airline-industry.passenger-name |O |O | |String	|32	|The name of the Airline Transaction passenger.
+|airline-industry.passenger-phone |O |O | |String	|32	|The phone number of the Airline Transaction passenger.
+|airline-industry.passenger-email |O |O | |String	|64	|The Email Address of the Airline Transaction passenger.
+|airline-industry.passenger-ip-address |O |O | |String |45 |The IP Address of the Airline Transaction passenger.
+|airline-industry.ticket-issue-date |O |O | |Date | |The date the ticket was issued.
+|airline-industry.ticket-number |O |O | |String |11	|The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
+|airline-industry.ticket-restricted-flag |O |O | |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
+|airline-industry.pnr-file-key |O |O | |String	|10	|The Passenger Name File Id for the Airline Transaction.
+|airline-industry.ticket-check-digit |O |O | |String |2	|The airline ticket check digit.
+|airline-industry.agent-code |O |O | |String |3	|The agency code assigned by IATA.
+|airline-industry.agent-name |O |O | |String |64	|The agency name.
+|airline-industry.non-taxable-net-amount |O |O | |Numeric	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction
+|airline-industry.ticket-issuer/address |O |O | |Address | |The address of the ticket issuer.
+|airline-industry.number-of-passengers |O |O | |String |3	|The number of passengers on the Airline Transaction.
+|airline-industry.reservation-code |O |O | |String |32 |The reservation code of the Airline Transaction passenger.
+|airline-industry.itinerary.segment |O |O | | | | The itinerary segments of the airline transaction. Up to 99 itinerary segments can be defined. For details see section <<CreditCard_Fields_Segment, segment>>.
+|===
+
+[#CreditCard_Fields_CruiseIndustry]
+.cruise-industry
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|cruise-industry.carrier-code |O |O | |String	|3	|The carrier code assigned by IATA.
+|cruise-industry.agent-code |O |O | |String	|8	|The agent code assigned by IATA.
+|cruise-industry.travel-package-type-code |O |O | |String	|10	|This indicates if the package includes car rental, airline flight, both or neither. Valid entries include: +
+C = Car rental reservation included, A = Airline flight reservation included, B = Both car rental and airline flight reservations included, N = Unknown.
+|cruise-industry.ticket-number |O |O | |String |15 |The ticket number, including the check digit.
+|cruise-industry.passenger-name |O |O | |String	|100 |The name of the passenger.
+|cruise-industry.airline-code |O |O | |String	|3 |The airline code assigned by IATA.
+|cruise-industry.lodging-check-in-date |O |O | |Date | |The cruise departure date also known as the sail date.
+|cruise-industry.lodging-check-out-date |O |O | |Date	| |The cruise return date also known as the sail end date.
+|cruise-industry.lodging-room-rate |O |O | |Numeric	|18,2	|The total cost of the cruise.
+|cruise-industry.number-of-nights |O |O | |Numeric	|3	|The length of the cruise in days.
+|cruise-industry.lodging-name |O |O | |String	|100 |The lodging name booked for the cruise.
+|cruise-industry.lodging-city-name |O |O | |String |20	|The name of the city where the lodging property is located.
+|cruise-industry.lodging-region-code |O |O | |String	|10	|The region code where the lodging property is located.
+|cruise-industry.lodging-country-code |O |O | |String	|10	|The country code where the lodging property is located.
+|cruise-industry.segment |O |O | | | |The itinerary segments of the cruise. Up to 99 itinerary segments can be defined. For details see section <<CreditCard_Fields_Segment, segment>>.
+|cruise-industry.lodging-name |O |O | |String	|100	|The ship name booked for the cruise.
+|===
+
+[#CreditCard_Fields_Segment]
+.segment (Itinerary segment data is used e.g. within airline-industry to specify itineraries of the flight)
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|segment.carrier-code |C |C | |String	|3	|The 2-letter airline code (e.g. LH, BA, KL) supplied by IATA for each leg of a flight. Mandatory, if itinerary is provided.
+|segment.departure-airport-code |C |C | |String	|3	|The departure airport code. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+|segment.departure-city-code |C |C | |String	|32	|The departure City Code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+|segment.arrival-airport-code |C |C | |String	|3	|The arrival airport code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+|segment.arrival-city-code |C |C | |String	|32	|The arrival city code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+|segment.departure-date |C |C | |Date  |  |The departure date for a given leg. Mandatory, if itinerary is provided.
+|segment.arrival-date |C |C | |String | |The arrival date for a given leg. Mandatory, if itinerary is provided.
+|segment.flight-number |O |O | |String |6	|The flight number of the Itinerary Segment.
+|segment.fare-class |O |O | |String	|3 |Used to distinguish between First Class, Business Class and Economy Class, but also used to distinguish between different fares and booking
+|segment.fare-basis |O |O | |String	|6 |Represents a specific fare and class of service with letters, numbers, or a combination of both.
+|segment.stop-over-code |O |O | |String	|1	|0 = allowed, 1 = not allowed
+|segment.tax-amount@currency |O |O | |String |3	|The currency of the Value Added Tax Amount levied on the transaction amount.
+|===
+
+[#CreditCard_Fields_Audit]
+.audit (Audit data is displayed in WEP for each transaction it has been send with)
+[cols="15,9,9,9,12,7,40a"]
+|===
+.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
+h|Request h|Response h|Notification
+
+|audit.request-source |O |O |O |ASCII String |30 |Optional information that references the application or payment gateway a transaction is processed with.
+|audit.user |O |O |O |String |128 |Optional information that identifies the origin/user of the payment request. Audit user is send by frontend applications referencing the user processing transactions or follow up operations using the application.
+|===

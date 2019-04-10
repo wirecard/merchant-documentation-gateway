@@ -866,7 +866,7 @@
     }
 }).data('smoothState');
 
-var priorityPages = ['Credit-Debit-Card.html', 'PayPal.html', 'Klarna.html'];
+var priorityPages = ['CreditCard.html'];
 for (var i = 0; i < priorityPages.length; i++) {
   // bind var to settimeout
   setTimeout(function(page) {

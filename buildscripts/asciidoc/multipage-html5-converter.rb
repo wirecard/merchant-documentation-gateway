@@ -364,6 +364,8 @@ class MultipageHtml5Converter < Asciidoctor::Converter::Html5Converter
       # need to include the anchor.
       if "##{parent_page.id}" == node.target
         target = "#{parent_page.id}.html"
+      elsif "#{parent_page.id}" == ""
+        target = "#{node.target}"
       else
         target = "#{parent_page.id}.html#{node.target}"
       end

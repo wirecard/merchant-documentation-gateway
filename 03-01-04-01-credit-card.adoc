@@ -1,0 +1,1448 @@
+[#WPP_CC]
+===== Credit Card
+
+[#WPP_CC_General]
+====== General Information
+
+This is a reference page for _Credit Card._ Here you find all the
+information necessary for integrating this payment method in
+your Hosted and Embedded Payment Page.
+
+.Are you unfamiliar with Wirecard Payment Page (WPP)?
+
+NOTE: Visit one of the integration guides
+(<<PaymentPageSolutions_WPP_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_WPP_EPP_Integration, Embedded>>) for a quick explanation and
+a step-by-step guide before continuing.
+
+All <<WPP, WPP>> integrations share a
+<<PPSolutions_WPP_Workflow, common process flow>>﻿ for creating payments.
+
+Below, you find example requests for all available transaction types, 
+including field lists with short descriptions.
+
+These requests are designed for the testing environment and do not
+use real information. 
+
+NOTE: For production, you need to use production credentials. For details
+contact our <<ContactUs, merchant support>>.
+
+All given requests return successful responses.
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿ 
+section.
+
+For response verification examples, see
+the <<PPSolutions_WPP_WPPSecurity, WPP Security>>﻿ section.
+
+WPP can be used with the _Credit Card_ transaction types
+<<WPP_CC_TransactionType_purchase, _purchase_>>,
+<<WPP_CC_TransactionType_authorization, _authorization_>> and
+<<WPP_CC_TransactionType_authorizationonly, _authorization-only_>>.
+
+[#WPP_CC_TestCredentials]
+====== Test Credentials
+
+[cols="35h,65"]
+|===
+| URL(s) Endpoints           | ``\https://wpp-test.wirecard.com/api/payment/register``
+| Merchant Account ID (MAID) | 7a6dd74f-06ab-4f3f-a864-adc52687270a
+| Username                   | 70000-APIDEMO-CARD
+| Password                   | ohysS0-dvfMx
+| Secret Key (used for response verification) | a8c3fce6-8df7-4fd6-a1fd-62fa229c5e55
+|===
+
+[#WPP_CC_TestCredentials_Additional]
+.Test Card Information for _Credit Card_
+
+[cols="35h,65"]
+|===
+| Card number      | 4200000000000018 
+| CVV              | 018
+| Expiration date  | 01/23
+|===
+
+image:images/03-01-04-01-credit-card/cc_entercarddata.jpg[Credit Card Payment Form,width=642,height=427]
+
+[#WPP_CC_TransactionType_purchase]
+====== Transaction Type _purchase_
+
+A _purchase_ transaction charges the account holder's card and immediately
+transfers the reserved amount.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<WPP_CC_TestCredentials, Endpoint>> for _Credit Card_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA== 
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<RestApi_Fields, _Credit Card_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<WPP_CC_JSONNVPField, JSON/NVP Field Reference>> section.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json]
+----
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "purchase",
+    "requested-amount": {
+      "value": 10.1,
+      "currency": "EUR"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    }
+  }
+}
+----
+
+[cols="20,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+e|merchant-account-id |value |String |Required |36 |A unique identifier
+assigned to every merchant account (by Wirecard).
+2+e|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters: [a-z0-9-_]
+2+e|transaction-type |String |Required |36 |The requested transaction type.
+.2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal places allowed.
+
+Use . (decimal point) as the separator.
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+e|payment-method |name |String |Optional |15 |The name of the payment method
+used. Set this value to ``creditcard``.
+|===
+
+.2. Redirect the Consumer to the Payment Page (Initial Response URL)
+
+[source,json]
+----
+{
+  "payment-redirect-url": "https://wpp-test.wirecard.com/?wPaymentToken=PLDsRjRUB-1iMG_jKHfA98VqvLSd-nrzH_SSK8ELNOo"
+}
+----
+
+[cols="25e,10,65"]
+|===
+|Field (JSON) | Data Type | Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<WPP, integration method>>﻿).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as ``transaction-state``: _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json]
+----
+{
+  "api-id": "up3-wpp",
+  "account-holder": {
+    "first-name": "John",
+    "last-name": "Doe"
+  },
+  "request-id": "102d7276-edac-4144-85b3-2b62a72ac1dd",
+  "merchant-account-id": {
+    "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+  },
+  "transaction-state": "success",
+  "payment-methods": {
+    "payment-method": [
+      {
+        "name": "creditcard"
+      }
+    ]
+  },
+  "transaction-type": "purchase",
+  "card-token": {
+    "token-id": "4943380955491111",
+    "masked-account-number": "444433******1111"
+  },
+  "transaction-id": "d1ecf4f8-f2bf-44e6-a5d5-79ce3cd4fd2e",
+  "completion-time-stamp": "2018-04-03T15:19:56",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 10.1
+  },
+  "statuses": {
+    "status": [
+      {
+        "description": "3d-acquirer:The resource was successfully created.",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
+  },
+  "authorization-code": "153620",
+  "descriptor": "demo descriptor"
+}
+----
+
+[cols="20,10,5,65"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+2+e|api-id |String |Identifier of the currently used API.
+2+e|first-name |String |The first name of the account holder.
+2+e|last-name |String |The last name of the account holder.
+2+e|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing to it later.
+e|merchant-account-id |value |String |A unique identifier assigned to every
+merchant account (by Wirecard).
+2+e|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+e|payment-method |name |String |The name of the payment method used for the
+transaction.
+2+e|transaction-type |String |The requested transaction type.
+2+e|token-id |String |A unique identifier assigned to every card token.
+2+e|masked-account-number |String |The masked code that represents the account
+(card) number used in the transaction.
+2+e|transaction-id |String |A unique identifier assigned to every transaction
+(by Wirecard). Used when searching for or referencing to it later.
+2+e|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+e|requested-amount |currency |String a|The currency of the
+requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|value |Numeric |The full amount that is requested/contested in a transaction.
+.3+e|status |description |String |The description of the transaction status message.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+2+e|authorization-code |String |Provider authorization code.
+2+e|descriptor |String |Description of the transaction for account holder's
+bank statement purposes.
+|===
+
+[#WPP_CC_TransactionType_authorization]
+====== Transaction Type _authorization_
+
+An _authorization_ transaction places the account holder's funds on hold,
+pending future capture, re-authorization or void transaction.
+
+As with other referenceable transaction types, you can use WPP only to
+create the authorization itself. To capture or register additional
+transactions referencing it, you need to use
+our <<WPP_CC_PostProcessing, REST API>>. 
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below. 
+
+<<WPP_CC_TestCredentials, Endpoint>> for _Credit Card_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA== 
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<RestApi_Fields, _Credit Card_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<WPP_CC_JSONNVPField, JSON/NVP Field Reference>> section.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json]
+----
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "authorization",
+    "requested-amount": {
+      "value": 10.1,
+      "currency": "EUR"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    }
+  }
+}
+----
+
+[cols="20,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+e|merchant-account-id |value |String |Required |36 |A unique identifier
+assigned to every merchant account (by Wirecard).
+2+e|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters: [a-z0-9-_]
+2+e|transaction-type |String |Required |36 |The requested transaction type.
+.2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal places allowed.
+
+Use . (decimal point) as the separator.
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+e|payment-method |name |String |Optional |15 |The name of the payment method
+used. Set this value to ``creditcard``.
+|===
+
+.2. Redirect the Consumer to the Payment Page (Initial Response URL)
+
+[source,json]
+----
+{
+  "payment-redirect-url": "https://wpp-test.wirecard.com/?wPaymentToken=aiW0jSJ69abFIV1kD6F73si9BK13PLEqTNYuIaIdUdg"
+}
+----
+
+[cols="25e,10,65"]
+|===
+|Field (JSON) | Data Type | Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<WPP, integration method>>﻿).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+._authorization_ (Response)
+
+[source,json]
+----
+{
+  "api-id": "up3-wpp",
+  "account-holder": {
+    "first-name": "John",
+    "last-name": "Doe"
+  },
+  "request-id": "59725adc-4b4e-49d0-bd75-1ca3a4226081",
+  "merchant-account-id": {
+    "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+  },
+  "transaction-state": "success",
+  "payment-methods": {
+    "payment-method": [
+      {
+        "name": "creditcard"
+      }
+    ]
+  },
+  "transaction-type": "authorization",
+  "card-token": {
+    "token-id": "4943380955491111",
+    "masked-account-number": "444433******1111"
+  },
+  "transaction-id": "d9d47240-5b52-4184-b53a-37d5f755623d",
+  "completion-time-stamp": "2018-04-03T15:44:55",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 10.1
+  },
+  "statuses": {
+    "status": [
+      {
+        "description": "3d-acquirer:The resource was successfully created.",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
+  },
+  "authorization-code": "153620",
+  "descriptor": "demo descriptor"
+}
+----
+
+[cols="20,10,5,65"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+2+e|api-id |String |Identifier of the currently used API.
+2+e|first-name |String |The first name of the account holder.
+2+e|last-name |String |The last name of the account holder.
+2+e|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing to it later.
+e|merchant-account-id |value |String |A unique identifier assigned to
+every merchant account (by Wirecard).
+2+e|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+e|payment-method |name |String |The name of the payment method used for the
+transaction.
+2+e|transaction-type |String |The requested transaction type.
+2+e|token-id |String |A unique identifier assigned to every card token.
+2+e|masked-account-number |String |The masked code that represents the account
+(card) number used in the transaction.
+2+e|transaction-id |String |A unique identifier assigned to every transaction
+(by Wirecard). Used when searching for or referencing to it later.
+2+e|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+e|requested-amount |currency |String a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|value |Numeric |The full amount that is requested/contested in a transaction.
+.3+e|status |description |String |The description of the transaction status message.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+2+e|authorization-code |String |Provider authorization code.
+2+e|descriptor |String |Description of the transaction for account holder's
+bank statement purposes.
+|===
+
+[#WPP_CC_TransactionType_authorizationonly]
+====== Transaction Type _authorization-only_
+
+An _authorization-only_ transaction verifies the validity of account
+holder's card, but does not leave an authorized amount.
+
+_authorization-only_ transactions require a *zero* requested amount.
+
+As with other referenceable transaction types, you can use WPP only to
+create the authorization itself. To capture or register additional
+transactions referencing it, you need to use
+our <<WPP_CC_PostProcessing, REST API>>. 
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<WPP_CC_TestCredentials, Endpoint>> for _Credit Card_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA== 
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<RestApi_Fields, _Credit Card_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<WPP_CC_JSONNVPField, JSON/NVP Field Reference>> section.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json]
+----
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "authorization-only",
+    "requested-amount": {
+      "value": 0,
+      "currency": "EUR"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    }
+  }
+}
+----
+
+[cols="20,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+e|merchant-account-id |value |String |Required |36 |A unique identifier
+assigned to every merchant account (by Wirecard).
+2+e|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters: [a-z0-9-_]
+2+e|transaction-type |String |Required |36 |The requested transaction type.
+.2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal places allowed.
+_authorization-only_ transactions require a zero requested amount.
+
+Use . (decimal point) as the separator.
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+e|payment-method |name |String |Optional |15 |The name of the payment method
+used. Set this value to ``creditcard``.
+|===
+
+.2. Redirect the Consumer to the Payment Page (Initial Response URL)
+
+[source,json]
+----
+{
+  "payment-redirect-url": "https://wpp-test.wirecard.com/?wPaymentToken=aiW0jSJ69abFIV1kD6F73si9BK13PLEqTNYuIaIdUdg"
+}
+----
+
+[cols="25e,10,65"]
+|===
+|Field (JSON) | Data Type | Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<WPP, integration method>>﻿).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json]
+----
+{
+  "api-id": "up3-wpp",
+  "payment-methods": {
+    "payment-method": [
+      {
+        "name": "creditcard"
+      }
+    ]
+  },
+  "request-id": "7d7fee3f-5d57-444d-ada2-8e0f0017840b",
+  "merchant-account-id": {
+    "value": "7a6dd74f-06ab-4f3f-a864-adc52687270a"
+  },
+  "transaction-state": "success",
+  "account-holder": {
+    "first-name": "John",
+    "last-name": "Doe"
+  },
+  "transaction-type": "authorization-only",
+  "card-token": {
+    "token-id": "4684930252011111",
+    "masked-account-number": "444433******1111"
+  },
+  "transaction-id": "a19e8683-aa82-41b2-b6d0-49a9cdfdc923",
+  "completion-time-stamp": "2018-04-04T22:37:21",
+  "requested-amount": {
+    "currency": "EUR",
+    "value": 0
+  },
+  "statuses": {
+    "status": [
+      {
+        "description": "3d-acquirer:The resource was successfully created.",
+        "severity": "information",
+        "code": "201.0000"
+      }
+    ]
+  },
+  "authorization-code": "153620",
+  "descriptor": "demo descriptor"
+}
+----
+
+[cols="20,10,5,65"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+2+e|api-id |String |Identifier of the currently used API.
+2+e|first-name |String |The first name of the account holder.
+2+e|last-name |String |The last name of the account holder.
+2+e|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing to it later.
+e|merchant-account-id |value |String |A unique identifier assigned to every
+merchant account (by Wirecard).
+2+e|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+e|payment-method |name |String |The name of the payment method used for the
+transaction.
+2+e|transaction-type |String |The requested transaction type.
+2+e|token-id |String |A unique identifier assigned to every card token.
+2+e|masked-account-number |String |The masked code that represents the account
+(card) number used in the transaction.
+2+e|transaction-id |String |A unique identifier assigned to every transaction
+(by Wirecard). Used when searching for or referencing to it later.
+2+e|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+e|requested-amount |currency |String a|The currency of the
+requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|value |Numeric |The full amount that is requested/contested in a transaction.
+.3+e|status |description |String |The description of the transaction status
+message.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+2+e|authorization-code |String |Provider authorization code.
+2+e|descriptor |String |Description of the transaction for account holder's
+bank statement purposes.
+|===
+
+[#WPP_CC_3DSecure]
+===== _Credit Card_ with 3-D Secure
+
+To process 3-D Secure transactions, you need to have them enabled on
+your merchant account. Contact <<ContactUs, merchant support>> if 3-D Secure
+was not enabled for you during Merchant setup.
+
+NOTE: If a consumer card is not 3-D enrolled and ``attempt-three-d`` is set
+to ``true``, the payment fails.
+
+To process a card payment with 3-D Secure enabled:
+
+Add the ``attempt-three-d`` field to the payment request and set it
+to ``true``.
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+payment form.
+
+[#WPP_CC_3DSecure_TestCredentials]
+====== Test Credentials
+
+[cols="35h,65"]
+|===
+| URL(s) Endpoints           |``\https://wpp-test.wirecard.com/api/payment/register``
+| Merchant Account ID (MAID) | cad16b4a-abf2-450d-bcb8-1725a4cef443
+| Username                   | 70000-APILUHN-CARD
+| Password                   | 8mhwavKVb91T
+| Secret Key (used for response verification) | b3b131ad-ea7e-48bc-9e71-78d0c6ea579d
+|===
+
+[#WPP_CC_3DSecure_TestCredentials_Additional]
+.Test Card Information for _Credit Card_ with 3D Secure
+
+[cols="35h,65"]
+|===
+| Card number               | 4012000300001003
+| CVV                       | 003
+| Expiration date           | 01/23
+| 3-D verification password | wirecard
+|===
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA== 
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<RestApi_Fields, _Credit Card_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<WPP_CC_JSONNVPField, JSON/NVP Field Reference>> section.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json]
+----
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "cad16b4a-abf2-450d-bcb8-1725a4cef443"
+    },
+    "request-id": "{{$guid}}",
+    "transaction-type": "purchase",
+    "requested-amount": {
+      "value": 10.1,
+      "currency": "EUR"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    },
+    "three-d": {
+      "attempt-three-d": "true"
+    }
+  }
+}
+----
+
+[cols="20,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+e|merchant-account-id |value |String |Required |36 |A unique identifier
+assigned to every merchant account (by Wirecard).
+2+e|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters: [a-z0-9-_]
+2+e|transaction-type |String |Required |36 |The requested transaction type.
+.2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal places allowed.
+
+Use . (decimal point) as the separator.
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+e|payment-method |name |String |Optional |15 |The name of the payment method
+used. Set this value to ``creditcard``.
+2+e|attempt-three-d |Boolean |Conditional |N/A |Required for 3-D Secure
+transactions. Indicates whether 3-D Secure authentication is enabled for the
+transaction.
+|===
+
+.2. Redirect the Consumer to the Payment Page (Initial Response URL)
+
+[source,json]
+----
+{
+  "payment-redirect-url": "https://wpp-test.wirecard.com/?wPaymentToken=9TbVFfOEKVQKMR5JOw921dnF3x2kr0EwErr3LIcrKAQ"
+}
+----
+
+[cols="25e,10,65"]
+|===
+|Field (JSON) | Data Type | Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<WPP, integration method>>﻿).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json]
+----
+{
+  "payment": {
+    "authorization-code": "376765",
+    "transaction-state": "success",
+    "merchant-account-id": {
+      "value": "cad16b4a-abf2-450d-bcb8-1725a4cef443"
+    },
+    "card-token": {
+      "token-id": "4304509873471003",
+      "masked-account-number": "401200******1003"
+    },
+    "csc-code": "P",
+    "account-holder": {
+      "first-name": "John",
+      "last-name": "Doe"
+    },
+    "statuses": {
+      "status": [
+        {
+          "description": "Cardholder Successfully authenticated.",
+          "severity": "information",
+          "code": "200.1083"
+        },
+        {
+          "description": "The resource was successfully created.",
+          "severity": "information",
+          "code": "201.0000"
+        }
+      ]
+    },
+    "custom-fields": {
+      "custom-field": [
+        {
+          "field-name": "elastic-page-api.3d.original_txn_type",
+          "field-value": "purchase"
+        }
+      ]
+    },
+    "parent-transaction-id": "983c48e3-4e46-45c7-8d06-8775d7a059c0",
+    "api-id": "wpp",
+    "iso": {
+      "approval-code": "376765"
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    },
+    "transaction-id": "626a672e-a4c8-4e10-a5c8-b10e2ab43634",
+    "completion-time-stamp": "2018-11-30T09:07:29",
+    "requested-amount": {
+      "currency": "EUR",
+      "value": 10.1
+    },
+    "card": {
+      "merchant-tokenization-flag": false,
+      "card-type": "visa",
+      "expiration-month": 1,
+      "expiration-year": 2019
+    },
+    "three-d": {
+      "eci": "05",
+      "xid": "aG9ONUhrbmFIVnUxQUIwOVBTelM=",
+      "cardholder-authentication-value": "AAABD///////////////AAAAAAA=",
+      "attempt-three-d": false,
+      "cardholder-authentication-status": "Y"
+    },
+    "transaction-type": "purchase",
+    "request-id": "d2eb0563-e7b5-4415-ade9-0246bcc2f6bc"
+  }
+}
+----
+
+.Possible results for ECI field
+
+These are the possible scenarios for the value of the field ``eci``:
+
+3-D authentication successful:: The card issuing bank is 3-D ready and
+cardholder is enrolled.
+(ECI Value: 05 - VISA/JCB/American Express; 02 - Mastercard)
+
+3-D authentication unsuccessful:: Either the card issuing bank is not
+3-D ready or the cardholder is not enrolled.
+(ECI Value: 06 - VISA/JCB/American Express; 01 - Mastercard)
+
+3-D authentication unsuccessful or not attempted:: Either a non-3D card
+or the card issuing bank does not handle the transaction as 3-D Secure.
+(ECI Value: 07 - VISA/JCB/American Express; 00 - Mastercard)
+
+[cols="20,10,5,65"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+2+e|authorization-code |String |Provider authorization code.
+2+e|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response only.
+e|merchant-account-id |value |String |A unique identifier assigned to every
+merchant account (by Wirecard).
+.2+e|card-token |token-id |String |A unique identifier assigned to every card
+token.
+|masked-account-number |String |The masked code that represents the account
+(card) number used in the transaction.
+2+e|csc-code |String |Code indicating Card Verification Value (CVV/CVC)
+verification results.
+.2+e|account-holder |first-name |String |The first name of the account holder.
+|last-name |String |The last name of the account holder.
+.3+e|status |description |String |The description of the transaction status
+message.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+.2+e|custom-field |field-name |String |
+|field-value |String |
+2+e|parent-transaction-id |String |The unique identifier of a transaction that
+is being referenced (sometimes referred to as the "original transaction").
+2+e|api-id |String |Description of the transaction for account holder's bank
+statement purposes.
+e|iso |approval-code |String |Authentication ID of the response
+e|payment-method |name |String |The name of the payment method used for the
+transaction.
+2+e|transaction-id |String |A unique identifier assigned to every transaction
+(by Wirecard). Used when searching for or referencing to it later.
+2+e|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+e|requested-amount |currency |String a|The currency of the
+requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|value |Numeric |The full amount that is requested/contested in a transaction.
+.4+e|card |merchant-tokenization-flag |Boolean |Indicates whether Cardholder
+card data was stored by the Merchant for future transactions. Maps to the
+Visa field _Stored Credential._
+|card-type |String |The type/provider of the card used in the transaction.
+|expiration-month|Numeric|The expiration month of the card used in the
+transaction.
+|expiration-year |Numeric |The expiration year of the card used in the
+transaction.
+.5+e|three-d |eci |String |ECI (Electronic Commerce Indicator) indicates the
+3-D authentication results. This value is returned from the card provider's
+directory server.
+|xid |String |Unique transaction identifier in the 3-D Secure process provided
+by MPI (merchant plug-in).
+|cardholder-authentication-value |String a|The CAVV is a a cryptographic value
+generated by the issuer.
+
+For Visa transactions, it is called CAVV (Cardholder Authentication
+  Verification Value).
+
+For MasterCard transactions, it is either called Account Holder Authentication
+Value (AAV) or Universal Cardholder Authentication Field (UCAF).
+|attempt-three-d |Boolean |Indicates whether the transaction should use the
+3-D Secure workflow.
+|cardholder-authentication-status |String |Result of the 3-D Secure check.
+2+e|transaction-type | String |The requested transaction type.
+2+e|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing to it later.
+|===
+
+[#WPP_CC_3DS2Fields]
+====== 3-D Secure 2 - Additional Fields
+
+To create a payment session with *Credit Card using 3-D Secure 2 authentication*, you need to *include additional 3-D Secure 2 fields in your initial request*.
+
+Most of these fields are optional but we recommend the implementation of
+optional fields, as this creates a smoother user experience and ensures
+a higher level of security.
+
+Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general introduction to 3-D Secure 2>>.
+
+.Additional Fields for 3DS2
+[%autowidth, stripes="none"]
+|===
+4+| JSON                                                           | Datatype            | Required/Optional/Conditional | Size | Description
+
+.20+e| account-holder .13+| account-info 2+| authentication-method    | String              | Optional                      |      | Mechanism used by the cardholder to authenticate to the 3DS Requestor. +
+                                                                                                                                    
+                                                                                                                                    Possible values: 01, 02, 03, 04, 05, 06 +
+
+                                                                                                                                    01 = No 3DS Requestor authentication occurred (i.e. cardholder “logged in” as guest). +
+                                                                                                                                    02 = Login to the cardholder account at the 3DS Requestor system using 3DS Requestor's own credentials. +
+                                                                                                                                    03 = Login to the cardholder account at the 3DS Requestor system using federated ID. +
+                                                                                                                                    04 = Login to the cardholder account at the 3DS Requestor system using issuer credentials. +
+                                                                                                                                    05 = Login to the cardholder account at the 3DS Requestor system using third-party authentication. +
+                                                                                                                                    06 = Login to the cardholder account at the 3DS Requestor system using FIDO Authenticator.
+                                  2+| authentication-timestamp | YYYY-MM-DDThh:mm:ss | Optional                      |      | Date and time in UTC of the cardholder authentication. Format: YYYY-MM-DDThh:mm:ss (ISO).
+                                  2+| challenge-indicator      | String              | Optional                      |      | Indicates whether a challenge is requested for this transaction. +
+                                                                                                                              
+                                                                                                                              Possible values: 01, 02, 03, 04 +
+
+                                                                                                                               01 = No preference. +
+                                                                                                                               02 = No challenge requested. +
+                                                                                                                               03 = Challenge requested: 3DS Requestor Preference. +
+                                                                                                                               04 = Challenge requested: Mandate.
+                                   2+| account-creation-date      | Date              | Optional                      |      | Date that the cardholder opened the account with the 3DS Requestor.
+                                   2+| account-update-date        | Date              | Optional                      |      | Date that the cardholder's account with the 3DS Requestor was last changed. Including Billing or Shipping address, new payment account, or new user(s) added.
+                                   2+| password-change-date       | Date              | Optional                      |      | Date that cardholder's account with the 3DS Requestor had a password change or account reset.
+                                   2+| shipping-address-first-use | Date              | Optional                      |      | Date when the shipping address used for this transaction was first used with the 3DS Requestor.
+                                   2+| transactions-last-day      | Numeric           | Optional                      |      | Number of transactions (successful and abandoned) for this cardholder account with the 3DS Requestor across all payment accounts in the previous 24 hours.
+                                   2+| transactions-last-year     | Numeric           | Optional                      |      | Number of transactions (successful and abandoned) for this cardholder account with the 3DS Requestor across all payment accounts in the previous year.
+                                   2+| card-transactions-last-day | Numeric           | Optional                      |      | Number of Add Card attempts in the last 24 hours.
+                                   2+| purchases-last-six-months  | Numeric           | Optional                      |      | Number of purchases with this cardholder account during the previous six months.
+                                   2+| suspicious-activity        | Boolean           | Optional                      |      | Indicates whether the 3DS Requestor has experienced suspicious activity (including previous fraud) on the cardholder account. 
+                                   2+| card-creation-date         | Date              | Optional                      |      | Date that the payment account was enrolled in the cardholder's account with the 3DS Requestor. 
+                   | address       2+| street3                    | String            | Conditional                   | 50   | Third line of the street address or equivalent local portion of the cardholder's billing address associated with the card use for this purchase. +
+                                                                                                                               This field is limited to maximum 50 characters. +
+                                                                                                                               This field is required unless market or regional mandate restricts sending this information.
+                .2+| home-phone    2+| country-part               | String            | Conditional                   |  3   | Country Code of the home phone provided by the cardholder. +
+                                                                                                                               This field is required if available, unless market or regional mandate restricts sending this information.
+                                   2+| other-part                 | String            | Conditional                   | 15   | Subscriber section of the home phone provided by the cardholder.  
+                .2+| mobile-phone  2+| country-part               | String            | Conditional                   |  3   | Country Code of the mobile phone provided by the cardholder. +
+                                                                                                                               This field is required if available, unless market or regional mandate restricts sending this information.
+                                   2+| other-part                 | String            | Conditional                   | 15   | Subscriber section of the mobile phone provided by the cardholder. +
+                                                                                                                               This field is required if available, unless market or regional mandate restricts sending this information.
+                .2+| work-phone    2+| country-part               | String            | Conditional                   |  3   | Country Code of the work phone provided by the cardholder. +
+                                                                                                                               This field is required if available, unless market or regional mandate restricts sending this information.
+                                   2+| other-part                 | String            | Conditional                   | 15   | Subscriber section of the work-phone provided by the cardholder. +
+                                                                                                                               This field is required if available, unless market or regional mandate restricts sending this information.
+.2+e|shipping     3+| shipping-method                              | String            | Optional                      |      | Indicates shipping method chosen for the transaction. Merchants must choose the Shipping Indicator code that most accurately describes the cardholder's specific transaction. +
+                                                                                                                               If one or more items are included in the sale, use the Shipping Indicator code for the physical goods, or if all digital goods, use the code that describes the most expensive item. +
+                                                                                                                               
+                                                                                                                               Accepted values are: 01, 02, 03, 04, 05, 06, 07 +
+
+                                                                                                                               01 = Ship to cardholder's billing address. +
+                                                                                                                               02 = Ship to another verified address on file with merchant. +
+                                                                                                                               03 = Ship to address that is different than the cardholder's billing address. +
+                                                                                                                               04 = "Ship to Store" / Pick-up at local store (Store address shall be populated in shipping address fields). +
+                                                                                                                               05 = Digital goods (includes online services, electronic gift cards and redemption codes). +
+                                                                                                                               06 = Travel and Event tickets, not shipped. +
+                                                                                                                               07 = Other (for example, Gaming, digital services not shipped, e-media subscriptions, etc.).                                                                                           
+                   | address       2+| street3                    | String            | Optional                      | 50   | Third line of the street address or equivalent local portion of the shipping address associated with the card use for this purchase. +
+                                                                                                                               This field is required unless shipping information is the same as billing information, or market or regional mandate restricts sending this information.                    
+.8+e| risk-info   3+| delivery-timeframe                           | String            | Optional                      |      | Indicates the merchandise delivery time frame.
+                                                                                                                               
+                                                                                                                               Accepted values are: 01, 02, 03, 04 +
+
+                                                                                                                               01 = Electronic Delivery +
+                                                                                                                               02 = Same day shipping +
+                                                                                                                               03 = Overnight shipping +
+                                                                                                                               04 = Two-day or more shipping                                                             
+                 3+| delivery-mail                                | String            | Optional                      |254   | For electronic delivery, the email address to which the merchandise was delivered.
+                 3+| reorder-items                                | String            | Optional                      |      | Indicates whether the cardholder is reordering previously purchased merchandise. 
+                                                                                                                               
+                                                                                                                               Accepted values are: 01, 02 +
+
+                                                                                                                               01 = First time ordered +
+                                                                                                                               02 = Reordered  
+                 3+| availability                                 | String            | Optional                      |      | Indicates whether cardholder is placing an order for merchandise with a future availability or release date.
+                                                                                                                               
+                                                                                                                               Accepted values are: 01, 02 +
+
+                                                                                                                               01 = Merchandise available +
+                                                                                                                               02 = Future availability
+                 3+| preorder-date                                | Date              | Optional                      |      | For a pre-ordered purchase, the expected date that the merchandise will be available.
+                .3+| gift       2+| amount                        | Numeric           | Optional                      |      | For prepaid or gift card purchase, the purchase amount total of prepaid or gift card(s) in major units (for example, USD 123.45 is 123).
+                                  | amount  |currency             | String            | Optional                      |  3   | For prepaid or gift card purchase, the currency code of the card as defined in ISO 4217 except 955 - 964 and 999. 
+                                2+|card-count                     | Numeric           | Optional                      |      | For prepaid or gift card purchase, total count of individual prepaid or gift cards/codes purchased. Field is limited to 2 characters.                                                                               
+.2+e| periodic    3+|recurring-expire-date                         | Date              | Optional                      |      | Date after which no further authorizations shall be performed.
+                 3+|recurring-frequency                           | Date              | Optional                      |  4   | Indicates the minimum number of days between authorizations.
+4+e|iso-transaction-type                                           | String            | Optional                      |      | Identifies the type of transaction being authenticated. The values are derived from ISO 8583. +
+                                                                                                                               
+                                                                                                                               Accepted values are: 01, 03, 10, 11, 28 +
+
+                                                                                                                               01 = Goods/ Service Purchase +
+                                                                                                                               03 = Check Acceptance +
+                                                                                                                               10 = Account Funding +
+                                                                                                                               11 = Quasi-Cash Transaction +
+                                                                                                                               28 = Prepaid Activation and Load
+|===
+
+[#WPP_CC_PostProcessing]
+====== Post Processing Operations 
+
+WPP is best used to deal with "one-off" payments (e.g. regular,
+independent _debit_ transactions) or the initial transaction in a chain of
+them (e.g. a first _authorization_ in a chain of recurring transactions).
+However, when it comes to referencing a transaction for any kind of
+post processing operations — like a refund of one of your _debit_ transactions 
+— use our <<RestApi, REST API>>﻿﻿ directly. Check the REST API
+<<CreditCard, _Credit Card_ specification>> for details on _Credit Card_
+specific post processing operations.
+
+There are multiple post processing operations available for _Credit Card_:
+
+- _capture_ operations for both _authorization_ and _authorization-only_,
+- recurring transactions,
+- _void_ transactions,
+- refunds,
+- and more.
+
+//-
+
+For examples and more information, see the REST
+API <<CreditCard, _Credit Card_ specification>>﻿﻿.
+
+[#WPP_CC_JSONNVPField]
+====== JSON/NVP Field Reference
+
+Here you can
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+.JSON Structure for _Credit Card_ Requests
+
+[source,json]
+----
+{
+  "payment": {
+    "merchant-account-id": {
+      "value": "string"
+    },
+    "request-id": "string",
+    "transaction-type": "string",
+    "requested-amount": {
+      "currency": "string",
+      "value": 0
+    },
+    "payment-methods": {
+      "payment-method": [
+        {
+          "name": "creditcard"
+        }
+      ]
+    },
+    "account-holder": {
+      "first-name": "string",
+      "last-name": "string",
+      "email": "string",
+      "phone": "string",
+      "address": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "country": "string",
+        "postal-code": "string"
+      }
+    },
+    "shipping": {
+      "first-name": "string",
+      "last-name": "string",
+      "phone": "string",
+      "address": {
+        "street1": "string",
+        "street2": "string",
+        "city": "string",
+        "state": "string",
+        "country": "string",
+        "postal-code": "string"
+      }
+    },
+    "order-number": "string",
+    "order-detail": "string",
+    "ip-address": "string",
+    "three-d": {
+      "attempt-three-d": "true"
+    },
+    "success-redirect-url": "string",
+    "fail-redirect-url": "string",
+    "cancel-redirect-url": "string",
+    "descriptor": "string"
+  }
+}
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|requested_amount |value |requested-amount ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|email |email |account-holder ({ })
+|phone |phone |account-holder ({ })
+|street1 |address ({ })/ street1 |account-holder ({ })
+|street2 |address ({ })/ street2 |account-holder ({ })
+|city |address ({ })/ city |account-holder ({ })
+|state |address ({ })/ state |account-holder ({ })
+|country |address ({ })/ country |account-holder ({ })
+|postal_code |address ({ })/ postal-code |account-holder ({ })
+|shipping_first_name |first-name |shipping ({ })
+|shipping_last_name |last-name |shipping ({ })
+|shipping_phone |phone |shipping ({ })
+|shipping_street1 |address ({ })/ street1 |shipping ({ })
+|shipping_street2 |address ({ })/ street2 |shipping ({ })
+|shipping_city |address ({ })/ city |shipping ({ })
+|shipping_state |address ({ })/ state |shipping ({ })
+|shipping_country |address ({ })/ country |shipping ({ })
+|shipping_postal_code |address ({ })/ postal-code |shipping ({ })
+|order_number |order-number |payment ({ })
+|order_detail |order-detail |payment ({ })
+|ip_address |ip-address |payment ({ })
+|attempt_three_d |attempt-three-d |payment ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|descriptor |descriptor |payment ({ })
+|===
+
+[#WPP_CC_JSONNVPField_Responseonly]
+====== Response-only Fields
+
+[source,json]
+----
+{
+  "payment": {
+    "api-id": "string",
+    "transaction-state": "string",
+    "card-token": {
+      "masked-account-number": "string"
+    },
+    "transaction-id": "string",
+    "completion-time-stamp": "2018-03-22T16:28:46",
+    "statuses": {
+      "status": [
+        {
+          "description": "string",
+          "severity": "string",
+          "code": "string"
+        }
+      ]
+    },
+    "authorization-code": "string"
+  }
+}
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|api_id |api-id |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|masked_account_number |masked-account-number |card-token ({ })
+|transaction_id |transaction-id |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
+|authorization_code |authorization-code |payment ({ })
+|===

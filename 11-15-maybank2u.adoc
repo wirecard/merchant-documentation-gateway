@@ -1,0 +1,498 @@
+[#Maybank2u]
+=== Maybank2u
+
+[#Maybank2u_Introduction]
+==== Introduction
+[.clearfix]
+--
+[.right]
+image::images/11-15-maybank2u/maybank2u-logo.png[Maybank2u Logo, width=200]
+
+_Maybank2u_ is a payment product offered by Maybank. As one of the major
+banking groups in Asia, Maybank allows consumers to pay for online
+purchases directly from their bank accounts. _Maybank2u_ is a proprietary
+Maybank method of transferring funds and paying bills.
+--
+
+[#Maybank2u_TransactionTypes]
+==== Transaction Types
+
+[cols="e,,"]
+|===
+|Transaction Type |Description                                    |Link to the Samples
+
+|get-url          |A request to generate an order at _Maybank2u._ | 
+|debit            |A payment transaction for a purchase executed from the consumer's _Maybank2u_ account. |<<Maybank2u_Samples_debit, debit samples>>
+|===
+
+[#Maybank2u_TestCredentials]
+==== Test Credentials
+
+This payment method is available only with production credentials.
+
+[#Maybank2u_Workflow]
+==== Workflow
+
+image::images/11-15-maybank2u/maybank2u-workflow.png[Maybank2u Transaction Workflow]
+
+. On the merchant's payment page the consumer selects the payment
+method _Maybank2u._
+. _Wirecard Payment Gateway_ redirects the consumer to _Maybank2u_ to
+perform the payment. 
+. The consumer logs into his account on _Maybank2u_'s page.
+. _Wirecard Payment Gateway_ redirects the consumer to a payment
+confirmation page on _Maybank2u_'s page. 
+. _Wirecard Payment Gateway_ redirects the consumer to the merchant's
+page for the final payment status.
+
+//-
+
+[#Maybank2u_Fields]
+==== Fields
+
+The fields required for _MayBank2u_ are the same fields as
+the <<RestApi_Fields, ReST API Fields>>.
+
+[#Maybank2u_Samples]
+==== Samples
+
+[#Maybank2u_Samples_debit]
+===== debit
+
+.XML Debit Request (Successful)
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <payment-methods>
+        <payment-method name="maybank2u"/>
+    </payment-methods>
+    <merchant-account-id>3aae9de6-589f-4ac8-b90f-7bbb22c1bea2</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>debit</transaction-type>
+    <requested-amount currency="MYR">1.01</requested-amount>
+    <order-number>37530</order-number>
+    <order-detail>Test product 001</order-detail>
+    <ip-address>127.0.0.1</ip-address>
+    <locale>en</locale>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@wirecard.com</email>
+    </account-holder>
+</payment>
+----
+
+.XML Debit Response (Successful)
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>3aae9de6-589f-4ac8-b90f-7bbb22c1bea2</merchant-account-id>
+   <transaction-id>476c9d0e-0f84-11e5-87be-00163e5411b5</transaction-id>
+   <request-id>demo-0000000001</request-id>
+   <transaction-type>debit</transaction-type>
+   <transaction-state>success</transaction-state>
+   <completion-time-stamp>2019-02-10T15:20:51.000Z</completion-time-stamp>
+   <statuses>
+      <status code="201.0000" description="The resource was successfully created." severity="information"/>
+   </statuses>
+   <requested-amount currency="MYR">1.01</requested-amount>
+   <account-holder>
+      <first-name>John</first-name>
+      <last-name>Doe</last-name>
+      <email>john.doe@wirecard.com</email>
+   </account-holder>
+   <ip-address>127.0.0.1</ip-address>
+   <order-number>37530</order-number>
+   <order-detail>Test product 001</order-detail>
+   <payment-methods>
+      <payment-method url="https://m2umobilesit.maybank.com.my:443/mbb/m2u/m7000/m2uMerchantLogin.do?sendString=Login$1KY$1$1.01$1$71499379314504$1$demo-00000000010$https://mas-sandbox-engine.thesolution.com/engine/rest/epp/maybank/payments/" name="maybank2u"/>
+   </payment-methods>
+   <locale>en</locale>
+</payment>
+----
+
+.XML Debit Notification (Successful)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>3aae9de6-589f-4ac8-b90f-7bbb22c1bea2</merchant-account-id>
+    <transaction-id>bbab894e-1926-11e5-9267-00163e3537f6</transaction-id>
+    <request-id>7f1fc660-a8ac-45c2-8033-a03c7f48aff3</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>in-progress</transaction-state>
+    <completion-time-stamp>2019-02-22T17:35:59.000-04:00</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="MYR">10.000000</requested-amount>
+    <parent-transaction-id>bb7320a2-1926-11e5-9267-00163e3537f6</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@wirecard.com</email>
+        <phone>4164844000</phone>
+        <address>
+            <street1>150 Eglinton</street1>
+            <street2>Suite 999</street2>
+            <city>Toronto</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <ip-address/>
+    <order-number>PO98U457Z</order-number>
+    <order-detail>Mission Impossible Box DVD Set</order-detail>
+    <notifications>
+        <notification url="http://requestb.in/1dwrbln1"/>
+    </notifications>
+    <payment-methods>
+        <payment-method name="maybank2u"/>
+    </payment-methods>
+    <api-id>---</api-id>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <DigestValue>tuellMpzUg+KYUNriRAr73ucs58=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>Cj6szp1KWGEaXxohtqTYb5/OOIkrH9MOWurPZHGOFIfI0RjavcY0clymSen12ZpUmi4D/LVDpCPI
+l91zpSWBkBMw1D6nwc65H2XtiO1ezUB4ehpBjlI75mwSeydL44nWlW/3iSODqg8iumnyAjh9peI2
+iEJe3bAmwItcXq1zw06NfkPBrHEulRKnKv6WZ3vtVbqB3KjLsZGCs7bpr3x9UcGduqqAwQwRBsKl
+hVS81C/xVVh4yKGeLtLCDYzH63qdds3+WXFelQ3t9ZGOQwsi5gNPJa1HbYJ3u/qzBwUX2DUjKXd8
+eXW7IbiE7tJtTFzgdD2dgbslz7Zo1NmWJuo9DA==</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509SubjectName>CN=Manoj Sahu,OU=Operations,O=Wirecard Elastic Payments,L=Toronto,ST=ON,C=CA</X509SubjectName>
+                <X509Certificate>MIIDcDCCAligAwIBAgIETgQWGTANBgkqhkiG9w0BAQUFADB6MQswCQYDVQQGEwJDQTELMAkGA1UE
+CBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVu
+dHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwHhcNMTEwNjI0MDQ0
+NDA5WhcNMTQwMzIwMDQ0NDA5WjB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcT
+B1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9w
+ZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQCc8rTt4N5fNeVzlsRgOXKDE2YUSfJx7xXBozFZ3Vh3XQyy3IpIuEfZz7004k4HeonfTxCN
+etBvJ9rgNc0Cxrk/euMj3pOUrE9WYN2eAXC0r5pUIAZhIAnSxUSaIF3JKBxf7gDAik5d8RT5HaJV
+4n5cXJQ/uhAEYU3EGN/74UrD2UsOYD3VBXTJS5VgSi/c3IyLwhDbYIyU6j4fMKyHIlAMGzW7VgKD
+2pqu6BRysqUVdEEAvW2OmyVqGVyPkm87EiHSMMSar3CvYYxYqBN2KBUjabkvnRWbIzyQuyUyDeUb
+QmhVQKL0WlMb5ev65m2VjGyDTGL5jfB14rSXRMGzeJ+LAgMBAAEwDQYJKoZIhvcNAQEFBQADggEB
+ADgkuN/e2IFy7JXdbjNJbKBd3HLvFvK87dv8qQ+HK4qfCxYXh6aYhbKHJSA6C2pbOD3HBXoyovZr
+mk/KqOyUL+unVcR+APjxX4KP25sdkplgmeQ47CWxtKAHZUTtWwAVI/WhsX89SSucBfIS5TJ54e7m
+02qvGoK8UA/IRbIQ6DZ9hEKV5VQKiMx3ubwwHGXfOWz2fKmeZBuTeY+HiTEH8KCHpfw2j8G+dDgU
+jlp9LvjVNmJzfNBBk1Si0d/rhXmMzVSKj08tp1sPRK0/sJtJZBzQajpnsZ9NFfoJNdG13AzYwDP3
+x/QspK0jYn1KZw1qz524VWoQoueR8Xj30A2jntA=</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</payment>
+----
+
+.XML Debit Request (Failure)
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <payment-methods>
+        <payment-method name="maybank2u"/>
+    </payment-methods>
+    <merchant-account-id>3aae9de6-589f-4ac8-b90f-7bbb22c1bea2</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>debit</transaction-type>
+</payment>
+----
+
+.XML Debit Response (Failure)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>3aae9de6-589f-4ac8-b90f-7bbb22c1bea2</merchant-account-id>
+    <request-id>demo-111111111111111111111</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>failed</transaction-state>
+    <statuses>
+        <status code="400.1011" description="The Requested Amount has not been provided.  Please check your input and try again." severity="error"/>
+    </statuses>
+    <payment-methods>
+        <payment-method name="maybank2u"/>
+    </payment-methods>
+</payment>
+----
+
+.XML Debit Notification (Failure)
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>3aae9de6-589f-4ac8-b90f-7bbb22c1bea2</merchant-account-id>
+    <transaction-id>ac276887-b3f5-4d69-a397-ee07cf592f78</transaction-id>
+    <request-id>a31c5a90-5dd0-42f7-85be-506bffa8eaaa</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>failed</transaction-state>
+    <completion-time-stamp>2019-02-22T17:35:59.000-04:00</completion-time-stamp>
+    <statuses>
+        <status code="500.1087" description="maybank2u%3AThe+connection+to+the+provider+was+never+made+and+timed+out.++Please+try+again+later." severity="error"/>
+    </statuses>
+    <requested-amount currency="MYR">10.000000</requested-amount>
+    <parent-transaction-id>bb7320a2-1926-11e5-9267-00163e3537f6</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@wirecard.com</email>
+        <phone>4164844000</phone>
+        <address>
+            <street1>150 Eglinton</street1>
+            <street2>Suite 999</street2>
+            <city>Toronto</city>
+            <state>ON</state>
+            <country>CA</country>
+            <postal-code>M4P1E8</postal-code>
+        </address>
+    </account-holder>
+    <ip-address/>
+    <order-number>PO98U457Z</order-number>
+    <order-detail>Mission Impossible Box DVD Set</order-detail>
+    <notifications>
+        <notification url="http://requestb.in/1dwrbln1"/>
+    </notifications>
+    <payment-methods>
+        <payment-method name="maybank2u"/>
+    </payment-methods>
+    <api-id>---</api-id>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <DigestValue>tuellMpzUg+KYUNriRAr73ucs58=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>Cj6szp1KWGEaXxohtqTYb5/OOIkrH9MOWurPZHGOFIfI0RjavcY0clymSen12ZpUmi4D/LVDpCPI
+l91zpSWBkBMw1D6nwc65H2XtiO1ezUB4ehpBjlI75mwSeydL44nWlW/3iSODqg8iumnyAjh9peI2
+iEJe3bAmwItcXq1zw06NfkPBrHEulRKnKv6WZ3vtVbqB3KjLsZGCs7bpr3x9UcGduqqAwQwRBsKl
+hVS81C/xVVh4yKGeLtLCDYzH63qdds3+WXFelQ3t9ZGOQwsi5gNPJa1HbYJ3u/qzBwUX2DUjKXd8
+eXW7IbiE7tJtTFzgdD2dgbslz7Zo1NmWJuo9DA==</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509SubjectName>CN=Manoj Sahu,OU=Operations,O=Wirecard Elastic Payments,L=Toronto,ST=ON,C=CA</X509SubjectName>
+                <X509Certificate>MIIDcDCCAligAwIBAgIETgQWGTANBgkqhkiG9w0BAQUFADB6MQswCQYDVQQGEwJDQTELMAkGA1UE
+CBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVu
+dHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwHhcNMTEwNjI0MDQ0
+NDA5WhcNMTQwMzIwMDQ0NDA5WjB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcT
+B1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9w
+ZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQCc8rTt4N5fNeVzlsRgOXKDE2YUSfJx7xXBozFZ3Vh3XQyy3IpIuEfZz7004k4HeonfTxCN
+etBvJ9rgNc0Cxrk/euMj3pOUrE9WYN2eAXC0r5pUIAZhIAnSxUSaIF3JKBxf7gDAik5d8RT5HaJV
+4n5cXJQ/uhAEYU3EGN/74UrD2UsOYD3VBXTJS5VgSi/c3IyLwhDbYIyU6j4fMKyHIlAMGzW7VgKD
+2pqu6BRysqUVdEEAvW2OmyVqGVyPkm87EiHSMMSar3CvYYxYqBN2KBUjabkvnRWbIzyQuyUyDeUb
+QmhVQKL0WlMb5ev65m2VjGyDTGL5jfB14rSXRMGzeJ+LAgMBAAEwDQYJKoZIhvcNAQEFBQADggEB
+ADgkuN/e2IFy7JXdbjNJbKBd3HLvFvK87dv8qQ+HK4qfCxYXh6aYhbKHJSA6C2pbOD3HBXoyovZr
+mk/KqOyUL+unVcR+APjxX4KP25sdkplgmeQ47CWxtKAHZUTtWwAVI/WhsX89SSucBfIS5TJ54e7m
+02qvGoK8UA/IRbIQ6DZ9hEKV5VQKiMx3ubwwHGXfOWz2fKmeZBuTeY+HiTEH8KCHpfw2j8G+dDgU
+jlp9LvjVNmJzfNBBk1Si0d/rhXmMzVSKj08tp1sPRK0/sJtJZBzQajpnsZ9NFfoJNdG13AzYwDP3
+x/QspK0jYn1KZw1qz524VWoQoueR8Xj30A2jntA=</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</payment>
+----
+
+[#Maybank2u_Samples_queryWorkflow]
+===== Workflow without Notification
+
+NOTE: The following sample describes a query workflow if the regular
+notification cannot be received due to technical issues.
+
+.Workflow to get Transaction Status without Notification
+. Merchant sends ``get-url`` request.
++
+.get-url Request Headers
+----
+POST /engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml
+Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+Content-Length: 629
+Host: api-test.wirecard.com
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+----
++
+.get-url Request Body
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>0492ac17-b459-420c-8e4d-445be229d276</merchant-account-id>
+  <payment-methods>
+    <payment-method name="maybank2u"/>
+  </payment-methods>
+  <transaction-type>get-url</transaction-type>
+  <request-id>d6513abf-7a64-4a31-b773-76f19be65780</request-id>
+  <requested-amount currency="MYR">100</requested-amount>
+  <order-number>32168</order-number>
+  <order-detail>something</order-detail>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+    <email>john.doe@wirecard.com</email>
+  </account-holder>
+</payment>
+----
++
+.get-url Response Headers
+----
+HTTP/1.1 201 Created
+Server: Apache-Coyote/1.1
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+Content-Type: application/xml;charset=UTF-8
+Content-Language: en-US
+Content-Length: 1197
+Date: Wed, 30 Jan 2019 09:19:36 GMT
+----
++
+.get-url Response Body
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment
+    xmlns="http://www.elastic-payments.com/schema/payment"
+    xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+    <merchant-account-id>0492ac17-b459-420c-8e4d-445be229d276</merchant-account-id>
+    <transaction-id>ea8579fd-1e70-4045-9b62-0f433c2b4c70</transaction-id>
+    <request-id>d6513abf-7a64-4a31-b773-76f19be65780</request-id>
+    <transaction-type>get-url</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2017-08-30T09:19:36.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="MYR">100</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@wirecard.com</email>
+    </account-holder>
+    <order-number>32168</order-number>
+    <order-detail>something</order-detail>
+    <payment-methods>
+        <payment-method url="http://localhost:9301/maybank2u/payment/?sendString=Login$1KY$1$100.00$1$44895249721065$1$d6513abf-7a64-4a31-b773-76f19be65780$http://localhost:8080/engine/rest/epp/maybank/payments/" name="maybank2u"/>
+    </payment-methods>
+</payment>
+----
++
+. Payment has been made. No notification is sent.
+. Merchant sends a ``GET`` request to transaction search QUERY interface to get the transaction status.
++
+.QUERY Request Headers
+----
+GET /engine/rest/merchants/0492ac17-b459-420c-8e4d-445be229d276/payments/search?payment.request-id=d6513abf-7a64-4a31-b773-76f19be65780 HTTP/1.1
+Accept-Encoding: gzip,deflate
+Host: localhost:8080
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+----
++
+Wirecard Payment Gateway then sends a request to _Maybank2u._
++
+----
+POST https://www.maybank2u.com.my/eQuery/enoteservices/XmlQuery.jws
+----
++
+.WPG Request Body
+[source,xml]
+----
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+    <soap:Body>
+        <RequestPayeeInfo
+            xmlns="http://www.openuri.org/">
+            <userid>test-user</userid>
+            <password>test-password</password>
+            <payeecode>1KY</payeecode>
+            <billNo>d6513abf-7a64-4a31-b773-76f19be65780</billNo>
+            <Amt>100</Amt>
+        </RequestPayeeInfo>
+    </soap:Body>
+</soap:Envelope>
+----
++
+.Maybank2u Webservice Response to WPG
+[source,xml]
+----
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <RequestPayeeInfoResponse
+            xmlns="http://www.openuri.org/"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="" xsi:schemaLocation="">
+            <RequestPayeeInfoResult>00</RequestPayeeInfoResult>
+        </RequestPayeeInfoResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+----
++
+. WPG responds to the merchant's server.
++
+.WPG Response to Merchant's Server Headers
+----
+HTTP/1.1 200 OK
+Server: Apache-Coyote/1.1
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-XSS-Protection: 1; mode=block
+X-Content-Type-Options: nosniff
+Content-Type: application/xml;charset=UTF-8
+Content-Language: en-US
+Content-Length: 1344
+Date: Wed, 30 Jan 2019 09:19:36 GMT
+----
++
+.WPG Response to Merchant's Server Body
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment
+    xmlns="http://www.elastic-payments.com/schema/payment"
+    xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="http://127.0.0.1:8080/engine/rest/merchants/0492ac17-b459-420c-8e4d-445be229d276/payments/761be758-c50a-416b-b0d1-f65966308e9e">
+    <merchant-account-id ref="http://127.0.0.1:8080/engine/rest/config/merchants/0492ac17-b459-420c-8e4d-445be229d276">0492ac17-b459-420c-8e4d-445be229d276</merchant-account-id>
+    <transaction-id>761be758-c50a-416b-b0d1-f65966308e9e</transaction-id>
+    <request-id>d6513abf-7a64-4a31-b773-76f19be65780</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2017-08-30T09:19:36.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="MYR">100.000000</requested-amount>
+    <parent-transaction-id>ea8579fd-1e70-4045-9b62-0f433c2b4c70</parent-transaction-id>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+        <email>john.doe@wirecard.com</email>
+    </account-holder>
+    <order-number>32168</order-number>
+    <order-detail>something</order-detail>
+    <payment-methods>
+        <payment-method name="maybank2u"/>
+    </payment-methods>
+    <api-id>---</api-id>
+</payment>
+----
+
+//-
