@@ -107,10 +107,13 @@ function highlightTOCelement(id='none') {
   if(id == 'none') {
     $('ul.tocify-subheader').hide();
   } else {
+    var tocElement = $('li.tocify-item[data-unique=' + id + ']');
+    if(tocElement.length == 0) {
+      return;
+    }
     console.log('highlight ' + id);
     $('ul.tocify-subheader').hide();
     $('li.tocify-item[data-unique]').removeClass('toc-hl');
-    var tocElement = $('li.tocify-item[data-unique=' + id + ']');
     tocElement.addClass('toc-hl');
     tocElement.parents('ul.tocify-subheader').show();
     tocElement.next('ul.tocify-subheader').show();
