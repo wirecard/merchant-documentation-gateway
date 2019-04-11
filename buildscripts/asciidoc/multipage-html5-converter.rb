@@ -261,7 +261,7 @@ class MultipageHtml5Converter < Asciidoctor::Converter::Html5Converter
           links << %(← <<#{previous_page.id}>>)
         end
         #links << %(↑ <<#{parent_page.id}>>)
-        links << %(⌂ <<#{home_page.id}>>) if home_page != parent_page
+        #links << %(⌂ <<#{home_page.id}>>) if home_page != parent_page
       end
       if page_index != pages.length-1
         next_page = pages[page_index+1]
