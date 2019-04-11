@@ -28,7 +28,7 @@ var idx = lunr(function() {
 
   function htmlElementsToJSON(listSelector, unmarshalFunction) {
     // add the list elements to lunr
-    var qs = $(listSelector);
+    var qs = $(listSelector, "#content .sect2, #content .sect3");
     var entries = [];
     for (var i = 0; i < qs.length; i++) {
       var $q = $(qs[i]);
