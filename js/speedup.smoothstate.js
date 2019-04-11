@@ -460,6 +460,12 @@
 
           /** Updates the contents from cache[url] */
           updateContent = function (url) {
+
+            // exclude Edge workaround
+            if (window.navigator.userAgent.indexOf("Edge") > -1) {
+              window.location.href = url;
+            }
+
             // If the content has been requested and is done:
             var containerId = '#' + elementId,
                 $newContent = cache[url] ? $(cache[url].html.html()) : null;
