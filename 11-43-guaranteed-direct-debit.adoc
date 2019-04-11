@@ -47,7 +47,7 @@ information about the countries and currencies which are relevant for _Guarantee
 [#GuaranteedDirectDebit_Communication]
 ===== Communication Formats
 
-This table illustrates how _Guaranteed Invoice by Wirecard and Guaranteed Direct Debit_ notifications are encoded and which formats and methods can be
+This table illustrates how _Guaranteed Direct Debit_ notifications are encoded and which formats and methods can be
 used for requests and responses.
 
 [%autowidth,stripes=none]
@@ -72,9 +72,7 @@ at <<AppendixB, AppendixB: Transaction Types>>.
 consumer makes an order. All order items must be listed for the shopping
 basket. The authorization amount must match the value of the items in
 the basket.
-| <<GuaranteedDirectDebit_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
-
-<<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |capture-authorization |Used to capture the reserved funds at the moment
 when some or all goods are physically delivered to the consumer.
@@ -84,9 +82,7 @@ the authorization limit is not exceeded. Basket items only lists the
 items that were delivered to the consumer in this delivery, not the ones
 that were delivered before or are waiting to be delivered. The total
 amount of the capture must be the value of the items in the basket.
-|<<GuaranteedDirectDebit_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
-
-<<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |void-authorization |Used when the consumer wishes to cancel some or all
 (not yet shipped) items from the order. Available only for a successful
@@ -94,18 +90,14 @@ amount of the capture must be the value of the items in the basket.
 multiple void are allowed, until all items from the order are canceled
 or shipped. Basket items only list those items which are being canceled
 from the order.
-|<<GuaranteedDirectDebit_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
-
-<<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |refund-capture |Used when the consumer wishes to return some or all
 delivered goods. Available on a successful ``capture-authorization``.
 Partial and multiple refunds are allowed, until all delivered items have
 been returned. Basket items list only those items which are being
 returned to the merchant.
-|<<GuaranteedDirectDebit_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
-
-<<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |credit |Used when merchant wishes to grant a discount on an existing
 order. Items from this order may already be delivered to the consumer.
@@ -114,9 +106,7 @@ allowed, but the overall sum of credits may not exceed the value of the
 delivered goods to the consumer. The credit transaction must include a
 basket item representing the discount. The credit transaction must refer
 to the successful authorization transaction ID.
-|<<GuaranteedDirectDebit_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
-
-<<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 |===
 
 [NOTE]
@@ -147,12 +137,12 @@ are shipped in separate shipments.
                                   | For transaction types ``capture-authorization``, ``refund-capture``,
                                     ``void-authorization`` and ``credit``
                                                                          |``\https://api-test.wirecard.com/engine/rest/payments``
-.2+h| Merchant Account ID (MAID)  | Guaranteed Invoice by Wirecard       | 7d7edecb-b008-4f05-9103-308c81cf2ea2
-                                  | Guaranteed Direct Debit | 3cfb0fb7-59e2-4d92-847f-37121d633844
+   h| Merchant Account ID (MAID)
+                                2+| 3cfb0fb7-59e2-4d92-847f-37121d633844
    h| Username                  2+| 16390-testing
    h| Password                  2+| 3!3013=D3fD8X7
-.2+h| Secret Key                  | Guaranteed Invoice by Wirecard       | 555d998b-15db-46a9-8f1f-d9bc3ec66b19
-                               .2+| Guaranteed Direct Debit  | cf0b29fc-a6ab-474d-b6be-92e9596e9107
+   h| Secret Key                
+                                2+| cf0b29fc-a6ab-474d-b6be-92e9596e9107
 |===
 
 [#GuaranteedDirectDebit_Workflow]
@@ -161,32 +151,10 @@ are shipped in separate shipments.
 [#GuaranteedDirectDebit_StandardProcess]
 ===== Standard Process
 
-[#GuaranteedDirectDebit_GuaranteedInvoice]
-====== Guaranteed Invoice by Wirecard
-
-image::images/11-11-guaranteed-invoice-and-direct-debit/guaranteed_invoice_workflow.png[Guaranteed Invoice by Wirecard Workflow, width=950, align="center"]
-
-. Consumer adds items to shopping basket.
-. Consumer selects the payment method _Guaranteed Invoice by Wirecard._
-. Merchant sends an _authorization_ request including items to
-Wirecard.
-. Merchant receives an _authorization_ response, including the
-descriptor (an alphanumerical code, starting with ``DG``).
-. Merchant sends a _capture_ request to Wirecard when the items
-are ready for delivery.
-. After a successful _capture_ request, Wirecard or Merchant generates
-the invoice, including the descriptor (an alphanumerical code, starting
-with DG).
-. Merchant waits for the incoming payment.
-. If any payment changes are necessary, the following transaction types
-are available: ``credit``, ``refund-capture`` or ``void-authorization``.
-
-//-
-
 [#GuaranteedDirectDebit_GuaranteedDirectDebit]
 ====== Guaranteed Direct Debit
 
-image::images/11-11-guaranteed-invoice-and-direct-debit/guaranteed_DD_workflow.png[Guaranteed Direct Debit Workflow, width=950, align="center"]
+image::images/11-43-guaranteed-direct-debit/guaranteed_DD_workflow.png[Guaranteed Direct Debit Workflow, width=950, align="center"]
 
 . Consumer adds items to shopping basket.
 . Consumer selects the payment method _Guaranteed Direct Debit_.
@@ -206,114 +174,12 @@ are available: ``credit``, ``refund-capture`` or ``void-authorization``.
 
 //-
 
-[#GuaranteedDirectDebit_ProcessChain]
-===== Process Chain
-
-Every merchant needs to follow the process chains below successfully in
-a test environment to get an approval to go live. Wirecard checks and
-approves the frontend/checkout and invoices (if generated and sent out
-by the merchant).
-
-NOTE: Please provide us with the order number and descriptor for each
-transaction. 
-
-[#GuaranteedDirectDebit_SimpleProcessChainforGuaranteedInvoice]
-====== Simple Process Chain for Guaranteed Invoice by Wirecard
-
-.A: Partial Cancelations
-
-. Order (2 products + shipping costs + voucher) ``authorization``
-. Partial cancellation of 1 product ``void-authorization``
-. Partial cancellation of the rest ``void-authorization``
-
-//-
-
-.B: Full Cancellation
-
-. Order (2 products + shipping costs) ``authorization``
-. Full order cancellation ``void-authorization``
-
-//-
-
-.C: Partial Deliveries
-
-. Order (3 products + shipping costs + voucher) ``authorization``
-. Partial delivery of 1 product + shipping costs + voucher ``capture-authorization``
-. Partial delivery of the rest ``capture-authorization``
-
-//-
-
-.D: Partial Cancellation & Partial Delivery
-
-. Order (2 products + shipping costs + voucher) ``authorization``
-. Partial cancellation of 1 product ``void-authorization``
-. Partial delivery of 1 product + shipping costs + voucher ``capture-authorization``
-. Invoice generation 
-
-//-
-
-.E: Partial Returns
-
-. Order (2 products + shipping costs + voucher) ``authorization``
-. Complete delivery of the order ``capture-authorization``
-. Invoice generation
-. Partial return of 1 product ``refund-capture``
-. Partial return of the rest ``refund-capture`` 
-
-//-
-
-.F: Full Return
-
-. Order (2 products + shipping costs + voucher) ``authorization``
-. Complete delivery of the order ``capture-authorization``
-. Invoice generation
-. Full return of the order ``refund-capture`` 
-
-//-
-
-.G: Reduction
-
-. Order (2 products + shipping costs + voucher) ``authorization``
-. Reduction with negative amount ``credit``
-. Complete delivery of the order ``capture-authorization``
-. Invoice generation
-
-//-
-
-[#GuaranteedDirectDebit_ComplexProcessChainforGuaranteedInvoice]
-====== Complex Process Chain for Guaranteed Invoice by Wirecard
-
-.X: Reduction & Adjustment Charges
-
-. Order (6 products including shipping costs) ``authorization``
-. Reduction with negative amount ``credit``
-. Partial delivery of 2 products + reduction ``capture-authorization``
-. Invoice generation 
-. Adjustment charge with positive amount ``credit``
-. Partial delivery of the rest = 4 products + adjustment charge ``capture-authorization``
-. Invoice generation
-. Reduction with negative amount ``credit``
-
-//-
-
-.Y: Partial Cancellation & Partial Return
-
-. Order (6 products including shipping costs) ``authorization``
-. Partial delivery of 3 products ``capture-authorization``
-. Invoice generation
-. Partial cancellation of 1 product ``void-authorization``
-. Partial return of 2 products ``refund-capture``
-. Partial delivery of 2 products ``capture-authorization``
-. Invoice generation
-. Partial return of the rest = 3 products ``refund-capture``
-
-//-
 
 [#GuaranteedDirectDebit_Fields]
 ==== Fields
 
 The following elements are mandatory *M*, optional *O* or conditional
-*C* for sending a request for the payment method Guaranteed Invoice by Wirecard and Guaranteed Direct Debit (complete field
+*C* for sending a request for the payment method Guaranteed Direct Debit (complete field
 list available in <<RestApi_Fields, REST API field list>>):
 
 [%autowidth,stripes=none, cols="v,,,,"]
@@ -343,7 +209,7 @@ list available in <<RestApi_Fields, REST API field list>>):
 |M
 |Alphanumeric
 |30
-|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for Guaranteed Invoice by Wirecard and Guaranteed Direct Debit.
+|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for Guaranteed Direct Debit.
 
 |_requested-amount_
 |M
@@ -706,74 +572,6 @@ Processing API later as part of transaction details.
 | _order-items.order-item.quantity_       | M                      | Number       | Total count of items in the order.
 |===
 
-[#GuaranteedDirectDebit_DeviceFingerprint_GuaranteedInvoice]
-===== Device Fingerprint (Guaranteed Invoice by Wirecard)
-
-[#GuaranteedDirectDebit_DeviceFingerprint_GuaranteedInvoice_Introduction]
-====== Introduction
-
-_Device Fingerprint (Guaranteed Invoice by Wirecard)_ is a method of fraud
-protection and able to identify technical devices. Fraudsters learn to
-exploit the weaknesses of traditional fraud prevention tools over time.
-We protect businesses from fraud and loss of revenue with innovative
-fraud prevention: by automatically linking transactions, fraud can be
-detected in real time. With our self-learning and adaptive software you
-are prepared to face new and upcoming fraud scenarios. This document
-describes the procedure of a _Device Fingerprint_ call and how to
-implement its result in the PAYMENT_QUERY operation and PAYMENT_REQUEST
-operation.
-
-[#GuaranteedDirectDebit_DeviceFingerprint_GuaranteedInvoice_UniqueToken]
-====== Generate a Unique Token
-
-To generate a fingerprint you first need to create a unique token within
-your online shop. To ensure that the token is really unique, we suggest
-using a combination of customer id and timestamp which is encrypted,
-with MD5 for instance.
-
-.Generate a unique token (Example)
-[source,php]
-----
-$deviceIdentSId = 'WDWL';
-$timestamp = microtime();
-$customerId = $customerObject->getId();
-$deviceIdentToken = md5($customerId . "_" . $timestamp);
-----
-
-[#GuaranteedDirectDebit_DeviceFingerprint_GuaranteedInvoice_RunJavaScript]
-====== Run JavaScript
-
-We recommend outputting the _Device Fingerprint_ JavaScript code as
-early as possible to get a sufficient latency between script call and
-end of the order.
-
-For instance when the customer entered the checkout or when the customer
-is putting a first item into the cart.
-
-Please ensure that this script is executed only one-time per session
-(per customer + checkout + device).
-
-.Output Device Fingerprint JavaScript/HTML/PHP (Example)
-[source,php]
-----
-<script language="JavaScript">
- var di = {t:'<?php echo $deviceIdentToken ?>',v:'<?php echo $deviceIdentSId ?>',l:'Checkout'};
- </script>
- <script type="text/javascript" src="//d.ratepay.com/<?php echo $deviceIdentSId ?>/di.js">
-</script>
- <noscript><link rel="stylesheet" type="text/css" href="//d.ratepay.com/di.css?t=<?php echo $deviceIdentToken ?>&v=<?php echo $deviceIdentSId ?>&l=Checkout">
-</noscript>
-<object type="application/x-shockwave-flash" data="//d.ratepay.com/<?php echo $deviceIdentSId?>/c.swf" width="0" height="0">
-<param name="movie" value="//d.ratepay.com/<?php echo $deviceIdentSId ?>/c.swf" />
-<param name="flashvars" value="t=<?php echo $deviceIdentToken ?>&v=<?php echo $deviceIdentSId?>"/><param name="AllowScriptAccess" value="always"/>
-</object>
-----
-
-[#GuaranteedDirectDebit_DeviceFingerprint_GuaranteedInvoice_DataTransferToWirecard]
-====== Data Transfer to Wirecard
-
-Please transfer the ``deviceIdentToken`` within the authorization request to
-Wirecard. You can find a corresponding XML sample for either <<GuaranteedDirectDebit_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard>> or <<GuaranteedDirectDebit_Samples_DirectDebit, Guaranteed Direct Debit>>.
 
 [#GuaranteedDirectDebit_RegularConsumers]
 ===== Regular Consumers
@@ -828,547 +626,13 @@ conditions are linked properly.
 [#GuaranteedDirectDebit_AdditionalBusinessContitions]
 ====== Additional business conditions
 
-When the consumers use either _Guaranteed Invoice by Wirecard_ or _Guaranteed Direct Debit,_
+When the consumers use _Guaranteed Direct Debit,_
 payments with debt discharging effect can be made solely to Wirecard.
 
 [#GuaranteedDirectDebit_Samples]
 ==== Samples
 
 Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for corresponding notification samples.
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice]
-===== Guaranteed Invoice by Wirecard
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice_Authorization]
-====== _authorization_
-
-.XML authorization Request (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>authorization</transaction-type>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <requested-amount currency="EUR">400</requested-amount>
-  <order-number>180801110644949</order-number>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <date-of-birth>27-12-1973</date-of-birth>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-items>
-    <order-item>
-      <name>Denim 753 Blue 27/32</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">150</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Sneakers Size 44</name>
-      <article-number>123</article-number>
-      <amount currency="EUR">200</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <locale>nl</locale>
-</payment>
-----
-
-.XML authorization Response (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
-  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</transaction-id>
-  <request-id>8b4b145e-fb5a-4c12-ad9a-396a46b83593</request-id>
-  <transaction-type>authorization</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2018-08-01T09:06:46.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="The resource was successfully created." severity="information" provider-transaction-id="09-201808019802726" />
-  </statuses>
-  <requested-amount currency="EUR">400</requested-amount>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-number>180801110644949</order-number>
-  <order-items>
-    <order-item>
-      <name>Denim 753 Blue 27/32</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">150</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Sneakers Size 44</name>
-      <article-number>123</article-number>
-      <amount currency="EUR">200</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <descriptor>DK0073634K2</descriptor>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <locale>nl</locale>
-</payment>
-----
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice_CaptureAuthorization]
-====== _capture-authorization_
-
-.XML capture-authorization Request (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>capture-authorization</transaction-type>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <requested-amount currency="EUR">200</requested-amount>
-  <parent-transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</parent-transaction-id>
-  <order-items>
-    <order-item>
-      <name>Denim 753 Blue 27/32</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">150</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-</payment>
-----
-
-.XML capture-authorization Response (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2/payments/789b1a74-2d07-477c-a5eb-d6dd61872d88">
-  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2">7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <transaction-id>789b1a74-2d07-477c-a5eb-d6dd61872d88</transaction-id>
-  <request-id>314fa896-16ba-4787-b12d-0a7d1169105b</request-id>
-  <transaction-type>capture-authorization</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2018-08-01T09:07:19.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="ratepay:The resource was successfully created." severity="information" provider-transaction-id="09-201808019802726" />
-  </statuses>
-  <requested-amount currency="EUR">200</requested-amount>
-  <parent-transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</parent-transaction-id>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-number>180801110644949</order-number>
-  <order-items>
-    <order-item>
-      <name>Denim 753 Blue 27/32</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">150</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <descriptor>DK0073634K2</descriptor>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <parent-transaction-amount currency="EUR">400.000000</parent-transaction-amount>
-  <api-id>elastic-api</api-id>
-  <locale>nl</locale>
-  <provider-account-id>0000003174069FC7</provider-account-id>
-</payment>
-----
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice_Credit]
-====== _credit_
-
-.XML credit Request (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>credit</transaction-type>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <parent-transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</parent-transaction-id>
-  <requested-amount currency="EUR">10</requested-amount>
- <account-holder>
-  <first-name>John</first-name>
-  <last-name>Doe</last-name>
-  <email>John@doe.de</email>
-  <phone>03018425165</phone>
-     <date-of-birth>27-12-1973</date-of-birth>
-     <address>
-       <street1>Nicht versenden Weg 12</street1>
-       <city>Berlin</city>
-       <state>Berlin</state>
-       <country>DE</country>
-       <postal-code>13353</postal-code>
-     </address>
-  </account-holder>
-  <order-items>
-    <order-item>
-      <name>Nachlass über € 10,00</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">10</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-</payment>
-----
-
-.XML credit Response (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2/payments/42a30b0b-9aed-47cb-89e5-dc3649d770b2">
-  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2">7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <transaction-id>42a30b0b-9aed-47cb-89e5-dc3649d770b2</transaction-id>
-  <request-id>0891f924-c326-4a39-ab04-2d240743a161</request-id>
-  <transaction-type>credit</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2018-08-01T09:07:54.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="ratepay:The resource was successfully created." severity="information" provider-transaction-id="09-201808019802726" />
-  </statuses>
-  <requested-amount currency="EUR">10</requested-amount>
-  <parent-transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</parent-transaction-id>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-number>180801110644949</order-number>
-  <order-items>
-    <order-item>
-      <name>Nachlass ?ber ? 10,00</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">10</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <descriptor>DK0073634K2</descriptor>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <parent-transaction-amount currency="EUR">400.000000</parent-transaction-amount>
-  <api-id>elastic-api</api-id>
-  <locale>nl</locale>
-  <provider-account-id>0000003174069FC7</provider-account-id>
-</payment>
-----
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice_RefundCapture]
-====== _refund-capture_
-
-.XML refund-capture Request (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>refund-capture</transaction-type>
-    <payment-methods>
-        <payment-method name="ratepay-invoice" />
-    </payment-methods>
-    <requested-amount currency="EUR">50</requested-amount>
-    <parent-transaction-id>789b1a74-2d07-477c-a5eb-d6dd61872d88</parent-transaction-id>
-    <order-items>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    </order-items></payment>
-----
-
-.XML refund-capture Response (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2/payments/34c6ed51-c417-413e-a1f0-e7074f24b19b">
-  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2">7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <transaction-id>34c6ed51-c417-413e-a1f0-e7074f24b19b</transaction-id>
-  <request-id>d7287da8-00a9-48b0-ac3b-8ea14a1f3440</request-id>
-  <transaction-type>refund-capture</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2018-08-01T09:08:33.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="ratepay:The resource was successfully created." severity="information" provider-transaction-id="09-201808019802726" />
-  </statuses>
-  <requested-amount currency="EUR">50</requested-amount>
-  <parent-transaction-id>789b1a74-2d07-477c-a5eb-d6dd61872d88</parent-transaction-id>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-number>180801110644949</order-number>
-  <order-items>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <descriptor>DK0073634K2</descriptor>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <parent-transaction-amount currency="EUR">200.000000</parent-transaction-amount>
-  <api-id>elastic-api</api-id>
-  <locale>nl</locale>
-  <provider-account-id>0000003174069FC7</provider-account-id>
-</payment>
-----
-
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice_VoidAuthorization]
-====== _void-authorization_
-
-.XML void-authorization Request (Successful)
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>void-authorization</transaction-type>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <parent-transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</parent-transaction-id>
-  <requested-amount currency="EUR">200</requested-amount>
-  <account-holder>
-        <first-name>John</first-name>
-  <last-name>Doe</last-name>
-  <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <date-of-birth>27-12-1973</date-of-birth>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-items>
-    <order-item>
-      <name>Sneakers Size 44</name>
-      <article-number>123</article-number>
-      <amount currency="EUR">200</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-</payment>
-----
-
-.XML void-authorization Response (Successful)
-
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2/payments/265b5d4f-7a4c-4b93-9189-ab4c0a09e3f2">
-  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/7d7edecb-b008-4f05-9103-308c81cf2ea2">7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <transaction-id>265b5d4f-7a4c-4b93-9189-ab4c0a09e3f2</transaction-id>
-  <request-id>cdcb75f9-5131-4459-a201-c5db7c8172e4</request-id>
-  <transaction-type>void-authorization</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2018-08-01T09:09:37.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="ratepay:The resource was successfully created." severity="information" provider-transaction-id="09-201808019802726" />
-  </statuses>
-  <requested-amount currency="EUR">200</requested-amount>
-  <parent-transaction-id>32783284-5bce-4d5f-aca6-25fa17f6ad53</parent-transaction-id>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>John@doe.de</email>
-    <phone>03018425165</phone>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-number>180801110644949</order-number>
-  <order-items>
-    <order-item>
-      <name>Sneakers Size 44</name>
-      <article-number>123</article-number>
-      <amount currency="EUR">200</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <descriptor>DK0073634K2</descriptor>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <parent-transaction-amount currency="EUR">400.000000</parent-transaction-amount>
-  <api-id>elastic-api</api-id>
-  <locale>nl</locale>
-  <provider-account-id>0000003174069FC7</provider-account-id>
-</payment>
-----
-
-[#GuaranteedDirectDebit_Samples_GuaranteedInvoice_DeviceIdentToken]
-====== _authorization_ Request to Wirecard
-
-.deviceIdentToken Transfer
-[source,xml]
-----
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>authorization</transaction-type>
-  <payment-methods>
-    <payment-method name="ratepay-invoice" />
-  </payment-methods>
-  <requested-amount currency="EUR">400</requested-amount>
-  <order-number>180801121956992</order-number>
-  <account-holder>
-    <first-name>Hans-Jürgen </first-name>
-    <last-name>Wischnewski</last-name>
-    <email>hans@qenta.de</email>
-    <phone>03018425165</phone>
-    <date-of-birth>27-12-1973</date-of-birth>
-    <address>
-      <street1>Nicht versenden Weg 12</street1>
-      <city>Berlin</city>
-      <state>Berlin</state>
-      <country>DE</country>
-      <postal-code>13353</postal-code>
-    </address>
-  </account-holder>
-  <order-items>
-    <order-item>
-      <name>Denim 753 Blue 27/32</name>
-      <article-number>1</article-number>
-      <amount currency="EUR">150</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Women V-Neck S</name>
-      <article-number>12</article-number>
-      <amount currency="EUR">50</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-    <order-item>
-      <name>Sneakers Size 44</name>
-      <article-number>123</article-number>
-      <amount currency="EUR">200</amount>
-      <tax-rate>19</tax-rate>
-      <quantity>1</quantity>
-    </order-item>
-  </order-items>
-  <device>
-    <fingerprint>DeviceIdentToken</fingerprint>
-  </device>
-</payment>
-----
 
 [#GuaranteedDirectDebit_Samples_DirectDebit]
 ===== Guaranteed Direct Debit
