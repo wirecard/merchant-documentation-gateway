@@ -43,15 +43,13 @@ function highlightTOC() {
 }
 
 function documentReady() {
-  console.log('documentReady called');
+  $( "div.sect3 > table.tableblock, div.sect2 > table.tableblock" ).wrap( "<div class='tablewrapper'></div>" );
   $('#content').addClass('scene_element--fadeinup');
   //highlightTOC();
   if(getUrlHash() !== false) {
-    console.log('getUrlHash: ' + getUrlHash());
     highlightTOCelement(getUrlHash());
-    console.log('scrolled to ' + getUrlHash());
   } else {
-    console.log('no hash. highlight first h2');
+    // no hash. highlight first h2
     highlightTOCelement($('#content h2, #content h3').first().attr('id'));
   }
   $(window).on('scroll resize', function() {
