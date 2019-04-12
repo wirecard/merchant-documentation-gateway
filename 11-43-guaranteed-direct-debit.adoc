@@ -7,14 +7,13 @@
 Guaranteed Direct Debit is a payment method which
 guarantees that merchants receive money in case the consumer does not pay
 (merchants are paid the order amounts by Wirecard in advance of
-settlement with consumers). This payment methods is available only
+settlement with consumers). This payment method is available only
 for *Germany*, *Austria* and *Switzerland.*
 
 Guaranteed Direct Debit allows the consumer to pay directly from
 their bank account. The invoicing, direct debit and collection process
 (dunning) is handled by Wirecard.
 
-//-
 
 Basket items must be specified in every request. The response for each
 authorization request returns an individual string (an alphanumerical
@@ -68,45 +67,45 @@ at <<AppendixB, AppendixB: Transaction Types>>.
 |===
 |Transaction Type | Description | Link to samples
 
-|authorization |Performs a creditworthiness check at the moment when
-consumer makes an order. All order items must be listed for the shopping
-basket. The authorization amount must match the value of the items in
-the basket.
-| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+|authorization    |Performs a creditworthiness check at the moment when
+                   consumer makes an order. All order items must be listed for the shopping
+                   basket. The authorization amount must match the value of the items in
+                   the basket.
+                                | <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |capture-authorization |Used to capture the reserved funds at the moment
-when some or all goods are physically delivered to the consumer.
-Available only on successful ``authorization`` response which wasn’t voided
-nor fully captured. Partial (and multiple) capture is allowed, until
-the authorization limit is not exceeded. Basket items only lists the
-items that were delivered to the consumer in this delivery, not the ones
-that were delivered before or are waiting to be delivered. The total
-amount of the capture must be the value of the items in the basket.
-| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+                        when some or all goods are physically delivered to the consumer.
+                        Available only on successful ``authorization`` response which wasn’t voided
+                        nor fully captured. Partial (and multiple) capture is allowed, until
+                        the authorization limit is not exceeded. Basket items only lists the
+                        items that were delivered to the consumer in this delivery, not the ones
+                        that were delivered before or are waiting to be delivered. The total
+                        amount of the capture must be the value of the items in the basket.
+                                | <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |void-authorization |Used when the consumer wishes to cancel some or all
-(not yet shipped) items from the order. Available only for a successful
-``authorization`` response which was not yet voided or captured. Partial and
-multiple void are allowed, until all items from the order are canceled
-or shipped. Basket items only list those items which are being canceled
-from the order.
-| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+                     (not yet shipped) items from the order. Available only for a successful
+                     ``authorization`` response which was not yet voided or captured. Partial and
+                     multiple void are allowed, until all items from the order are canceled
+                     or shipped. Basket items only list those items which are being canceled
+                     from the order.
+                                | <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |refund-capture |Used when the consumer wishes to return some or all
-delivered goods. Available on a successful ``capture-authorization``.
-Partial and multiple refunds are allowed, until all delivered items have
-been returned. Basket items list only those items which are being
-returned to the merchant.
-| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+                 delivered goods. Available on a successful ``capture-authorization``.
+                 Partial and multiple refunds are allowed, until all delivered items have
+                 been returned. Basket items list only those items which are being
+                 returned to the merchant.
+                                | <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 
 |credit |Used when merchant wishes to grant a discount on an existing
-order. Items from this order may already be delivered to the consumer.
-Available on a successful ``capture-authorization``. Multiple credits are
-allowed, but the overall sum of credits may not exceed the value of the
-delivered goods to the consumer. The credit transaction must include a
-basket item representing the discount. The credit transaction must refer
-to the successful authorization transaction ID.
-| <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
+         order. Items from this order may already be delivered to the consumer.
+         Available on a successful ``capture-authorization``. Multiple credits are
+         allowed, but the overall sum of credits may not exceed the value of the
+         delivered goods to the consumer. The credit transaction must include a
+         basket item representing the discount. The credit transaction must refer
+         to the successful authorization transaction ID.
+                                | <<GuaranteedDirectDebit_Samples_DirectDebit, Direct Debit samples>>
 |===
 
 [NOTE]
@@ -116,8 +115,7 @@ to the successful authorization transaction ID.
 string (an alphanumerical code, starting with DG) in the
 field ``descriptor``.
 . The descriptor must be printed on all invoice documents and saved by
-the shop (used by consumers in bank transfers; German:
-“Verwendungszweck”).­­
+the shop (used by consumers in bank transfers; German:“Verwendungszweck”).­­
 . ``capture-authorization`` transactions have to follow a successful
 ``authorization`` on the same day the goods are dispatched.
 . The period between ``authorization`` and the first
@@ -135,14 +133,12 @@ are shipped in separate shipments.
 |===
 .2+h| URLs (Endpoints)            | For transaction type ``authorization`` | `\https://api-test.wirecard.com/engine/rest/paymentmethods`
                                   | For transaction types ``capture-authorization``, ``refund-capture``,
-                                    ``void-authorization`` and ``credit``
-                                                                         |``\https://api-test.wirecard.com/engine/rest/payments``
+                                    ``void-authorization`` and ``credit``  |``\https://api-test.wirecard.com/engine/rest/payments``                                                                       
    h| Merchant Account ID (MAID)
                                 2+| 3cfb0fb7-59e2-4d92-847f-37121d633844
    h| Username                  2+| 16390-testing
    h| Password                  2+| 3!3013=D3fD8X7
-   h| Secret Key                
-                                2+| cf0b29fc-a6ab-474d-b6be-92e9596e9107
+   h| Secret Key                2+| cf0b29fc-a6ab-474d-b6be-92e9596e9107                              
 |===
 
 [#GuaranteedDirectDebit_Workflow]
@@ -158,13 +154,13 @@ image::images/11-43-guaranteed-direct-debit/guaranteed_DD_workflow.png[Guarantee
 
 . Consumer adds items to shopping basket.
 . Consumer selects the payment method _Guaranteed Direct Debit_.
-. Merchant sends an _authorization_ request including items to
+. Merchant sends an ``authorization`` request including items to
 Wirecard.
-. Merchant receives an _authorization_ response, including the
+. Merchant receives an ``authorization`` response, including the
 descriptor (an alphanumerical code, starting with DG).
-. Merchant sends a _capture_ request to Wirecard when the items
+. Merchant sends a ``capture`` request to Wirecard when the items
 are ready for delivery.
-. After a successful _capture_ request, Wirecard or Merchant generates
+. After a successful ``capture`` request, Wirecard or Merchant generates
 the invoice, including the descriptor (an alphanumerical code, starting
 with DG).
 . Wirecard Bank collects the transaction amount from consumer's
@@ -179,7 +175,7 @@ are available: ``credit``, ``refund-capture`` or ``void-authorization``.
 ==== Fields
 
 The following elements are mandatory *M*, optional *O* or conditional
-*C* for sending a request for the payment method Guaranteed Direct Debit (complete field
+*C* for sending a request for Guaranteed Direct Debit (complete field
 list available in <<RestApi_Fields, REST API field list>>):
 
 [%autowidth,stripes=none, cols="v,,,,"]
@@ -202,7 +198,6 @@ list available in <<RestApi_Fields, REST API field list>>):
 |Alphanumeric
 |150
 |This is the identification number of the request.
-
 *It has to be unique for each request.*
 
 |_transaction-type_
@@ -248,11 +243,10 @@ list available in <<RestApi_Fields, REST API field list>>):
 |Merchant’s invoice identifier.
 
 |_creditor-id_
-|C
+|M
 |Alphanumeric
 |
 |Wirecard Bank creditor identifier, provided by Wirecard Support
-
 *Mandatory for Guaranteed Direct Debit only.*
 
 |_locale_
@@ -271,7 +265,7 @@ If empty or with wrong value, German language is used by default. The same logic
 |M
 |Alphanumeric
 |15
-|The name of the Payment Method is ``ratepay-invoice`` or ``ratepay-elv``.
+|The name of the Payment Method is ``ratepay-elv``.
 
 5+a|
 [[GuaranteedDirectDebit_Fields_AccountHolder]]
@@ -361,7 +355,6 @@ If empty or with wrong value, German language is used by default. The same logic
 ===== bank-account
 
 |Consumer's bank account details.
-
 *Mandatory for Guaranteed Direct Debit only.*
 
 |_bank-account.bank-name_
@@ -506,7 +499,6 @@ If empty or with wrong value, German language is used by default. The same logic
 |Alphanumeric
 |
 |Device fingerprinting token that was used in merchant’s online shop to track this transaction.
-
 *It is mandatory for ``authorization``.*
 
 5+a|
@@ -515,11 +507,10 @@ If empty or with wrong value, German language is used by default. The same logic
 ===== mandate
 
 |_mandate.mandate-id_
-|C
+|M
 |Alphanumeric
 |
 |Mandate ID will be generated by Wirecard. Please use the following statement as placeholder: “Wird nach Kaufabschluss übermittelt“
-
 *Mandatory for Guaranteed Direct Debit only.*
 |===
 
