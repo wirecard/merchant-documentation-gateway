@@ -461,11 +461,6 @@
           /** Updates the contents from cache[url] */
           updateContent = function (url) {
 
-            // exclude Edge workaround
-            if (window.navigator.userAgent.indexOf("Edge") > -1) {
-              window.location.href = url;
-            }
-
             // If the content has been requested and is done:
             var containerId = '#' + elementId,
                 $newContent = cache[url] ? $(cache[url].html.html()) : null;
@@ -863,6 +858,10 @@
     onAfter: function() {
       console.log('onAfter called');
       documentReady();
+      // exclude Edge workaround
+      if (window.navigator.userAgent.indexOf("Edge") > -1) {
+        return true;
+      }
       if(getUrlHash() != '') {
         setTimeout(function() {
           console.log(getUrlHash());
@@ -872,7 +871,7 @@
     }
 }).data('smoothState');
 
-var priorityPages = ['CreditCard.html'];
+var priorityPages = ['WPP.html', 'CreditCard.html'];
 for (var i = 0; i < priorityPages.length; i++) {
   // bind var to settimeout
   setTimeout(function(page) {

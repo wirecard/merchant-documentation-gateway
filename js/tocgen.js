@@ -59,8 +59,14 @@ function addTOCbindings() {
     }
     if( pageUrl.indexOf( currentPageID + '.html') == -1 ) {
       setTimeout(function() {
-        smoothState.load( pageUrl );
-      },200);
+        // exclude Edge workaround
+          if (window.navigator.userAgent.indexOf("Edge") > -1) {
+            console.log('Edge. load ' + pageUrl);
+            window.location.href = pageUrl;
+            return true;
+          }
+          smoothState.load( pageUrl );
+      },20);
     event.preventDefault();
 /*     var virtualAnchor = $(this).clone();
      virtualAnchor.appendTo('div.nav-footer');
@@ -108,9 +114,11 @@ $.getJSON( "toc.json", function( data ) {
   buildTOC(data);
   $('#generated-toc').replaceWith(toc);
   console.log('applymask');
-  applyMask(maskString);
+  if(maskString) applyMask(maskString);
   documentReady();
   addTOCbindings();
   if(editorMode) initMaskEditor(data);
-  recursivePreload( data );
+  if (window.navigator.userAgent.indexOf("Edge") == -1) {
+    recursivePreload( data );
+  }
 });
