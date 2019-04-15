@@ -12,9 +12,6 @@
 //
 
 var redirectMap = {
-  "/404.html" : "#new_anchor_404",
-  "/404.html?param" : "#new_anchor",
-  "/display/PTD/CIMB+Clicks" : "#CIMB-Clicks",
-  "/pages/viewpage.action?pageId=3704226" : "#WPPSecurity-MerchantsIntegratedwithNVP",
+  "/display/PTD/CIMB+Clicks" : "CIMBClicks.html",
   "last entry" : "do not change"
 };
