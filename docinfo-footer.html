@@ -87,44 +87,48 @@ if(!editorMode) {
 
   function executeSearch(st) {
     $('#resultslist').empty();
-    $('#searchfield').trigger('mouseenter');
-    search(st);
+    if( st.length > 0 ) {
+      //$( '#searchresults' ).show();
+      $( '#searchfield' ).trigger('mouseenter');
+      search(st);
+    }
   }
 
   $("#toctitle").empty();
     $("body").prepend('<header><form id="searchfield"><input id="searchterm" type="search" placeholder="Quick Search" spellcheck="false" autocomplete="off"></div></header>');
     $("#searchfield").append('<div id="searchresults"><ul id="resultslist"></ul></form>');
 
-    var typingTimer;                //timer identifier
-    var doneTypingInterval = 500;  //time in ms, 5 second for example
+    var typingTimer;         //timer identifier
+    var markingTimer;        //mark elements timer
+    var searchDelay = 500;   //time in ms, 5 second for example
+    var markDelay = 1000;
 
-    $("#searchterm").on("search paste keyup click", function(event) {
-      if($(this).val().length > 3) markKeyword( $(this).val() );
+    // add mouseup event just for Edge to trigger on click of clear button
+    $("#searchterm").on("mouseup", function(event) {
+      typingTimer = setTimeout(function() {
+        executeSearch( $("#searchterm").val() );
+        markKeyword( $("#searchterm").val() );
+      }, searchDelay);
+    });
+
+    $("#searchterm").on("search paste keydown keyup click change", function(event) {
       var keyCode = event.keyCode || event.which;
-      if (keyCode === 13) {
+      if ( keyCode === 13 ) {
         event.preventDefault();
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(function() {
-          executeSearch(st);
-        }, doneTypingInterval);
-        return false;
-      }
-      var st = $(this).val();
-      if (st.length === 0) {
-        showAll();
-      } else {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(function() {
-          executeSearch(st);
-        }, doneTypingInterval);
       }
       if( $(window).width() < mobileLayoutCutoffWidth ) {
         $('#toc').addClass('hidden-toc');
         $('#tocbtn').removeClass('is-active');
       }
-      if($(this).val().length > 0) {
-        $( '#searchresults' ).show();
-      }
+      st = $("#searchterm").val();
+      window.clearTimeout( typingTimer );
+      typingTimer = setTimeout(function() {
+        executeSearch( st );
+      }, searchDelay);
+      window.clearTimeout( markingTimer );
+      markingTimer = setTimeout(function() {
+        markKeyword( ( st.length > 3 ) ? st : '' );
+      }, markDelay);
     });
 }
 </script>
@@ -232,7 +236,7 @@ $('header').prepend('<button class="hamburger hamburger--arrow is-active" type="
 <script type="text/javascript">
 if( $(window).width() < mobileLayoutCutoffWidth ) {
   $( '#searchresults' ).on("click touch", function(){
-    $(this).hide();
+    $('#resultslist').empty();
   } );
 }
 </script>

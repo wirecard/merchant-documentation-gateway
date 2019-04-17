@@ -51,20 +51,18 @@ function addTOCbindings() {
       highlightTOCelement(clickedItemID);
     },0);
     var pageUrl = $(this).attr('href');
-    console.log('currentPageID ' + currentPageID + ', clickedItemID ' + clickedItemID + ', pageUrl ' + pageUrl);
     if(pageUrl == currentPageID + '.html') {
       event.preventDefault();
       window.scrollTo(0,0);
       return false;
     }
-    if( pageUrl.indexOf( currentPageID + '.html') == -1 ) {
+    if( pageUrl.indexOf( currentPageID + '.html') != 0 ) {
+      // exclude Edge workaround
+      if (window.navigator.userAgent.indexOf("Edge") > -1) {
+        window.location.href = pageUrl;
+        return true;
+      }
       setTimeout(function() {
-        // exclude Edge workaround
-          if (window.navigator.userAgent.indexOf("Edge") > -1) {
-            console.log('Edge. load ' + pageUrl);
-            window.location.href = pageUrl;
-            return true;
-          }
           smoothState.load( pageUrl );
       },20);
     event.preventDefault();
@@ -79,7 +77,6 @@ function addTOCbindings() {
   $('li.tocify-item > a, #content a').on('mouseenter touchstart', function(event){
     var pageName = $(this).attr('href').replace( /#.*/, '' );
     if( smoothState.cache[pageName] === undefined) {
-      console.log('not in cache: ' + pageName);
       smoothState.fetch( pageName );
     }
   });
@@ -99,7 +96,6 @@ function recursivePreload( branch ) {
     if(item.children.length > 0) {
       recursivePreload(item.children);
     }
-
   }
   return true;
 }
