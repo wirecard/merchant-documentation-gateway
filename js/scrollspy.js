@@ -1,9 +1,14 @@
 var currentlyHighlightedElementID;
 
 function highlightTOC() {
-  $( 'h2,h3,h4' ).isInViewport({ tolerance: 5 }).run(function(){
-    var subsectionTitleElement = $(this);
-    var hID = $(this).attr('id');
+  $( 'div.sect2, div.sect3' ).isInViewport({ tolerance: 100 }).run(function(){
+    var subsectionTitleElement = $(this).find("h4:first, h3:first");
+    /*
+    // works fine without this:
+    if( subsectionTitleElement.hasClass('discrete') ){
+      subsectionTitleElement = $(this).find("h4:first");
+    }*/
+    var hID = subsectionTitleElement.attr('id');
     console.log('header in viewport: ' + hID);
 
     var hasMinitoc = $('#minitoc > ul').has('li').length ?
@@ -52,8 +57,13 @@ function documentReady() {
     // no hash. highlight first h2
     highlightTOCelement($('#content h2, #content h3').first().attr('id'));
   }
+  var scrollTimer;
+  var scrollDelay = 100;
   $(window).on('scroll resize', function() {
-    highlightTOC();
+    window.cancelIdleCallback( scrollTimer );
+    scrollTimer = requestIdleCallback(function() {
+      window.requestAnimationFrame(highlightTOC);
+    }, { timeout: scrollDelay });
   });
 
   // code highlighting
