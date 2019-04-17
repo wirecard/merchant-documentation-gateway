@@ -1,0 +1,225 @@
+[#API_CC_TestCards]
+=== Test Cards
+
+In this section we provide test cards for a large variety of card brands. These
+test cards allow you to provoke a certain behaviour when you send them to our
+endpoint. We provide test cards for _3-D Secure_ and _Non 3-D Secure_ transactions.
+
+.Example
+If you want to provoke the error status code ``500.1072`` ("_Card Not Enrolled_.")
+in combination with a MAESTRO card for a _3-D Secure_ transaction, use
+_Card Number_ ``6799860300006000008``, _Expiry Date_ ``01/23`` and _CVC_ ``008``.
+
+[#API_CC_TestCards_3D]
+==== 3-D Secure Transactions
+
+When you do a <<CreditCard_PaymentFeatures_3DSecure, _3-D Secure_ transaction>>,
+WPG checks with the first request, whether the card is enrolled in _3-D Secure_.
+A transaction is _3-D Secure_, if the response returns a positive enrollment
+check and a positive authentication result.
+
+.Enrollment Check Values
+
+[cols="20,15,65"]
+|===
+| 3-D Secure Phase h| Status h| Description
+
+.4+h| Check Enrollment | Y | Card enrolled
+| N | Card not enrolled
+| U | Unable to verify enrollment
+| E | A system error prevented enrollment from completing
+.5+h| Verify Authentication | Y | Cardholder was successfully authenticated
+| N | Customer failed or cancelled authentication
+| U | Authentication could not be completed, due to technical or other problem
+| A | Proof of authentication attempt was generated
+| E | A system error prevented authentication from completing
+|===
+
+[#API_CC_TestCards_3D_Process]
+===== 3-D Secure Transaction Process
+
+////
+Describe here the process, how the merchant can accomplish a 3-D Secure
+process.
+////
+
+[#API_CC_TestCards_3D_Success]
+[discrete]
+====== Card Numbers for Success Results
+
+With these card numbers you can provoke a successful response containing the
+status code ``201.0000``("The resource was successfully created.").
+
+NOTE: For all cards: The expiry date is always:
+<expiration-month>01
+<expiration-year>2023
+
+
+[cols="10,10,10,10,10,10,10,10"]
+|===
+| | Number | CVC | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS | Advice
+
+.4+| Maestro | 6799860300001000003 | 003 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully
+| 6799860300002000002 | 002 | Y | A | -- | No cardholder interaction | Approved or completed successfully
+| 6799860300004000000 | 999 | Y | U | wirecard | Testing "Unable to authenticate" | Approved or completed successfully / E-Commerce only
+| 6799860300005000009 | 009 | Y | E | wirecard | Testing "Authentication failed due to system error" | Approved or completed successfully / E-Commerce only
+.4+| VISA | 4012000300001003 | 003 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully
+| 4012000300002001 | 001 | Y | A | -- | No cardholder interaction | Approved or completed successfully
+| 4012000300004007 | 007 | Y | U | wirecard | Testing "Unable to authenticate" | Approved or completed successfully / E-Commerce only
+| 4012000300005004 | 004 | Y | E | wirecard | Testing "Authentication failed due to system error" | Approved or completed successfully / E-Commerce only
+.2+| Discover | 6011000101000101 | 101 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 6011000101000119 | Y | A |  | -- | No cardholder interaction | Approved or completed successfully.
+.2+| Diners-14 | 36259600010003 | 003 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 36259600010011 | 011 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| Diners-16 | 3800010001000103 | 103 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 3800010001000111 | 111 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| AMEX | 375987000000005 | 1005 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 375987000000013 | 1013 | Y | A |--  | No cardholder interaction | Approved or completed successfully.
+.2+| JCB-19 | 3572000100000010002 | 002 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 3572000100000010010 | 010 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| JCB | 3569990001010007 | 007 | Y | Y |wirecard  | Testing "Authentication approved" | Approved or completed successfully.
+| 3569990001010015 | 015 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| UPI | 6222821234560024 | 101 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 6222821234560021 | 119 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+|===
+
+[#API_CC_TestCards_3D_Error]
+[discrete]
+====== Card Numbers for Error Results
+
+With these card numbers you can provoke a error response containing a variety of
+status codes.
+
+NOTE: For all cards: The expiry date is always:
+<expiration-month>01
+<expiration-year>2023
+
+[#API_CC_TestCards_3D_Error_Visa]
+.VISA
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. | 4012000300003009 | 009 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1072 | Card Not Enrolled | 4012000300006002 | 002 | N | -- | -- | --
+| 500.1073  | Unable to Verify Enrolment | 4012000300007000 | 999 | U | -- | -- | --
+| 500.1074 | MPI Error | 4012000300008008 | 008 | E | -- | -- | --
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 4012000300004007 | 007 | Y | U | wirecard | Testing "Unable to authenticate"
+| 500.1085 | A system error prevented completion of authentication. | 4012000300005004 | 004 | Y | E | wirecard | Testing "Authentication failed due to system error"
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+[#API_CC_TestCards_3D_Error_Discover]
+.Discover
+[cols="10,10,10,10,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+| ...Use this card data in the request... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVV | Enrollment Result | Authentication Result | Password ACS | Personal Message ACS
+| 500.1076 | Consumer failed or Cancelled authentication. |  |  |  |  |  |
+| 500.1072 | Card Not Enrolled |  |  |  |  |  |
+| 500.1073  | Unable to Verify Enrolment |  |  |  |  |  |
+| 500.1074 | MPI Error |  |  |  |  |  |
+| 500.1077 | Authentication could not be completed due to technical or other problem. |  |  |  |  |  |
+| 500.1085 | A system error prevented completion of authentication. |  |  |  |  |  |
+|  |  |  |  |  |  |  |
+
+|===
+
+//-
