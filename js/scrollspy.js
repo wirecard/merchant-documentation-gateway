@@ -120,12 +120,14 @@ function highlightTOCelement(id='none') {
       return;
     }
     console.log('highlight ' + id);
-    $('ul.tocify-subheader').hide();
     $('li.tocify-item[data-unique]').removeClass('toc-hl');
+    $('li.tocify-item[data-unique], ul.tocify-subheader').removeClass('toc-item-expanded');
     tocElement.addClass('toc-hl');
-    tocElement.parents('ul.tocify-subheader').show();
-    tocElement.next('ul.tocify-subheader').show();
-    tocElement.next('ul.tocify-subheader').children('li.tocify-item').show();
+    tocElement.parents('ul.tocify-subheader').addClass('toc-item-expanded');
+    var childElements = tocElement.next('ul.tocify-subheader').children('li.tocify-item');
+    if(childElements.length > 0){
+      tocElement.toggleClass('toc-item-expanded');
+    }
     // TODO: should be handled cleaner in highlightTOC()
     if( $('#' + id).is('h4') === false ) {
       $('#minitoc > ul').html('');
