@@ -30,7 +30,7 @@ function createTOCElements(elements, level, num) {
       li.append(a);
       ul.append(li);
       if(e.children.length > 0 && level < 4) {
-        ul.addClass('has-children');
+        li.addClass('has-children');
         ul.append(createTOCElements(e.children, level+1, num));
       }
   }
