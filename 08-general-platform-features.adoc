@@ -3087,28 +3087,29 @@ problems.
 [#GeneralPlatformFeatures_Surcharging]
 === Surcharging
 
-Surcharging is a feature available in the Wirecard Payment Page V1, aimed
-at regions (Australia) with high fees for the usage of certain card payments.
-This option improves the price signals to consumers about the relative costs
-of different payment methods.
+Surcharging is a feature for Wirecard Payment Page v1 (HPP and EPP) and REST API. 
+Aimed at merchants who would like to charge additional fees for certain types of payments, 
+this feature guarantees transparency about surcharging rates for consumers. 
+It is currently available in Australia and complies with the 
+link:https://www.rba.gov.au/payments-and-infrastructure/review-of-card-payments-regulation/q-and-a/card-payments-regulation-qa-conclusions-paper.html[RBA's surcharging standards].
 
 Surcharging rates (calculated as either a fixed amount or a percentage)
-vary according to:
+vary depending on region, card type indicator, card type, and payment method.
 
-- regions:
+- Region:
 * Domestic
 * International
-- card type indicator:
-* credit
-* debit
-* prepaid
-- card types:
+- Card type indicator:
+* Credit
+* Debit
+* Prepaid
+- Card type:
 * Visa
 * Mastercard
 * Amex
 * JCB
 * UPI
-- alternative payment method (if required):
+- Alternative payment method (if required):
 * <<POLi, POli>>
 * <<WPP_AlipayCrossborder, Alipay Cross-border>>
 * <<WPP_PayPal, PayPal>>
@@ -3116,74 +3117,214 @@ vary according to:
 //-
 
 [#GeneralPlatformFeatures_Surcharging_Setup]
-===== Merchant Setup
+==== Merchant Account Setup
 
-[#GeneralPlatformFeatures_Surcharging_Setup_Precondition]
-====== Preconditions
-
-Make sure that you tick the following preconditions for setup:
-
+To enable this feature, your merchant account needs to be configured. 
+Please <<ContactUs, contact merchant support>> to set up your merchant account as follows:
 - Your merchant account must be configured to enable surcharging.
-- The country must be defined.
-- Surcharging rates must be configured.
+- Your country must be defined in your merchant account.
+- Surcharging rates must be configured by region, card type indicator, card type, and payment method.
+
 //-
 
-To enable this feature, a database configuration is required.
 The ``<surcharge-amount>`` can be added in the request to overwrite any configuration in database.
-
 NOTE: The ``<surcharge-amount>`` in the request is limited to fixed
-rate surcharge. This feature is introduced into the Australian market for
-improved transparency and to eliminate excessive surcharging.
+rate surcharge.
 
-[#GeneralPlatformFeatures_Surcharging_Supported_Flows]
-===== Supported Flows
+[#GeneralPlatformFeatures_Surcharging_SupportedIntegration]
+==== Supported Integration Options
 
-- Wirecard Payment Page V1 - Hosted Payment Page
+- Wirecard Payment Page v1
+- REST API
+
 //-
 
-[#GeneralPlatformFeatures_Surcharging_Test_Credentials]
-===== Test Credentials
-
+[#GeneralPlatformFeatures_Surcharging_TestCredentials]
+==== Test Credentials
+[cols=2]
 |===
-h| URLs (Endpoints)	| Please contact merchant support for full test credentials.
-h| Merchant Account ID (MAID)	|	Please contact merchant support for full test credentials.
-h| Username	|	16390-testing
-h| Password	|	3!3013=D3fD8X7
-h| Secret Key	|	Please contact merchant support for full test credentials.
+h| URLs (Endpoints)	
+ | Please contact merchant support for full test credentials.
+ 
+h| Merchant Account ID (MAID)	
+ | Please contact merchant support for full test credentials.
+ 
+h| Username	
+ | 16390-testing
+ 
+h| Password	
+ | 3!3013=D3fD8X7
+ 
+h| Secret Key	
+ |Please contact merchant support for full test credentials.
 |===
 
 [#GeneralPlatformFeatures_Surcharging_Fields]
-===== Fields
+==== Fields
 |===
 |Field |Cardinality |Datatype |Size |Description
 
-|account-holder/last-name	|M	|xs:string	|32	|The last name of the account holder.
-|account-holder/email	|O	|xs:string	|64	|The email address of the account holder.
-|account-holder/address/street1	|O	|xs:string	|128	|The first line of the street address of the account holder.
-|account-holder/address/street2	|O	|xs:string	|128	|The second line of the street address of the account holder.
-|account-holder/address/state	|O	|xs:string	|32	|The state or province of the address of the account holder.
-|account-holder/address/country	|O	|xs:token	|3	|The Country Id of the address of the account holder.
-|account-holder/address/postal-code	|O	|xs:string	|16	|The postal code or ZIP of the address of the account holder.
-|card/account-number	|M - Or Card Token	|xs:token	|36	|The embossed or encoded number that identifies the card issuer to which a transaction is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In the case of a credit card, this is the primary account number.
-|card/expiration-month	|M - Or Card Token	|xs:short	|2	|The 2-digit representation of the expiration month of the account-number
-|card/expiration-year	|M - Or Card Token	|xs:short	|4	|The 4-digit representation of the expiration year of the account-number
-|card/card-security-code	|Depending on merchant account settings	|xs:token	|4	|A security feature for credit or debit card transactions, providing increased protection against credit card or debit Card fraud. The card security code is located on the back of MasterCard, Visa and Discover credit or debit cards and is typically a separate group of 3 digits to the right of the signature strip. On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right.
-|card/card-type	|M |xs:token	|15	|A card scheme accepted by the processing system. This includes physically issued cards.
-|payment-methods/payment-method-name	|O	|xs:string	|256	|The name of the payment method.
-|merchant-account-id	|M	|xs:string	|36	|A unique identifier assigned for every Merchant Account.
-|merchant-account-id/@ref	|M	|url	|n/a	|A reference URL to the Merchant Account. Can be used to retrieve merchant account details over a browser. This information is returned in the response only.
-|transaction-type	|M	|xs:token	|n/a	|Determines a transaction's behavior during transaction processing and merchant settlement. Examples are: authorization, capture, credit, purchase, refund, void authorization, void capture, void credit, void purchase. For a complete list of transaction types, please see <<AppendixB, Appendix B: Transaction Types>>.
-|transaction-state	|M	|xs:token	|n/a	|The current status of a transaction. Typically, a transaction will start from an "in-progress" state, and then finish in either the "success" or "failed" state. This information is returned in the response only.
-|completion-time-stamp	|M	|xs:datetime	|n/a	|The date and time that a transaction state became either 'success' or 'failed´ in GMT. This information is returned in the response only.
-|requested-amount/@currency	|M	|xs:token	|3	|This is the currency in which a transaction is received and processed.
-|statuses/status/@code	|M	|xs:string	|12	|The status of a transaction. This is primarily used in conjunction with the transaction state to determine the exact details of the status of the transaction. This information is returned in the response only.
-|card-token/token-id	|O |uuid	|16	|A unique identifier assigned for every card token. This is a surrogate value for the primary account number.
-|card-token/masked-account-number	|M	|xs:string	|16	|The masked account number. This information is returned in the response only.
-|custom-fields/custom-field/@field-name	|O	|xs:string	|36	|The merchant defined name of the custom field.
-|authorization-code	|O	|xs:token	|24	|A code generated by the card issuing bank as proof that the transaction request was acknowledged or declined.
-|api-id	|O	|xs:token	|36	|A unique identifier assigned for every API.
-|surcharge/surcharge-amount	|	TBD		| TBD | TBD | TBD
-|original-requested-amount currency	|	TBD		| TBD | TBD | TBD
+|account-holder/last-name	
+|M	
+|xs:string	
+|32	
+|The last name of the account holder.
+
+|account-holder/email	
+|O	
+|xs:string	
+|64	
+|The email address of the account holder.
+
+|account-holder/address/street1	
+|O	
+|xs:string	
+|128	
+|The first line of the street address of the account holder.
+
+|account-holder/address/street2	
+|O	
+|xs:string	
+|128	
+|The second line of the street address of the account holder.
+
+|account-holder/address/state	
+|O	
+|xs:string	
+|32	
+|The state or province of the address of the account holder.
+
+|account-holder/address/country	
+|O	
+|xs:token	
+|3	
+|The Country Id of the address of the account holder.
+
+|account-holder/address/postal-code	
+|O	
+|xs:string	
+|16	
+|The postal code or ZIP of the address of the account holder.
+
+|card/account-number	
+|M - Or Card Token	
+|xs:token	
+|36	
+|The embossed or encoded number that identifies the card issuer to which a transaction is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In the case of a credit card, this is the primary account number.
+
+|card/expiration-month	
+|M - Or Card Token	
+|xs:short	
+|2	
+|The 2-digit representation of the expiration month of the account-number
+
+|card/expiration-year	
+|M - Or Card Token	
+|xs:short	
+|4	
+|The 4-digit representation of the expiration year of the account-number
+
+|card/card-security-code	
+|Depending on merchant account settings	
+|xs:token	
+|4	
+|A security feature for credit or debit card transactions, providing increased protection against credit card or debit Card fraud. The card security code is located on the back of MasterCard, Visa and Discover credit or debit cards and is typically a separate group of 3 digits to the right of the signature strip. On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right.
+
+|card/card-type	
+|M 
+|xs:token	
+|15	
+|A card scheme accepted by the processing system. This includes physically issued cards.
+
+|payment-methods/payment-method-name	
+|O	
+|xs:string	
+|256	
+|The name of the payment method.
+
+|merchant-account-id	
+|M	
+|xs:string	
+|36	
+|A unique identifier assigned for every Merchant Account.
+
+|merchant-account-id/@ref	
+|M	
+|url	
+|n/a	
+|A reference URL to the Merchant Account. Can be used to retrieve merchant account details over a browser. This information is returned in the response only.
+
+|transaction-type	
+|M	
+|xs:token	
+|n/a	
+|Determines a transaction's behavior during transaction processing and merchant settlement. Examples are: authorization, capture, credit, purchase, refund, void authorization, void capture, void credit, void purchase. For a complete list of transaction types, please see <<AppendixB, Appendix B: Transaction Types>>.
+
+|transaction-state	
+|M	
+|xs:token	
+|n/a	
+|The current status of a transaction. Typically, a transaction will start from an "in-progress" state, and then finish in either the "success" or "failed" state. This information is returned in the response only.
+
+|completion-time-stamp	
+|M	
+|xs:datetime	
+|n/a	
+|The date and time that a transaction state became either 'success' or 'failed´ in GMT. This information is returned in the response only.
+
+|requested-amount/@currency	
+|M	
+|xs:token	
+|3	
+|This is the currency in which a transaction is received and processed.
+
+|statuses/status/@code	
+|M	
+|xs:string	
+|12	
+|The status of a transaction. This is primarily used in conjunction with the transaction state to determine the exact details of the status of the transaction. This information is returned in the response only.
+
+|card-token/token-id	
+|O 
+|uuid	
+|16	
+|A unique identifier assigned for every card token. This is a surrogate value for the primary account number.
+
+|card-token/masked-account-number	
+|M	
+|xs:string	
+|16	
+|The masked account number. This information is returned in the response only.
+
+|custom-fields/custom-field/@field-name	
+|O	
+|xs:string	
+|36	
+|The merchant defined name of the custom field.
+
+|authorization-code	
+|O	
+|xs:token	
+|24	
+|A code generated by the card issuing bank as proof that the transaction request was acknowledged or declined.
+
+|api-id	
+|O	
+|xs:token	
+|36	
+|A unique identifier assigned for every API.
+
+|surcharge/surcharge-amount	
+|TBD		
+|TBD 
+|TBD 
+|TBD
+
+|surcharge/original-requested-amount	
+|TBD		
+|TBD 
+|TBD 
+|TBD
 |===
 
 [#GeneralPlatformFeatures_Surcharging_Samples]
