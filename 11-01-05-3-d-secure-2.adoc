@@ -101,46 +101,76 @@ level of security.
 
 [%autowidth]
 |===
-|XML                                                  |Request |Datatype  |Size  |Description
+|XML |Request |Datatype |Size |Description
 
-|account-holder.account-info.authentication-method    |O       |String    |     a|Mechanism used by the cardholder to authenticate to the 3DS Requestor. +
-                                                                                  Possible values: +
-                                                                                  01, 02, 03, 04, 05, 06 +
-                                                                                  01 = No 3DS Requestor authentication occurred (i.e. cardholder "logged
-                                                                                  in" as guest). +
-                                                                                  02 = Login to the cardholder account at the 3DS Requestor system using
-                                                                                  3DS Requestor's own credentials. +
-                                                                                  03 = Login to the cardholder account at the 3DS Requestor system using
-                                                                                  federated ID. +
-                                                                                  04 = Login to the cardholder account at the 3DS Requestor system using
-                                                                                  issuer credentials. +
-                                                                                  05 = Login to the cardholder account at the 3DS Requestor system using
-                                                                                  third-party authentication. +
-                                                                                  06 = Login to the cardholder account at the 3DS Requestor system using
-                                                                                  FIDO Authenticator.
-|account-holder.account-info.authentication-timestamp |O       |Timestamp |      |Date and time in UTC of the cardholder authentication. +
-                                                                                  Format: YYYY-MM-DDThh:mm:ss (ISO). 
-|account-holder.account-info.challenge-indicator      |O       |String    |     a|Indicates whether a challenge is requested for this transaction. +
-                                                                                  Possible values: 01, 02, 03, 04 +
-                                                                                  01 = No preference. +
-                                                                                  02 = No challenge requested. +
-                                                                                  03 = Challenge requested: 3DS Requestor Preference. +
-                                                                                  04 = Challenge requested: Mandate.
-|card.account-type                                     |O      |String    |     a|Indicates the type of account. +
-                                                                                  Accepted values: 01, 02, 03 +
-                                                                                  01 = Not Applicable +
-                                                                                  02 = Credit +
-                                                                                  03 = Debit
-|account-holder.account-info.creation-date             |O      |Date      |      |Date that the cardholder opened the account with the 3DS Requestor.
-|account-holder.account-info.update-date               |O      |Date      |      |Date that the cardholder's account with the 3DS Requestor was last changed. Including
-                                                                                  Billing or Shipping address, new payment account, or new user(s) added.
-|account-holder.account-info.password-change-date      |O      |Date      |      |Date that cardholder's account with the 3DS Requestor had a password change or
-                                                                                  account reset.
-|account-holder.account-info.shipping-address-first-use |O     |Date      |      |Date when the shipping address used for this transaction was first used
-                                                                                  with the 3DS Requestor.
-|account-holder.account-info.transactions-last-day     |O      |Numeric   |      |Number of transactions (successful and abandoned) for this cardholder
-                                                                                  account with the 3DS Requestor across all payment accounts in the
-                                                                                  previous 24 hours.
+|account-holder.account-info.authentication-method    
+|O       
+|String    
+|     
+|Type of consumer login in the merchant's shop. +
+ Possible values: ``01``, ``02``, ``03``, ``04``, ``05``, ``06`` +
+ ``01`` = Guest checkout (i.e. the consumer is not logged in). +
+ ``02`` = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
+ ``03`` = Login with Federated ID. +
+ ``04`` = Login with card issuer credentials. +
+ ``05`` = Login with third-party authentication. +
+ ``06`` = Login with FIDO authenticator.
+ 
+|account-holder.account-info.authentication-timestamp 
+|O       
+|DateTime 
+|19      
+|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``. 
+ For guest checkout, the datetime is now.
+  
+|account-holder.account-info.challenge-indicator      
+|O       
+|String    
+|     
+|Indicates whether a challenge is requested for this transaction. +
+ Possible values: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = No preference. +
+ ``02`` = No challenge requested. +
+ ``03`` = Challenge requested: Merchant Preference. +
+ ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token 
+ (e.g. for one-click checkout).
+ 
+|account-holder.account-info.creation-date             
+|O      
+|DateTime     
+|19      
+|Registration date (UTC) of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``. 
+ For guest checkout, do not send this field.
+
+|account-holder.account-info.update-date               
+|O      
+|Date      
+|10      
+|Date that the consumer last made changes to their account in the merchant's shop. For example, 
+ changes to billing and shipping address, new payment account, new email address. Accepted format: ``YYYY-MM-DD``. 
+ For guest checkout, do not send this field.
+
+|account-holder.account-info.password-change-date      
+|O      
+|Date      
+|10     
+|Date that the consumer last changed/reset their password in the merchant's shop. Accepted format: ``YYYY-MM-DD``. 
+ For guest checkout, do not send this field.
+                                                                                  
+|account-holder.account-info.shipping-address-first-use 
+|O     
+|Date      
+|10     
+|Date that the consumer first used this shipping address in the merchant's shop. Accepted format: ``YYYY-MM-DD``. 
+ For guest checkout, do not send this field.
+                                                                                  
+|account-holder.account-info.transactions-last-day     
+|O      
+|Numeric   
+|      
+|Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours. 
+ Does not include merchant-initiated transactions.
+                                                                                  
 |account-holder.account-info.transactions-last-year    |O      |Numeric   |      |Number of transactions (successful and abandoned) for this cardholder
                                                                                   account with the 3DS Requestor across all payment accounts in the
                                                                                   previous year.
