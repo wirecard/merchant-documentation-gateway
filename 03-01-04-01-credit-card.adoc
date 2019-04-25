@@ -1180,19 +1180,19 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Conditional                      
 |      
 |Type of consumer login in the merchant's shop. +
- Possible values: 01, 02, 03, 04, 05, 06 +
- 01 = Guest checkout (i.e. the consumer is “logged in” as guest). +
- 02 = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
- 03 = Login with Federated ID. +
- 04 = Login with card issuer credentials. +
- 05 = Login with third-party authentication. +
- 06 = Login with FIDO authenticator.
+ Possible values: ``01``, ``02``, ``03``, ``04``, ``05``, ``06`` +
+ ``01`` = Guest checkout (i.e. the consumer is not logged in). +
+ ``02`` = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
+ ``03`` = Login with Federated ID. +
+ ``04`` = Login with card issuer credentials. +
+ ``05`` = Login with third-party authentication. +
+ ``06`` = Login with FIDO authenticator.
 
 2+|authentication-timestamp 
-|Date 
+|DateTime 
 |Conditional                      
-|12      
-|Date and time of the consumer login in the merchant's shop. Accepted format: YYYYMMDDHHMM. 
+|19      
+|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``. 
  For guest checkout, the datetime is now.
                                   
 2+|challenge-indicator      
@@ -1200,40 +1200,40 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Optional               
 |    
 |Indicates whether a challenge is requested for this transaction. +
- Possible values: 01, 02, 03, 04 +
- 01 = No preference. (This is the default setting if not otherwise specified.) +
- 02 = No challenge requested. +
- 03 = Challenge requested: Merchant Preference. +
- 04 = Challenge requested: Mandate. Must be sent in a first transaction that stores a token 
+ Possible values: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = No preference. +
+ ``02`` = No challenge requested. +
+ ``03`` = Challenge requested: Merchant Preference. +
+ ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token 
  (e.g. for one-click checkout).
                                    
 2+|account-creation-date     
-|Date              
+|DateTime             
 |Optional                      
-|8      
-|Registration date of the consumer's account in the merchant's shop. Accepted format: YYYYMMDD. 
+|19      
+|Registration date (UTC) of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``. 
  For guest checkout, do not send this field.
                                    
 2+|account-update-date        
 |Date              
 |Optional                      
-|8      
+|10      
 |Date that the consumer last made changes to their account in the merchant's shop. For example, 
- changes to billing and shipping address, new payment account, new email address. Accepted format: YYYYMMDD. 
+ changes to billing and shipping address, new payment account, new email address. Accepted format: ``YYYY-MM-DD``. 
  For guest checkout, do not send this field. 
                                    
 2+|password-change-date       
 |Date              
 |Optional                      
-|8     
-|Date that the consumer last changed/reset their password in the merchant's shop. Accepted format: YYYYMMDD. 
+|10     
+|Date that the consumer last changed/reset their password in the merchant's shop. Accepted format: ``YYYY-MM-DD``. 
  For guest checkout, do not send this field.
                                    
 2+|shipping-address-first-use 
 |Date              
 |Optional                      
-|8      
-|Date that the consumer first used this shipping address in the merchant's shop. Accepted format: YYYYMMDD. 
+|10      
+|Date that the consumer first used this shipping address in the merchant's shop. Accepted format: ``YYYY-MM-DD``. 
  For guest checkout, do not send this field.
                                    
 2+|transactions-last-day      
@@ -1267,17 +1267,14 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Boolean           
 |Optional                      
 |      
-|Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud). +
- Possible values: 01, 02 +
- 01 = No suspicious activity +
- 02 = Suspicious activity
+|Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud).
                                    
 2+|card-creation-date         
 |Date              
 |Optional                      
-|      
+|10      
 |Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments 
- (one-click checkout). Accepted format: YYYYMMDD. +
+ (one-click checkout). Accepted format: ``YYYY-MM-DD``. +
  For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout), 
  the datetime is now. 
 
@@ -1298,25 +1295,25 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 2+|country
 |String            
 |Conditional                 
-|3
-|Country of the consumer's billing address. Accepted format: numeric ISO 3166-1 standard.
+|2
+|Country of the consumer's billing address.
 
 2+|street1                    
 |String            
 |Conditional                   
-|50   
+|  
 |Line 1 of the street address of the consumer's billing address.
 
 2+|street2                    
 |String            
 |Conditional                   
-|50   
+|   
 |Line 2 of the street address of the consumer's billing address.
        
 2+|street3                    
 |String            
 |Conditional                   
-|50   
+|   
 |Line 3 of the street address of the consumer's billing address.
 
 2+|postal-code
@@ -1371,13 +1368,14 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |      
 |The shipping method chosen by the consumer. 
  Merchants must use the shipping indicator value that applies most accurately to the shipping method. +
- Accepted values are: 01, 02, 03, 04, 05, 06 +
- 01 = Ship to consumer's billing address. +
- 02 = Ship to another address known to and verified by the merchant. +
- 03 = Ship to an address that differs from the consumer's billing address. +
- 04 = "Ship to Store" / Pick-up at local store (store address in shipping address fields). +
- 05 = Digital goods (includes online services, electronic gift cards, and redemption codes). +
- 06 = Travel and event tickets, not shipped.                                                                                           
+ Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05``, ``06``, ``07`` +
+ ``01`` = Ship to consumer's billing address. +
+ ``02`` = Ship to another address known to and verified by the merchant. +
+ ``03`` = Ship to an address that differs from the consumer's billing address. +
+ ``04`` = "Ship to Store" / Pick-up at local store (store address in shipping address fields). +
+ ``05`` = Digital goods (includes online services, electronic gift cards, and redemption codes). +
+ ``06`` = Travel and event tickets, not shipped. +
+ ``07`` = Other (e.g. gaming, digital services, e-media subscriptions)                                                                                         
                    
 .7+|address
 2+|city
@@ -1389,26 +1387,26 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 2+|country
 |String            
 |Conditional                 
-|3
-|Country of the consumer's shipping address. Accepted format: numeric ISO 3166-1 standard. 
+|2
+|Country of the consumer's shipping address. 
  Must be sent even if billing country is identical.
   
 2+|street1                    
 |String            
 |Conditional                   
-|50   
+|   
 |Line 1 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
 
 2+|street2                    
 |String            
 |Conditional                   
-|50   
+|   
 |Line 2 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
      
 2+|street3                    
 |String            
 |Conditional                      
-|50   
+|   
 |Line 3 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.                    
 
 2+|postal-code
@@ -1422,7 +1420,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Conditional                   
 |3  
 |State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard. 
-Must be sent even if billing address is identical.
+ Must be sent even if billing address is identical.
 
 .8+|risk-info   
 3+|delivery-timeframe                           
@@ -1430,11 +1428,11 @@ Must be sent even if billing address is identical.
 |Optional                      
 |      
 |The approximate delivery time. +
- Accepted values are: 01, 02, 03, 04 +
- 01 = Electronic delivery +
- 02 = Same-day delivery +
- 03 = Overnight delivery +
- 04 = Two-day or more delivery                                                             
+ Accepted values are: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = Electronic delivery +
+ ``02`` = Same-day delivery +
+ ``03`` = Overnight delivery +
+ ``04`` = Two-day or more delivery                                                             
                  
 3+|delivery-mail                                
 |String            
@@ -1447,24 +1445,24 @@ Must be sent even if billing address is identical.
 |Optional                      
 |      
 |The consumer has previously ordered the same item. 
- Accepted values are: 01, 02 +
- 01 = First-time order +
- 02 = Reorder
+ Accepted values are: ``01``, ``02`` +
+ ``01`` = First-time order +
+ ``02`` = Reorder
                  
 3+|availability                                 
 |String            
 |Optional                      
 |      
 |The consumer is placing an order for merchandise that is not yet available and will be released in the future.
- Accepted values are: 01, 02 +
- 01 = Currently available +
- 02 = Future availability
+ Accepted values are: ``01``, ``02`` +
+ ``01`` = Currently available +
+ ``02`` = Future availability
                  
 3+|preorder-date                                
 |Date              
 |Optional                      
-|8      
-|Expected shipping date for pre-ordered goods. Accepted format: YYYYMMDD.
+|10      
+|Expected shipping date for pre-ordered goods. Accepted format: ``YYYY-MM-DD``.
                 
 .3+|gift       
 2+|amount                        
@@ -1490,8 +1488,8 @@ Must be sent even if billing address is identical.
 3+|recurring-expire-date                         
 |Date              
 |Conditional                      
-|8      
-|For recurring payments. Date after which no further recurring payments using this card are allowed. Accepted format: YYYYMMDD.
+|10      
+|For recurring payments. Date after which no further recurring payments using this card are allowed. Accepted format: ``YYYY-MM-DD``.
                  
 3+|recurring-frequency                           
 |Date              
@@ -1504,12 +1502,12 @@ Must be sent even if billing address is identical.
 |Optional                      
 |      
 |Identifies the transaction type. The values are derived from ISO 8583. 
- Accepted values are: 01, 03, 10, 11, 28 +
- 01 = Goods/ Service Purchase +
- 03 = Check Acceptance +
- 10 = Account Funding +
- 11 = Quasi-Cash Transaction +
- 28 = Prepaid Activation and Load
+ Accepted values are: ``01``, ``03``, ``10``, ``11``, ``28`` +
+ ``01`` = Goods/ Service Purchase +
+ ``03`` = Check Acceptance +
+ ``10`` = Account Funding +
+ ``11`` = Quasi-Cash Transaction +
+ ``28`` = Prepaid Activation and Load
  
  |three-d
  3+|version
