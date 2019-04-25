@@ -29,7 +29,10 @@ function createTOCElements(elements, level, num) {
       a.text(e.attributes.text);
       li.append(a);
       ul.append(li);
-      if(e.children.length > 0 && level < 4) ul.append(createTOCElements(e.children, level+1, num));
+      if(e.children.length > 0 && level < 4) {
+        li.addClass('has-children');
+        ul.append(createTOCElements(e.children, level+1, num));
+      }
   }
   return ul;
 }

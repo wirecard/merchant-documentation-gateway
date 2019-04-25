@@ -119,13 +119,19 @@ function highlightTOCelement(id='none') {
     if(tocElement.length == 0) {
       return;
     }
-    console.log('highlight ' + id);
-    $('ul.tocify-subheader').hide();
+    var tocElementUL = tocElement.next('ul.tocify-subheader');
+    var tocElementParentUL = tocElement.parents('ul.tocify-subheader');
+    var childElements = tocElementUL.children('li.tocify-item');
+
     $('li.tocify-item[data-unique]').removeClass('toc-hl');
+    $('li.tocify-item[data-unique], ul.tocify-subheader').removeClass('toc-item-expanded');
     tocElement.addClass('toc-hl');
-    tocElement.parents('ul.tocify-subheader').show();
-    tocElement.next('ul.tocify-subheader').show();
-    tocElement.next('ul.tocify-subheader').children('li.tocify-item').show();
+    tocElementParentUL.toggleClass('toc-item-expanded');
+    tocElementParentUL.prev('li.tocify-item[data-unique]').toggleClass('toc-item-expanded');
+
+    if(childElements.length > 0){
+      tocElement.toggleClass('toc-item-expanded');
+    }
     // TODO: should be handled cleaner in highlightTOC()
     if( $('#' + id).is('h4') === false ) {
       $('#minitoc > ul').html('');
