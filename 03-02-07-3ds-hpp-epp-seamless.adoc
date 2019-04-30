@@ -90,7 +90,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |authentication_method            
 |Optional     
 |String             
-|        
+|2        
 |Type of consumer login in the merchant's shop. +
  Possible values: ``01``, ``02``, ``03``, ``04``, ``05``, ``06`` +
  ``01`` = Guest checkout (i.e. the consumer is not logged in). +
@@ -98,19 +98,23 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
  ``03`` = Login with Federated ID. +
  ``04`` = Login with card issuer credentials. +
  ``05`` = Login with third-party authentication. +
- ``06`` = Login with FIDO authenticator.
+ ``06`` = Login with FIDO authenticator. +
+ This field is conditional. If you do not include it in the request, 
+ the likelihood that the transaction will be challenged increases.
 
 |authentication_timestamp         
 |Conditional     
 |YYYY-MM-DDThh:mm:ss 
-|       
+|19       
 |Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``. 
- For guest checkout, the datetime is now.
+ For guest checkout, the datetime is now. +
+ This field is conditional. If you do not include it in the request, 
+ the likelihood that the transaction will be challenged increases.
 
 |challenge_indicator              
 |Optional     
 |String              
-|       
+|2       
 |Indicates whether a challenge is requested for this transaction. +
  Possible values: ``01``, ``02``, ``03``, ``04`` +
  ``01`` = No preference. +
@@ -151,28 +155,28 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |transactions_last_day            
 |Optional     
 |Numeric             
-|       
+|9       
 |Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours. 
  Does not include merchant-initiated transactions.
  
 |transactions_last_year           
 |Optional     
 |Numeric             
-|       
+|9       
 |Number of transactions (successful, failed, and canceled) that the consumer has attempted within the past year. 
  Does not include merchant-initiated transactions.
  
 |card_transactions_last_day       
 |Optional     
 |Numeric             
-|       
+|9       
 |Number of cards the consumer has attempted to add to their account in the merchant's shop for card-on-file payments 
  (one-click checkout) in the past 24 hours.
 
 |purchases_last_six_months        
 |Optional     
 |Numeric             
-|       
+|9       
 |Number of successful orders by the consumer in the merchant's shop within the past six months.
 
 |suspicious_activity              
@@ -193,7 +197,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |merchant_crm_id
 |Optional
 |String
-|
+|64
 |Consumer identifier in the merchant's shop. 
  Requests that contain payment information from the same consumer in the same shop must contain the same string. 
 
@@ -201,79 +205,95 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Conditional 
 |String                  
 |50
-|City of the consumer's billing address.
+|City of the consumer's billing address. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |country
 |Conditional
 |String
 |2
-|Country of the consumer's billing address.
+|Country of the consumer's billing address. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |street1                                
 |Conditional 
 |String                  
-|  
-|Line 1 of the street address of the consumer's billing address.
+|50
+|Line 1 of the street address of the consumer's billing address. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |street2                                
 |Conditional 
 |String                  
-|  
-|Line 2 of the street address of the consumer's billing address.
+|50  
+|Line 2 of the street address of the consumer's billing address. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |street3                                
 |Conditional 
 |String                  
-|  
-|Line 3 of the street address of the consumer's billing address.
+|50  
+|Line 3 of the street address of the consumer's billing address. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |postal_code            
 |Conditional 
 |String                  
 |16  
-|ZIP/postal code of the consumer's billing address.
+|ZIP/postal code of the consumer's billing address. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |state
 |Conditional
 |String                               
 |3  
-|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard.
+|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |email
 |Conditional
 |String                             
 |256 
-|The consumer's email address as given in the merchant's shop.
+|The consumer's email address as given in the merchant's shop. +
+This field is conditional. If you do not include it in the request, 
+the likelihood that the transaction will be challenged increases.
 
 |home_phone               
 |Conditional
 |String                               
-|    
+|18    
 |Home phone number provided by the consumer. +
  This field is required if available.
 
 |mobile_phone 
 |Conditional
 |String                              
-|    
+|18    
 |Mobile phone number provided by the consumer. +
  This field is required if available.
 
 |work_phone                
 |Conditional
 |String                   
-|    
+|18    
 |Work phone number provided by the consumer. +
  This field is required if available.
 
 |last_name
-|Conditional
+|Mandatory
 |String
 |50
 |The last name provided by the consumer as part of the credit card details.
 
 |first_name
-|Conditional
+|Mandatory
 |String
 |50
 |The first name provided by the consumer as part of the credit card details.
@@ -281,7 +301,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |shipping_shipping_method         
 |Optional     
 |String              
-|       
+|2       
 |The shipping method chosen by the consumer. 
  Merchants must use the shipping indicator value that applies most accurately to the shipping method. +
  Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05``, ``06``, ``07`` +
@@ -297,50 +317,57 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Conditional 
 |String                  
 |50
-|City of the consumer's shipping address. Must be sent even if billing city is identical.
+|City of the consumer's shipping address. Must be sent even if billing city is identical. +
+ This field does not apply to digital goods.
 
 |shipping_country            
 |Conditional
 |String                 
 |2
 |Country of the consumer's shipping address. 
- Must be sent even if billing country is identical.
+ Must be sent even if billing country is identical. +
+ This field does not apply to digital goods.
  
 |shipping_street1            
 |Conditional 
 |String                  
-|   
-|Line 1 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
+|50  
+|Line 1 of the street address of the consumer's shipping address. Must be sent even if billing address is identical. +
+ This field does not apply to digital goods.
 
 |shipping_street2            
 |Conditional 
 |String                  
-|   
-|Line 2 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
+|50  
+|Line 2 of the street address of the consumer's shipping address. Must be sent even if billing address is identical. +
+ This field does not apply to digital goods.
 
 |shipping_street3            
 |Conditional 
 |String                  
-|   
-|Line 3 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
+|50   
+|Line 3 of the street address of the consumer's shipping address. Must be sent even if billing address is identical. +
+ This field does not apply to digital goods.
 
 |shipping_postal_code            
 |Conditional 
 |String                  
 |16  
-|ZIP/postal code of the consumer's shipping address. Must be sent even if billing address is identical.
+|ZIP/postal code of the consumer's shipping address. Must be sent even if billing address is identical. +
+ This field does not apply to digital goods.
 
 |shipping_state            
 |Conditional 
 |String                  
 |3  
 |State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard. 
- Must be sent even if billing address is identical.
+ Must be sent even if billing address is identical. +
+ This field does not apply to digital goods.
 
 |risk_info_delivery_timeframe     
 |Optional    
 |String             
-|        
+|2        
 |The approximate delivery time. +
  Accepted values are: ``01``, ``02``, ``03``, ``04`` +
  ``01`` = Electronic delivery +
@@ -357,7 +384,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |risk_info_reorder_items          
 |Optional     
 |String             
-|        
+|2        
 |The consumer has previously ordered the same item. 
  Accepted values are: ``01``, ``02`` +
  ``01`` = First-time order +
@@ -366,7 +393,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |risk_info_availability           
 |Optional     
 |String             
-|        
+|2        
 |The consumer is placing an order for merchandise that is not yet available and will be released in the future.
  Accepted values are: ``01``, ``02`` +
  ``01`` = Currently available +
@@ -400,18 +427,18 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
 |Optional     
 |Date               
 |10      
-|For recurring payments. Date after which no further recurring payments using this card are allowed. Accepted format: ``YYYY-MM-DD``.
+|For recurring payments only. Date after which no further recurring payments using this card are allowed. Accepted format: ``YYYY-MM-DD``.
 
 |recurring_frequency              
 |Optional     
 |Numeric            
 |4      
-|For recurring payments. The minimum number of days between individual payments.
+|For recurring payments only. The minimum number of days between individual payments.
 
 |iso_transaction_type             
 |Optional     
 |String             
-|        
+|2        
 |Identifies the transaction type. The values are derived from ISO 8583. 
  Accepted values are: ``01``, ``03``, ``10``, ``11``, ``28`` +
  ``01`` = Goods/ Service Purchase +
@@ -421,7 +448,7 @@ Need more information on 3-D Secure 2? Head to our <<CreditCard_3DS2, general in
  ``28`` = Prepaid Activation and Load
 
 |three_d_version
-|
+|Optional
 |String
 |5
 |Identifies the version of 3-D Secure authentication used for the transaction. 
