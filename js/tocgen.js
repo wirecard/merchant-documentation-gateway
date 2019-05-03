@@ -114,6 +114,7 @@ $.getJSON( "toc.json", function( data ) {
   $('#generated-toc').replaceWith(toc);
   console.log('applymask');
   if(maskString) applyMask(maskString);
+  loadLunrIndex();
   documentReady();
   addTOCbindings();
   if(editorMode) initMaskEditor(data);
