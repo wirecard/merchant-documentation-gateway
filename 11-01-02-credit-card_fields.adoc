@@ -489,23 +489,28 @@ described in the introduction!
 
 <<CC_Fields_xmlobjects_request_threed, three-d>>
 
-
-[#CC_Fields_xmlobjects_equest]
-===== Request
-
 [#CC_Fields_xmlobjects_request_payment]
 .payment
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+
+|requested-amount |M |Numeric |18,2 |This is the amount of the transaction.
+The amount of the decimal place is dependent of the currency.
+|requested-amount@currency |M |String |3 |This is the currency of the
+transaction.
+2+| notifications 3+| <<CC_Fields_xmlobjects_request_notifications, notifications>>
 |===
 
 [#CC_Fields_xmlobjects_request_accountholder]
 .account-holder
 
-``account-holder`` is a subcategory of ``payment`` and is optional in most of the
-cases. Only ``last-name`` is mandatory. Please provide all the ``account-holder``
-data in your request to make fraud tests easier.
+``account-holder`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object. With the
+``account-holder`` object merchants can gather detailed information about the
+consumer. It provides optional fields mostly. Only ``last-name`` is mandatory.
+Please provide all the ``account-holder`` data in your request to make fraud
+tests easier.
 
 ////
 Is that correct?
@@ -524,7 +529,7 @@ Is that correct?
 | social-security-number |O |String |14 |This is the social security number of the consumer.
 | tax-number |O |String |14 |This is the social security number of the consumer.
 | merchant-crm-id |O |String |64 |This is the merchant-crm-id of consumer.
-2+| address 3+| <<CC_Fields_xmlobjects_request_Address, address>>
+2+| address 3+| <<CC_Fields_xmlobjects_request_address, address>>
 |===
 
 ////
@@ -534,9 +539,12 @@ Is that correct?
 [#CC_Fields_xmlobjects_request_address]
 .address
 
-``address`` is a subcategory of ``account-holder``, ``airline-industry`` and
-``shipping``. It is used to specify the consumer's address. Data can be provided
-optionally but it helps with fraud checks, if the ``address`` is complete.
+``address`` belongs to the
+<<CC_Fields_xmlobjects_request_accountholder, account-holder>>,
+<<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>> and
+<<CC_Fields_xmlobjects_request_shipping, shipping>>. It is used to specify the
+consumer's address. Data can be provided optionally but it helps with fraud
+checks, if ``address`` is complete.
 
 ////
 Is that correct?
@@ -560,6 +568,10 @@ Is that correct?
 
 [#CC_Fields_xmlobjects_request_airlineindustry]
 .airline-industry
+
+``airline-industry`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -567,6 +579,10 @@ Is that correct?
 
 [#CC_Fields_xmlobjects_request_audit]
 .audit
+
+``audit`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -574,6 +590,10 @@ Is that correct?
 
 [#CC_Fields_xmlobjects_request_avs]
 .avs
+
+``avs`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -581,6 +601,10 @@ Is that correct?
 
 [#CC_Fields_xmlobjects_request_browser]
 .browser
+
+``browser`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -589,13 +613,15 @@ Is that correct?
 [#CC_Fields_xmlobjects_request_card]
 .card
 
-``card`` is a subcategory of ``payment`` and is only sent in the first
-transaction request when the card is used for the first time. Due to
+``card`` belongs to the  <<CC_Fields_xmlobjects_request_payment, ``payment``>>
+object. ``card`` details are only sent in the first transaction request when
+the card is used for the first time. Due to
 <<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
-compliance these data is transferred to a token immediately. Beginning with the
+compliance ``card`` details are transferred to a token immediately. Beginning with the
 first response ``card`` is replaced by a token. With this first response, this
 token is used for every transaction (request and response) that is performed
-with this credit card. Token data is provided in the fields ``card-token``.
+with this credit card. Token data is provided with the
+<<CC_Fields_xmlobjects_request_cardtoken, ``card-token``>> object.
 
 ////
 Please explain: When does it make sense to send the OPTIONAL fields?
@@ -666,8 +692,10 @@ transactions. Maps the Visa field _Stored Credential_.
 [#CC_Fields_xmlobjects_request_cardtoken]
 .card-token
 
-``card-token`` is a subcategory of ``payment`` and is the substitute for ``card``.
-Due to <<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
+``card-token`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object and is the substitute
+for ``card``. Due to
+<<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
 compliance, ``card`` data must not be sent in payment transactions. The
 _Wirecard Payment Gateway_ replaces ``card`` immediately by a token in the
 transaction response during the first use of a credit card.
@@ -687,6 +715,10 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 
 [#CC_Fields_xmlobjects_request_creditsenderdata]
 .credit-sender-data
+
+``credit-sender-data`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -694,6 +726,10 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 
 [#CC_Fields_xmlobjects_request_cruiseindustry]
 .cruise-industry
+
+``cruise-industry`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -701,6 +737,10 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 
 [#CC_Fields_xmlobjects_request_customfields]
 .custom-fields
+
+``custom-fields`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -708,6 +748,15 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 
 [#CC_Fields_xmlobjects_request_device]
 .device
+
+``device`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+|===
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -715,13 +764,30 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 
 [#CC_Fields_xmlobjects_request_notifications]
 .notifications
+
+``notifications`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+With the ``notifications`` object merchants can overwrite the
+<<GeneralPlatformFeatures_IPN_Configuration, configuration of the merchant setup>>.
+If merchants want to address individual notification targets, they can
+do this with this object. With each request and for each transaction state
+they can use a different URL.
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+
+|notification |O | | |This is used for IPN (Instant Payment Notification).
+|notification@transaction-state |O |String |12 |This is the status of a transaction when IPN will be sent.
+|notification@url |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
 |===
 
 [#CC_Fields_xmlobjects_request_orderitems]
 .order-items
+
+``order-items`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -729,6 +795,9 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 
 [#CC_Fields_xmlobjects_request_paymentmethods]
 .payment-methods
+
+``payment-methods`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
 
 The value for the tag ``payment-method@name`` is always ``creditcard``.
 
@@ -754,6 +823,10 @@ payment-method@url: Who is the provider?
 
 [#CC_Fields_xmlobjects_request_segment]
 .segment
+
+``segment`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -762,6 +835,8 @@ payment-method@url: Who is the provider?
 [#CC_Fields_xmlobjects_request_shipping]
 .shipping
 
+``shipping`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
 The consumers provides ``shipping`` only, if they want to receive the ordered
 goods or services at a different place than given with the ``account-holder``.
 
@@ -779,7 +854,7 @@ information.
 information.
 | phone |O |String |3 |This is used to specify the phone from
 shipping information.
-2+| address 3+| <<CC_Fields_xmlobjects_request_Address, address>>
+2+| address 3+| <<CC_Fields_xmlobjects_request_address, address>>
 | email |O |String |64 |This is used to specify the email from
 shipping information.
 | shipping-method |O |String |36 |This is used to specify the
@@ -798,15 +873,12 @@ the return tracking URL from shipping information.
 the return shipping company from shipping information.
 |===
 
-[#CC_Fields_xmlobjects_request_statuses]
-.statuses
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
 [#CC_Fields_xmlobjects_request_submerchantinfo]
 .sub-merchant-info
+
+``sub-merchant-info`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
@@ -814,9 +886,102 @@ the return shipping company from shipping information.
 
 [#CC_Fields_xmlobjects_request_threed]
 .three-d
+
+``three-d`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+|===
+
+[#CC_Fields_xmlobjects_response]
+===== Response
+
+[#CC_Fields_xmlobjects_response_payment]
+.payment
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+2+| avs 3+| <<CC_Fields_xmlobjects_response_avs, avs>>
+2+| custom-fields 3+| <<CC_Fields_xmlobjects_response_customfields, custom-field>>
+2+| payment-methods 3+| <<CC_Fields_xmlobjects_response_paymentmethod, payment-method>>
+2+| statuses 3+| <<CC_Fields_xmlobjects_response_status, status>>
+2+| three-d 3+| <<CC_Fields_xmlobjects_response_threed, three-d>>
+|===
+
+[#CC_Fields_xmlobjects_response_avs]
+.avs
+
+``avs`` belongs to the <<CC_Fields_xmlobjects_response_payment, ``payment``>>
+object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| result-code | O |String | 5 | AVS result code.
+| result-message | O |String | 256 | AVS result message.
+| provider-result-code | O | String | 5 | AVS provider result code.
+| provider-result-message | O | String | 256 | AVS provider result message.
+|===
+
+[#CC_Fields_xmlobjects_response_customfields]
+.custom-field
+
+``custom-field`` belongs to the  ``custom-fields`` object, which is part of the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+|===
+
+[#CC_Fields_xmlobjects_response_paymentmethod]
+.payment-method
+
+``payment-method`` belongs to the  ``payment-methods`` object, which is part of the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+|===
+
+[#CC_Fields_xmlobjects_response_status]
+.status
+
+``status`` belongs to the  ``statuses`` object, which is part of the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+``status`` informs the merchants about the result of the previously sent
+request. They can use this information to send the consumers to an adequate
+response page (success page or failure page).
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| status | M | String | 12 | This is the status of a transaction.
+| status@code | M | String | 12 | This is the code of the status of a transaction.
+| status@description | M | String | 256 | This is the description to the status
+code of a transaction.
+| status@severity | M | String | 20 | This field gives information if a status
+is a warning, an error or an information.
+|===
+
+[#CC_Fields_xmlobjects_response_threed]
+.three-d
+
+``three-d`` belongs to the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+| liability-shift-indicator | O | String | 2048 | Liablilty shift can be enabled
+for 3-D Secure enabled consumers.
 |===
 
 //--
