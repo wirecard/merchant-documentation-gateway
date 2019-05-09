@@ -1,5 +1,5 @@
 [#CC_Fields]
-==== Fields (Credit Card)
+==== Fields
 
 The following elements are either mandatory (M), optional (O) or
 conditional \(C) in a transaction process.
@@ -202,17 +202,17 @@ h|Request h|Response h|Notification
 .2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
 h|Request h|Response h|Notification
 
-|credit-sender-data.receiver-name |C | | |String |35 |Mandatory for cross-border transactions.
+| credit-sender-data.receiver-name |C | | |String |35 |Mandatory for cross-border transactions.
 Maximum length for Visa: 30
-|credit-sender-data.receiver-last-name |C | | |String |35 |Mandatory for cross-border transactions.
-|credit-sender-data.reference-number |O | | |String |19 |Maximum length for Visa: 16
-|credit-sender-data.sender-account-number |C | | |String |20 |_Mastercard:_ Mandatory
+| credit-sender-data.receiver-last-name |C | | |String |35 |Mandatory for cross-border transactions.
+| credit-sender-data.reference-number |O | | |String |19 |Maximum length for Visa: 16
+| credit-sender-data.sender-account-number |C | | |String |20 |_Mastercard:_ Mandatory
 _Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
-|credit-sender-data.sender-name |C | | |String |24 |_Mastercard:_ Mandatory
+| credit-sender-data.sender-name |C | | |String |24 |_Mastercard:_ Mandatory
 _Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
-|credit-sender-data.sender-last-name |C | | |String |35 |_Mastercard:_ Mandatory
+| credit-sender-data.sender-last-name |C | | |String |35 |_Mastercard:_ Mandatory
 _Visa:_ Optional
-|credit-sender-data.sender-address |C | | |String |50 |_Mastercard:_ Optional
+| credit-sender-data.sender-address |C | | |String |50 |_Mastercard:_ Optional
 _Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
 |credit-sender-data.sender-city |C | | |String |25 |_Mastercard:_ Optional
 _Visa:_ Mandatory for US domestic and cross-border transactions
@@ -458,7 +458,7 @@ described in the introduction!
 
 <<CC_Fields_xmlobjects_request_audit, audit>>
 
-<<CC_Fields_xmlobjects_request_avs, avs>>
+<<CC_Fields_xmlobjects_response_avs, avs>>
 
 <<CC_Fields_xmlobjects_request_browser, browser>>
 
@@ -501,6 +501,7 @@ The amount of the decimal place is dependent of the currency.
 |requested-amount@currency |M |String |3 |This is the currency of the
 transaction.
 2+| notifications 3+| <<CC_Fields_xmlobjects_request_notifications, notifications>>
+2+| avs-code 3+| <<CC_Fields_xmlobjects_request_avs, avs>>
 |===
 
 [#CC_Fields_xmlobjects_request_accountholder]
@@ -582,17 +583,6 @@ Is that correct?
 .audit
 
 ``audit`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_avs]
-.avs
-
-``avs`` belongs to the
 <<CC_Fields_xmlobjects_request_payment, ``payment``>> object
 
 [cols="30,6,9,7,48a"]
@@ -723,6 +713,34 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+| receiver-name |C |String |35 |Mandatory for cross-border transactions.
+Maximum length for Visa: 30
+| receiver-last-name |C |String |35 |Mandatory for cross-border transactions.
+| reference-number |O |String |19 |Maximum length for Visa: 16
+| sender-account-number |C |String |20 |_Mastercard:_ Mandatory
+_Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
+| sender-name |C |String |24 |_Mastercard:_ Mandatory
+_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
+| sender-last-name |C |String |35 |_Mastercard:_ Mandatory
+_Visa:_ Optional
+| sender-address |C |String |50 |_Mastercard:_ Optional
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
+| sender-city |C |String |25 |_Mastercard:_ Optional
+_Visa:_ Mandatory for US domestic and cross-border transactions
+| sender-country |C |String |3 |_Mastercard:_ Optional
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 2
+| sender-state |C |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada
+_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
+| sender-postal-code |O |String |10 |No specific requirements for _Mastecard_ and _Visa_.
+| sender-funds-source |O |String |2 |Accepted characters are:
+_Mastercard_
+- US: 01, 02, 03, 04, 05, 07
+- Non-US: 01, 02, 03, 04, 05, 06, 07
+//-
+_Visa_
+- US: 1, 2, 3
+- Non-US: 01, 02, 03, 04, 05, 06
+//-
 |===
 
 [#CC_Fields_xmlobjects_request_cruiseindustry]
@@ -917,7 +935,17 @@ the return shipping company from shipping information.
 .avs
 
 ``avs`` belongs to the <<CC_Fields_xmlobjects_response_payment, ``payment``>>
-object.
+object. The <<FraudPrevention_AVS, Address Verification System (AVS)>> is an
+advanced level of credit card security that is built in to the Wirecard
+credit card processing network to help thwart identity theft. When a user makes
+an online purchase with a credit card their billing address is required. The
+house number and postal code of the billing address the user enters is compared
+to the billing address held on file by the card issuing bank. If the address
+does not match then the transaction can be declined. AVS is an on-demand service
+which is configured by Wirecard.
+
+See the complete list of the
+<<FraudPrevention_AVS_WirecardResponseCodes, Wirecard Response Codes>>.
 
 [cols="30,6,9,7,48a"]
 |===
