@@ -859,26 +859,103 @@
       console.log('onAfter called');
       documentReady();
       // exclude Edge workaround
-      if (window.navigator.userAgent.indexOf("Edge") > -1) {
+      if ( isEdgeBrowser ) {
         return true;
       }
-      if(getUrlHash() != '') {
+      if ( getUrlHash() != '' ) {
         setTimeout(function() {
           console.log(getUrlHash());
           window.location.href='#' + getUrlHash();
         }, 2000);
       }
     }
-}).data('smoothState');
+}).data( 'smoothState' );
 
-var priorityPages = ['WPP.html', 'CreditCard.html'];
-for (var i = 0; i < priorityPages.length; i++) {
-  // bind var to settimeout
-  setTimeout(function(page) {
-    console.log('priority fetching: ' + page);
-    smoothState.fetch(page);
-  }.bind(this, priorityPages[i]),i*1000);
+var globalPriorityPages = [ 'PaymentPageSolutions.html', 'WPP.html', 'PP.html' ];
+
+function fetchPageUnlessCached( pageName ) {
+  if( smoothState.cache[pageName] === undefined) {
+    smoothState.fetch( pageName );
+    console.log('preload ' + pageName);
+  }
 }
 
-// TODO maybe add loop for preloading ALL pages... requestWindowFrame thing? requestIdleCallback thing?
-// TODO rewrite priority queue on basis of requestIdleCallback
+var htmlPageNamesArray = [];
+function recursiveGetHtmlPageNamesFromTOC( branch ) {
+  for ( var i = 0; i < branch.length; i++ ) {
+    var item = branch[i];
+    var tocItem = $( 'li.tocify-item[data-unique=' + item.id + '] > a' );
+    var pageName = tocItem.attr( 'href').replace( /#.*/, '' );
+    // add level 1 hierarchy pages to top of queue
+    ( item.attributes.level > 1 ) ? htmlPageNamesArray.push( pageName ) : htmlPageNamesArray.unshift( pageName );
+    if ( item.children.length > 0 ) recursiveGetHtmlPageNamesFromTOC( item.children )
+  }
+  return true;
+}
+
+// puts a page in the first position of the preload queue
+function prioritizePage( pageName ) {
+  //preloadQueue.unshift( pageName ); // useless to put it in queue at this point bc queue already started in its initial configuration and later edits don't affect it
+  fetchPageUnlessCached( pageName );
+}
+
+function fillPreloadQueueWithTOC( toc ) {
+
+  // if toc load took longer than 1000, don't do the preload queue with the big pages
+  if ( serverResponseTime < 1000 ) {
+    // push the manually set highest priority pages in front of an empty priority queue
+    if ( preloadQueue.length == 0 ) {
+      globalPriorityPages.reverse().forEach( function( entry ) {
+        preloadQueue.unshift( entry );
+      });
+    }
+  }
+
+  recursiveGetHtmlPageNamesFromTOC( toc );
+  htmlPageNamesArray.forEach( function( pg ) {
+    // put them to bottom of list
+    preloadQueue.push( pg );
+  });
+  // convert to Set and back to have unique entries
+  preloadQueue = [...new Set( preloadQueue ) ];
+}
+
+function initPagePreloading() {
+  var preloadDelay = (function() {
+    if ( serverResponseTime > 5000 ) return 5000;
+
+    //disabled lower limit
+    //if ( serverResponseTime < 500 ) return 500;
+
+    return serverResponseTime;
+  })();
+  console.log('preloadDelay == time to load toc.json: ' + preloadDelay + 'ms');
+  preloadDelayFactor = 0;
+  while ( preloadQueue.length ) {
+    preloadDelayFactor++;
+    var preloadPage = preloadQueue.shift();
+
+
+/* this wont work bc we empty the queue super fast, then wait for the timeouts. when timeouts trigger, queue will always be empty already
+    // if not loaded by now, load search index at end of html page preload
+    if ( preloadQueue.length == 0 ) {
+      loadLunrIndex();
+    }
+*/
+    if ( typeof smoothState.cache[preloadPage] === 'undefined' ) {
+      setTimeout( function( preloadPage ) {
+        //$( document ).ajaxStop(function() {
+          // wait up to 5s to find an idle (cpu) window to do the page fetch
+          requestIdleCallback( function(){
+            smoothState.fetch( preloadPage );
+          });
+
+        //}.bind( this, preloadPage ) );
+      }.bind( this, preloadPage ), preloadDelay*1.2*preloadDelayFactor );
+    }
+    else {
+      console.log('  ' + preloadPage + ' is already cached');
+    }
+  }
+
+}
