@@ -858,6 +858,7 @@
     onAfter: function() {
       console.log('onAfter called');
       documentReady();
+      initPagePreloading();
       // exclude Edge workaround
       if ( isEdgeBrowser ) {
         return true;
@@ -871,7 +872,8 @@
     }
 }).data( 'smoothState' );
 
-var globalPriorityPages = [ 'PaymentPageSolutions.html', 'WPP.html', 'PP.html' ];
+//var globalPriorityPages = [ 'PaymentPageSolutions.html', 'WPP.html', 'PP.html' ];
+var globalPriorityPages = [ 'WPP.html' ];
 
 function fetchPageUnlessCached( pageName ) {
   if( smoothState.cache[pageName] === undefined) {
@@ -902,7 +904,7 @@ function prioritizePage( pageName ) {
 function fillPreloadQueueWithTOC( toc ) {
 
   // if toc load took longer than 1000, don't do the preload queue with the big pages
-  if ( serverResponseTime < 1000 ) {
+  if ( serverResponseTime < 500 ) {
     // push the manually set highest priority pages in front of an empty priority queue
     if ( preloadQueue.length == 0 ) {
       globalPriorityPages.reverse().forEach( function( entry ) {
@@ -920,13 +922,28 @@ function fillPreloadQueueWithTOC( toc ) {
   preloadQueue = [...new Set( preloadQueue ) ];
 }
 
+// recursively calls itself until there are no more entries in preloadQueue
+function initPagePreloading() {
+  if ( preloadQueue.length ) {
+    var preloadPage = preloadQueue.shift();
+    if ( typeof smoothState.cache[preloadPage] === 'undefined' ) {
+      requestIdleCallback(function(){
+        smoothState.fetch( preloadPage, initPagePreloading );
+      });
+    }
+  }
+  else {
+    // else means preloadQueue is empty, all pages loaded, then load search index
+    loadLunrIndex();
+  }
+}
+
+
+
+/*
 function initPagePreloading() {
   var preloadDelay = (function() {
     if ( serverResponseTime > 5000 ) return 5000;
-
-    //disabled lower limit
-    //if ( serverResponseTime < 500 ) return 500;
-
     return serverResponseTime;
   })();
   console.log('preloadDelay == time to load toc.json: ' + preloadDelay + 'ms');
@@ -934,24 +951,12 @@ function initPagePreloading() {
   while ( preloadQueue.length ) {
     preloadDelayFactor++;
     var preloadPage = preloadQueue.shift();
-
-
-/* this wont work bc we empty the queue super fast, then wait for the timeouts. when timeouts trigger, queue will always be empty already
-    // if not loaded by now, load search index at end of html page preload
-    if ( preloadQueue.length == 0 ) {
-      loadLunrIndex();
-    }
-*/
     if ( typeof smoothState.cache[preloadPage] === 'undefined' ) {
       setTimeout( function( preloadPage ) {
-        //$( document ).ajaxStop(function() {
-          // wait up to 5s to find an idle (cpu) window to do the page fetch
           requestIdleCallback( function(){
             smoothState.fetch( preloadPage );
           });
-
-        //}.bind( this, preloadPage ) );
-      }.bind( this, preloadPage ), preloadDelay*1.2*preloadDelayFactor );
+      }.bind( this, preloadPage ), preloadDelay*0.8*preloadDelayFactor );
     }
     else {
       console.log('  ' + preloadPage + ' is already cached');
@@ -959,3 +964,5 @@ function initPagePreloading() {
   }
 
 }
+
+*/

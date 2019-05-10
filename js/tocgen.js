@@ -75,7 +75,7 @@ function addTOCbindings() {
 
   var priorityTimeoutHandler;
   $( 'li.tocify-item > a' ).on( 'mouseenter touchstart', function( event ){
-    if ( searchIndexStatus != 'loaded' ) {
+    if ( searchIndexStatus !== 'loaded' ) {
       console.log('index not loaded yet, skipping preload on mouseover to prevent bubbling');
       return false;
     }
@@ -115,9 +115,4 @@ $.getJSON( 'toc.json', function( data ) {
     fillPreloadQueueWithTOC( globalTOC );
     initPagePreloading();
   }
-
-  // load large search index after toc json
-  setTimeout( function() {
-    loadLunrIndex();
-  }, Math.min(serverResponseTime*20, 40000) );
 });
