@@ -32,6 +32,7 @@
             <xs:enumeration value="discover"/>
             <xs:enumeration value="expresscheckout"/>
             <xs:enumeration value="elo"/>
+            <xs:enumeration value="ezlink"/>
             <xs:enumeration value="hiper"/>
             <xs:enumeration value="hipercard"/>
             <xs:enumeration value="jcb"/>
@@ -39,6 +40,7 @@
             <xs:enumeration value="maestrouk"/>
             <xs:enumeration value="mastercard"/>
             <xs:enumeration value="mydebit"/>
+            <xs:enumeration value="netsfp"/>
             <xs:enumeration value="postepay"/>
             <xs:enumeration value="sorocred"/>
             <xs:enumeration value="uatp"/>
@@ -101,6 +103,7 @@
             <xs:enumeration value="first-cb-succ-rep"/>
             <xs:enumeration value="first-cb-unsucc-rep"/>
             <xs:enumeration value="get-url"/>
+            <xs:enumeration value="message"/>
             <xs:enumeration value="offline-purchase"/>
             <xs:enumeration value="order"/>
             <xs:enumeration value="original-credit"/>
@@ -320,6 +323,7 @@
             <xs:enumeration value="vtcpay"/>
             <xs:enumeration value="interac"/>
             <xs:enumeration value="linepay"/>
+            <xs:enumeration value="scb-promptpay"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="bank-account-type">
@@ -466,21 +470,14 @@
             <xs:element name="email" type="email" minOccurs="0" maxOccurs="1"/>
             <xs:element name="gender" type="gender" minOccurs="0" maxOccurs="1"/>
             <xs:element name="date-of-birth" type="xs:string" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="phone" type="xs:string" minOccurs="0" maxOccurs="1"/>
-			<xs:element name="home-phone" type="phone-number" minOccurs="0" maxOccurs="1"/>			
-			<xs:element name="mobile-phone" type="phone-number" minOccurs="0" maxOccurs="1"/>
-			<xs:element name="work-phone" type="phone-number" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="phone" type="xs:string" minOccurs="0" maxOccurs="1"/>	
+			<xs:element name="mobile-phone" type="xs:string" minOccurs="0" maxOccurs="1"/>
+			<xs:element name="work-phone" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="address" type="address" minOccurs="0" maxOccurs="1"/>
             <xs:element name="merchant-crm-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="social-security-number" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="tax-number" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="account-info" type="account-info" minOccurs="0" maxOccurs="1"/>			
-        </xs:all>
-    </xs:complexType>
-    <xs:complexType name="phone-number">
-        <xs:all>
-            <xs:element name="country-part" type="xs:string" minOccurs="0" maxOccurs="1"/>
-            <xs:element name="other-part" type="xs:string" minOccurs="0" maxOccurs="1"/>
         </xs:all>
     </xs:complexType>
     <xs:complexType name="account-info">
@@ -503,8 +500,10 @@
     <xs:simpleType name="challenge-type">
 		<xs:annotation>
 			<xs:documentation>3DS2: threeDSRequestorChallengeInd 
-			01 = No preference, 02 = No challenge requested, 
-			03 = Challenge requested: 3DS Requestor Preference, 04 = Challenge requested: Mandate</xs:documentation>
+			01 = No preference, 
+			02 = No challenge requested, 
+			03 = Challenge requested: 3DS Requestor Preference, 
+			04 = Challenge requested: Mandate</xs:documentation>
 		</xs:annotation>	
         <xs:restriction base="xs:token">
             <xs:enumeration value="01"/>
@@ -582,7 +581,7 @@
             <xs:element name="hotel-code" type="xs:string"/>
             <xs:element name="hotel-name" type="xs:string" minOccurs="0"/>
             <xs:element name="hotel-folio-number" type="xs:string" minOccurs="0"/>
-            <xs:element name="reservation-confirmation-number" type="confimation-number"/>
+            <xs:element name="reservation-confirmation-number" type="confirmation-number"/>
             <xs:element name="guest-first-name" type="xs:string" minOccurs="0"/>
             <xs:element name="guest-last-name" type="xs:string" minOccurs="0"/>
             <xs:element name="company" type="xs:string" minOccurs="0"/>
@@ -609,10 +608,9 @@
         </xs:all>
     </xs:complexType>
 
-    <xs:simpleType name="confimation-number">
+    <xs:simpleType name="confirmation-number">
         <xs:restriction base="xs:string">
-            <xs:pattern value="([0-9a-zA-Z_])"/>
-			<xs:maxLength value="64"/>
+            <xs:pattern value="[0-9a-zA-Z_]{1,64}"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="card">
@@ -821,6 +819,7 @@
                 <xs:attribute name="provider-message" type="xs:string" use="optional"/>
                 <xs:attribute name="field" type="xs:string" use="optional"/>
                 <xs:attribute name="detail" type="xs:string" use="optional"/>
+                <xs:attribute name="acquirer-response-code" type="xs:string" use="optional"/>
             </xs:extension>
         </xs:simpleContent>
     </xs:complexType>
@@ -850,25 +849,29 @@
             <xs:enumeration value="10"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:simpleType name="shipping-method">
+	<xs:simpleType name="shipping-method">
 		<xs:annotation>
 			<xs:documentation>3DS2: shipIndicator 
-			01 = Ship to cardholder’s billing address
-			02 = Ship to another verified address on file with merchant
-			03 = Ship to address that is different than the cardholder’s billing address
-			04 = “Ship to Store” / Pick-up at local store (Store address shall be populated in shipping address fields)
-			05 = Digital goods (includes online services, electronic gift cards and redemption codes)
-			06 = Travel and Event tickets, not shipped
-			07 = Other (for example, Gaming, digital services not shipped, emedia subscriptions, etc.</xs:documentation>
+			01 = home_delivery -  Ship to cardholder’s billing address, 
+			02 = verified_address_delivery - Ship to another verified address on file with merchant,
+			03 = other_address_delivery - Ship to address that is different than the cardholder’s billing address,
+			04 = store_pick_up - Pick-up at local store,
+			05 = digital_goods - Digital goods,
+			06 = digital_tickets - Travel and Event tickets, not shipped,
+			07 = other_verified - Other</xs:documentation>
 		</xs:annotation>		
         <xs:restriction base="xs:string">
-            <xs:enumeration value="01"/>
-            <xs:enumeration value="02"/>
-			<xs:enumeration value="03"/>
-			<xs:enumeration value="04"/>
-            <xs:enumeration value="05"/>
-            <xs:enumeration value="06"/>
-            <xs:enumeration value="07"/>							
+            <xs:enumeration value="store_pick_up"/>
+            <xs:enumeration value="home_delivery"/>
+            <xs:enumeration value="verified_address_delivery"/>
+            <xs:enumeration value="other_address_delivery"/>			
+            <xs:enumeration value="registered_box"/>
+            <xs:enumeration value="unregistered_box"/>
+            <xs:enumeration value="pick_up_point"/>
+            <xs:enumeration value="own_delivery"/>
+    		<xs:enumeration value="digital_tickets"/>			
+			<xs:enumeration value="digital_goods"/>	
+			<xs:enumeration value="other_verified"/>							
         </xs:restriction>
     </xs:simpleType>
     <xs:simpleType name="order-item-type">
@@ -908,6 +911,8 @@
             </xs:element>
             <xs:element name="riid" type="riid-type" minOccurs="0" maxOccurs="1"/>		
             <xs:element name="server-transaction-id" type="xs:string" minOccurs="0" maxOccurs="1"/>					
+            <xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="ds-transaction-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
         </xs:all>
     </xs:complexType>
 	<xs:simpleType name="riid-type">
@@ -1191,6 +1196,7 @@
             <xs:element name="tenure" type="integer4" minOccurs="0" maxOccurs="1"/>
             <xs:element name="tenure-unit" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="interest-rate" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="annual-interest-rate" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
             <xs:element name="acquirer-code" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="interest-payer" type="string1" minOccurs="0" maxOccurs="1"/>
             <xs:element name="management-fee" type="money" minOccurs="0" maxOccurs="1"/>
@@ -1225,6 +1231,12 @@
             <xs:enumeration value="acc2acc"/>
             <xs:enumeration value="ccBill"/>
             <xs:enumeration value="fd"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="reversal-type">
+        <xs:restriction base="xs:token">
+            <xs:enumeration value="merchant"/>
+            <xs:enumeration value="system"/>
         </xs:restriction>
     </xs:simpleType>
     <xs:complexType name="wallet">
@@ -1296,6 +1308,7 @@
             <xs:element name="category" type="xs:string" minOccurs="0"/>
             <xs:element name="store-id" type="string64" minOccurs="0"/>
             <xs:element name="store-name" type="string64" minOccurs="0"/>
+            <xs:element name="payment-facilitator-id" type="xs:string" minOccurs="0"/>
         </xs:all>
     </xs:complexType>
     <xs:complexType name="iso-field">
@@ -1472,6 +1485,23 @@
         <xs:sequence>
             <xs:element name="request" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="response" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="consumer-receipt" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="encoding" type="encoding" use="optional" default="base64"/>
+                            <xs:attribute name="format" use="optional" default="ascii">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="ascii"/>
+                                        <xs:enumeration value="json"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="provider-id" type="xs:string" use="optional"/>
         <xs:attribute name="provider-transaction-id" type="xs:string" use="optional"/>
@@ -1488,6 +1518,16 @@
             <xs:element name="original-requested-amount" type="money" minOccurs="0" maxOccurs="1"/>
         </xs:all>
     </xs:complexType>
+    <xs:simpleType name="aft-bai-type">
+        <xs:restriction base="xs:token">
+            <xs:enumeration value="p2p"/>
+            <xs:enumeration value="acct2acct"/>
+            <xs:enumeration value="ccBill"/>
+            <xs:enumeration value="bi"/>
+            <xs:enumeration value="tu"/>
+            <xs:enumeration value="wt"/>
+        </xs:restriction>
+    </xs:simpleType>
     <xs:complexType name="risk-info">
         <xs:all>
             <xs:element name="availability" type="availability-type" minOccurs="0" maxOccurs="1"/>
@@ -1628,6 +1668,7 @@
             <xs:element name="locale" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="psp-name" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="custom-css-url" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="aft-bai-type" type="aft-bai-type" minOccurs="0" maxOccurs="1"/>
             <!-- YYYY-MM-DD format-->
             <xs:element name="due-date" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="capture-date" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -1649,6 +1690,7 @@
             <xs:element name="risk-reference-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="card-bin-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="non-gambling-oct-type" type="non-gambling-oct-type" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="reversal-type" type="reversal-type" minOccurs="0" maxOccurs="1"/>
             <xs:element name="credit-sender-data" type="credit-sender-data" minOccurs="0" maxOccurs="1"/>
             <xs:element name="pan-bank" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="pan-country" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -1695,6 +1737,12 @@
             <!-- surcharge / fee -->
             <xs:element name="surcharge" type="surcharge" minOccurs="0" maxOccurs="1"/>
             <xs:element name="shop" type="shop" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="installment-plan-options" type="installment-plan-options" minOccurs="0" maxOccurs="1"/>
+			
+			<!-- 3DS 2.0 risk-info -->
+			<xs:element name="risk-info" type="risk-info" minOccurs="0" maxOccurs="1"/>
+
+            <xs:element name="qr-code" type="xs:string" minOccurs="0" maxOccurs="1"/>
         </xs:all>
         <xs:attribute name="self" type="url" use="optional"/>
     </xs:complexType>
@@ -1706,6 +1754,14 @@
             <xs:enumeration value="mobile"/>
             <xs:enumeration value="tablet"/>
             <xs:enumeration value="other"/>
+        </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="encoding">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="base64"/>
+            <xs:enumeration value="hex"/>
+            <xs:enumeration value="none"/>
         </xs:restriction>
     </xs:simpleType>
 
@@ -1742,6 +1798,31 @@
             <xs:element name="plugin-name" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="plugin-version" type="xs:string" minOccurs="0" maxOccurs="1"/>
             <xs:element name="integration-type" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="installment-plan-options">
+        <xs:all>
+            <xs:element name="plan-type" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="payment-option" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="available-installment-plan-options" type="available-installment-plan-options" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="available-installment-plan-options">
+        <xs:sequence>
+             <xs:element name="installment-plan-option" type="installment-plan-option" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="installment-plan-option">
+        <xs:all>
+            <xs:element name="plan-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="first-payment-amount" type="money" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="monthly-payment-amount" type="money" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="total-payment-amount" type="money" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="tenure" type="integer4" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="tenure-unit" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="interest-rate" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="annual-interest-rate" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="management-fee" type="money" minOccurs="0" maxOccurs="1"/>
         </xs:all>
     </xs:complexType>
 </xs:schema>
