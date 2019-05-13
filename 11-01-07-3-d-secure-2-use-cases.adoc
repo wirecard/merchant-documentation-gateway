@@ -30,54 +30,34 @@ A consumer places an order that will be fulfilled with a delayed shipment.
 
 .Option 1: Expected Delay
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
-. *Authorization-only* (full amount): Send a second request with transaction type **authorization-only.** 
+. *Authorization-only* (zero amount): Send a second request with transaction type **authorization-only.** 
+////
+purpose card-verification
+////
 +
 _When ready to ship_
 +
-. *Authorization* (full amount):
+. *Authorization* (full amount): Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field.
 .	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
 
 //-
-////
-How do these steps in the transaction process connect with each other?
-////
+
 
 .Option 2: Unexpected Delay
 
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
-. *(Pre-)Authorization* (full amount): Send a second request with transaction type **authorization-only.** 
+. *(Pre-)Authorization* (full amount): Send a second request with transaction type **(pre-)authorization.** Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field. 
 +
 _When exceeding the expiration date of the authorization_ 
 +
-. *Void-authorization*
+. *Void-authorization* --> reference (pre-authorization)
 +
 _When ready to ship_
 +
-. *Authorization* (with merchant-initiated transaction):
-
-////
-Difference between pre-authorization and authorization?
-I think the last step is missing here?:
-.	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
-////
-
-.Option 3: Mastercard Recommendation:
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
-. *(Pre-)Authorization* (full amount): Send a second request with transaction type **authorization-only.** 
-+
-_When exceeding the expiration date of the authorization_ 
-+
-. Extend *authorization*
-+
-_When ready to ship_
-+
+. *Authorization* (with merchant-initiated transaction): --> exemption (VISA); reference pre-authorization
 .	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
 
 //-
-
-////
-Please explain how exactly this works
-////
 
 
 ***
@@ -96,7 +76,7 @@ A consumer places an order that will be fulfilled in multiple shipments.
 +
 _When ready to ship a remaining part of the order_
 +
-. *Capture* (partial amount): Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+. *Capture* (partial amount): Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field. Capture every individual shipment.
 
 //-
 
@@ -106,9 +86,9 @@ _When ready to ship a remaining part of the order_
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
 . *Authorization* (full amount): Send a second request with transaction type **authorization.** Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
 +
-_When part of the order is ready to ship_
+_When part of the order is ready to ship_ --> repetitive event
 +
-. *Capture* (partial amount):  Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+. *Capture* (partial amount):  Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field. Capture every individual shipment.
 +
 _When authorization expires_
 +
@@ -117,13 +97,10 @@ _When authorization expires_
 _When ready to ship a remaining part of the order_
 +
 . *Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are exempt from SCA (Strong Customer Authentication); therefore, *check-enrollment* is not required prior to this request.
-. *Capture* the remaining amount.
+. *Capture* the remaining amount. Capture every individual shipment.
 
 //-
 
-////
-Check again with Julian Ott about the details of the workflow. Otherwise remove option 2 and include at a later time. In general, do not publish anything where you have open questions!!
-////
 ***
 [#CreditCard_3DS2_UseCase_MultiPartyCommerce]
 ===== General Multi-Party Commerce
@@ -131,9 +108,6 @@ Check again with Julian Ott about the details of the workflow. Otherwise remove 
 The consumer buys a product or service from a merchant. At the time of purchase, the consumer acquires an additional product or service that will be provided and charged for by a separate merchant.
 For example, the consumer purchases a washing machine and a breakdown and repair insurance.
 
-////
-Is this a valid example?
-////
 
 [#CreditCard_3DS2_UseCase_MultiPartyCommerce_tx]
 ====== For a successful transaction:
@@ -146,14 +120,11 @@ _The consumer-facing merchant (i.e. where the consumer buys the primary product 
 +
 _Each merchant (when ready to ship / deliver)_
 +
-.	*Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are exempt from SCA; therefore, *check-enrollment* is not required prior to this request.
+.	*Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are out of scope for SCA; therefore, *check-enrollment* is not required prior to this request.
 .	*Capture* the remaining amount.
 
 //-
-////
-Capture and authorize WHAT exactly?
-Check with Julian Ott: Is the repair insurance (used in the example) authorized when ready to ship (step 4)?
-////
+
 
 ***
 [#CreditCard_3DS2_UseCase_AgentModel]
@@ -166,10 +137,15 @@ WARNING: Agents must clearly inform consumers that their cards will be charged b
 [#CreditCard_3DS2_UseCase_AgentModel_tx]
 ====== For a successful transaction:
 
+Scenario 1: standard workflow (no check payer-response) everyone with WD
+Scenario 2: merchant not with WD; check payer-response (scheme information)
+Scenario 3: agent not with WD; complextype name three-d
+
+
 _The agent initiates the payment session_:
 
 .	*Check-enrollment* (for the full payment amount)
-.	*Check-payer-response*
+.	*Check-payer-response* 
 +
 _Each merchant (when ready to ship / deliver)_:
 +
@@ -179,9 +155,7 @@ _Each merchant (when ready to ship / deliver)_:
 //-
 
 ////
-Check payer-response: how exactly does this work?
-Is the authorization a merchant-initiated transaction? For the full amount?
-Is Card Authentication Value a separate field? Check in 3DS field table
+Work on it and ask questions as they occur
 ////
 
 ***
@@ -197,9 +171,9 @@ For example, this could apply to orders where a shipping date is booked several 
 .Option 1: Initial Order Amount
 
 . *Check-enrollment* (initial order amount)
-. *Authorization-only* (without referencing)
+. *Authorization-only* (zero amount)
 +
-_When the shopping cart contents changes_
+_If the shopping cart content changes and the new cumulative amount exceeds the original amount_
 +
 . *Check-enrollment* (new cumulative amount)
 +
@@ -212,8 +186,6 @@ _When ready to ship_
 NOTE: This option is more expensive because more enrollment-checks are necessary.
 
 ////
-Authorization-only (without referencing): referencing what?
-Does the second check-enrollment reference any previous transactions?
 Authorization of the enrolled amount? --> rephrase
 ////
 
@@ -235,7 +207,7 @@ _When ready to ship_
 NOTE: Potentially higher abandonment because the consumer will get prompted to authenticate a higher amount than expected.
 
 ////
-Same questions as above; what are the dependencies, which fields (e.g. parent-transaction-id) need to be considered?
+Edit and fill in the gaps
 ////
 
 ***
@@ -266,6 +238,7 @@ _Conditional: Final amount lies above the margin of reasonable expectation_
 NOTE: This scenario is optimized to reduce friction at the cost of missing out on the liability shift.
 
 ////
+DO NOT PUBLISH BEFORE EXEMPTIONS ARE READY
 In this scenario, how does the exemption happen?
 What exactly needs to happen for the transaction to be successful?
 What does Conditional mean in this context?
@@ -288,6 +261,7 @@ _Conditional: Final amount above reasonable expectations_
 NOTE: This scenario is optimized to benefit from the fraud liability shift.
 
 ////
+DO NOT PUBLISH BEFORE EXEMPTIONS ARE READY
 Who benefits from the fraud liability shift?
 Same questions as above:
 In this scenario, how does the exemption happen?
@@ -299,11 +273,7 @@ What does Conditional mean in this context?
 [#CreditCard_3DS2_UseCase_Installments]
 ===== Installments (MIT)
 
-Installments are payments where a consumer purchases goods and receives them immediately; however, an agreement is established to pay for them in multiple partial payments over an agreed period – typically with interest.
-
-////
-The consumer receives the goods immediately? Might be misleading if you're shopping online and choosing to pay in installments
-////
+Installments are payments where a consumer purchases goods and an agreement is established to pay for them in multiple partial payments over an agreed period – typically with interest.
 
 WARNING: Consumers need to be clearly informed about the terms of the installment agreement at the time of signing up.
 
@@ -311,59 +281,34 @@ WARNING: Consumers need to be clearly informed about the terms of the installmen
 
 _Setting up the agreement (Consumer Initiated)_
 
-. *Check-enrollment* (full amount + interest)
-. *Authorization* (down-payment amount)
-. *Capture* (down-payment amount)
+. *Check-enrollment* (full amount + interest): periodic-type installment; sequence-type: first
+. *Authorization* (down-payment amount): periodic-type installment; sequence-type: first
+. *Capture* (down-payment amount): references authorization in parent-transaction-id
 +
 _Payment per Installment_
 +
-. *Authorization* as MIT (installment amount)
+. *Authorization* as MIT (installment amount): periodic-type installment; sequence-type: recurring; parent-transaction-id: first authorization
 . *Capture* (installment amount)
 
 //-
 
-////
-does this require periodic-type: first, recurring, final?
-transaction-id? how do you reference the transactions?
-////
 
 .Option 2: Installment without down-payment
 
 _Setting up the agreement (Consumer Initiated)_
 
 .	*Check-enrollment* (full amount + interest)
-.	*Authorization-only* (without referencing cardholder authentication value)
+.	*Authorization-only* (zero amount; =payment agreement): references check-enrollment
 +
 _Payment per Installment_
 +
-.	*Authorization* (installment amount)
+.	*Authorization* (installment amount) as MIT
 . *Capture* (installment amount)
 
 //-
 ////
-does this require periodic-type: first, recurring, final?
-transaction-id? how do you reference the transactions?
+as above
 ////
-
-.Option 3: Mastercard-specific requirements
-
-_Consumer Initiated_
-
-. *Check-enrollment* (full amount + interest)
-. *Authorization* (full amount)
-+
-_Payment per Installment_
-+
-. *Capture* (installment amount)
-
-//-
-
-////
-Mastercard-specific requirements sounds a bit odd.
-does this require periodic-type: first, recurring, final?
-transaction-id? how do you reference the transactions?
-////
-
 
 ***
 [#CreditCard_3DS2_UseCase_Recurring_Same]
@@ -373,7 +318,7 @@ Recurring transactions are processed at fixed and regular intervals, with the sa
 
 NOTE: Consumers need to be clearly informed about the terms of the recurring agreement at the time of sign up.
 
-.Option 1: Amount due at sign-up
+.Option 1: Amount due at sign-up (No trial period)
 
 _Setting up the agreement (Consumer Initiated)_
 
@@ -388,10 +333,11 @@ _Per Recurring Payment (Merchant Initiated)_
 
 //-
 ////
-more information on recurring
+same logic as installment
+type recurring: recurring
 ////
 
-.Option 2: No amount due at sign-up
+.Option 2: No amount due at sign-up (Trial period)
 
 _Setting up the agreement (Consumer Initiated)_
 
@@ -406,17 +352,19 @@ _Per Recurring Payment (Merchant Initiated)_
 //-
 
 ////
-Is the amount in the authorization-only given as zero?
+amount in the authorization-only given as zero
+same logic as installment
 ////
 
 ***
 [#CreditCard_3DS2_UseCase_Recurring_Variable]
-===== Recurring Payments – Variable Amount (MIT Unscheduled Credential on File)
+===== Recurring Payments – Variable Amount (MIT Unscheduled Credential on File - UCOF)
 
 A transaction using a stored credential for a fixed or variable amount that does not occur on a scheduled or regularly occurring transaction date, where the cardholder has provided consent for the merchant to initiate one or more future transactions which are not initiated by the cardholder. An unscheduled credential on file MIT agreement has to be initially set up with an SCA.
+Top up, phone bill (unscheduled amount/period)
 ////
 Examples?
-Edit description to be more understandable
+UCOF flagging: VISA --> MIT framework: 8 different types; 3 standing orders (5 of them are industry best-practices; approval rates)
 ////
 
 NOTE: Consumers need to be clearly informed about the terms of the unscheduled credential on file at the time of sign up.
@@ -436,8 +384,8 @@ _Per UCOF Payment (Merchant Initiated)_
 
 //-
 ////
-What is UCOF?
-How does the MIT AUthorization reference the previous transactions?
+Identical basically to installment
+recurring!
 ////
 
 .No amount due at sign-up
@@ -461,23 +409,26 @@ _Per UCOF Payment (Merchant Initiated)_
 
 Business scenarios exist, where the initially agreed payment terms may change. Such changes could be triggered by both merchants and consumers. An *enrollment-check* (for the new amount) is recommended. However, there are scenarios where merchants could decide against it.
 ////
-Examples?
+Up- and downgrades of subscription plans; e.g. Netflix 
 ////
 
 .Scenario 1: Merchant Driven Agreement Changes
 
 If a change is initiated by merchants, *check-enrollment* is not needed if the original agreement with the consumer (e.g. the terms and conditions) clearly covers the eventuality of such changes. One example could be price changes due to inflation.
+////
+Netflix changes their prices
+////
 
 .Scenario 2: Consumer Driven Agreement Changes
+
+////
+Consumers up- or downgrade their subscriptions - e.g. software subscriptions
+////
 
 Common scenarios where payment terms are changed by merchants are up- and downgrades of a subscription plan, changes to billing cycle as well as pausing, resuming, and cancelling a subscription.
 
 In these cases, authentication is only required, if the agreed payment terms clearly cover the eventuality of such changes and the merchant has appropriate risk management in place. In case there are any doubts that the original agreement covers the change, treating the transaction as a new agreement by performing a check-enrollment request (for the new amount) is highly recommended.
 
-////
-Aren't these also merchant-driven agreement changes?
-I'm confused by this, because it doesn't describe any consumer-driven changes.
-////
 
 [#CreditCard_3DS2_UseCase_Special_AddCardOnFile]
 ===== Adding a card on file
@@ -496,19 +447,21 @@ Rephrase warning
 .Independent of purchase
 
 . *Check-enrollment* (Non-Payment)
-.	*Authorization-only*
+.	*Authorization-only*: reference check-enrollment
 
 //-
 ////
-More details please - how does a check-enrollment (non-payment) work?
+Alternative scenario (in case the acquirer does not support this): check-enrollment --> authorization --> void-authorization instead of authorization-only (zero amount)
 ////
 
 .During purchase
 
-. *Check-enrollment* (payment amount) – unless exemption applies
+. *Check-enrollment* (payment amount)
 . *Authorization* (payment amount)
+. *Capture*
 
 //-
 ////
+Not a normal transaction; you need to do SCA for card-on-file
 This needs to be expanded a little bit; see first use case
 ////
