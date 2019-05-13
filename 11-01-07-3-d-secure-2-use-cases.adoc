@@ -20,12 +20,73 @@ _When ready to ship_
 //-
 
 ***
-[#CreditCard_3DS2_UseCase_DelayedPartialSplitShipment]
-===== Delayed/ Partial/ Split Shipment
+[#CreditCard_3DS2_UseCase_DelayedShipment]
+===== Delayed Shipment
+
+A consumer places an order that will be fulfilled with a delayed shipment.
+
+[#CreditCard_3DS2_UseCase_DelayedShipment_tx]
+====== For a successful transaction:
+
+.Option 1: Expected Delay
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *Authorization-only* (full amount): Send a second request with transaction type **authorization-only.** 
++
+_When ready to ship_
++
+. *Authorization* (full amount):
+.	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+
+//-
+////
+How do these steps in the transaction process connect with each other?
+////
+
+.Option 2: Unexpected Delay
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *(Pre-)Authorization* (full amount): Send a second request with transaction type **authorization-only.** 
++
+_When exceeding the expiration date of the authorization_ 
++
+. *Void-authorization*
++
+_When ready to ship_
++
+. *Authorization* (with merchant-initiated transaction):
+
+////
+Difference between pre-authorization and authorization?
+I think the last step is missing here?:
+.	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+////
+
+.Option 3: Mastercard Recommendation:
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *(Pre-)Authorization* (full amount): Send a second request with transaction type **authorization-only.** 
++
+_When exceeding the expiration date of the authorization_ 
++
+. Extend *authorization*
++
+_When ready to ship_
++
+.	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+
+//-
+
+////
+Please explain how exactly this works
+////
+
+
+***
+[#CreditCard_3DS2_UseCase_PartialSplitShipment]
+===== Partial/ Split Shipment
 
 A consumer places an order that will be fulfilled in multiple shipments.
 
-[#CreditCard_3DS2_UseCase_DelayedPartialSplitShipment_tx]
+[#CreditCard_3DS2_UseCase_PartialSplitShipment_tx]
 ====== For a successful transaction:
 
 .Option 1: Without Delay
