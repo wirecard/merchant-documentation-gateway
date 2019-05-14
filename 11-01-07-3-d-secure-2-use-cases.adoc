@@ -30,7 +30,7 @@ A consumer places an order that will be fulfilled with a delayed shipment.
 
 .Option 1: Expected Delay
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
-. *Authorization-only* (zero amount): Send a second request with transaction type **authorization-only.** 
+. *Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to validate the credit card data.
 +
 _When ready to ship_
 +
@@ -43,15 +43,15 @@ _When ready to ship_
 .Option 2: Unexpected Delay
 
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
-. *(Pre-)Authorization* (full amount): Send a second request with transaction type **(pre-)authorization.** Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+. *(Pre-)Authorization* (full amount): Send a second request with transaction type *(pre-)authorization.* Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field. 
 +
 _When exceeding the expiration date of the authorization_ 
 +
-. *Void-authorization* --> reference (pre-authorization)
+. *Void-authorization*: Send a request with transaction type *void-authorization*. Include the ``transaction-id``from the *(pre-)authorization* response in the ``parent-transaction-id`` field.
 +
 _When ready to ship_
 +
-. *Authorization* (with merchant-initiated transaction): --> exemption (VISA); reference pre-authorization
+. *Authorization* (full amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, *check-enrollment* is not required prior to this request. Include the ``transaction-id``from the *(pre-)authorization* response in the ``parent-transaction-id`` field.
 .	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
 
 //-
@@ -71,19 +71,19 @@ A consumer places an order that will be fulfilled in multiple shipments.
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
 . *Authorization* (full amount): Send a second request with transaction type **authorization.** Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
 +
-_When ready to ship a remaining part of the order_
+_Whenever a remaining part of the order is ready to ship_
 +
 . *Capture* (partial amount): Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field. Capture every individual shipment.
 
 //-
 
 
-.Option 2: With (Partial) Delay – shipping takes longer than authorization is valid
+.Option 2: With (Partial) Delay (if shipping takes longer than *authorization* is valid)
 
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
 . *Authorization* (full amount): Send a second request with transaction type **authorization.** Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
 +
-_When part of the order is ready to ship_ --> repetitive event
+_Whenever a part of the order is ready to ship_
 +
 . *Capture* (partial amount):  Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field. Capture every individual shipment.
 +
@@ -91,9 +91,9 @@ _When authorization expires_
 +
 . *Void-authorization* (remaining amount): Void the remaining amount with a ``void-authorization`` request.
 +
-_When ready to ship a remaining part of the order_
+_Whenever a remaining part of the order is ready to ship_
 +
-. *Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are exempt from SCA (Strong Customer Authentication); therefore, *check-enrollment* is not required prior to this request.
+. *Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, *check-enrollment* is not required prior to this request.
 . *Capture* the remaining amount. Capture every individual shipment.
 
 //-
