@@ -1,0 +1,123 @@
+[#CreditCard_3DS2_UseCases]
+==== Typical 3-D Secure 2 Use Cases and Business Scenarios
+
+The following list covers the most typical use cases and business scenarios. Please keep in mind that other transaction workflows are possible.
+
+[#CreditCard_3DS2_UseCase_OneTimePurchase]
+===== One-time purchase
+
+A consumer places an order for a product or service with a known ``requested-amount``. The order will be fulfilled by the merchant in a single shipment, and before expiration of the **authorization.**
+
+[#CreditCard_3DS2_UseCase_OneTimePurchase_tx]
+====== For a successful transaction:
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *Authorization* (full amount): Send a second request with transaction type **authorization.** Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
++
+_When ready to ship_
++
+.	*Capture* (full amount): Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+
+//-
+
+***
+[#CreditCard_3DS2_UseCase_DelayedShipment]
+===== Delayed Shipment
+
+A consumer places an order that will be fulfilled with a delayed shipment.
+
+[#CreditCard_3DS2_UseCase_DelayedShipment_tx]
+====== For a successful transaction:
+
+.Option 1: Expected Delay
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to validate the credit card data.
++
+_When ready to ship_
++
+. *Authorization* (full amount): Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+
+//-
+
+
+.Option 2: Unexpected Delay
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *(Pre-)Authorization* (full amount): Send a second request with transaction type *(pre-)authorization.* Include the ``transaction-id``from the *check-enrollment* response in the ``parent-transaction-id`` field. 
++
+_When exceeding the expiration date of the authorization_ 
++
+. *Void-authorization*: Send a request with transaction type *void-authorization*. Include the ``transaction-id``from the *(pre-)authorization* response in the ``parent-transaction-id`` field.
++
+_When ready to ship_
++
+. *Authorization* (full amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, *check-enrollment* is not required prior to this request. Include the ``transaction-id``from the *(pre-)authorization* response in the ``parent-transaction-id`` field.
+.	*Capture* (full amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
+
+//-
+
+
+***
+[#CreditCard_3DS2_UseCase_PartialSplitShipment]
+===== Partial/ Split Shipment
+
+A consumer places an order that will be fulfilled in multiple shipments.
+
+[#CreditCard_3DS2_UseCase_PartialSplitShipment_tx]
+====== For a successful transaction:
+
+.Option 1: Without Delay
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *Authorization* (full amount): Send a second request with transaction type **authorization.** Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
++
+_Whenever a remaining part of the order is ready to ship_
++
+. *Capture* (partial amount): Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field. Capture every individual shipment.
+
+//-
+
+
+.Option 2: With (Partial) Delay (if shipping takes longer than *authorization* is valid)
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+. *Authorization* (full amount): Send a second request with transaction type **authorization.** Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
++
+_Whenever a part of the order is ready to ship_
++
+. *Capture* (partial amount):  Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field. Capture every individual shipment.
++
+_When authorization expires_
++
+. *Void-authorization* (remaining amount): Void the remaining amount with a ``void-authorization`` request.
++
+_Whenever a remaining part of the order is ready to ship_
++
+. *Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, *check-enrollment* is not required prior to this request.
+. *Capture* the remaining amount. Capture every individual shipment.
+
+//-
+
+***
+[#CreditCard_3DS2_UseCase_MultiPartyCommerce]
+===== General Multi-Party Commerce
+
+The consumer buys a product or service from a merchant. At the time of purchase, the consumer acquires an additional product or service that will be provided and charged for by a separate merchant.
+For example, the consumer purchases a washing machine and a breakdown and repair insurance.
+
+
+[#CreditCard_3DS2_UseCase_MultiPartyCommerce_tx]
+====== For a successful transaction:
+
+_The consumer-facing merchant (i.e. where the consumer buys the primary product or service, e.g. the washing machine) sends the following requests_:
+
+.	*Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
+.	*Authorization* (amount due with consumer-facing merchant): Send a second request with transaction type **authorization.** Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new ``transaction-id``.
+.	*Capture* (amount due with consumer-facing merchant): Send a third request with transaction type *capture.* Include the ``transaction-id`` from the previous *authorization* response in the ``parent-transaction-id`` field.
++
+_Each merchant (when ready to ship / deliver)_
++
+.	*Authorization* (remaining amount) as merchant-initiated transaction (MIT): Merchant-initiated transactions are out of scope for SCA; therefore, *check-enrollment* is not required prior to this request.
+.	*Capture* the remaining amount.
+
+//-
