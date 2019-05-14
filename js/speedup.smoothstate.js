@@ -847,7 +847,7 @@
     prefetch: true,
     prefetchOn: 'mouseover touchstart',
     repeatDelay: 100,
-    debug: true,
+    debug: false,
     cacheLength: 130,
     onEnd: {
         render: function() {
