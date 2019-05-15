@@ -105,6 +105,9 @@ function documentReady() {
   });
   setBuildDate();
   markKeyword( $('#searchterm').val() );
+  $('#content a').filter(function() {
+    return this.hostname && this.hostname !== location.hostname;
+  }).addClass( 'external-link' ).attr( 'target', '_blank' );
 }
 
 $(document).ready(function() {
