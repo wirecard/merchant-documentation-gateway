@@ -1,0 +1,423 @@
+[#API_CC_TestCards]
+==== Test Cards
+
+In this section we provide test cards for a large variety of card brands. These
+test cards allow you to provoke a certain behaviour when you send them to our
+endpoint. We provide test cards for _3D Secure_ and _Non-3D Secure_ transactions.
+
+.Example
+If you want to provoke the error status code ``500.1072`` ("_Card Not Enrolled_.")
+in combination with a MAESTRO card for a _3D Secure_ transaction, use
+_Card Number_ ``6799860300006000008``, _Expiration Date_ ``01/23`` and _CVC_ ``008``.
+
+[#API_CC_TestCards_ExpirationDates]
+NOTE: *For all cards*: The expiration date is always:
+<expiration-month>01</expiration-month>,
+<expiration-year>2023</expiration-year>
+
+[#API_CC_TestCards_3D]
+===== 3D Secure Transactions
+
+When you do a <<CreditCard_PaymentFeatures_3DSecure, _3D Secure_ transaction>>,
+WPG checks with the first request, whether the card is enrolled in _3D Secure_.
+A transaction is _3D Secure_, if the response returns a positive enrollment
+check and a positive authentication result.
+
+.Enrollment and Authentication Values
+
+[cols="20,15,65"]
+|===
+| 3D Secure Phase h| Status h| Description
+
+.4+h| Check Enrollment | Y | Card enrolled
+| N | Card not enrolled
+| U | Unable to verify enrollment
+| E | A system error prevented enrollment from completing
+.5+h| Verify Authentication | Y | Cardholder was successfully authenticated
+| N | Customer failed or cancelled authentication
+| U | Authentication could not be completed, due to technical or other problem
+| A | Proof of authentication attempt was generated
+| E | A system error prevented authentication from completing
+|===
+
+[#API_CC_TestCards_3D_Success]
+[discrete]
+====== Card Numbers for Successful Transactions
+
+With these card numbers you can provoke a successful response containing the
+status code ``201.0000`` ("The resource was successfully created.").
+
+
+[cols="10,10,10,10,10,10,10,10"]
+|===
+h| Card Brand h| Number h| CVC h| Enrollment Result h| Authentication Result
+h| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>>
+h| Personal Message ACS h| Response Message
+
+.2+| American Express | 375987000000005 | 1005 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 375987000000013 | 1013 | Y | A |--  | No cardholder interaction | Approved or completed successfully.
+.2+| Diners | 3800010001000103 | 103 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 3800010001000111 | 111 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| JCB | 3569990001010007 | 007 | Y | Y |wirecard  | Testing "Authentication approved" | Approved or completed successfully.
+| 3569990001010015 | 015 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| Maestro | 6799860300001000003 | 003 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully
+| 6799860300002000002 | 002 | Y | A | -- | No cardholder interaction | Approved or completed successfully
+.2+| Mastercard | 5413330300001006 | 006 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully
+| 5413330300002004 | 004 | Y | A | -- | No cardholder interaction | Approved or completed successfully
+.2+| UPI | 6222821234560024 | 101 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully.
+| 6222821234560021 | 119 | Y | A | -- | No cardholder interaction | Approved or completed successfully.
+.2+| VISA | 4012000300001003 | 003 | Y | Y | wirecard | Testing "Authentication approved" | Approved or completed successfully
+| 4012000300002001 | 001 | Y | A | -- | No cardholder interaction | Approved or completed successfully
+|===
+
+[#API_CC_TestCards_3D_Error]
+[discrete]
+====== Card Numbers for Error Results
+
+With these card numbers you can provoke an error response containing a variety of
+status codes.
+
+[#API_CC_TestCards_3D_Error_AMEX]
+.American Express
+
+Use _Card Type_ ``amex``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 375987000000054 | 1054 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 375987000000062 | 1062 | U | -- | -- | --
+| 500.1074 | MPI Error | 375987000000070 | 1070 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 375987000000021 | 1021 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 375987000000039 | 1039 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_3D_Error_Diners]
+.Diners
+
+Use _Card Type_ ``diners``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 3800010001000152 | 152 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 3800010001000160 | 160 | U | -- | -- | --
+| 500.1074 | MPI Error | 3800010001000178 | 178 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 3800010001000129 | 129 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 3800010001000137 | 137 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_3D_Error_JCB]
+.JCB
+
+Use _Card Type_ ``jcb``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 3569990001010056 | 056 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 3569990001010064 | 064 | U | -- | -- | --
+| 500.1074 | MPI Error | 3569990001010072 | 072 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 3569990001010023 | 023 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 3569990001010031 | 031 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_3D_Error_Maestro]
+.Maestro
+
+Use _Card Type_ ``maestro``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 6799860300006000008 | 008 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 6799860300007000007 | 007 | U | -- | -- | --
+| 500.1074 | MPI Error | 6799860300008000006 | 006 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 6799860300003000001 | 001 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 6799860300004000000 | 999 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_3D_Error_Mastercard]
+.Mastercard
+
+Use _Card Type_ ``mastercard``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 5413330300006005 | 005 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 5413330300007003 | 003 | U | -- | -- | --
+| 500.1074 | MPI Error | 5413330300008001 | 001 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 5413330300003002 | 002 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 5413330300004000 | 999 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_3D_Error_UPI]
+.UPI
+
+Use _Card Type_ ``upi``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 6222821234560019 | 150 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 6222821234560018 | 168 | U | -- | -- | --
+| 500.1074 | MPI Error | 6222821234560020 | 176 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 6222821234560022 | 127 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 6222821234560023 | 135 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_3D_Error_Visa]
+.VISA
+
+Use _Card Type_ ``visa``
+
+[cols="10,10,10,5,10,10,10,10"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)... 4+|...to obtain this result
+| Status Code | Status Name | Card Number | CVC | Enrollment Result | Authentication Result
+| Password <<CreditCard_PaymentFeatures_3DSecure_CustomerACS, ACS>> | Personal Message ACS
+| 500.1072 | Card Not Enrolled | 4012000300006002 | 002 | N | -- | -- | --
+| 500.1073 | Unable to Verify Enrolment | 4012000300007000 | 999 | U | -- | -- | --
+| 500.1074 | MPI Error | 4012000300008008 | 008 | E | -- | -- | --
+| 500.1076 | Consumer failed or Cancelled authentication. | 4012000300003009 | 009 | Y | N | wirecard | Testing "Authentication failed"
+| 500.1077 | Authentication could not be completed due to technical or other problem. | 4012000300004007 | 007 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#API_CC_TestCards_Non3D_Process]
+===== Non-3D Secure Transactions
+
+This section provides card numbers and CVCs which you can use to provoke certain
+Non-3D responses.
+To obtain the required response, send a
+<<CreditCard_TransactionTypes_Purchase_SendingData_PurchaseUsingCardData, _purchase_>>
+request to our endpoint using the corresponding card details provided here.
+
+For example: If you want to provoke the message "The card type is not processed
+by the authorization center.  Please contact technical support."
+(Status Code = 500.1061) for a MAESTRO card,
+send a _purchase_ request and use the Card Number "6333111900920000",
+Expiration Date "01/23" and CVC "999".
+See details for <<API_CC_TestCards_ExpirationDates, expiration date>>.
+
+[#API_CC_TestCards_Non3D_Success]
+====== Card Numbers for Successful Transactions
+.Status Code 201.0000
+
+The resource was successfully created.
+
+[cols="30,30,10,30"]
+|===
+| Card Brand | Card Number | CVC | Card Type
+
+| American Express | 375000010000005 | 0005	 | ``amex``
+| Diners | 38000001000005 | 005 | ``diners``
+| JCB | 3541590100000009	 | 009 | ``jcb``
+| Maestro | 6333110100000001 | 001 | ``maestro``
+| Mastercard | 5413330100000000 | 999 | ``mastercard``
+| VISA | 4012000100000007 | 007 | ``visa``
+|===
+
+[#API_CC_TestCards_Non3D_Error]
+====== Card Numbers for Error Results
+
+[#API_CC_TestCards_Non3D_Error_AMEX]
+.American Express
+
+Use _Card Type_ ``amex``
+
+[cols="5,50,15,5"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)...
+h| Status Code h| Status Name h| Card Number h| CVC
+| 500.1054 | The acquirer returned Pick up card. Please check with Issuer, or use different card. | 375000040004001 | 4001
+| 500.1060 | The acquirer returned Transaction Type not accepted. Please contact technical support. | 375000130040006 | 0006
+| 500.1061 | The card type is not processed by the authorization center. Please contact technical support. | 375000190092004 |2004
+| 500.1062 | The acquirer returned Expired Card. Please check your input or use different card. | 375000110033005 | 3005
+| 500.1063 | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer. | 375000020002009 | 2009
+| 500.1066 | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card. | 375000170062001 | 2001
+| 500.1067 | The acquirer returned Card issuer temporarily not reachable. Please try again later. | 375000180091008 | 1008
+| 500.1068 | The acquirer returned Processing temporarily not possible. Please try again later. | 375000200096003 | 6003
+| 500.1072 | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3D Secure program. | 375000150056007 | 6007
+| 500.1091 | Suspicion of Manipulation. Please check with Issuer, or use different card. | 375000120034001 | 4001
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support. | 375000030003005 | 3005
+| 500.1099 | Transaction processing refused. Please contact technical support. | 375000090021004 |1004
+| 500.1109 | Malformed/Invalid Parameter. Please check your input. | 375000070013005 |3005
+| 500.1117 | Terminal ID Unknown Please contact technical support. | 375000160058001 |8001
+| 500.1118 | Invalid Transaction Please check your input or use different card. | 375000060012009 |2009
+| 500.1156 | The issuer returned Declined. Please check with Issuer, or use different card. | 375000050005005 |5005
+| 500.1157 | The issuer returned Stolen Card. Please check with Issuer, or use different card. | 375000140043008 | 3008
+| 500.1159 | The issuer returned Invalid Card. Please check your input or use different card. | 375000080014001 | 4001
+|===
+
+[#API_CC_TestCards_Non3D_Error_Diners]
+.Diners
+
+Use _Card Type_ ``diners``
+
+[cols="5,50,15,5"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)...
+h| Status Code h| Status Name h| Card Number h| CVC
+| 500.1054 | The acquirer returned Pick up card. Please check with Issuer, or use different card. | 38000004000408 | 408
+| 500.1060 | The acquirer returned Transaction Type not accepted. Please contact technical support. | 38000013004003 | 003
+| 500.1061 | The card type is not processed by the authorization center. Please contact technical support. | 38000019009204 | 204
+| 500.1062 | The acquirer returned Expired Card. Please check your input or use different card. | 38000011003304 | 304
+| 500.1063 | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer. | 38000002000202 | 202
+| 500.1066 | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card. | 38000017006202 | 202
+| 500.1067 | The acquirer returned Card issuer temporarily not reachable. Please try again later. | 38000018009106 | 106
+| 500.1068 | The acquirer returned Processing temporarily not possible. Please try again later. | 38000020009607 | 607
+| 500.1072 | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3D Secure program. | 38000015005602 | 602
+| 500.1091 | Suspicion of Manipulation. Please check with Issuer, or use different card. | 38000012003402 | 402
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support. | 38000003000300 | 300
+| 500.1099 | Transaction processing refused. Please contact technical support. | 38000009002102 | 102
+| 500.1109 | Malformed/Invalid Parameter. Please check your input. | 38000007001304 | 304
+| 500.1117 | Terminal ID Unknown Please contact technical support. | 38000016005809 | 809
+| 500.1118 | Invalid Transaction Please check your input or use different card. | 38000006001206 | 206
+| 500.1156 | The issuer returned Declined. Please check with Issuer, or use different card. | 38000005000506 | 506
+| 500.1157 | The issuer returned Stolen Card. Please check with Issuer, or use different card. | 38000014004309 | 309
+| 500.1159 | The issuer returned Invalid Card. Please check your input or use different card. | 38000008001402 | 402
+|===
+
+[#API_CC_TestCards_Non3D_Error_JCB]
+.JCB
+
+Use _Card Type_ ``jcb``
+
+[cols="5,50,15,5"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)...
+h| Status Code h| Status Name h| Card Number h| CVC
+| 500.1054 | The acquirer returned Pick up card. Please check with Issuer, or use different card. | 3541590400040002 | 002
+| 500.1060 | The acquirer returned Transaction Type not accepted. Please contact technical support. | 3541591300400007 | 007
+| 500.1061 | The card type is not processed by the authorization center. Please contact technical support. | 3541591900920008 | 008
+| 500.1062 | The acquirer returned Expired Card. Please check your input or use different card. | 3541591100330008 | 008
+| 500.1063 | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer. | 3541590200020006 |006
+| 500.1066 | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card. | 3541591700620006 | 006
+| 500.1067 | The acquirer returned Card issuer temporarily not reachable. Please try again later. | 3541591800910000 | 999
+| 500.1068 | The acquirer returned Processing temporarily not possible. Please try again later. | 3541592000960001 | 001
+| 500.1072 | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3D Secure program. | 3541591500560006 | 006
+| 500.1091 | Suspicion of Manipulation. Please check with Issuer, or use different card. | 3541591200340006 | 006
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support. | 3541590300030004 | 004
+| 500.1099 | Transaction processing refused. Please contact technical support. | 3541590900210006 | 006
+| 500.1109 | Malformed/Invalid Parameter. Please check your input. | 3541590700130008 | 008
+| 500.1117 | Terminal ID Unknown Please contact technical support. | 3541591600580003 | 003
+| 500.1118 | Invalid Transaction Please check your input or use different card. | 3541590600120000 | 999
+| 500.1156 | The issuer returned Declined. Please check with Issuer, or use different card. | 3541590500050000 | 999
+| 500.1157 | The issuer returned Stolen Card. Please check with Issuer, or use different card. | 3541591400430003 | 003
+| 500.1159 | The issuer returned Invalid Card. Please check your input or use different card. | 3541590800140006 | 006
+|===
+
+[#API_CC_TestCards_Non3D_Error_Maestro]
+.Maestro
+
+Use _Card Type_ ``maestro``
+
+[cols="5,50,15,5"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)...
+h| Status Code h| Status Name h| Card Number h| CVC
+| 500.1054 | The acquirer returned Pick up card. Please check with Issuer, or use different card. | 6333110400040004 | 004
+| 500.1060 | The acquirer returned Transaction Type not accepted. Please contact technical support. | 6333111300400009 | 009
+| 500.1061 | The card type is not processed by the authorization center. Please contact technical support. | 6333111900920000 | 999
+| 500.1062 | The acquirer returned Expired Card. Please check your input or use different card. | 6333111100330000 | 999
+| 500.1063 | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer. | 6333110200020008 | 008
+| 500.1066 | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card. | 6333111700620008 | 008
+| 500.1067 | The acquirer returned Card issuer temporarily not reachable. Please try again later. | 6333111800910002 | 002
+| 500.1068 | The acquirer returned Processing temporarily not possible. Please try again later. | 6333112000960003 | 003
+| 500.1072 | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3D Secure program. | 6333111500560008 | 008
+| 500.1091 | Suspicion of Manipulation. Please check with Issuer, or use different card. | 6333111200340008 | 008
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support. | 6333110300030006 | 006
+| 500.1099 | Transaction processing refused. Please contact technical support. | 6333110900210008 | 008
+| 500.1109 | Malformed/Invalid Parameter. Please check your input. | 6333110700130000 | 999
+| 500.1117 | Terminal ID Unknown Please contact technical support. | 6333111600580005 | 005
+| 500.1118 | Invalid Transaction Please check your input or use different card. | 6333110600120002 | 002
+| 500.1156 | The issuer returned Declined. Please check with Issuer, or use different card. | 6333110500050002 | 002
+| 500.1157 | The issuer returned Stolen Card. Please check with Issuer, or use different card. | 6333111400430005 | 005
+| 500.1159 | The issuer returned Invalid Card. Please check your input or use different card. | 6333110800140008 | 008
+|===
+
+[#API_CC_TestCards_Non3D_Error_Mastercard]
+.Mastercard
+
+Use _Card Type_ ``mastercard``
+
+[cols="5,50,15,5"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)...
+h| Status Code h| Status Name h| Card Number h| CVC
+| 500.1054 | The acquirer returned Pick up card. Please check with Issuer, or use different card. | 5413330400040003 | 003
+| 500.1060 | The acquirer returned Transaction Type not accepted. Please contact technical support. | 5413331300400008 | 008
+| 500.1061 | The card type is not processed by the authorization center. Please contact technical support. | 5413331900920009 | 009
+| 500.1062 | The acquirer returned Expired Card. Please check your input or use different card. | 5413331100330009 | 009
+| 500.1063 | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer. | 5413330200020007 | 007
+| 500.1066 | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card. | 5413331700620007 | 007
+| 500.1067 | The acquirer returned Card issuer temporarily not reachable. Please try again later. | 5413331800910001 | 001
+| 500.1068 | The acquirer returned Processing temporarily not possible. Please try again later. | 5413332000960002 | 002
+| 500.1072 | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3D Secure program. | 5413331500560007 | 007
+| 500.1091 | Suspicion of Manipulation. Please check with Issuer, or use different card. | 5413331200340007 | 007
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support. | 5413330300030005 | 005
+| 500.1099 | Transaction processing refused. Please contact technical support. | 5413330900210007 | 007
+| 500.1109 | Malformed/Invalid Parameter. Please check your input. | 5413330700130009 | 009
+| 500.1117 | Terminal ID Unknown Please contact technical support. | 5413331600580004 | 004
+| 500.1118 | Invalid Transaction Please check your input or use different card. | 5413330600120001 | 001
+| 500.1156 | The issuer returned Declined. Please check with Issuer, or use different card. | 5413330500050001 | 001
+| 500.1157 | The issuer returned Stolen Card. Please check with Issuer, or use different card. | 5413331400430004 | 004
+| 500.1159 | The issuer returned Invalid Card. Please check your input or use different card. | 5413330800140007 | 007
+|===
+
+[#API_CC_TestCards_Non3D_Error_Visa]
+.VISA
+
+Use _Card Type_ ``visa``
+
+[cols="5,50,15,5"]
+|===
+2+| If you want to provoke... 2+a| ...Use these card data in the request
+(see also <<API_CC_TestCards_ExpirationDates, expiration dates>>)...
+h| Status Code h| Status Name h| Card Number h| CVC
+| 500.1054 | The acquirer returned Pick up card. Please check with Issuer, or use different card. | 4012000400040000 | 999
+| 500.1060 | The acquirer returned Transaction Type not accepted. Please contact technical support. | 4012001300400005 | 005
+| 500.1061 | The card type is not processed by the authorization center. Please contact technical support. | 4012001900920006 | 006
+| 500.1062 | The acquirer returned Expired Card. Please check your input or use different card. | 4012001100330006 | 006
+| 500.1063 | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer. | 4012000200020004 | 004
+| 500.1066 | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card. | 4012001700620004 | 004
+| 500.1067 | The acquirer returned Card issuer temporarily not reachable. Please try again later. | 4012001800910008 | 008
+| 500.1068 | The acquirer returned Processing temporarily not possible. Please try again later. | 4012002000960009 | 009
+| 500.1072 | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3D Secure program. | 4012001500560004 | 004
+| 500.1091 | Suspicion of Manipulation. Please check with Issuer, or use different card. | 4012001200340004 | 004
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support. | 4012000300030002 | 002
+| 500.1099 | Transaction processing refused. Please contact technical support. | 4012000900210004 | 004
+| 500.1109 | Malformed/Invalid Parameter. Please check your input. | 4012000700130006 | 006
+| 500.1117 | Terminal ID Unknown Please contact technical support. | 4012001600580001 | 001
+| 500.1118 | Invalid Transaction Please check your input or use different card. | 4012000600120008 | 008
+| 500.1156 | The issuer returned Declined. Please check with Issuer, or use different card. | 4012000500050008 | 008
+| 500.1157 | The issuer returned Stolen Card. Please check with Issuer, or use different card. | 4012001300430002 | 002
+| 500.1159 | The issuer returned Invalid Card. Please check your input or use different card. | 4012000800140004 | 004
+|===
+
+//-
