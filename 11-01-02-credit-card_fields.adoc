@@ -363,6 +363,16 @@ context they should be used. The following Field List is described in a table.
 This table provides the information about  _Name_, _Cardinality_, _Data Type_
 and _Length_ for each field.
 
+_Name_ has a structure like ``order-items.order-item.article-number``.
+Object's boundaries are referred to with a period ".", compound words use a
+dash "-". The order of the objects displays a hierarchical order, such as
+``order-items`` consists of ``order-item`` consists of ``article-number``.
+
+////
+Do we need the "@" as well?
+////
+
+
 <<CC_Fields_intro_cardinality, _Cardinality_>> reflects the technical necessity
 of the field. If a field is described mandatory, the field must provide content
 otherwise the request will fail. If the field is described optional, the field
@@ -545,7 +555,14 @@ Is that correct?
 <<CC_Fields_xmlobjects_request_accountholder, account-holder>>,
 <<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>> and
 <<CC_Fields_xmlobjects_request_shipping, shipping>>. It is used to specify the
-consumer's address. Data can be provided optionally but it helps with fraud
+consumer's address.
+The consumer can be
+
+- the consumer (in case of ``account-holder``)
+- the ticket issuer (in case of ``airline-industry``)
+- the consumer's alternative address (in case of ``shipping``)
+
+Data can be provided optionally but it helps with fraud
 checks, if ``address`` is complete.
 
 ////
@@ -572,11 +589,32 @@ Is that correct?
 .airline-industry
 
 ``airline-industry`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
 
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+
+| airline-code |O |String |3	|The airline code assigned by IATA.
+| airline-name |O |String	|64	|Name of the airline.
+| passenger-code |O |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
+| passenger-name |O |String	|32	|The name of the Airline Transaction passenger.
+| passenger-phone |O |String	|32	|The phone number of the Airline Transaction passenger.
+| passenger-email |O |String	|64	|The Email Address of the Airline Transaction passenger.
+| passenger-ip-address |O |String |45 |The IP Address of the Airline Transaction passenger.
+| ticket-issue-date |O |Date | |The date the ticket was issued.
+| ticket-number |O |String |11	|The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
+| ticket-restricted-flag |O |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
+| pnr-file-key |O |String	|10	|The Passenger Name File Id for the Airline Transaction.
+| ticket-check-digit |O |String |2	|The airline ticket check digit.
+| agent-code |O |String |3	|The agency code assigned by IATA.
+| agent-name |O |String |64	|The agency name.
+| non-taxable-net-amount |O |Numeric	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction
+2+| ticket-issuer/address 3+| <<CC_Fields_xmlobjects_request_address, address>>
+| number-of-passengers |O |String |3	|The number of passengers on the Airline Transaction.
+| reservation-code |O |String |32 |The reservation code of the Airline Transaction passenger.
+| itinerary.segment |O | | | The itinerary segments of the airline transaction. Up to 99 itinerary segments can be defined. For details see section ````CreditCard_Fields_Segment, segment````.
+
 |===
 
 [#CC_Fields_xmlobjects_request_audit]
@@ -710,9 +748,17 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 ``credit-sender-data`` belongs to the
 <<CC_Fields_xmlobjects_request_payment, ``payment``>> object
 
+////
+``credit-sender-data`` is used to send money from the merchant to the consumer.
+This can be the case, if the merchant is
+- an insurance company and has to pay out money to the consumer
+- the government and has to pay back taxes.
+////
+
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+
 | receiver-name |C |String |35 |Mandatory for cross-border transactions.
 Maximum length for Visa: 30
 | receiver-last-name |C |String |35 |Mandatory for cross-border transactions.
