@@ -11,15 +11,38 @@ MASTERTEMPLATE_NAME=master-template
 MASTERTEMPLATE_PATH=$(cd .. && pwd)/${MASTERTEMPLATE_NAME}
 ERRORS=0
 
-#WL_REPO_SSHKEY=
 WL_REPO_NAME=whitelabel-mdg
 WL_REPO_ORG=wirecard
 WL_REPO_PATH=${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}
+WL_REPO_SSHKEY_PATH=$(mktemp -d)
 
 # prepare master template
 mkdir ${MASTERTEMPLATE_PATH}
 cp -r ${INITDIR} ${MASTERTEMPLATE_PATH}/
-cd ${MASTERTEMPLATE_PATH}
+cd ${MASTERTEMPLATE_PATH} || abortBuild "Line ${LINENO}: Failed to create Template."
+
+# Abort called on failure
+function abortBuild() {
+  &>2 echo "Build aborted."
+  &>2 echo "${1}"
+  exit 1
+}
+
+# Takes SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64; remove newlines)
+function writeRepoKey() {
+  if [[ -n ${WL_REPO_SSHKEY} ]]; then
+    echo "${WL_REPO_SSHKEY}" | base64 -d | gunzip > ${WL_REPO_SSHKEY_PATH}
+  else
+    abortBuild "Failed in ${FUNCNAME[0]}: Missing repository key."
+  fi
+}
+
+function checkoutWhitelabelRepository() {
+  mkdir -p ${INITDIR}/${WL_REPO_ORG}
+  writeRepoKey
+  PKEY=${WL_REPO_SSHKEY_PATH} git clone --depth=1 https://${WL_REPO_USER}:${WL_REPO_PASSWORD}@github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git ${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}
+  return $?
+}
 
 # create folder where white labeled content is stored
 # takes partner name == folder name as argument
@@ -33,7 +56,7 @@ function createPartnerFolder() {
   cp -r ${WL_REPO_PATH}/${PARTNER}/content/* ${BUILDFOLDER_PATH}/${PARTNER}/
 }
 
-function build {
+function buildPartner() {
   PARTNER=${1}
   createPartnerFolder ${PARTNER}
   cd ${BUILDFOLDER_PATH}/${PARTNER}/
@@ -58,12 +81,11 @@ function build {
   return ${ERRORS}
 }
 
-
 function main() {
   PARTNERSLIST_FILE=${WL_REPO_PATH}/partners_list}
   for partner in $(cat $PARTNERSLIST_FILE); do
     ERRORS=0  
-    build partner
+    buildPartner ${partner}
     # if an error occurred, abort, cleanup and continue w next partner
     [[ ${ERRORS} -gt 0 ]] && cleanup && continue
 
