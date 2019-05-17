@@ -3,9 +3,8 @@
 LC_ALL=C
 
 INITDIR=$(pwd)
-BUILDFOLDER_PATH=${HOME}/build/
 
-WD_REPO_NAME=merchant-documentation-gateway
+WIRECARD_REPO_NAME=merchant-documentation-gateway
 
 MASTERTEMPLATE_NAME=master-template
 MASTERTEMPLATE_PATH=$(cd .. && pwd)/${MASTERTEMPLATE_NAME}
@@ -19,11 +18,11 @@ WL_REPO_SSHKEY_PATH=$(mktemp -d)
 # prepare master template
 mkdir ${MASTERTEMPLATE_PATH}
 cp -r ${INITDIR} ${MASTERTEMPLATE_PATH}/
-cd ${MASTERTEMPLATE_PATH}
+cd ${MASTERTEMPLATE_PATH} \
   || exitWithError "Line ${LINENO}: Failed to create Template."
 
 function increaseErrorCount() {
-  [[ -n ${1} ]]
+  [[ -n ${1} ]] \
     || COUNT=1
   ERRORS=$(( ${ERRORS} + ${COUNT} ))
 }
@@ -58,7 +57,7 @@ function writeRepoKey() {
 function checkoutWhitelabelRepository() {
   mkdir -p ${INITDIR}/${WL_REPO_ORG}
   writeRepoKey
-  PKEY=${WL_REPO_SSHKEY_PATH} git clone --depth=1 https://${WL_REPO_USER}:${WL_REPO_PASSWORD}@github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git ${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}
+  GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git ${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}
   return $?
 }
 
@@ -85,8 +84,7 @@ function buildPartner() {
 
   # execute all custom scripts of the partner
   for script in ${WL_REPO_PATH}/${PARTNER}/scripts/*.sh; do
-    exec ${script}
-      || scriptError ${script}
+    exec ${script} || scriptError ${script}
     # abort further script executions if the script failed
     [[ $? -gt 0 ]] && break
   done
@@ -100,24 +98,24 @@ function buildPartner() {
   # volkswagen it!
   php buildscripts/tests/basic-tests.php || true
 
-  RUBYOPT="-E utf-8" asciidoctor -b html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html
+  RUBYOPT="-E utf-8" asciidoctor -b html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html \
     || scriptError "asciidoctor in line $(( $LINENO - 1 ))"
-  node buildscripts/split-pages/create-toc.js
+  node buildscripts/split-pages/create-toc.js \
     || scriptError "create-toc.js in line $(( $LINENO - 1 ))"
-  node buildscripts/search/lunr-index-builder.js
+  node buildscripts/search/lunr-index-builder.js \
     || scriptError "lunr-index-builder.js in line $(( $LINENO - 1 ))"
-  RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
+  RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc \
     || scriptError "asciidoctor in line $(( $LINENO - 1 ))"
 
   HTMLFILES=$(ls *.html | grep -vP 'docinfo(-footer)?.html')
 
-  mkdir ${BUILDFOLDER_PATH}/${PARTNER}/html                                           
+  mkdir ${BUILDFOLDER_PATH}/${PARTNER}/html \
     || increaseErrorCount
 
-  mv toc.json searchIndex.json ${HTMLFILES} ${BUILDFOLDER_PATH}/${PARTNER}/html/
+  mv toc.json searchIndex.json ${HTMLFILES} ${BUILDFOLDER_PATH}/${PARTNER}/html/ \
     || increaseErrorCount
   
-  cp -r errorpages css images js fonts resources ${BUILDFOLDER_PATH}/${PARTNER}/html/
+  cp -r errorpages css images js fonts resources ${BUILDFOLDER_PATH}/${PARTNER}/html/ \
     || increaseErrorCount
 
   return ${ERRORS}
@@ -127,7 +125,8 @@ function buildPartner() {
 # if build succeeds set deployment ENV for this partner
 # if build fails, abort and try next partner
 function main() {
-  PARTNERSLIST_FILE=${WL_REPO_PATH}/partners_list}
+  checkoutWhitelabelRepository || exitWithError "Failed to checkout WL repository."
+  PARTNERSLIST_FILE=${WL_REPO_PATH}/partners_list
   for partner in $(cat $PARTNERSLIST_FILE); do
     ERRORS=0  
     buildPartner ${partner}
