@@ -12,19 +12,19 @@ ERRORS=0
 
 WL_REPO_NAME=whitelabel-mdg
 WL_REPO_ORG=wirecard
-WL_REPO_PATH=${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}
+WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH=$(mktemp -d)
 
 # prepare master template
 mkdir ${MASTERTEMPLATE_PATH}
-cp -r ${INITDIR} ${MASTERTEMPLATE_PATH}/
+cp -r "${INITDIR}" ${MASTERTEMPLATE_PATH}/
 cd ${MASTERTEMPLATE_PATH} \
   || exitWithError "Line ${LINENO}: Failed to create Template."
 
 function increaseErrorCount() {
-  [[ -n ${1} ]] \
-    || COUNT=1
-  ERRORS=$(( ${ERRORS} + ${COUNT} ))
+  # unless argument contains only digits set increase error count by 1
+  [[ ${1} =~ '^[0-9]+$' ]] || COUNT=1
+  ERRORS=$(( $ERRORS + $COUNT ))
 }
 
 function scriptError {
@@ -42,7 +42,7 @@ function exitWithError() {
 
 function abortCurrentBuild() {
   &>2 echo "Aborting current build ${1}"
-  return true
+  return 0
 }
 
 # writeRepoKey takes SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64; remove newlines)
@@ -55,9 +55,9 @@ function writeRepoKey() {
 }
 
 function checkoutWhitelabelRepository() {
-  mkdir -p ${INITDIR}/${WL_REPO_ORG}
+  mkdir -p "${INITDIR}/${WL_REPO_ORG}"
   writeRepoKey
-  GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git ${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}
+  GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
   return $?
 }
 
