@@ -24,14 +24,7 @@ install:
   - npm install --save asciidoctor.js
   - npm install --save minimist
 script:
-  - mkdir -p build/html
-  - cp -r errorpages css images js fonts resources build/html/
-  - php buildscripts/tests/basic-tests.php || true
-  - RUBYOPT="-E utf-8" asciidoctor -b html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html
-  - node buildscripts/split-pages/create-toc.js
-  - node buildscripts/search/lunr-index-builder.js
-  - RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN  -a linkcss -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
-  - mv toc.json searchIndex.json *.html build/html/
+  - bash buildscripts/main.sh
 deploy:
   - provider: s3
     access_key_id: $S3ACCESSID
@@ -39,7 +32,7 @@ deploy:
     bucket: wirecard-docs-internal
     region: eu-central-1
     skip_cleanup: true
-    local-dir: ${HOME}/build/wd
+    local-dir: ${HOME}/build/WD/html
     on:
       branch: staging
   - provider: s3
@@ -48,7 +41,7 @@ deploy:
     bucket: wirecard-docs
     region: eu-central-1
     skip_cleanup: true
-    local-dir: build/html
+    local-dir: ${HOME}/build/WD/html
     on:
       branch: master
   - provider: s3
@@ -57,27 +50,37 @@ deploy:
     bucket: p-bckt-internal
     region: eu-central-1
     skip_cleanup: true
-    local-dir: ${HOME}/build/PDO
+    local-dir: ${HOME}/build/PO/html
     on:
-      branch: staging
-      condition: $DEPLOY_PDO = TRUE
+      branch: staging OR PSPDOC-662
+      condition: $DEPLOY_PO = TRUE
   - provider: s3
     access_key_id: $S3ACCESSID
     secret_access_key: $S3ACCESSKEY
-    bucket: p-bckt-internal
+    bucket: p-bckt
     region: eu-central-1
     skip_cleanup: true
-    local-dir: ${HOME}/build/PDO/html
+    local-dir: ${HOME}/build/PO/html
     on:
-      branch: staging
-      condition: $DEPLOY_PDO = TRUE
+      branch: master
+      condition: $DEPLOY_PO = TRUE
   - provider: s3
     access_key_id: $S3ACCESSID
     secret_access_key: $S3ACCESSKEY
     bucket: m-bckt-internal
     region: eu-central-1
     skip_cleanup: true
-    local-dir: ${HOME}/build/MPS/html
+    local-dir: ${HOME}/build/MS/html
     on:
       branch: staging
-      condition: $DEPLOY_MPS = TRUE
+      condition: $DEPLOY_MS = TRUE
+  - provider: s3
+    access_key_id: $S3ACCESSID
+    secret_access_key: $S3ACCESSKEY
+    bucket: m-bckt
+    region: eu-central-1
+    skip_cleanup: true
+    local-dir: ${HOME}/build/MS/html
+    on:
+      branch: master
+      condition: $DEPLOY_MS = TRUE
