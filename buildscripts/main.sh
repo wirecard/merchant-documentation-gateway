@@ -75,6 +75,7 @@ function writeRepoKey() {
 
   if [[ -n ${WL_REPO_SSHKEY} ]]; then
     echo "${WL_REPO_SSHKEY}" | base64 -d | gunzip > "${WL_REPO_SSHKEY_PATH}"
+    chmod 600 "${WL_REPO_SSHKEY_PATH}"
   else
     exitWithError "Failed in ${FUNCNAME[0]}: Missing repository key."
   fi
