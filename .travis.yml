@@ -1,7 +1,5 @@
 language: php
 php: 7.2
-env:
-  - TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
 before_script:
   - INIT_DIR=$(pwd)
   - cd /home/travis/build/
@@ -26,13 +24,9 @@ install:
   - npm install --save asciidoctor.js
   - npm install --save minimist
 script:
-  - bash buildscripts/main.sh
+  - chmod +x buildscripts/main.sh
+  - . ./buildscripts/main.sh
 deploy:
-  - provider: script
-    skip_cleanup: true
-    script: source ${TRAVIS_ENVSET_FILE}
-    on:
-      all_branches: true
   - provider: s3
     access_key_id: $S3ACCESSID
     secret_access_key: $S3ACCESSKEY
