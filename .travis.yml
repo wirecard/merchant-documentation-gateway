@@ -1,5 +1,7 @@
 language: php
 php: 7.2
+env:
+  - TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
 before_script:
   - INIT_DIR=$(pwd)
   - cd /home/travis/build/
@@ -25,7 +27,13 @@ install:
   - npm install --save minimist
 script:
   - chmod +x buildscripts/main.sh
-  - . ./buildscripts/main.sh
+  - ./buildscripts/main.sh
+  - echo "in script section " ${DEPLOY_PO}
+before_deploy:
+  - echo "in before_deploy section beginning " ${DEPLOY_PO}
+  - chmod +x ${TRAVIS_ENVSET_FILE}
+  - ./${TRAVIS_ENVSET_FILE}
+  - echo "in before_deploy section after envset " ${DEPLOY_PO}
 deploy:
   - provider: s3
     access_key_id: $S3ACCESSID
