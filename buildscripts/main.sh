@@ -19,6 +19,7 @@ DEBUG=YES #unset to disable
 
 INITDIR="$(pwd)"
 BUILDFOLDER_PATH="${HOME}/build"
+TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
 
 WIRECARD_REPO_NAME=merchant-documentation-gateway
 
@@ -184,6 +185,8 @@ function main() {
       debugMsg "SUCCESS! Partner ${partner} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
       debugMsg "export DEPLOY_${partner}=TRUE"
       export DEPLOY_${partner}=TRUE
+      # workaround to get Travis to recognize the ENV vars
+      echo "${partner}" >> "${TRAVIS_ENVSET_FILE}"
       SUCCESSFUL_BUILDS+=(${partner}) # add to list of successfully built partners
     else                              # if error occurred continue w next in list
       debugMsg "Failed! Could not build partner ${partner}"
