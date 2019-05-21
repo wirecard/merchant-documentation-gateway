@@ -182,6 +182,7 @@ function main() {
     buildPartner ${partner}
     if [[ $? -eq 0 ]]; then           # if everything built well then
       debugMsg "SUCCESS! Partner ${partner} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
+      debugMsg "export DEPLOY_${partner}=TRUE"
       export DEPLOY_${partner}=TRUE
       SUCCESSFUL_BUILDS+=(${partner}) # add to list of successfully built partners
     else                              # if error occurred continue w next in list
