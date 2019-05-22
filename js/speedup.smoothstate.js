@@ -860,7 +860,7 @@
       documentReady();
       initPagePreloading();
       // exclude Edge workaround
-      if ( isEdgeBrowser ) {
+      if ( isEdgeBrowser || isInternetExplorer ) {
         return true;
       }
       if ( getUrlHash() != '' ) {

@@ -48,7 +48,7 @@ function addTOCbindings() {
   $( 'li.tocify-item > a' ).click( function( event ) {
     // workaround for smoothState
     // uses window.location bc body id doesn't reliably change
-    var currentPageID = location.pathname.substring( location.pathname.lastIndexOf("/") + 1).replace(/\.html.*/, '' );
+    var currentPageID = location.pathname.substring( location.pathname.lastIndexOf("/") + 1).replace( new RegExp( "\.html.*" ), '' );
     var clickedItemID = $(this).parent().attr( 'data-unique' );
     setTimeout( function() {
       highlightTOCelement( clickedItemID );
@@ -61,7 +61,7 @@ function addTOCbindings() {
     }
     if( pageUrl.indexOf( currentPageID + '.html') != 0 ) {
       // exclude Edge workaround
-      if ( isEdgeBrowser ) {
+      if ( isEdgeBrowser || isInternetExplorer ) {
         window.location.href = pageUrl;
         return true;
       }
@@ -84,7 +84,7 @@ function addTOCbindings() {
       return false;
     }
     clearTimeout( priorityTimeoutHandler );
-    var pageName = $( this ).attr( 'href' ).replace( /#.*/, '' );
+    var pageName = $( this ).attr( 'href' ).replace( new RegExp( "#.*/ "), '' );
     priorityTimeoutHandler = setTimeout( function() {
       console.log('inside priorityTimeoutHandler, pagename: ' + pageName);
       prioritizePage( pageName );
@@ -107,12 +107,15 @@ $.getJSON( 'toc.json', function( data ) {
   $('#generated-toc').replaceWith( toc );
   console.log('applymask');
   if( maskString ) applyMask( maskString );
-  documentReady();
+  if ( typeof scrollSpyLoaded !== undefined ) documentReady();
   addTOCbindings();
   if( editorMode ) initMaskEditor( data );
-  if( !isEdgeBrowser ) {
+  if( !isEdgeBrowser && !isInternetExplorer ) {
     //recursivePreload( globalTOC );
     fillPreloadQueueWithTOC( globalTOC );
     initPagePreloading();
+  }
+  else {
+    loadLunrIndex();
   }
 });

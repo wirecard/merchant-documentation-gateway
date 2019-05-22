@@ -23,7 +23,8 @@ function initCheckboxes(items) {
   }
 }
 
-function resetItems(items=tocArray) {
+function resetItems(items) {
+  items = (typeof items !== 'undefined') ? items : tocArray;
   /*
   for (var i = 0; i < items.length; i++) {
     var item = items[i];

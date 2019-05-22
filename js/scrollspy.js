@@ -120,7 +120,8 @@ $(document).ready(function() {
   documentReady();
 });
 
-function highlightTOCelement(id='none') {
+function highlightTOCelement(id) {
+  id = (typeof id !== 'undefined') ? id : 'none';
   if(id == 'none') {
     $('ul.tocify-subheader').hide();
   } else {
@@ -147,3 +148,5 @@ function highlightTOCelement(id='none') {
     }
   }
 }
+
+var scrollSpyLoaded;

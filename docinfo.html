@@ -11,11 +11,12 @@ paceOptions = {
   initialRate: .15
 }
 var mobileLayoutCutoffWidth = 1213;
-var serverDir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
 var globalTOC = [];
 var preloadQueue = [];
 var serverResponseTime = 0;
 var searchIndexStatus = 'empty';
+var isInternetExplorer = !!window.MSInputMethodContext && !!document.documentMode;
+var isEdgeBrowser = /Edge/.test( navigator.userAgent );
 
 function getUrlHash() {
   var urlHash = document.URL.substr(document.URL.indexOf('#')+1);
@@ -24,10 +25,10 @@ function getUrlHash() {
 }
 
 function redirectToFirstItem() {
-  if(window.location.pathname.match(/.*\/$/) || window.location.pathname.match(/.*\/index.html/)) {
-    window.stop();
-    var homePageID = 'Home';
-    location.href = serverDir + '/' + homePageID + '.html' + location.search + location.hash;
+  var homePageID = 'Home';
+  if(window.location.pathname.match( new RegExp( ".*\/$" ) ) || window.location.pathname.match( new RegExp( ".*\/index.html" ) )) {
+    !isInternetExplorer && window.stop();
+    location.href = encodeURIComponent( homePageID + '.html' + location.search + location.hash );
   }
 }
 redirectToFirstItem();

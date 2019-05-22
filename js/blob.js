@@ -1,7 +1,3 @@
-var isEdgeBrowser = (function() {
-    return (window.navigator.userAgent.indexOf( 'Edge' ) > -1) ? true : false;
-})();
-
 // requestIdleCallback() Fallback
 
 window.requestIdleCallback = window.requestIdleCallback || function(handler) {
