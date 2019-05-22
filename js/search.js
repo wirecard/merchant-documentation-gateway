@@ -1,4 +1,5 @@
 
+var previousSearchTerm = '';
 if ( !editorMode ) {
   var idx;
   function loadLunrIndex() {
@@ -82,17 +83,21 @@ if ( !editorMode ) {
         executeSearch( st );
       }, searchDelay);
 
+      // when refactoring maybe move this to executeSearch
       window.clearTimeout( trackingTimer );
-      trackingTimer = setTimeout(function() {
-        _paq.push(['trackSiteSearch',
-            // Search keyword searched for
-            st,
-            // Search category selected in your search engine. If you do not need this, set to false
-            false,
-            // Number of results on the Search results page. Zero indicates a 'No Result Search Keyword'. Set to false if you don't know
-            false
-        ]);
-      }, trackSearchDelay);
+      trackingTimer = setTimeout( function() {
+        if ( st != previousSearchTerm ) {
+          previousSearchTerm = st;
+          _paq.push( ['trackSiteSearch',
+              // Search keyword searched for
+              st,
+              // Search category selected in your search engine. If you do not need this, set to false
+              false,
+              // Number of results on the Search results page. Zero indicates a 'No Result Search Keyword'. Set to false if you don't know
+              false
+          ]);
+        }
+      }, trackSearchDelay );
 
       window.clearTimeout( markingTimer );
       markingTimer = setTimeout(function() {
