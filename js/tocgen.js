@@ -107,12 +107,15 @@ $.getJSON( 'toc.json', function( data ) {
   $('#generated-toc').replaceWith( toc );
   console.log('applymask');
   if( maskString ) applyMask( maskString );
-  documentReady();
+  if ( typeof scrollSpyLoaded !== undefined ) documentReady();
   addTOCbindings();
   if( editorMode ) initMaskEditor( data );
   if( !isEdgeBrowser && !isInternetExplorer ) {
     //recursivePreload( globalTOC );
     fillPreloadQueueWithTOC( globalTOC );
     initPagePreloading();
+  }
+  else {
+    loadLunrIndex();
   }
 });

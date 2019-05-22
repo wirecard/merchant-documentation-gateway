@@ -148,3 +148,5 @@ function highlightTOCelement(id) {
     }
   }
 }
+
+var scrollSpyLoaded;
