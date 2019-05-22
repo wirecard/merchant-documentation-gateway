@@ -116,7 +116,7 @@ function keepClickedSearchResultsBold() {
         e.css("font-weight","bold");
         tocItem.click();
         // exclude Edge workaround
-        if ( isEdgeBrowser ) {
+        if ( isEdgeBrowser || isInternetExplorer ) {
           window.location.href = tocItem[0].href;
           return true;
         }
