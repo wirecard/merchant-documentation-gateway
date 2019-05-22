@@ -870,6 +870,8 @@
         }, 2000);
       }
       // trigger Matomo on instant page switch
+      console.log(window.location.href);
+      _paq.push(['setCustomUrl', window.location.href]);
       _paq.push(['trackPageView']);
     }
 }).data( 'smoothState' );
