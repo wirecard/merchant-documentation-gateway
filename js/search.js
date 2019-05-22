@@ -36,12 +36,29 @@ if ( !editorMode ) {
     $('#resultslist').empty();
   }
 
+  var trackingTimer;
+  var trackSearchDelay = 2000; // wait before putting serch term into tracker
   function executeSearch(st) {
     $('#resultslist').empty();
     if( st.length > 0 ) {
       //$( '#searchresults' ).show();
       $( '#searchfield' ).trigger('mouseenter');
       search(st);
+
+      window.clearTimeout( trackingTimer );
+      trackingTimer = setTimeout( function() {
+        if ( st != previousSearchTerm ) {
+          previousSearchTerm = st;
+          _paq.push( ['trackSiteSearch',
+              // Search keyword searched for
+              st,
+              // Search category selected in your search engine. If you do not need this, set to false
+              false,
+              // Number of results on the Search results page. Zero indicates a 'No Result Search Keyword'. Set to false if you don't know
+              false
+          ]);
+        }
+      }, trackSearchDelay );
 
       if ( searchIndexStatus == 'loaded' ) $( '#searchterm' ).removeClass( 'wait' );
       else $( '#searchterm' ).addClass( 'wait' );
@@ -54,10 +71,8 @@ if ( !editorMode ) {
 
     var typingTimer;         //timer identifier
     var markingTimer;        //mark elements timer
-    var trackingTimer;
     var searchDelay = 500;   //time in ms, 5 second for example
     var markDelay = 1000;
-    var trackSearchDelay = 2000; //wait before putting serch term into tracker
 
     // add mouseup event just for Edge to trigger on click of clear button
     $("#searchterm").on("mouseup", function(event) {
@@ -82,22 +97,6 @@ if ( !editorMode ) {
       typingTimer = setTimeout(function() {
         executeSearch( st );
       }, searchDelay);
-
-      // when refactoring maybe move this to executeSearch
-      window.clearTimeout( trackingTimer );
-      trackingTimer = setTimeout( function() {
-        if ( st != previousSearchTerm ) {
-          previousSearchTerm = st;
-          _paq.push( ['trackSiteSearch',
-              // Search keyword searched for
-              st,
-              // Search category selected in your search engine. If you do not need this, set to false
-              false,
-              // Number of results on the Search results page. Zero indicates a 'No Result Search Keyword'. Set to false if you don't know
-              false
-          ]);
-        }
-      }, trackSearchDelay );
 
       window.clearTimeout( markingTimer );
       markingTimer = setTimeout(function() {
