@@ -869,6 +869,8 @@
           window.location.href='#' + getUrlHash();
         }, 2000);
       }
+      // trigger Matomo on instant page switch
+      _paq.push(['trackPageView']);
     }
 }).data( 'smoothState' );
 
