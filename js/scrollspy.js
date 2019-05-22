@@ -50,7 +50,6 @@ function highlightTOC() {
 function documentReady() {
   var docTitle = $('h1').html();
   var pageTitle = $('#content h2, #content h3').first().html();
-  console.log( $('span.toc-current') );
   document.title = pageTitle + ' - ' + docTitle;
   $( "div.sect3 > table.tableblock, div.sect2 > table.tableblock" ).wrap( "<div class='tablewrapper'></div>" );
   $('#content').addClass('scene_element--fadeinup');
@@ -108,7 +107,10 @@ function documentReady() {
       });
   });
   setBuildDate();
-  markKeyword( $('#searchterm').val() );
+  requestIdleCallback( function() {
+    markKeyword( $('#searchterm').val() );
+  }, { timeout: 5000 } );
+
   $('#content a').filter(function() {
     return this.hostname && this.hostname !== location.hostname;
   }).addClass( 'external-link' ).attr( 'target', '_blank' );
