@@ -62,11 +62,22 @@ function documentReady() {
   }
   var scrollTimer;
   var scrollDelay = 100;
-  $(window).on('scroll resize', function() {
+  $(window).on('scroll', function() {
     window.cancelIdleCallback( scrollTimer );
     scrollTimer = requestIdleCallback(function() {
       window.requestAnimationFrame(highlightTOC);
     }, { timeout: scrollDelay });
+  });
+
+  var resizeTimer;
+  var resizeDelay = 1000;
+  $(window).on('resize', function() {
+    if( getUrlHash() ) {
+      window.cancelIdleCallback( resizeTimer );
+      resizeTimer = requestIdleCallback(function() {
+        window.location.href='#' + getUrlHash();
+      }, { timeout: resizeDelay });
+    }
   });
 
   // code highlighting
