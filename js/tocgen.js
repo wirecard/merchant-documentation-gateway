@@ -57,6 +57,7 @@ function addTOCbindings() {
     if ( pageUrl == currentPageID + '.html' ) {
       event.preventDefault();
       window.scrollTo( 0,0 );
+      removeHash();
       return false;
     }
     if( pageUrl.indexOf( currentPageID + '.html') != 0 ) {
