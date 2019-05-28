@@ -20,6 +20,8 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   }
 }
 
+const PULL_REQUEST_BRANCH = "Pull Request";
+
 class Task extends Threaded {
   private $threadID;
   private $filename;
@@ -220,7 +222,9 @@ function getLastEditedByOfFile( $filename ) {
 
 function getCurrentBranch() {
   $cmd_git_branch = 'git name-rev --name-only HEAD';
-  return exec( $cmd_git_branch );
+  $currentBranch = exec( $cmd_git_branch );
+  if ( empty( $currentBranch ) ) return 'Pull_Request';
+  return $currentBranch;
 }
 
 // getAsciidoctorOutput parses asciidoctor helper json output
@@ -452,8 +456,14 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
     $filename = $result['filename'];
     $branch = $result['branch'];
     $author = $result['author'];
+    if( $branch == PULL_REQUEST_BRANCH ) {
+      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
+    }
+    else {
+      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
+    }
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => '*'.$filename.'* (<https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*',
+                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
