@@ -1,0 +1,58 @@
+[#API_CC_3DS2_PaymentFlows]
+==== Payment Flows
+
+[#API_CC_3DS2_PaymentFlows_OneTimePurchase]
+===== One-Time Purchase
+
+[NOTE]
+====
+Authentication required: Yes +
+Card-on-file flagging required: No 
+====
+
+.Option 1: One-step payment with authentication
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>. 
++
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
++
+[%autowidth]
+|===
+|XML |Fields
+
+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+  <three-d>
+    <version>2.1</version>
+  </three-d> 
+----
+m|transaction-type +
+check-enrollment +
+three-d/version
+|===
++
+. *Check-payer-response*: This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *check-payer-response* must contain the following fields
+ - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
++
+[%autowidth]
+|===
+|XML |Fields
+
+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+  <parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+    <three-d>
+      <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx…</pares>
+    </three-d> 
+----
+m|transaction-type +
+check-payer-response +
+three-d/pares
+|===
++
+. *Purchase*:
+.. 
