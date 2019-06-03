@@ -3,7 +3,7 @@
 
 In this section we provide test cards for a large variety of card brands. These
 test cards allow you to provoke a certain behaviour when you send them to our
-endpoint. We provide test cards for _3D Secure_ and _Non-3D Secure_ transactions.
+endpoint. We provide test cards for _3D Secure,_ _3D Secure 2,_ and _Non-3D Secure_ transactions.
 
 .Example
 If you want to provoke the error status code ``500.1072`` ("_Card Not Enrolled_.")
@@ -27,17 +27,36 @@ check and a positive authentication result.
 
 [cols="20,15,65"]
 |===
-| 3D Secure Phase h| Status h| Description
+| 3D Secure h| Status h| Description
 
-.4+h| Check Enrollment | Y | Card enrolled
-| N | Card not enrolled
-| U | Unable to verify enrollment
-| E | A system error prevented enrollment from completing
-.5+h| Verify Authentication | Y | Cardholder was successfully authenticated
-| N | Customer failed or cancelled authentication
-| U | Authentication could not be completed, due to technical or other problem
-| A | Proof of authentication attempt was generated
-| E | A system error prevented authentication from completing
+.4+h|Check-enrollment Response
+|Y
+|Card enrolled.
+
+|N
+|Card not enrolled.
+
+|U
+|Unable to verify enrollment.
+
+|E
+|A system error prevented completion of check-enrollment.
+
+.5+h|Authentication Verification Result
+|Y
+|Cardholder has successfully been authenticated.
+
+|N
+|Consumer failed or canceled authentication.
+
+|U
+|Authentication could not be completed due to technical or other issue.
+
+|A
+|Proof of authentication attempt has been generated.
+
+|E
+|A system error prevented completion of authentication.
 |===
 
 [#API_CC_TestCards_3D_Success]
@@ -201,6 +220,594 @@ Use _Card Type_ ``visa``
 | 500.1074 | MPI Error | 4012000300008008 | 008 | E | -- | -- | --
 | 500.1076 | Consumer failed or Cancelled authentication. | 4012000300003009 | 009 | Y | N | wirecard | Testing "Authentication failed"
 | 500.1077 | Authentication could not be completed due to technical or other problem. | 4012000300004007 | 007 | Y | U | wirecard | Testing "Unable to authenticate"
+|===
+
+[#CreditCard_3DS2_TestCards]
+===== 3D Secure 2 Transactions
+
+For 3D Secure and 3D Secure 2 transactions, the first request is always a *check-enrollment.* For 3D Secure 2 enrollment checks, it is necessary to provide the ``three-d.version`` with the value ``2.1``.
+
+CAUTION: WPG uses the default value ``1.0`` if the version is not provided in the request.
+
+A successful *check-enrollment* returns the ``three-d/pareq``. The PAReq is the digitally signed, base64-encoded authentication request message created by Wirecard Payment Gateway. It contains the results of the 3D Secure versioning request.
+
+The merchant uses the PAReq for a HTTPS POST redirect of the consumer to the ACS URL, which is part of a standard 3D Secure process. The HTTPS POST redirect returns the PARes, which contains the authentication result, as part of the response.
+
+The transaction is secured with 3D Secure 2 if the response returns a positive authentication result.
+
+[#CreditCard_3DS2_TestCards_Key]
+====== Table Key
+
+The 3D Secure 2 test card table deviates in a few instances from the 3D Secure table.
+
+- _3DS Method:_ This is an optional redirect URL to the ACS. It gathers additional browser information from the consumer, i.e. the device fingerprint. This happens prior to authentication to facilitate the transaction risk assessment.
+- _Authentication Result:_ 3D Secure 2 includes an additional status *R* for rejected authentication.
+- _Challenge:_ This column indicates whether the test card triggers an authentication challenge or not. Authentication challenges serve to provide more information about the consumer to reduce risk and fraud. No challenge allows testing of a frictionless payment flow. This is typically the case for low-value and low-risk transactions.
+- _Enrollment Result:_ This is currently not present in the tables below, as the result of the *check-enrollment* is always expected to be *Y* (Card enrolled) for the test cards provided on this page.
+
+.3DS Method
+[%autowidth]
+|===
+|Status |Description
+
+|Y
+|The 3DS Method Completion Indicator is set to Y if the 3DS Method completes within 10 seconds.
+
+|N
+|The 3DS Method Completion Indicator is set to N if the 3DS Method does not complete in 10 seconds.
+
+|U
+|If the 3DS Method URL does not exist, the merchant will notify the 3DS server to set the 3DS Method Completion Indicator to U.
+|===
+
+
+.Authentication Result
+
+[%autowidth]
+|===
+|Status |Description
+
+|Y
+|The consumer has been successfully authenticated.
+
+|N
+|The consumer has failed or canceled authentication.
+
+|U
+|The authentication could not be completed due to technical or other issue on an external server (e.g. 3D Secure 2 provider). The issue is indicated in ARes or RReq.
+
+|A
+|Proof of an authentication attempt has been generated. The consumer has not been authenticated, but the attempt has been registered.
+
+|E
+|A system error prevented the completion of the authentication. Please <<ContactUs, contact merchant support>>.
+
+|R
+|The authentication has been rejected. The issuer is rejecting the authentication and requests that authorisation not be attempted.
+|===
+
+To test the following 3D Secure 2 cards and transaction, please use the <<CreditCard_TestCredentials, test credentials provided for 3D Secure 1>>.
+
+NOTE: *For all cards*: The expiration date is always: <expiration-month>01</expiration-month>, <expiration-year>2023</expiration-year>.
+
+[#CreditCard_3DS2_TestCards_Success]
+====== Successful 3D Secure 2 Transactions
+
+.3D Secure 2 Transactions without Challenge
+[%autowidth]
+|===
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
+
+.3+|Mastercard
+|5413330300201093
+|093
+|N
+|Y
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201184
+|184
+|Y
+|Y
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201192
+|192
+|U
+|Y
+|No
+|N/A
+|No consumer interaction
+
+.3+|Visa
+|4012000300201090
+|090
+|N
+|Y
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201181
+|181
+|Y
+|Y
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201199
+|199
+|U
+|Y
+|No
+|N/A
+|No consumer interaction
+|===
+
+.3D Secure 2 Transactions with Challenge
+[%autowidth]
+|===
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
+
+.3+|Mastercard
+|5413330300201218
+|218
+|N
+|Y
+|Yes
+|wirecard
+|"Authentication approved"
+
+|5413330300201002
+|002
+|Y
+|Y
+|Yes
+|wirecard
+|"Authentication approved"
+
+|5413330300201291
+|291
+|U
+|Y
+|Yes
+|wirecard
+|Testing "Authentication approved"
+
+
+.3+|Visa
+|4012000300201207
+|207
+|N
+|Y
+|Yes
+|wirecard
+|"Authentication approved"
+
+|4012000300201009
+|009
+|Y
+|Y
+|Yes
+|wirecard
+|"Authentication approved"
+
+|4012000300201280
+|280
+|U
+|Y
+|Yes
+|wirecard
+|Testing "Authentication approved"
+|===
+
+[#CreditCard_3DS2_TestCards_Error]
+====== 3D Secure 2 Transactions Resulting in an Error
+With the following card numbers you can provoke error responses.
+
+.3D Secure 2 Transactions without Challenge
+[%autowidth]
+|===
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
+
+.12+|Mastercard
+|5413330300201036
+|036
+|N
+|U
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201101
+|101
+|N
+|A
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201168
+|168
+|N
+|R
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201176
+|176
+|N
+|N
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201036
+|036
+|Y
+|U
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201010
+|010
+|Y
+|A
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201085
+|085
+|Y
+|R
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201028
+|028
+|Y
+|N
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201150
+|150
+|U
+|U
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201127
+|127
+|U
+|A
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201085
+|085
+|U
+|R
+|No
+|N/A
+|No consumer interaction
+
+|5413330300201143
+|143
+|U
+|N
+|No
+|N/A
+|No consumer interaction
+
+.12+|Visa
+|4012000300201033
+|033
+|N
+|U
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201108
+|108
+|N
+|A
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201165
+|165
+|N
+|R
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201173
+|173
+|N
+|N
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201033
+|033
+|Y
+|U
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201017
+|017
+|Y
+|A
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201082
+|082
+|Y
+|R
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201025
+|025
+|Y
+|N
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201157
+|157
+|U
+|U
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201124
+|124
+|U
+|A
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201082
+|082
+|U
+|R
+|No
+|N/A
+|No consumer interaction
+
+|4012000300201140
+|140
+|U
+|N
+|No
+|N/A
+|No consumer interaction
+|===
+
+.3D Secure 2 Transactions with Challenge
+[%autowidth]
+|===
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
+
+.12+|Mastercard
+|5413330300201226
+|226
+|N
+|U
+|Yes
+|wirecard
+|"Unable to authenticate"
+
+|5413330300201234
+|234
+|N
+|A
+|Yes
+|wirecard
+|No consumer interaction
+
+|5413330300201135
+|135
+|N
+|R
+|Yes
+|wirecard
+|"Issuer is rejecting authentication"
+
+|5413330300201242
+|242
+|N
+|N
+|Yes
+|wirecard
+|"Authentication failed"
+
+|5413330300201259
+|259
+|Y
+|U
+|Yes
+|wirecard
+|"Unable to authenticate"
+
+|5413330300201267
+|267
+|Y
+|A
+|Yes
+|wirecard
+|No consumer interaction
+
+|5413330300201275
+|275
+|Y
+|R
+|Yes
+|wirecard
+|Testing "Issuer is rejecting authentication"
+
+|5413330300201283
+|283
+|Y
+|N
+|Yes
+|wirecard
+|Testing "Authentication failed"
+
+|5413330300201309
+|309
+|U
+|U
+|Yes
+|wirecard
+|Testing "Unable to authenticate"
+
+|5413330300201317
+|317
+|U
+|A
+|Yes
+|wirecard
+|No consumer interaction
+
+|5413330300201325
+|325
+|U
+|R
+|Yes
+|wirecard
+|Testing "Issuer is rejecting authentication"
+
+|5413330300201333
+|333
+|U
+|N
+|Yes
+|wirecard
+|Testing "Authentication failed"
+
+.12+|Visa
+|4012000300201215
+|215
+|N
+|U
+|Yes
+|wirecard
+|"Unable to authenticate"
+
+|4012000300201223
+|223
+|N
+|A
+|Yes
+|wirecard
+|No consumer interaction
+
+|4012000300201132
+|132
+|N
+|R
+|Yes
+|wirecard
+|"Issuer is rejecting authentication"
+
+|4012000300201231
+|231
+|N
+|N
+|Yes
+|wirecard
+|"Authentication failed"
+
+|4012000300201249
+|249
+|Y
+|U
+|Yes
+|wirecard
+|"Unable to authenticate"
+
+|4012000300201256
+|256
+|Y
+|A
+|Yes
+|wirecard
+|No consumer interaction
+
+|4012000300201264
+|264
+|Y
+|R
+|Yes
+|wirecard
+|Testing "Issuer is rejecting authentication"
+
+|4012000300201272
+|272
+|Y
+|N
+|Yes
+|wirecard
+|Testing "Authentication failed"
+
+|4012000300201298
+|298
+|U
+|U
+|Yes
+|wirecard
+|Testing "Unable to authenticate"
+
+|4012000300201306
+|306
+|U
+|A
+|Yes
+|wirecard
+|No consumer interaction
+
+|4012000300201314
+|314
+|U
+|R
+|Yes
+|wirecard
+|Testing "Issuer is rejecting authentication"
+
+|4012000300201322
+|322
+|U
+|N
+|Yes
+|wirecard
+|Testing "Authentication failed"
 |===
 
 [#API_CC_TestCards_Non3D_Process]
