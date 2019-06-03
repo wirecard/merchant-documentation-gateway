@@ -3,7 +3,7 @@
 
 In this section we provide test cards for a large variety of card brands. These
 test cards allow you to provoke a certain behaviour when you send them to our
-endpoint. We provide test cards for _3D Secure_ and _Non-3D Secure_ transactions.
+endpoint. We provide test cards for _3D Secure,_ _3D Secure 2,_ and _Non-3D Secure_ transactions.
 
 .Example
 If you want to provoke the error status code ``500.1072`` ("_Card Not Enrolled_.")
@@ -235,28 +235,60 @@ The merchant uses the PAReq for a HTTPS POST redirect of the consumer to the ACS
 
 The transaction is secured with 3D Secure 2, if the response returns a positive authentication result.
 
-.Enrollment and Authentication Values
+[#CreditCard_3DS2_TestCards_Key]
+====== Table Key
+
+The 3D Secure 2 test card table deviates in a few instances from the 3D Secure table.
+
+- _3DS Method:_ This is an optional redirect URL to the ACS. It gathers additional browser information from the consumer, i.e. the device fingerprint. This happens prior to authentication to help facilitate the transaction risk assessment.
+- _Authentication Result:_ 3D Secure 2 includes an additional status *R* for rejected authentication. 
+- _Enrollment Result:_ This column is currently not required for 3D Secure 2, as the result of the *check-enrollment* is always returned in the response to the *check-enrollment* request. 
+ 
+
+.3DS Method
+[%autowidth]
+|===
+|Status |Description
+
+|Y
+|The 3DS Method Completion Indicator is set to Y if the 3DS Method completes within 10 seconds.
+
+|N
+|The 3DS Method Completion Indicator is set to N if the 3DS Method does not complete in 10 seconds.
+
+|U
+|If the 3DS Method URL does not exist, the merchant will notify the 3DS server to set the 3DS Method Completion Indicator to U.
+|===
+ 
+
+.Authentication Result
 
 [%autowidth]
 |===
-|3D Secure 2 |Status |Description
+|Status |Description
 
-.5+h|Authentication Result
 |Y 
-|Cardholder has successfully been authenticated.
+|The consumer has been successfully authenticated.
 
 |N 
-|Consumer failed or canceled authentication.
+|The consumer has failed or canceled authentication.
 
 |U 
-|Authentication could not be completed due to technical or other issue.
+|The authentication could not be completed due to technical or other issue on an external server (e.g. 3D Secure 2 provider). The issue is indicated in ARes or RReq.
 
 |A 
-|Proof of authentication attempt has been generated.
+|Proof of an authentication attempt has been generated. The consumer has not been authenticated, but the attempt has been registered.
 
 |E 
-|A system error prevented completion of authentication.
+|A system error prevented the completion of the authentication. Please <<ContactUs, contact merchant support>>.
+
+|R
+|The authentication has been rejected. The issuer is rejecting the authentication and requests that authorisation not be attempted.
 |===
+
+To test the following 3D Secure 2 cards and transaction, please use the <<CreditCard_TestCredentials, test credentials provided for 3D Secure 1>>.
+
+NOTE: *For all cards*: The expiration date is always: <expiration-month>01</expiration-month>, <expiration-year>2023</expiration-year>
 
 [#CreditCard_3DS2_TestCards_Success]
 ====== Successful 3D Secure 2 Transactions
@@ -264,14 +296,14 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 .3D Secure 2 Transactions without Challenge
 [%autowidth]
 |===
-|Card Brand |Number |CVC |3D Secure Method |Authentication Result |Challenge |ACS Password |ACS Message
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
 
 .3+|Mastercard
 |5413330300201093
 |093
 |N
 |Y
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -279,7 +311,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |184
 |Y
 |Y
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -287,7 +319,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |192
 |U
 |Y
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -296,7 +328,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |090
 |N
 |Y
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -304,7 +336,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |181
 |Y
 |Y
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -312,7 +344,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |199
 |U
 |Y
-|No challenge
+|No
 |NA
 |No consumer interaction
 |===
@@ -320,14 +352,14 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 .3D Secure 2 Transactions with Challenge
 [%autowidth]
 |===
-|Card Brand |Number |CVC |3D Secure Method |Authentication Result |Challenge |ACS Password |ACS Message
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
 
 .3+|Mastercard
 |5413330300201218
 |218
 |N
 |Y
-|Challenge
+|Yes
 |wirecard
 |"Authentication approved"
 
@@ -335,7 +367,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |002
 |Y
 |Y
-|Challenge
+|Yes
 |wirecard
 |"Authentication approved"
 
@@ -343,7 +375,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |291
 |U
 |Y
-|Challenge
+|Yes
 |wirecard
 |Testing "Authentication approved"
 
@@ -353,7 +385,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |207
 |N
 |Y
-|Challenge
+|Yes
 |wirecard
 |"Authentication approved"
 
@@ -361,7 +393,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |009
 |Y
 |Y
-|Challenge
+|Yes
 |wirecard
 |"Authentication approved"
 
@@ -369,7 +401,7 @@ The transaction is secured with 3D Secure 2, if the response returns a positive 
 |280
 |U
 |Y 
-|Challenge
+|Yes
 |wirecard
 |Testing "Authentication approved"
 |===
@@ -381,14 +413,14 @@ With the following card numbers you can provoke error responses.
 .3D Secure 2 Transactions without Challenge
 [%autowidth]
 |===
-|Card Brand |Number |CVC |3D Secure Method |Authentication Result |Challenge |ACS Password |ACS Message
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
 
 .12+|Mastercard
 |5413330300201036
 |036
 |N
 |U
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -396,7 +428,7 @@ With the following card numbers you can provoke error responses.
 |101
 |N
 |A
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -404,7 +436,7 @@ With the following card numbers you can provoke error responses.
 |168
 |N
 |R
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -412,7 +444,7 @@ With the following card numbers you can provoke error responses.
 |176
 |N
 |N
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -420,7 +452,7 @@ With the following card numbers you can provoke error responses.
 |036
 |Y
 |U
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -428,7 +460,7 @@ With the following card numbers you can provoke error responses.
 |010
 |Y
 |A
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -436,7 +468,7 @@ With the following card numbers you can provoke error responses.
 |085
 |Y
 |R
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -444,7 +476,7 @@ With the following card numbers you can provoke error responses.
 |028
 |Y
 |N
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -452,7 +484,7 @@ With the following card numbers you can provoke error responses.
 |150
 |U
 |U
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -460,7 +492,7 @@ With the following card numbers you can provoke error responses.
 |127
 |U
 |A
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -468,7 +500,7 @@ With the following card numbers you can provoke error responses.
 |085
 |U
 |R
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -476,7 +508,7 @@ With the following card numbers you can provoke error responses.
 |143
 |U
 |N
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -485,7 +517,7 @@ With the following card numbers you can provoke error responses.
 |033
 |N
 |U
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -493,7 +525,7 @@ With the following card numbers you can provoke error responses.
 |108
 |N
 |A
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -501,7 +533,7 @@ With the following card numbers you can provoke error responses.
 |165
 |N
 |R
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -509,7 +541,7 @@ With the following card numbers you can provoke error responses.
 |173
 |N
 |N
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -517,7 +549,7 @@ With the following card numbers you can provoke error responses.
 |033
 |Y
 |U
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -525,7 +557,7 @@ With the following card numbers you can provoke error responses.
 |017
 |Y
 |A
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -533,7 +565,7 @@ With the following card numbers you can provoke error responses.
 |082
 |Y
 |R
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -541,7 +573,7 @@ With the following card numbers you can provoke error responses.
 |025
 |Y
 |N
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -549,7 +581,7 @@ With the following card numbers you can provoke error responses.
 |157
 |U
 |U
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -557,7 +589,7 @@ With the following card numbers you can provoke error responses.
 |124
 |U
 |A
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -565,7 +597,7 @@ With the following card numbers you can provoke error responses.
 |082
 |U
 |R
-|No challenge
+|No
 |NA
 |No consumer interaction
 
@@ -573,7 +605,7 @@ With the following card numbers you can provoke error responses.
 |140
 |U
 |N
-|No challenge
+|No
 |NA
 |No consumer interaction
 |===
@@ -581,14 +613,14 @@ With the following card numbers you can provoke error responses.
 .3D Secure 2 Transactions with Challenge
 [%autowidth]
 |===
-|Card Brand |Number |CVC |3D Secure Method |Authentication Result |Challenge |ACS Password |ACS Message
+|Card Brand |Number |CVC |3DS Method |Authentication Result |Challenge |ACS Password |ACS Message
 
 .12+|Mastercard
 |5413330300201226	
 |226
 |N
 |U
-|Challenge
+|Yes
 |wirecard
 |"Unable to authenticate"
 
@@ -596,7 +628,7 @@ With the following card numbers you can provoke error responses.
 |234
 |N
 |A
-|Challenge
+|Yes
 |wirecard
 |No consumer interaction
 
@@ -604,7 +636,7 @@ With the following card numbers you can provoke error responses.
 |135
 |N
 |R
-|Challenge
+|Yes
 |wirecard
 |"Issuer is rejecting authentication"
 
@@ -612,7 +644,7 @@ With the following card numbers you can provoke error responses.
 |242
 |N
 |N
-|Challenge
+|Yes
 |wirecard
 |"Authentication failed"
 
@@ -620,7 +652,7 @@ With the following card numbers you can provoke error responses.
 |259
 |Y
 |U
-|Challenge
+|Yes
 |wirecard
 |"Unable to authenticate"
 
@@ -628,7 +660,7 @@ With the following card numbers you can provoke error responses.
 |267
 |Y
 |A
-|Challenge
+|Yes
 |wirecard
 |No consumer interaction
 
@@ -636,7 +668,7 @@ With the following card numbers you can provoke error responses.
 |275
 |Y
 |R
-|Challenge
+|Yes
 |wirecard
 |Testing "Issuer is rejecting authentication"
 
@@ -644,7 +676,7 @@ With the following card numbers you can provoke error responses.
 |283
 |Y
 |N
-|Challenge
+|Yes
 |wirecard
 |Testing "Authentication failed"
 
@@ -652,7 +684,7 @@ With the following card numbers you can provoke error responses.
 |309
 |U
 |U
-|Challenge
+|Yes
 |wirecard
 |Testing "Unable to authenticate"
 
@@ -660,7 +692,7 @@ With the following card numbers you can provoke error responses.
 |317
 |U
 |A
-|Challenge
+|Yes
 |wirecard
 |No consumer interaction
 
@@ -668,7 +700,7 @@ With the following card numbers you can provoke error responses.
 |325
 |U
 |R
-|Challenge
+|Yes
 |wirecard
 |Testing "Issuer is rejecting authentication"
 
@@ -676,7 +708,7 @@ With the following card numbers you can provoke error responses.
 |333
 |U
 |N
-|Challenge
+|Yes
 |wirecard
 |Testing "Authentication failed"
 
@@ -685,7 +717,7 @@ With the following card numbers you can provoke error responses.
 |215
 |N
 |U
-|Challenge
+|Yes
 |wirecard
 |"Unable to authenticate"
 
@@ -693,7 +725,7 @@ With the following card numbers you can provoke error responses.
 |223
 |N
 |A
-|Challenge
+|Yes
 |wirecard
 |No consumer interaction
 
@@ -701,7 +733,7 @@ With the following card numbers you can provoke error responses.
 |132
 |N
 |R
-|Challenge
+|Yes
 |wirecard
 |"Issuer is rejecting authentication"
 
@@ -709,7 +741,7 @@ With the following card numbers you can provoke error responses.
 |231
 |N
 |N
-|Challenge
+|Yes
 |wirecard
 |"Authentication failed"
 
@@ -717,7 +749,7 @@ With the following card numbers you can provoke error responses.
 |249
 |Y
 |U
-|Challenge
+|Yes
 |wirecard
 |"Unable to authenticate"
 
@@ -725,7 +757,7 @@ With the following card numbers you can provoke error responses.
 |256
 |Y
 |A
-|Challenge
+|Yes
 |wirecard
 |No consumer interaction
 
@@ -733,7 +765,7 @@ With the following card numbers you can provoke error responses.
 |264
 |Y
 |R
-|Challenge
+|Yes
 |wirecard
 |Testing "Issuer is rejecting authentication"
 
@@ -741,7 +773,7 @@ With the following card numbers you can provoke error responses.
 |272
 |Y
 |N
-|Challenge
+|Yes
 |wirecard
 |Testing "Authentication failed"
 
@@ -749,7 +781,7 @@ With the following card numbers you can provoke error responses.
 |298
 |U
 |U
-|Challenge
+|Yes
 |wirecard
 |Testing "Unable to authenticate"
 
@@ -757,7 +789,7 @@ With the following card numbers you can provoke error responses.
 |306
 |U
 |A
-|Challenge
+|Yes
 |wirecard
 |No consumer interaction
 
@@ -765,7 +797,7 @@ With the following card numbers you can provoke error responses.
 |314
 |U
 |R
-|Challenge
+|Yes
 |wirecard
 |Testing "Issuer is rejecting authentication"
 
@@ -773,7 +805,7 @@ With the following card numbers you can provoke error responses.
 |322
 |U
 |N
-|Challenge
+|Yes
 |wirecard
 |Testing "Authentication failed"
 |===
