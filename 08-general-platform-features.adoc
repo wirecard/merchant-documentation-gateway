@@ -3082,3 +3082,96 @@ credentials.
 Please be aware that each server request means data traffic. Use this
 request carefully. Use it only, if you encounter server connection
 problems.
+
+[#GeneralPlatformFeatures_IPP]
+=== Installment Payment Plan (IPP)
+
+**I**nstallment **P**ayment **P**lan is a feature that offers the
+consumer the option to pay larger amounts not at one time but with equal
+installments over a certain period of time.
+
+.IPP characteristics
+- **on-us:** Issuing bank and acquiring bank are the same.
+- **issuer-based:** Post clearing, the merchant receives the full amount from
+the acquiring bank. The cardholder pays back to their issuing bank (same
+  entity as acquiring bank since on-us) in installments.
+- **domestic payments only:** The instrument country, i.e. the country where the
+consumer's card was issued, must match the country of the merchant.
+//-
+
+.IPP is available for banks in
+- Hong Kong
+- Indonesia
+- Malaysia
+- Philippines
+- Singapore
+- Taiwan
+- Thailand
+//-
+
+.Supported Currencies
+- HKD
+- IDR
+- MYR
+- PHP
+- SGD
+- TWD
+- THB
+
+.Supported Card Brands
+- Mastercard
+- Visa
+
+.Supported Transaction Types
+There is no dedicated transaction type defined for installment plan payments.
+IPP work with transaction types __authorization__ and __purchase__.
+
+[#GeneralPlatformFeatures_IPP_Setup]
+==== Setting up IPP
+.Prerequisites
+Merchant and issuing bank have to contractually agree upon basic IPP
+parameters:
+
+- **tenure:** duration of installment payment. Depends on financial institutions
+and ranges from 3 months to 24 months.
+- **program:** installment payment framework, e.g.
+** minimum amont for installment payments: Only payments with a total amount
+higher than this value qualify for installment payment.
+** payment delay: The start date of installment payment can be postponed.
+** interest rate
+** BIN range: valid **B**ank **I**dentification **N**umbers. Lists all
+issuing banks that qualify for installment payment.
+//-
+
+The issuer provides Wirecard with these IPP parameters.
+
+.Merchant Setup
+Merchant setup basically follows the standard setup process. +
+Two additional features must be activated on the merchant account configuration:
+
+- Merchant account must be set to "installment plan enabled".
+- Merchant account must be set to "on-us card routing enabled".
+
+NOTE: The basic IPP parameters must be setup as defined in
+<<GeneralPlatformFeatures_IPP_Setup,Prerequisites>>.
+
+[#GeneralPlatformFeatures_IPP_Scenarios]
+==== IPP Scenarios
+There are two different IPP scenarios:
+
+1. Consumer has only one credit card.
+2. Consumer has several credit cards to select from.
+//-
+
+.1. Consumer has only one credit card
+
+.Workflow
+1. Consumer checks out products in merchant's shop.
+2. Merchant displays payment form, where consumer is to enter card data (PAN).
+3. WPG checks card's IPP eligibility by validates the card number against the
+<<GeneralPlatformFeatures_IPP_Setup, BIN ranges>> activated at the issuing bank.
+4. Merchant displays available IPPS for consumer.
+5. Consumer selects IPP. By submitting, the data are sent to WPG.
+6. WPG forwards the data to the Installment Calculator.
+7. Installment Calculator calculates installment amount and sends the
+   to merchant.
