@@ -23,7 +23,7 @@ _When ready to ship_
 [#CreditCard_3DS2_UseCase_DelayedShipment]
 ===== Delayed Shipment
 
-A consumer places an order for a product or service. The merchant fulfills the order in a single shipment, but with a delay. This delay may be expected or unexpected and could exceed the expiration date of the *authorization.* 
+A consumer places an order for a product or service. The merchant fulfills the order in a single shipment, but with a delay. This delay may be expected or unexpected and could exceed the expiration date of the *authorization.*
 
 NOTE: *Pre-authorization* is valid longer than a regular *authorization.*
 
@@ -45,9 +45,9 @@ _When ready to ship_
 .Option 2: Unexpected delay
 
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``.
-. *(Pre-)authorization* (full amount): Send a second request with transaction type *(pre-)authorization.* Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+. *(Pre-)authorization* (full amount): Send a second request with transaction type *(pre-)authorization.* Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 +
-_When exceeding the expiration date of the authorization_ 
+_When exceeding the expiration date of the authorization_
 +
 . *Void-authorization*: Send a request with transaction type *void-authorization.* Include the ``transaction-id`` from the *(pre-)authorization* response in the ``parent-transaction-id`` field.
 +
@@ -104,7 +104,7 @@ _Whenever a remaining part of the order is ready to ship_
 [#CreditCard_3DS2_UseCase_Recurring_Same]
 ===== Recurring Payments - Same Amount (Merchant-Initiated Transaction)
 
-Recurring transactions are processed at regular intervals, with the same, recurring amount. When you set up a recurring merchant-initiated transaction (MIT) agreement, the first transaction requires Strong Customer Authentication (one-time only). 
+Recurring transactions are processed at regular intervals, with the same, recurring amount. When you set up a recurring merchant-initiated transaction (MIT) agreement, the first transaction requires Strong Customer Authentication (one-time only).
 A common business scenario would be subscription fees for a software-as-a-service (SaaS) solution, or for video streaming services.
 
 WARNING: Consumers must be clearly informed about the terms of the agreement when setting up the recurring payment plan.
@@ -129,7 +129,7 @@ _Recurring payment (MIT)_
 _Setting up the agreement (consumer-initiated)_
 
 .	*Check-enrollment* (zero amount): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a ``transaction-id``.
-. *Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+. *Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 +
 _Per recurring payment (MIT)_
 +
@@ -167,7 +167,7 @@ _Per UCOF payment (MIT)_
 _Setting up the agreement (consumer-initiated)_
 
 . *Check-enrollment* (zero amount): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a ``transaction-id``.
-. *Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+. *Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 +
 _Per UCOF payment (MIT)_
 +
@@ -210,14 +210,14 @@ WARNING: Agents must clearly inform consumers that their cards will be charged b
 [#CreditCard_3DS2_UseCase_AgentModel_tx]
 ====== For a successful transaction:
 
-.Option 1: You are an agent with Wirecard
+.Option 1: You are an agent with {payment-provider-name}
 
 _The agent initiates the payment session_:
 
-.	*Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``, and the ``three-d/pareq``. The PAReq is the digitally signed, base64-encoded authentication request message created by Wirecard Payment Gateway. It contains the results of the 3D Secure versioning request that is used to initiate AReq as part of the HTTPS POST redirect to the ACS URL. The agent uses the PAReq for a HTTPS POST redirect to the ACS URL, which is part of a standard 3D Secure process. The HTTPS POST redirect returns the PARes as part of the response.
+.	*Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``, and the ``three-d/pareq``. The PAReq is the digitally signed, base64-encoded authentication request message created by {payment-gateway}. It contains the results of the 3D Secure versioning request that is used to initiate AReq as part of the HTTPS POST redirect to the ACS URL. The agent uses the PAReq for a HTTPS POST redirect to the ACS URL, which is part of a standard 3D Secure process. The HTTPS POST redirect returns the PARes as part of the response.
 .	*Check-payer-response*: This request serves to provide the authentication values needed later on in the *authorization*. The *check-payer-response* is executed after the *check-enrollment* response and the PARes have been received. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
- - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response. 
+ - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
 The *check-payer-response* includes the ``three-d/cardhoder-authentication-value``.
 +
 Provide the final authentication values for the merchant. These values include:
@@ -225,13 +225,13 @@ Provide the final authentication values for the merchant. These values include:
  - ``three-d/cardhoder-authentication-value``
  - ``three-d/eci``
  - ``three-d/ds-transaction-id``
- - ``three-d/version`` 
+ - ``three-d/version``
  - ``three-d/cardholder-authentication-status``
 
 //-
 
 
-.Option 2: You are a merchant with Wirecard
+.Option 2: You are a merchant with {payment-provider-name}
 
 As a merchant you receive the following authentication values from your external 3D Secure provider (e.g. the agent):
 
@@ -323,7 +323,7 @@ _Payment per installment (MIT)_
 _Setting up the agreement (consumer-initiated)_
 
 .	*Check-enrollment* (full amount + interest): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a ``transaction-id``.
-.	*Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the payment agreement. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+.	*Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the payment agreement. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 +
 _Payment per installment (MIT)_
 +
@@ -340,7 +340,7 @@ _Payment per installment (MIT)_
 [#CreditCard_3DS2_UseCase_Special_ChangingTerms]
 ===== Changing Terms of an Existing Payment Agreement (MIT)
 
-Existing payment agreements may change. Such changes could be initiated by both merchants and consumers. 
+Existing payment agreements may change. Such changes could be initiated by both merchants and consumers.
 Whenever a payment agreement changes, a *check-enrollment* for the new amount is recommended. Merchants may decide against a new *check-enrollment* in certain business scenarios. +
 
 Examples include up- and downgrades of subscription plans for video streaming services, changes to the billing cycle, as well as pausing, resuming, and canceling a subscription.
@@ -368,7 +368,7 @@ WARNING: Before storing credentials on file, consumers must be clearly informed 
 .Independent of purchase (standard scenario)
 
 . *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a ``transaction-id``.
-.	*Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+.	*Authorization-only* (zero amount): Send a second request with transaction type *authorization-only.* This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 
 //-
 
@@ -377,7 +377,7 @@ NOTE: Zero-amount processing is not supported by all acquirers. If you experienc
 .Independent of purchase (alternative scenario)
 
 . *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a ``transaction-id``.
-.	*Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type *authorization.* This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+.	*Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type *authorization.* This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 . *Void-authorization* *(authorization* amount): Send a third request with transaction type *void-authorization.* The agreement has been signed by means of the *authorization* transaction. Void the amount provided in the *authorization* request to conclude the workflow.
 
 .During purchase
@@ -387,7 +387,7 @@ NOTE: Zero-amount processing is not supported by all acquirers. If you experienc
 NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
 +
 
-. *Authorization* (payment amount): Send a second request with transaction type *authorization.* This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field. 
+. *Authorization* (payment amount): Send a second request with transaction type *authorization.* This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
 . *Capture* (payment amount): Send a request with transaction type *capture.* Include the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
 
 //-
