@@ -1,6 +1,1147 @@
 [#CC_Fields]
 ==== Fields
 
+[#CC_Fields_intro]
+===== Introduction
+
+This field list for _credit card_ provides an overview over the fields used, when
+performing transactions with a credit card. This field list describes the fields that
+are used, when sending an XML request and receiving a response.
+
+The majority of fields is used in request and response but some are explicitly
+sent in the response. Those are fields which, for example, provide information
+about the result of the payment process. For that reason we divided the fields
+in two main sections: One section, called _Request_, provides a list of fields
+sent in request and usually in the response and another section, called _Response_.
+The _Response_ section provides a field list explicitly sent in the response.
+
+In subsections of _Request_ and _Response_ you find the fields in groups according
+to their object. We have a field list for the ``payment``-object,
+``account-holder``-object, ``card``-object and so on.
+
+[#CC_Fields_intro_objects]
+====== The Objects
+
+Each object provides an introduction and a Field List.
+
+With a short introduction we explain, why the fields are defined and in which
+context they should be used. The following Field List is described in a table.
+This table provides the information about  _Name_, _Cardinality_, _Data Type_
+and _Length_ for each field.
+
+_Name_ has a structure like ``order-items.order-item.article-number``.
+Object's boundaries are referred to with a period ".", compound words use a
+dash "-". The order of the objects displays a hierarchical order, such as
+``order-items`` consists of ``order-item`` consists of ``article-number``.
+
+////
+Do we need the "@" as well?
+////
+
+<<CC_Fields_intro_cardinality, _Cardinality_>> reflects the technical necessity
+of the field. If a field is described mandatory, the field must provide content
+otherwise the request will fail. If the field is described optional, the field
+can be empty and the request will be sent successfully. But there are reasons
+why it makes perfect sense to provide information in an optional field. This
+information is given in the introduction.
+
+_Data Type_ explains what type of characters (such as "String" and "Integer")
+can be used for this field. Objects of the
+<<CC_Fields_intro_ComplexType, complex type>>, such as ``order-items`` or
+``address``, will provide a link in the _Data Type_ field which points to the
+detailed list.
+
+////
+For date format see Samples. Wen only provide one date format.
+////
+
+_Length_ explains how many characters can be used for this field.
+
+In the section <<CreditCard_TransactionTypes, _Transaction Types_>> you may,
+in some occasions, also find a field list for each transaction type. The field
+list over there lists only those fields whose definition deviates from the
+definition given here. When you look at the field list at the individual
+transaction type, it is assumed that you have knowledge of this general field
+list described here.
+
+In general the _Wirecard Payment Gateway_ allows all characters for each field
+according to the _Data Type_. If other rules apply they will be stated in the
+column _Value Range_ with each field.
+
+////
+Do we need a column for "Value Rage"?
+////
+
+[#CC_Fields_intro_cardinality]
+====== _Cardinality_
+
+The definition of _Cardinality_ may sometimes lead to an ambiguous interpretation.
+Look, for example, at the ``periodic``-object. When you send a request without
+a recurring intention, the ``periodic``-fields are not necessary and therefore
+noted optional, but they are mandatory, when you send a set of recurring transactions.
+In the tables below we will describe the cardinality, considering the context
+that you want to send a transaction that makes use of the described object.
+
+[#CC_Fields_intro_DataType]
+====== _Data Type_
+
+Altogether we have the data types _String_, _Integer_, _Date_, _Boolean_ and
+_Time Stamp_.
+
+////
+Here we must explain, which data types we use and how we define them.
+e.g. do we use "String" or "Alphanumeric"? Explain why.
+What is "Date"? What is the standard format? Is the format customizable?
+////
+
+[#CC_Fields_intro_ComplexType]
+====== _Complex Type_
+Some fields consist of an own field list (such as ``address``). These fields
+are considered objects of the complex type. The object itself is part of the
+superior table. This superior table provides a link to the table of the
+object's own field list in the merged columns _Data Type_ and _Length_.
+
+////
+
+Questions:
+
+1) Do we need a column for "value range" (Wertebereich) in the table as well?
+2) Which level of information do we provide in the column "Data Type"? Just very
+   low level such as "numeric", "alphanumeric" or do we go deeper, such as
+   "String", "Integer" (What kind of integer), etc?
+3) How do we treat cardinality: Example: to send a request no ``order-item`` is
+   required. It is optional. But when you use it ``name`` and ``amount`` are
+   mandatory.
+
+Suggestion: As we have individual blocks for each object, we can explain in the
+"Description" that the object is optional but give the cardinality of each
+field assuming that the object is being used. This strategy needs to be
+described in the introduction!
+
+////
+
+[#CC_Fields_xmlobjects]
+===== XML Objects
+
+////
+Please refer to ``https://doc.wirecard.com/Appendix_Xml.html`` for
+field descriptions.
+////
+
+[#CC_Fields_xmlobjects_request]
+====== Request
+
+<<CC_Fields_xmlobjects_request_payment, payment>>
+
+<<CC_Fields_xmlobjects_request_accountholder, account-holder>>
+
+<<CC_Fields_xmlobjects_request_address, address>>
+
+<<CC_Fields_xmlobjects_request_card, card>>
+
+<<CC_Fields_xmlobjects_request_cardtoken, card-token>>
+
+<<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>>
+
+<<CC_Fields_xmlobjects_request_audit, audit>>
+
+<<CC_Fields_xmlobjects_response_avs, avs>>
+
+<<CC_Fields_xmlobjects_request_browser, browser>>
+
+<<CC_Fields_xmlobjects_request_card, card>>
+
+<<CC_Fields_xmlobjects_request_cardemv, card-emv>>
+
+<<CC_Fields_xmlobjects_request_cardpin, card-pin>>
+
+<<CC_Fields_xmlobjects_request_cardraw, card-raw>>
+
+<<CC_Fields_xmlobjects_request_cardtoken, card-token>>
+
+<<CC_Fields_xmlobjects_request_creditsenderdata, credit-sender-data>>
+
+<<CC_Fields_xmlobjects_request_cruiseindustry, cruise-industry>>
+
+<<CC_Fields_xmlobjects_request_customfields, custom-fields>>
+
+<<CC_Fields_xmlobjects_request_device, device>>
+
+<<CC_Fields_xmlobjects_request_itinerary, itinerary>>
+
+<<CC_Fields_xmlobjects_request_notifications, notifications>>
+
+<<CC_Fields_xmlobjects_request_orderitems, order-items>>
+
+<<CC_Fields_xmlobjects_request_paymentmethods, payment-methods>>
+
+<<CC_Fields_xmlobjects_request_segment, segment>>
+
+<<CC_Fields_xmlobjects_request_shipping, shipping>>
+
+<<CC_Fields_xmlobjects_request_statuses, statuses>>
+
+<<CC_Fields_xmlobjects_request_submerchantinfo, sub-merchant-info>>
+
+<<CC_Fields_xmlobjects_request_threed, three-d>>
+
+[#CC_Fields_xmlobjects_request_payment]
+.payment
+
+////
+``NOTE``: The field ``request-id`` is described to accept max 32 characters but
+we do accept 150 character for CC.
+We will cut this down to 32,when forwarding this to PE.
+Generally EE accept 150 and then based on the Payment Method it will decide what to do.
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|merchant-account-id |C |String |36 |Unique identifier for a merchant-account.
+|merchant-account-resolver-category |C |String |36 |The category used to
+<<GeneralPlatformFeatures_ResolverCategoryCode, resolve the merchant-account>>
+based on rules on input.
+|request-id |M |String |32 |This is the identification number of the
+request. It has to be unique for each request. The following characters are
+allowed: ASCII characters Code 32-38 and 40-126.
+|requested-amount |M |Numeric |18,2 |This is the amount of the transaction.
+The amount of the decimal place is dependent of the currency.
+|requested-amount@currency |M |String |3 |This is the currency of the
+transaction.
+|transaction-type |M |String |30 |This is the type for a transaction.
+2+| account-holder 3+| <<CC_Fields_xmlobjects_request_accountholder, account-holder>>
+2+| card 3+| <<CC_Fields_xmlobjects_request_card, card>>
+2+| card-token 3+| <<CC_Fields_xmlobjects_request_cardtoken, card-token>>
+|descriptor |M |String |64 |Description on the settlement of the account
+holder's account about a transaction. The following characters are allowed: 0-9,
+a-z, A-Z
+|order-detail |O |String |65535 |This is a field for details of an order
+filled by the merchant.
+2+| order-items 3+| <<CC_Fields_xmlobjects_request_orderitems, order-items>>
+|order-number |M |String |32 |This is the order number of the merchant.
+The following characters are allowed: ASCII characters Code 32-38 and 40-126.
+|parent-transaction-id |C |String |36 |This is the unique identifier of
+the referenced transaction. This might be mandatory if "merchant-account-id" or
+"merchant-account-resolver-category" is not used
+|group-transaction-id |C |String |36 |A unique ID assigned to a group of
+related transactions. For example, an authorization and capture and refund will
+all share the same group-transaction-id.
+|authorization-code |C |String |36 |the authorization-code can be
+
+. input for _capture_ without reference on _authorization_
+. output for _authorization_
+//-
+
+|ip-address |O |String |45 |The global (internet) IP address of the
+consumers computer.
+|non-gambling-oct-type |O |String |7 |A transfer type of non-gambling
+Original Credit Transaction (OCT).
+Allowed values are: "p2p", "md", "acc2acc", "ccBill" and "fd".
+|processing-redirect-url |O |String |256 |The URL to which the consumer
+will be redirected after he has fulfilled his payment. This is normally a page
+on the merchant's website.
+|success-redirect-url |M |String |256 |The URL to which the consumer will
+be re-directed after a successful payment. This is normally a success
+confirmation page on the merchant's website.
+| cancel-redirect-url |M |String |256 |The URL to which the consumer will
+be re-directed after he has cancelled a payment. This is normally a page on the
+merchant's Website.
+|instrument-country |O |String |256 |The instrument country retrieves the
+issuer country of a certain credit card. If this field is configured it will be
+sent in the response. Use a two-digit country code, such as DE (Germany),
+ES (Spain), FR (France), IT (Italy). If you want to know the exact list of
+applying countries, please contact Wirecard’s Merchant Support.
+
+////
+Is <instrument-country> only sent in the response?
+////
+
+|locale |M |String |6 |Code of the language. Can be any of CZ, DA, EN, DE,
+ES, FI, FR, IT, NL, PL, GR, RO, RU, SV and TR.
+Can be sent in the format ``language`` or in the format ``language_country``.
+|entry-mode |O |String |24 |This is information about the channel used for
+this transaction.
+Can be one of the following: mail-order, telephone-order, ecommerce, mcommerce, pos.
+|periodic |O |String |24 |This is information about the periodicity of this
+transaction.
+Can be one of the following:
+installment, recurring
+
+2+| airline-industry 3+| <<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>>
+2+| cruise-industry 3+| <<CC_Fields_xmlobjects_request_cruiseindustry, cruise-industry>>
+2+| notifications 3+| <<CC_Fields_xmlobjects_request_notifications, notifications>>
+2+| avs-code 3+| <<CC_Fields_xmlobjects_response_avs, avs>>, used in response only.
+2+| three-d 3+| <<CC_Fields_xmlobjects_request_threed, three-d>>
+2+| browser 3+| <<CC_Fields_xmlobjects_request_browser, browser>>
+2+| credit-sender-data 3+| <<CC_Fields_xmlobjects_request_creditsenderdata, credit-sender-data>>
+2+| custom-fields 3+| <<CC_Fields_xmlobjects_request_customfields, custom-fields>>
+2+| device 3+| <<CC_Fields_xmlobjects_request_device, device>>
+2+| payment-methods 3+| <<CC_Fields_xmlobjects_request_paymentmethods, payment-methods>>
+2+| shipping 3+| <<CC_Fields_xmlobjects_request_shipping, shipping>>
+2+| sub-merchant-info 3+| <<CC_Fields_xmlobjects_request_submerchantinfo, sub-merchant-info>>
+
+|===
+
+Additional fields can be found in the
+<<CC_Fields_xmlobjects_response_payment, response > payment>> section.
+
+[#CC_Fields_xmlobjects_request_accountholder]
+.account-holder
+
+``account-holder`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object. With the
+``account-holder`` object merchants can gather detailed information about the
+consumer. It provides optional fields mostly. Only ``last-name`` is mandatory.
+Please provide all the ``account-holder`` data in your request to make fraud
+tests easier.
+
+////
+Is that correct?
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| first-name |O |String |32 |This is the first name of the consumer.
+| last-name |M |String |32 |This is the last name of the consumer.
+| email |O |String |64 |This is the consumer's email-address.
+| gender |O |String |1 |This is the consumer's gender.
+| date-of-birth |O |Date | |This is the consumer's birth date.
+| phone |O |String |32 |This is the phone number of the end- consumer.
+| social-security-number |O |String |14 |This is the social security number of the consumer.
+| tax-number |O |String |14 |This is the social security number of the consumer.
+| merchant-crm-id |O |String |64 |This is the merchant-crm-id of consumer.
+2+| address 3+| <<CC_Fields_xmlobjects_request_address, address>>
+|===
+
+////
+"merchant-crm-id" seems to be a field purely for paysafecard. Please verify!
+////
+
+[#CC_Fields_xmlobjects_request_address]
+.address
+
+``address`` belongs to the
+<<CC_Fields_xmlobjects_request_accountholder, account-holder>>,
+<<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>> and
+<<CC_Fields_xmlobjects_request_shipping, shipping>> object. It is used to
+specify the consumer's address.
+The consumer can be
+
+- the consumer (in case of ``account-holder``)
+- the ticket issuer (in case of ``airline-industry``)
+- the consumer's alternative address (in case of ``shipping``)
+
+Data can be provided optionally but it helps with fraud
+checks, if ``address`` is complete.
+
+////
+Is that correct?
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| block-no |O |String |12 |This is the block-no of the consumer.
+| level |O |String |3 |This is the level of the consumer.
+| unit |O |String |12 |This is the unit of the consumer.
+| street1 |M |String |128 |This is the first part of the consumer's street.
+| street2 |O |String |128 |This is the second part of the consumer's street.
+| city |M |String |32 |This is the consumer's city.
+| state |O |String |32 |This is the consumer's state.
+| country |M |String |2	|This is the consumer's country.
+| postal-code |O |String |16 |This is the consumer's postal code.
+| house-extension |O |String |16 |This is the consumer's house extension.
+|===
+
+[#CC_Fields_xmlobjects_request_airlineindustry]
+.airline-industry
+
+``airline-industry`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| airline-code |O |String |3	|The airline code assigned by IATA.
+| airline-name |O |String	|64	|Name of the airline.
+| passenger-code |O |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
+| passenger-name |O |String	|32	|The name of the Airline Transaction passenger.
+| passenger-phone |O |String	|32	|The phone number of the Airline Transaction passenger.
+| passenger-email |O |String	|64	|The Email Address of the Airline Transaction passenger.
+| passenger-ip-address |O |String |45 |The IP Address of the Airline Transaction passenger.
+| ticket-issue-date |O |Date | ?? |The date the ticket was issued.
+| ticket-number |O |String | 11 |The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
+| ticket-restricted-flag |O |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
+| pnr-file-key |O |String	|10	|The Passenger Name File Id for the Airline Transaction.
+| ticket-check-digit |O |String |2	|The airline ticket check digit.
+| agent-code |O |String |3	|The agency code assigned by IATA.
+| agent-name |O |String |64	|The agency name.
+| non-taxable-net-amount |O |Numeric	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction
+2+| ticket-issuer/address 3+| <<CC_Fields_xmlobjects_request_address, address>>
+| number-of-passengers |O |String |3	|The number of passengers on the Airline Transaction.
+| reservation-code |O |String |32 |The reservation code of the Airline Transaction passenger.
+2+| itinerary 3+| <<CC_Fields_xmlobjects_request_segment, segment>>
+The itinerary segments of the airline transaction. Up to 99 itinerary segments
+can be defined.
+
+|===
+
+[#CC_Fields_xmlobjects_request_audit]
+.audit
+
+``audit`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| request-source | O | ?? | ?? | ??
+| user | O | ?? | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_browser]
+.browser
+
+``browser`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| accept | O | String | 2048 | ??
+| user-agent | O | String | 256 | ??
+| ip-address | O | ip-address?? | ?? | ??
+| hostname |O  | String | ?? | ??
+| browser-version | O | String | ?? | ??
+| os | O |String  | ?? | ??
+| time-zone | O | String | ?? | ??
+| screen-resolution | O | String | ?? | ??
+| referrer | O | String | ?? | ??
+| headers | O | ?? | ?? | ??
+| cookies | O | ?? | ?? | ??
+| challenge-window-size | O | ?? | ?? | ??
+| color-depth | O | Integer | ?? | ??
+| java-enabled | O | Boolean | ?? | ??
+| language | O | String | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_card]
+.card
+
+``card`` belongs to the  <<CC_Fields_xmlobjects_request_payment, ``payment``>>
+object. ``card`` details are only sent in the first transaction request when
+the card is used for the first time. Due to
+<<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
+compliance ``card`` details are transferred to a token immediately. Beginning with the
+first response ``card`` is replaced by a token. With this first response, this
+token is used for every transaction (request and response) that is performed
+with this credit card. Token data is provided with the
+<<CC_Fields_xmlobjects_request_cardtoken, ``card-token``>> object.
+
+////
+Please explain: When does it make sense to send the OPTIONAL fields?
+////
+
+NOTE: Only the transaction type _detokenize_ returns ``expiration-month``,
+``expiration-year`` and ``card-type`` in a response. All the other transaction
+types return elements of ``card-token`` in response.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| account-number |C | String |36 |This is the card account number of the
+consumer. If is mandatory if "card-token" is not used.
+| expiration-month |M | Numeric	|2 |This is the card's expiration month
+of the consumer. If this field is configured it will be sent in the response.
+| expiration-year |M | Numeric |4 |This is the card's expiration year of
+the consumer. If this field is configured it will be sent in the response.
+| card-security-code |C | String |4 |This is the card's security code of
+the consumer. Depending on configuration it might be mandatory.
+| card-type |M | String |15 |This is the card's type of the consumer.
+If this field is configured it will be sent in the response.
+| issue-number |M |Numeric |4 |This is the card's issue number of the
+consumer.
+| start-month |M  |Numeric |2 |This is the card's issue start month of
+the consumer.
+| start-year |M  |Numeric |4 |This is the card's issue start year of
+the consumer.
+| track-2 |O  |String |256 |This is the card's track-2 of the
+consumer.
+2+| card-emv 3+| <<CC_Fields_xmlobjects_request_cardemv, card-emv>>
+
+////
+EMV cards are smart cards (also called chip cards or IC cards) that store their
+data on integrated circuits in addition to magnetic stripes (for backward
+compatibility). These include cards that must be physically inserted
+(or "dipped") into a reader, as well as contactless cards that can be read
+over a short distance using near-field communication (NFC) technology.
+(Taken from Wikipedia)
+////
+
+2+| card-pin 3+| <<CC_Fields_xmlobjects_request_cardpin, card-pin>>
+
+////
+A PIN pad or PIN entry device is an electronic device used in a debit, credit or smart card-based transaction to accept and encrypt the cardholder's personal identification number (PIN).
+
+PIN pads are normally used with payment terminals, automated teller machines
+or integrated point of sale devices in which an electronic cash register is
+responsible for taking the sale amount and initiating/handling the transaction.
+The PIN pad is required to read the card and allow the PIN to be securely
+entered and encrypted before it is sent to the bank. (Taken from Wikipedia)
+////
+
+2+| card-raw 3+| <<CC_Fields_xmlobjects_request_cardraw, card-raw>>
+
+////
+	What is <card-raw>?
+////
+
+| merchant-tokenization-flag |O  | Boolean | |The value is to be set to
+true as soon as Cardholder card data was stored by Merchant for future
+transactions. Maps the Visa field _Stored Credential_.
+|===
+
+
+[#CC_Fields_xmlobjects_request_cardemv]
+.card-emv
+
+``card-emv`` belongs to the
+<<CC_Fields_xmlobjects_request_card, ``card``>> object. EMV cards are smart
+cards (also called chip cards or IC cards) that store their data on integrated
+circuits in addition to magnetic stripes (for backward compatibility). These
+include cards that must be physically inserted (or "dipped") into a reader, as
+well as contactless cards that can be read over a short distance using
+near-field communication (NFC) technology. (Taken from Wikipedia)
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| request-icc-data | O | ?? | ?? | ??
+| request-icc-data-encoding | O | ?? | ?? | ??
+| response-icc-data | M | ?? | ?? | ??
+| response-icc-data-encoding | O | ?? | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_cardpin]
+.card-pin
+
+``card-pin`` belongs to the
+<<CC_Fields_xmlobjects_request_card, ``card``>> object. A PIN pad or PIN entry
+device is an electronic device used in a debit, credit or smart card-based
+transaction to accept and encrypt the cardholder's personal identification
+number (PIN). PIN pads are normally used with payment terminals, automated
+teller machines or integrated point of sale devices in which an electronic
+cash register is responsible for taking the sale amount and initiating/handling
+the transaction. The PIN pad is required to read the card and allow the PIN to
+be securely entered and encrypted before it is sent to the bank.
+(Taken from Wikipedia)
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| data | O | ?? | ?? | ??
+| encoding | O | ?? | ?? | ??
+| format | O | ?? | ?? | ??
+| encryption-context | O | ?? | ?? | ??
+| encryption-version | O | ?? | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_cardraw]
+.card-raw
+
+``card-raw`` belongs to the
+<<CC_Fields_xmlobjects_request_card, ``card``>> object.
+
+??
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| data | O | ?? | ?? | ??
+| encoding | O | ?? | ?? | ??
+| format | O | ?? | ?? | ??
+| encryption-context | O | ?? | ?? | ??
+| encryption-version | O | ?? | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_cardtoken]
+.card-token
+
+``card-token`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object and is the substitute
+for ``card``. Due to
+<<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
+compliance, ``card`` data must not be sent in payment transactions. The
+_Wirecard Payment Gateway_ replaces ``card`` immediately by a token in the
+transaction response during the first use of a credit card.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| token-id |C |String |36 |This is the token corresponding to
+"card.account-number" of the consumer. It is mandatory if
+"card.account-number" is not specified. It is unique per instance.
+| token-ext-id |O |String |36 |Identifier used for credit card
+in external system which will be used in mapping to token-id.
+| masked-account-number |O |String |36 |This is the masked
+version of  "card.account-number" of the consumer. E.g. 440804******7893
+|===
+
+[#CC_Fields_xmlobjects_request_cardtype]
+.card-type
+
+``card-type`` belongs to the
+<<CC_Fields_xmlobjects_request_cardtypes, ``card-types``>> object. It provides
+a list of all supported card types. Please look at
+https://doc.wirecard.com/Appendix_Xml.html
+to see the complete list of supported card types.
+
+[#CC_Fields_xmlobjects_request_cardtypes]
+.card-types
+
+``card-types`` belongs to the
+<<CC_Fields_xmlobjects_request_paymentmethods, ``payment-methods``>> object.
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+2+| card-type 3+| <<CC_Fields_xmlobjects_request_cardtype, card-type>>
+
+|===
+
+[#CC_Fields_xmlobjects_request_creditsenderdata]
+.credit-sender-data
+
+``credit-sender-data`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+////
+``credit-sender-data`` is used in OCT non gambling payment processes only.
+With this set of fields the merchant  can send money to the consumer.
+This can be the case, if the merchant is
+- an insurance company and has to pay out money to the consumer (insurance case).
+- the government and has to pay back taxes.
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| receiver-name |C |String |35 |Mandatory for cross-border transactions.
+Maximum length for Visa: 30
+| receiver-last-name |C |String |35 |Mandatory for cross-border transactions.
+| reference-number |O |String |19 |Maximum length for Visa: 16
+| sender-account-number |C |String |20 |_Mastercard:_ Mandatory
+_Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
+| sender-name |C |String |24 |_Mastercard:_ Mandatory
+_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
+| sender-last-name |C |String |35 |_Mastercard:_ Mandatory
+_Visa:_ Optional
+| sender-address |C |String |50 |_Mastercard:_ Optional
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
+| sender-city |C |String |25 |_Mastercard:_ Optional
+_Visa:_ Mandatory for US domestic and cross-border transactions
+| sender-country |C |String |3 |_Mastercard:_ Optional
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 2
+| sender-state |C |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada
+_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
+| sender-postal-code |O |String |10 |No specific requirements for _Mastecard_ and _Visa_.
+| sender-funds-source |O |String |2 |Accepted characters are:
+_Mastercard_
+- US: 01, 02, 03, 04, 05, 07
+- Non-US: 01, 02, 03, 04, 05, 06, 07
+//-
+_Visa_
+- US: 1, 2, 3
+- Non-US: 01, 02, 03, 04, 05, 06
+//-
+|===
+
+[#CC_Fields_xmlobjects_request_cruiseindustry]
+.cruise-industry
+
+``cruise-industry`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| carrier-code |O |String	|3	|The carrier code assigned by IATA.
+| agent-code |O |String	|8	|The agent code assigned by IATA.
+| travel-package-type-code |O |String	|10	|This indicates if the package
+includes car rental, airline flight, both or neither. Valid entries include:
+C = Car rental reservation included, A = Airline flight reservation included,
+B = Both car rental and airline flight reservations included, N = Unknown.
+| ticket-number |O |String |15 |The ticket number, including the check digit.
+| passenger-name |O |String	|100 |The name of the passenger.
+| lodging-check-in-date |O |Date | |The cruise departure date also known as the sail date.
+| lodging-check-out-date |O |Date	| |The cruise return date also known as the sail end date.
+| lodging-room-rate |O |Numeric	|18,2	|The total cost of the cruise.
+| number-of-nights |O |Numeric	|3	|The length of the cruise in days.
+| lodging-name |O |String	|100 |The lodging name booked for the cruise.
+| lodging-city-name |O |String |20	|The name of the city where the lodging property is located.
+| lodging-region-code |O |String	|10	|The region code where the lodging property is located.
+| lodging-country-code |O |String	|10	|The country code where the lodging property is located.
+2+| itinerary 3+|<<CC_Fields_xmlobjects_request_segment, segment>>
+The itinerary segments of the cruise transaction. Up to 99 itinerary segments
+can be defined.
+
+|===
+
+[#CC_Fields_xmlobjects_request_customfields]
+.custom-fields
+
+``custom-fields`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| field-name | O | String | 64 | ??
+| field-value | O | String | 256 | ??
+
+|===
+
+Additional fields can be found in the
+<<CC_Fields_xmlobjects_response_customfield, response > custom-field>> section.
+
+[#CC_Fields_xmlobjects_request_device]
+.device
+
+``device`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| fingerprint | O | String | ?? | ??
+| policy-score | O | Integer | ?? | ??
+| type | O | ?? | ?? | ??
+| operating-system | O | ?? | ?? | ??
+| render-options | O | ?? | ?? | ??
+| sdk | O | ?? | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_itinerary]
+.itinerary
+
+``itinerary`` belongs to the
+<<CC_Fields_xmlobjects_request_airlineindustry, ``airline-industry``>> and
+<<CC_Fields_xmlobjects_request_cruiseindustry, ``cruise-industry``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+2+| itinerary 3+| <<CC_Fields_xmlobjects_request_segment, segment>>
+
+|===
+
+
+[#CC_Fields_xmlobjects_request_notifications]
+.notifications
+
+``notifications`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object. ``notifications``
+is used to specify <<GeneralPlatformFeatures_IPN, IPN>>. It is highly
+recommended that the merchants use IPN. IPN keeps the merchants informed about
+the outcome of the individual payment processes. With the ``notifications``
+object merchants can overwrite the
+<<GeneralPlatformFeatures_IPN_Configuration, configuration of the merchant setup>>.
+If merchants want to address individual notification targets, they can
+do this with this object. With each request and for each transaction state
+they can use a different URL.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|notification |O | | |This is used for IPN (Instant Payment Notification).
+|notification@transaction-state |O |String |12 |This is the status of a transaction when IPN will be sent.
+|notification@url |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
+|===
+
+[#CC_Fields_xmlobjects_request_orderitems]
+.order-items
+
+``order-items`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object. This is a field
+for order's items filled by the merchant. Order item amount always includes tax.
+Tax can be specified either by tax-amount or by tax-rate.
+
+////
+When filled by the merchant: Is ``order-items`` a request or response field?
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|order-item.name | M	|Alphanumeric | ?? |Name of the item in the basket.
+|order-item.description | O	|Alphanumeric | ?? | ??
+|order-item.article-number | O	|Alphanumeric | ?? |EAN or other article identifier for merchant.
+|order-item.amount | M	|Number | ?? |Item's price per unit.
+|order-item.tax-amount | O	|Alphanumeric | ?? | ??
+|order-item.tax-rate | O	|Number | ?? |Item's tax rate per unit.
+|order-item.quantity | M	|Number | ?? |Total count of items in the order.
+|order-item.type | O	|Number | ?? | ??
+|order-item.discount | O	|Number | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_payload]
+.payload
+
+``payload`` belongs to the
+<<CC_Fields_xmlobjects_request_paymentmethods, ``payment-methods``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+2+| payload-field 3+|<<CC_Fields_xmlobjects_request_payloadfield, payload-field>>
+
+|===
+
+[#CC_Fields_xmlobjects_request_payloadfield]
+.payload-field
+
+``payload-field`` belongs to the
+<<CC_Fields_xmlobjects_request_payload, ``payload``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| field-name | M | String | ?? | ??
+| field-value | M | String |?? | ??
+
+|===
+
+
+[#CC_Fields_xmlobjects_request_paymentmethods]
+.payment-methods
+
+``payment-methods`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+
+The value for the tag ``payment-method@name`` is always ``creditcard``.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| payment-method |M | ?? | ?? |This is used for specifying the payment method used
+for this transaction.
+| payment-method@name |M |String |15 |This is the name of the payment method
+that that the consumer selected. The value is always ``creditcard``.
+| payment-method@url |O |String |256 |The URL to be used for proceeding with
+payment on provider side.
+2+| card-types 3+| <<CC_Fields_xmlobjects_request_cardtypes, card-types>>
+2+| payload 3+| <<CC_Fields_xmlobjects_request_payload, payload>>
+
+|===
+
+Additional fields can be found in the
+<<CC_Fields_xmlobjects_response_paymentmethod, response > payment-method>> section.
+
+[#CC_Fields_xmlobjects_request_segment]
+.segment
+
+``segment`` belongs to the
+<<CC_Fields_xmlobjects_request_itinerary, ``itinerary``>> object
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| carrier-code | M | String |  |
+| departure-airport-code | M | String |  |
+| departure-city-code | M | String |  |
+| arrival-airport-code | M | String |  |
+| arrival-city-code | M | String |  |
+| departure-date | M | Date |  |
+| arrival-date | M | Date |  |
+| flight-number | O | String |  |
+| fare-class | O | String |  |
+| fare-basis | O | String |  |
+| stop-over-code | O | zero-or-one ?? |  |
+| tax-amount | O | money ?? |  |
+
+|===
+
+[#CC_Fields_xmlobjects_request_shipping]
+.shipping
+
+``shipping`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+The consumers provides ``shipping`` only, if they want to receive the ordered
+goods or services at a different place than given with the ``account-holder``.
+
+////
+Please verify!
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| first-name |M |String |32 |This is first name from shipping
+information.
+| last-name |M |String |32 |This is last name from shipping
+information.
+| phone |O |String |3 |This is used to specify the phone from
+shipping information.
+2+| address 3+| <<CC_Fields_xmlobjects_request_address, address>>
+| email |O |String |64 |This is used to specify the email from
+shipping information.
+| shipping-method |O |String |36 |This is used to specify the
+shipping method from shipping information.
+| tracking-number |O |String |64 |This is used to specify the
+tracking number from shipping information.
+| tracking-url |O |String |2000 |This is used to specify the
+tracking url from shipping information.
+| shipping-company |O |String |64 |This is used to specify the
+shipping company from shipping information.
+| return-tracking-number |O |String |64 |This is used to specify
+the return tracking number from shipping information.
+| return-tracking-url |O |String |2000 |This is used to specify
+the return tracking URL from shipping information.
+| return-shipping-company |O |String |36 |This is used to specify
+the return shipping company from shipping information.
+|===
+
+[#CC_Fields_xmlobjects_request_submerchantinfo]
+.sub-merchant-info
+
+``sub-merchant-info`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| id | O | String | 15 | ??
+| appid | O | String | ?? | ??
+| name | O | String | 22 | ??
+| street | O | String | 38 | ??
+| city | O | String | 13 | ??
+| postal-code | O | String | 10 | ??
+| state | O | String | 3 | ??
+| country | O | String | 2 | ??
+| category | O | String | ?? | ??
+| store-id | O | String | ?? | ??
+| store-name | O | String | ?? | ??
+| payment-facilitator-id | O | String | ?? | ??
+
+|===
+
+[#CC_Fields_xmlobjects_request_threed]
+.three-d
+
+``three-d`` belongs to the
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
+
+////
+How do we handle the sub object <annotation>? See
+https://doc.wirecard.com/Appendix_Xml.html
+////
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| pares | O | String |  |
+| eci | O | eci ?? |  |
+| xid | O | String |  | This field is  used for both CAVV (Visa) and AAV (MC)
+| cardholder-authentication-value | O | String |  |
+| pareq | O | String |  |
+| acs-url | O | String |  |
+| attempt-three-d | O | Boolean |  |
+| liability-shift-indicator | O | String |  |
+| cardholder-authentication-status | O | String |  |
+| riid | O | riid-type ?? |  |
+| server-transaction-id | O | String |  |
+| version | O | String |  |
+| ds-transaction-id | O | String |  |
+
+|===
+
+Additional fields can be found in the
+<<CC_Fields_xmlobjects_response_threed, response > three-d>> section.
+
+[#CC_Fields_xmlobjects_response]
+===== Response
+
+[#CC_Fields_xmlobjects_response_payment]
+.payment
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|transaction-id | ?? |String |36 |This is the unique identifier for a transaction.
+|transaction-state | ?? |String |12 |This is the status of a transaction.
+|completion-time-stamp | ?? |Timestamp | |This is the time-stamp of
+completion of request.
+|avs-code | ?? |String |24 |This is the result of address's validation.
+2+| avs 3+| <<CC_Fields_xmlobjects_response_avs, avs>>
+|csc-code | ?? |String |12 |Code indicating Card Verification Value (CVC/CVV)
+verification results.
+|consumer-id | ?? |String |50 |The id of the consumer.
+|api-id | ?? |String |36 |The api-id is always returned in the notification.
+2+| custom-fields 3+| <<CC_Fields_xmlobjects_response_customfields, custom-field>>
+2+| payment-methods 3+| <<CC_Fields_xmlobjects_response_paymentmethod, payment-method>>
+2+| statuses 3+| <<CC_Fields_xmlobjects_response_status, status>>
+|signature | ?? | | |The Signature info, consisting of SignedInfo, SignatureValue and KeyInfo.
+|instrument-country	| ?? | | |If this field is configured it will be sent in
+the response. Use a two-digit country code, such as DE (Germany), ES (Spain),
+FR (France), IT (Italy). If you want to know the exact list of applying
+countries, please contact Wirecard's Merchant Support.
+2+| three-d 3+| <<CC_Fields_xmlobjects_response_threed, three-d>>
+|===
+
+[#CC_Fields_xmlobjects_response_avs]
+.avs
+
+``avs`` belongs to the <<CC_Fields_xmlobjects_response_payment, ``payment``>>
+object. The <<FraudPrevention_AVS, Address Verification System (AVS)>> is an
+advanced level of credit card security that is built in to the Wirecard
+credit card processing network to help thwart identity theft. When a user makes
+an online purchase with a credit card their billing address is required. The
+house number and postal code of the billing address the user enters is compared
+to the billing address held on file by the card issuing bank. If the address
+does not match then the transaction can be declined. AVS is an on-demand service
+which is configured by Wirecard.
+
+See the complete list of the
+<<FraudPrevention_AVS_WirecardResponseCodes, Wirecard Response Codes>>.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| result-code | O |String | 5 | AVS result code.
+| result-message | O |String | 256 | AVS result message.
+| provider-result-code | O | String | 5 | AVS provider result code.
+| provider-result-message | O | String | 256 | AVS provider result message.
+
+|===
+
+[#CC_Fields_xmlobjects_response_customfield]
+.custom-field
+
+``custom-field`` belongs to the  ``custom-fields`` object, which is part of the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|  |  |  |  |
+|  |  |  |  |
+|  |  |  |  |
+
+|===
+
+[#CC_Fields_xmlobjects_response_customfields]
+.custom-fields
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|  |  |  |  |
+|  |  |  |  |
+|  |  |  |  |
+
+|===
+
+[#CC_Fields_xmlobjects_response_paymentmethod]
+.payment-method
+
+``payment-method`` belongs to the  ``payment-methods`` object, which is part of the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+|===
+
+[#CC_Fields_xmlobjects_response_status]
+.status
+
+``status`` belongs to the  ``statuses`` object, which is part of the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+``status`` informs the merchants about the result of the previously sent
+request. They can use this information to send the consumers to an adequate
+response page (success page or failure page).
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+| status | M | String | 12 | This is the status of a transaction.
+| status@code | M | String | 12 | This is the code of the status of a transaction.
+| status@description | M | String | 256 | This is the description to the status
+code of a transaction.
+| status@severity | M | String | 20 | This field gives information if a status
+is a warning, an error or an information.
+|===
+
+[#CC_Fields_xmlobjects_response_statuses]
+.statuses
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|  |  |  |  |
+|  |  |  |  |
+|  |  |  |  |
+
+|===
+
+[#CC_Fields_xmlobjects_response_threed]
+.three-d
+
+``three-d`` belongs to the
+<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+
+[cols="30,6,9,7,48a"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+| liability-shift-indicator | O | String | 2048 | Liablilty shift can be enabled
+for 3-D Secure enabled consumers.
+|===
+
+//--
+
+[#CC_Fields_old]
+==== Fields
+
 The following elements are either mandatory (M), optional (O) or
 conditional \(C) in a transaction process.
 
@@ -333,749 +1474,6 @@ h|Request h|Response h|Notification
 
 |audit.request-source |O |O |O |ASCII String |30 |Optional information that references the application or payment gateway a transaction is processed with.
 |audit.user |O |O |O |String |128 |Optional information that identifies the origin/user of the payment request. Audit user is send by frontend applications referencing the user processing transactions or follow up operations using the application.
-|===
-
-[#CC_Fields_intro]
-===== Introduction
-
-This field list for _credit card_ provides an overview over the fields used, when
-performing transactions with a credit card. This field list describes the fields that
-are used, when sending an XML request and receiving a response.
-
-The majority of fields is used in request and response but some are explicitly
-sent in the response. Those are fields which, for example, provide information
-about the result of the payment process. For that reason we divided the fields
-in two main sections: One section, called _Request_, provides a list of fields
-sent in request and usually in the response and another section, called _Response_.
-The _Response_ section provides a field list explicitly sent in the response.
-
-In subsections of _Request_ and _Response_ you find the fields in groups according
-to their object. We have a field list for the ``payment``-object,
-``account-holder``-object, ``card``-object and so on.
-
-[#CC_Fields_intro_objects]
-====== The Objects
-
-Each object provides an introduction and a Field List.
-
-With a short introduction we explain, why the fields are defined and in which
-context they should be used. The following Field List is described in a table.
-This table provides the information about  _Name_, _Cardinality_, _Data Type_
-and _Length_ for each field.
-
-_Name_ has a structure like ``order-items.order-item.article-number``.
-Object's boundaries are referred to with a period ".", compound words use a
-dash "-". The order of the objects displays a hierarchical order, such as
-``order-items`` consists of ``order-item`` consists of ``article-number``.
-
-////
-Do we need the "@" as well?
-////
-
-
-<<CC_Fields_intro_cardinality, _Cardinality_>> reflects the technical necessity
-of the field. If a field is described mandatory, the field must provide content
-otherwise the request will fail. If the field is described optional, the field
-can be empty and the request will be sent successfully. But there are reasons
-why it makes perfect sense to provide information in an optional field. This
-information is given in the introduction.
-
-_Data Type_ explains what type of characters (such as "numeric", "alphanumeric"
-(resp. "String" and "Integer")) can be used for this field. Objects of the
-<<CC_Fields_intro_ComplexType, complex type>>, such as ``order-items`` or
-``address``, will provide a link in the _Data Type_ field which points to the
-detailed list.
-Altogether we have the data types _String_, _Integer_, _Date_ and _Time Stamp_.
-
-////
-For date format see Samples. Wen only provide one date format.
-////
-
-_Length_ explains how many characters can be used for this field.
-
-In the section <<CreditCard_TransactionTypes, _Transaction Types_>> you may,
-in some occasions, also find a field list for each transaction type. The field
-list over there lists only those fields whose definition deviates from the
-definition given here. When you look at the field list at the individual
-transaction type, it is assumed that you have knowledge of this general field
-list described here.
-
-In general the _Wirecard Payment Gateway_ allows all characters for each field
-according to the _Data Type_. If other rules apply they will be stated in the
-column _Value Range_ with each field.
-
-////
-Do we need a column for "Value Rage"?
-////
-
-[#CC_Fields_intro_cardinality]
-====== _Cardinality_
-
-The definition of _Cardinality_ may sometimes lead to an ambiguous interpretation.
-Look, for example, at the ``periodic``-object. When you send a request without
-a recurring intention, the ``periodic``-fields are not necessary and therefore
-noted optional, but they are mandatory, when you send a set of recurring transactions.
-In the tables below we will describe the cardinality, considering the context
-that you want to send a transaction that makes use of the described object.
-
-[#CC_Fields_intro_DataType]
-====== _Data Type_
-
-////
-Here we must explain, which data types we use and how we define them.
-e.g. do we use "String" or "Alphanumeric"? Explain why.
-What is "Date"? What is the standard format? Is the format customizable?
-////
-
-[#CC_Fields_intro_ComplexType]
-====== _Complex Type_
-Some fields consist of an own field list (such as ``address``). These fields
-are considered objects of the complex type. The object itself is part of the
-superior table. This superior table provides a link to the table of the
-object's own field list in the merged columns _Data Type_ and _Length_.
-
-////
-
-Questions:
-
-1) Do we need a column for "value range" (Wertebereich) in the table as well?
-2) Which level of information do we provide in the column "Data Type"? Just very
-   low level such as "numeric", "alphanumeric" or do we go deeper, such as
-   "String", "Integer" (What kind of integer), etc?
-3) How do we treat cardinality: Example: to send a request no ``order-item`` is
-   required. It is optional. But when you use it ``name`` and ``amount`` are
-   mandatory.
-
-Suggestion: As we have individual blocks for each object, we can explain in the
-"Description" that the object is optional but give the cardinality of each
-field assuming that the object is being used. This strategy needs to be
-described in the introduction!
-
-////
-
-[#CC_Fields_xmlobjects]
-===== XML Objects
-
-////
-Please refer to ``https://doc.wirecard.com/Appendix_Xml.html`` for
-field descriptions.
-////
-
-[#CC_Fields_xmlobjects_request]
-====== Request
-
-<<CC_Fields_xmlobjects_request_payment, payment>>
-
-<<CC_Fields_xmlobjects_request_accountholder, account-holder>>
-
-<<CC_Fields_xmlobjects_request_address, address>>
-
-<<CC_Fields_xmlobjects_request_card, card>>
-
-<<CC_Fields_xmlobjects_request_cardtoken, card-token>>
-
-<<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>>
-
-<<CC_Fields_xmlobjects_request_audit, audit>>
-
-<<CC_Fields_xmlobjects_response_avs, avs>>
-
-<<CC_Fields_xmlobjects_request_browser, browser>>
-
-<<CC_Fields_xmlobjects_request_card, card>>
-
-<<CC_Fields_xmlobjects_request_cardtoken, card-token>>
-
-<<CC_Fields_xmlobjects_request_creditsenderdata, credit-sender-data>>
-
-<<CC_Fields_xmlobjects_request_cruiseindustry, cruise-industry>>
-
-<<CC_Fields_xmlobjects_request_customfields, custom-fields>>
-
-<<CC_Fields_xmlobjects_request_device, device>>
-
-<<CC_Fields_xmlobjects_request_notifications, notifications>>
-
-<<CC_Fields_xmlobjects_request_orderitems, order-items>>
-
-<<CC_Fields_xmlobjects_request_paymentmethods, payment-methods>>
-
-<<CC_Fields_xmlobjects_request_segment, segment>>
-
-<<CC_Fields_xmlobjects_request_shipping, shipping>>
-
-<<CC_Fields_xmlobjects_request_statuses, statuses>>
-
-<<CC_Fields_xmlobjects_request_submerchantinfo, sub-merchant-info>>
-
-<<CC_Fields_xmlobjects_request_threed, three-d>>
-
-[#CC_Fields_xmlobjects_request_payment]
-.payment
-
-////
-``NOTE``: The field ``request-id`` is described to accept max 32 characters but
-we do accept 150 character for CC.
-We will cut this down to 32,when forwarding this to PE.
-Generally EE accept 150 and then based on the Payment Method it will decide what to do.
-////
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-|requested-amount |M |Numeric |18,2 |This is the amount of the transaction.
-The amount of the decimal place is dependent of the currency.
-|requested-amount@currency |M |String |3 |This is the currency of the
-transaction.
-2+| notifications 3+| <<CC_Fields_xmlobjects_request_notifications, notifications>>
-2+| avs-code 3+| <<CC_Fields_xmlobjects_request_avs, avs>>
-|===
-
-[#CC_Fields_xmlobjects_request_accountholder]
-.account-holder
-
-``account-holder`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object. With the
-``account-holder`` object merchants can gather detailed information about the
-consumer. It provides optional fields mostly. Only ``last-name`` is mandatory.
-Please provide all the ``account-holder`` data in your request to make fraud
-tests easier.
-
-////
-Is that correct?
-////
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| first-name |O |String |32 |This is the first name of the consumer.
-| last-name |M |String |32 |This is the last name of the consumer.
-| email |O |String |64 |This is the consumer's email-address.
-| gender |O |String |1 |This is the consumer's gender.
-| date-of-birth |O |Date | |This is the consumer's birth date.
-| phone |O |String |32 |This is the phone number of the end- consumer.
-| social-security-number |O |String |14 |This is the social security number of the consumer.
-| tax-number |O |String |14 |This is the social security number of the consumer.
-| merchant-crm-id |O |String |64 |This is the merchant-crm-id of consumer.
-2+| address 3+| <<CC_Fields_xmlobjects_request_address, address>>
-|===
-
-////
-"merchant-crm-id" seems to be a field purely for paysafecard. Please verify!
-////
-
-[#CC_Fields_xmlobjects_request_address]
-.address
-
-``address`` belongs to the
-<<CC_Fields_xmlobjects_request_accountholder, account-holder>>,
-<<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>> and
-<<CC_Fields_xmlobjects_request_shipping, shipping>>. It is used to specify the
-consumer's address.
-The consumer can be
-
-- the consumer (in case of ``account-holder``)
-- the ticket issuer (in case of ``airline-industry``)
-- the consumer's alternative address (in case of ``shipping``)
-
-Data can be provided optionally but it helps with fraud
-checks, if ``address`` is complete.
-
-////
-Is that correct?
-////
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| block-no |O |String |12 |This is the block-no of the consumer.
-| level |O |String |3 |This is the level of the consumer.
-| unit |O |String |12 |This is the unit of the consumer.
-| street1 |M |String |128 |This is the first part of the consumer's street.
-| street2 |O |String |128 |This is the second part of the consumer's street.
-| city |M |String |32 |This is the consumer's city.
-| state |O |String |32 |This is the consumer's state.
-| country |M |String |2	|This is the consumer's country.
-| postal-code |O |String |16 |This is the consumer's postal code.
-| house-extension |O |String |16 |This is the consumer's house extension.
-|===
-
-[#CC_Fields_xmlobjects_request_airlineindustry]
-.airline-industry
-
-``airline-industry`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| airline-code |O |String |3	|The airline code assigned by IATA.
-| airline-name |O |String	|64	|Name of the airline.
-| passenger-code |O |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
-| passenger-name |O |String	|32	|The name of the Airline Transaction passenger.
-| passenger-phone |O |String	|32	|The phone number of the Airline Transaction passenger.
-| passenger-email |O |String	|64	|The Email Address of the Airline Transaction passenger.
-| passenger-ip-address |O |String |45 |The IP Address of the Airline Transaction passenger.
-| ticket-issue-date |O |Date | |The date the ticket was issued.
-| ticket-number |O |String |11	|The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
-| ticket-restricted-flag |O |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
-| pnr-file-key |O |String	|10	|The Passenger Name File Id for the Airline Transaction.
-| ticket-check-digit |O |String |2	|The airline ticket check digit.
-| agent-code |O |String |3	|The agency code assigned by IATA.
-| agent-name |O |String |64	|The agency name.
-| non-taxable-net-amount |O |Numeric	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction
-2+| ticket-issuer/address 3+| <<CC_Fields_xmlobjects_request_address, address>>
-| number-of-passengers |O |String |3	|The number of passengers on the Airline Transaction.
-| reservation-code |O |String |32 |The reservation code of the Airline Transaction passenger.
-| itinerary.segment |O | | | The itinerary segments of the airline transaction. Up to 99 itinerary segments can be defined. For details see section ````CreditCard_Fields_Segment, segment````.
-
-|===
-
-[#CC_Fields_xmlobjects_request_audit]
-.audit
-
-``audit`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_browser]
-.browser
-
-``browser`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_card]
-.card
-
-``card`` belongs to the  <<CC_Fields_xmlobjects_request_payment, ``payment``>>
-object. ``card`` details are only sent in the first transaction request when
-the card is used for the first time. Due to
-<<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
-compliance ``card`` details are transferred to a token immediately. Beginning with the
-first response ``card`` is replaced by a token. With this first response, this
-token is used for every transaction (request and response) that is performed
-with this credit card. Token data is provided with the
-<<CC_Fields_xmlobjects_request_cardtoken, ``card-token``>> object.
-
-////
-Please explain: When does it make sense to send the OPTIONAL fields?
-////
-
-NOTE: Only the transaction type _detokenize_ returns ``expiration-month``,
-``expiration-year`` and ``card-type`` in a response. All the other transaction
-types return elements of ``card-token`` in response.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| account-number |C | String |36 |This is the card account number of the
-consumer. If is mandatory if "card-token" is not used.
-| expiration-month |M | Numeric	|2 |This is the card's expiration month
-of the consumer. If this field is configured it will be sent in the response.
-| expiration-year |M | Numeric |4 |This is the card's expiration year of
-the consumer. If this field is configured it will be sent in the response.
-| card-security-code |C | String |4 |This is the card's security code of
-the consumer. Depending on configuration it might be mandatory.
-| card-type |M | String |15 |This is the card's type of the consumer.
-If this field is configured it will be sent in the response.
-| issue-number |M |Numeric |4 |This is the card's issue number of the
-consumer.
-| start-month |M  |Numeric |2 |This is the card's issue start month of
-the consumer.
-| start-year |M  |Numeric |4 |This is the card's issue start year of
-the consumer.
-| track-2 |O  |String |256 |This is the card's track-2 of the
-consumer.
-2+| card-emv 2+| |This is used for EMV data for credit card of the
-consumer.
-
-////
-EMV cards are smart cards (also called chip cards or IC cards) that store their
-data on integrated circuits in addition to magnetic stripes (for backward
-compatibility). These include cards that must be physically inserted
-(or "dipped") into a reader, as well as contactless cards that can be read
-over a short distance using near-field communication (NFC) technology.
-(Taken from Wikipedia)
-////
-
-2+| card-pin 2+| |This is used for PIN data for credit card of the
-consumer.
-
-////
-A PIN pad or PIN entry device is an electronic device used in a debit, credit or smart card-based transaction to accept and encrypt the cardholder's personal identification number (PIN).
-
-PIN pads are normally used with payment terminals, automated teller machines
-or integrated point of sale devices in which an electronic cash register is
-responsible for taking the sale amount and initiating/handling the transaction.
-The PIN pad is required to read the card and allow the PIN to be securely
-entered and encrypted before it is sent to the bank. (Taken from Wikipedia)
-////
-
-2+| card-raw 2+| |This is the raw card data.
-
-////
-	What is <card-raw>?
-////
-
-| merchant-tokenization-flag |O  | Boolean | |The value is to be set to
-true as soon as Cardholder card data was stored by Merchant for future
-transactions. Maps the Visa field _Stored Credential_.
-|===
-
-[#CC_Fields_xmlobjects_request_cardtoken]
-.card-token
-
-``card-token`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object and is the substitute
-for ``card``. Due to
-<<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
-compliance, ``card`` data must not be sent in payment transactions. The
-_Wirecard Payment Gateway_ replaces ``card`` immediately by a token in the
-transaction response during the first use of a credit card.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| token-id |C |String |36 |This is the token corresponding to
-"card.account-number" of the consumer. It is mandatory if
-"card.account-number" is not specified. It is unique per instance.
-| token-ext-id |O |String |36 |Identifier used for credit card
-in external system which will be used in mapping to token-id.
-| masked-account-number |O |String |36 |This is the masked
-version of  "card.account-number" of the consumer. E.g. 440804******7893
-|===
-
-[#CC_Fields_xmlobjects_request_creditsenderdata]
-.credit-sender-data
-
-``credit-sender-data`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-////
-``credit-sender-data`` is used in OCT non gambling payment processes only.
-With this set of fields the merchant  can send money to the consumer.
-This can be the case, if the merchant is
-- an insurance company and has to pay out money to the consumer (insurance case).
-- the government and has to pay back taxes.
-////
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| receiver-name |C |String |35 |Mandatory for cross-border transactions.
-Maximum length for Visa: 30
-| receiver-last-name |C |String |35 |Mandatory for cross-border transactions.
-| reference-number |O |String |19 |Maximum length for Visa: 16
-| sender-account-number |C |String |20 |_Mastercard:_ Mandatory
-_Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
-| sender-name |C |String |24 |_Mastercard:_ Mandatory
-_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
-| sender-last-name |C |String |35 |_Mastercard:_ Mandatory
-_Visa:_ Optional
-| sender-address |C |String |50 |_Mastercard:_ Optional
-_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
-| sender-city |C |String |25 |_Mastercard:_ Optional
-_Visa:_ Mandatory for US domestic and cross-border transactions
-| sender-country |C |String |3 |_Mastercard:_ Optional
-_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 2
-| sender-state |C |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada
-_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
-| sender-postal-code |O |String |10 |No specific requirements for _Mastecard_ and _Visa_.
-| sender-funds-source |O |String |2 |Accepted characters are:
-_Mastercard_
-- US: 01, 02, 03, 04, 05, 07
-- Non-US: 01, 02, 03, 04, 05, 06, 07
-//-
-_Visa_
-- US: 1, 2, 3
-- Non-US: 01, 02, 03, 04, 05, 06
-//-
-|===
-
-[#CC_Fields_xmlobjects_request_cruiseindustry]
-.cruise-industry
-
-``cruise-industry`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_customfields]
-.custom-fields
-
-``custom-fields`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_device]
-.device
-
-``device`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_notifications]
-.notifications
-
-``notifications`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
-With the ``notifications`` object merchants can overwrite the
-<<GeneralPlatformFeatures_IPN_Configuration, configuration of the merchant setup>>.
-If merchants want to address individual notification targets, they can
-do this with this object. With each request and for each transaction state
-they can use a different URL.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-|notification |O | | |This is used for IPN (Instant Payment Notification).
-|notification@transaction-state |O |String |12 |This is the status of a transaction when IPN will be sent.
-|notification@url |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
-|===
-
-[#CC_Fields_xmlobjects_request_orderitems]
-.order-items
-
-``order-items`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_paymentmethods]
-.payment-methods
-
-``payment-methods`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-The value for the tag ``payment-method@name`` is always ``creditcard``.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| payment-method |M | | |This is used for specifying the payment method used
-for this transaction.
-| card-types.card-type |O |String |15 |This specifies the types of card
-supported for this payment-method.
-| payment-method@name |M |String |15 |This is the name of the payment method
-that that the consumer selected. The value is always ``creditcard``.
-| payment-method@url |O |String |256 |The URL to be used for proceeding with
-payment on provider side.
-|===
-
-////
-I don't understand, why <card-type> is mentioned here. <card-type> belongs to
-the <card> object, doesn't it?
-payment-method@url: Who is the provider?
-////
-
-[#CC_Fields_xmlobjects_request_segment]
-.segment
-
-``segment`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_shipping]
-.shipping
-
-``shipping`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
-The consumers provides ``shipping`` only, if they want to receive the ordered
-goods or services at a different place than given with the ``account-holder``.
-
-////
-Please verify!
-////
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| first-name |M |String |32 |This is first name from shipping
-information.
-| last-name |M |String |32 |This is last name from shipping
-information.
-| phone |O |String |3 |This is used to specify the phone from
-shipping information.
-2+| address 3+| <<CC_Fields_xmlobjects_request_address, address>>
-| email |O |String |64 |This is used to specify the email from
-shipping information.
-| shipping-method |O |String |36 |This is used to specify the
-shipping method from shipping information.
-| tracking-number |O |String |64 |This is used to specify the
-tracking number from shipping information.
-| tracking-url |O |String |2000 |This is used to specify the
-tracking url from shipping information.
-| shipping-company |O |String |64 |This is used to specify the
-shipping company from shipping information.
-| return-tracking-number |O |String |64 |This is used to specify
-the return tracking number from shipping information.
-| return-tracking-url |O |String |2000 |This is used to specify
-the return tracking URL from shipping information.
-| return-shipping-company |O |String |36 |This is used to specify
-the return shipping company from shipping information.
-|===
-
-[#CC_Fields_xmlobjects_request_submerchantinfo]
-.sub-merchant-info
-
-``sub-merchant-info`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_request_threed]
-.three-d
-
-``three-d`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_response]
-===== Response
-
-[#CC_Fields_xmlobjects_response_payment]
-.payment
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-2+| avs 3+| <<CC_Fields_xmlobjects_response_avs, avs>>
-2+| custom-fields 3+| <<CC_Fields_xmlobjects_response_customfields, custom-field>>
-2+| payment-methods 3+| <<CC_Fields_xmlobjects_response_paymentmethod, payment-method>>
-2+| statuses 3+| <<CC_Fields_xmlobjects_response_status, status>>
-2+| three-d 3+| <<CC_Fields_xmlobjects_response_threed, three-d>>
-|===
-
-[#CC_Fields_xmlobjects_response_avs]
-.avs
-
-``avs`` belongs to the <<CC_Fields_xmlobjects_response_payment, ``payment``>>
-object. The <<FraudPrevention_AVS, Address Verification System (AVS)>> is an
-advanced level of credit card security that is built in to the Wirecard
-credit card processing network to help thwart identity theft. When a user makes
-an online purchase with a credit card their billing address is required. The
-house number and postal code of the billing address the user enters is compared
-to the billing address held on file by the card issuing bank. If the address
-does not match then the transaction can be declined. AVS is an on-demand service
-which is configured by Wirecard.
-
-See the complete list of the
-<<FraudPrevention_AVS_WirecardResponseCodes, Wirecard Response Codes>>.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| result-code | O |String | 5 | AVS result code.
-| result-message | O |String | 256 | AVS result message.
-| provider-result-code | O | String | 5 | AVS provider result code.
-| provider-result-message | O | String | 256 | AVS provider result message.
-|===
-
-[#CC_Fields_xmlobjects_response_customfields]
-.custom-field
-
-``custom-field`` belongs to the  ``custom-fields`` object, which is part of the
-<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_response_paymentmethod]
-.payment-method
-
-``payment-method`` belongs to the  ``payment-methods`` object, which is part of the
-<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-|===
-
-[#CC_Fields_xmlobjects_response_status]
-.status
-
-``status`` belongs to the  ``statuses`` object, which is part of the
-<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
-``status`` informs the merchants about the result of the previously sent
-request. They can use this information to send the consumers to an adequate
-response page (success page or failure page).
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-| status | M | String | 12 | This is the status of a transaction.
-| status@code | M | String | 12 | This is the code of the status of a transaction.
-| status@description | M | String | 256 | This is the description to the status
-code of a transaction.
-| status@severity | M | String | 20 | This field gives information if a status
-is a warning, an error or an information.
-|===
-
-[#CC_Fields_xmlobjects_response_threed]
-.three-d
-
-``three-d`` belongs to the
-<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-| liability-shift-indicator | O | String | 2048 | Liablilty shift can be enabled
-for 3-D Secure enabled consumers.
 |===
 
 //--
