@@ -3100,9 +3100,12 @@ consumer's card was issued, must match the country of the merchant.
 //-
 
 .IPP is available for banks in
+- Australia
 - Hong Kong
+- India
 - Indonesia
 - Malaysia
+- New Zealand
 - Philippines
 - Singapore
 - Taiwan
@@ -3110,17 +3113,22 @@ consumer's card was issued, must match the country of the merchant.
 //-
 
 .Supported Currencies
+- AUD
 - HKD
 - IDR
+- INR
 - MYR
+- NZD
 - PHP
 - SGD
 - TWD
 - THB
+//-
 
 .Supported Card Brands
 - Mastercard
 - Visa
+//-
 
 .Supported Transaction Types
 There is no dedicated transaction type defined for installment plan payments.
@@ -3147,10 +3155,13 @@ The issuer provides Wirecard with these IPP parameters.
 
 .Merchant Setup
 Merchant setup basically follows the standard setup process. +
+You need a **unique MAID** for IPP. +
 Two additional features must be activated on the merchant account configuration:
 
-- Merchant account must be set to "installment plan enabled".
-- Merchant account must be set to "on-us card routing enabled".
+- **installment plan:** Activate ``installment_plan_enabled``.
+- **on-us card routing:** Activate ``onus_enabled``.
+
+<<ContactUs, Merchant Support>> assists you in setting up your account properly.
 
 NOTE: The basic IPP parameters must be setup as defined in
 <<GeneralPlatformFeatures_IPP_Setup,Prerequisites>>.
@@ -3163,15 +3174,653 @@ There are two different IPP scenarios:
 2. Consumer has several credit cards to select from.
 //-
 
-.1. Consumer has only one credit card
+[discrete]
+===== 1. Consumer has only one credit card
 
 .Workflow
 1. Consumer checks out products in merchant's shop.
 2. Merchant displays payment form, where consumer is to enter card data (PAN).
-3. WPG checks card's IPP eligibility by validates the card number against the
+3. WPG checks card's IPP eligibility by validating the card number against the
 <<GeneralPlatformFeatures_IPP_Setup, BIN ranges>> activated at the issuing bank.
-4. Merchant displays available IPPS for consumer.
-5. Consumer selects IPP. By submitting, the data are sent to WPG.
-6. WPG forwards the data to the Installment Calculator.
-7. Installment Calculator calculates installment amount and sends the
+WPG also checks if the transaction is domestic.
+** Validation fail: Consumer is redirected to the regular (credit card) payment form.
+** Validation OK: Consumer can select either regular payment or payment in
+installments.
+4. If consumer selects "Payment on Installments", merchant
+sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>>
+request to WPG.
+5. Installment Calculator calculates installment details and sends them
    to merchant.
+6. Merchant shows the available installment plans to the consumer
+(on the checkout page).
+7. Consumer selects the appropriate installment plan. By submitting,
+   the selected program/tenure is sent with the payment authorization request
+   to WPG.
+//-
+
+[discrete]
+===== 2. Consumer has multiple credit cards
+
+.Workflow
+1. Consumer checks out products in merchant's shop.
+2. Merchant forwards payment request to WPG. This request must include the MAID.
+3. WPG sends all IPPs that are available for this MAID to the merchant. +
+// These IPPs match the IPP criteria such as minimum amount eligible for installment or country and currency of order.
+4. Merchant displays these IPPs to consumer.
+5. Consumer selects from the list of available banks and list of available programs.
+6. Merchant displays payment form, where consumer is to enter card data (PAN).
+7. WPG checks card's IPP eligibility by validating the card number against the
+<<GeneralPlatformFeatures_IPP_Setup, BIN ranges>> activated at the issuing bank.
+WPG also checks if the transaction is domestic.
+** Validation fail: Consumer is redirected to the regular (credit card) payment form.
+** Validation OK: Consumer can select either regular payment or payment in
+installments.
+8. If consumer selects "Payment on Installments", merchant
+sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>>
+request to WPG.
+9. Installment Calculator calculates installment details and sends them
+   to merchant.
+10. Merchant shows the available installment plans to the consumer
+(on the checkout page).
+11. Consumer selects the appropriate installment plan. By submitting,
+   the selected program/tenure is sent with the payment authorization request
+   to WPG.
+
+[#GeneralPlatformFeatures_IPP_InstallmentCalculator]
+==== Installment Calculator
+The Installment Calculator is a valuable tool to retrieve the available
+installment plans as agreed upon by
+<<GeneralPlatformFeatures_IPP_Setup, merchant and issuing bank>>.
+
+* **Input:** purchase amount and currency +
+* **Output:** available IPPs with tenure and interest rate
+//-
+
+The installments are of equal height.
+
+
+[discrete]
+===== Installment Calculator Workflow
+1. Merchant sends the Installment Calculator request to WPG. This request
+contains the order amount and the ISO locale code (including country and
+  language).
+2. WPG forwards the request to the issuing bank.
+3. The issuing bank generates a list of all available IPPs and sends it
+to the merchant.
+
+/engine/rest/utils/installmentcalculator
+
+[#GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields]
+.Request Fields
+[#GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO1]
+M=**M**andatory, O=**O**ptional
+[%autowidth]
+[cols="e,,,,"]
+|===
+|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO, M/O>> |Data Type |Size |Description
+
+|installment-calculator-request. +
+merchant-account-id
+|M
+|Alphanumeric
+|36
+|Unique identifier of merchant account.
+
+|installment-calculator-request/ +
+payment-method
+|M
+|Enumeration
+|15
+|Name of the payment method, e.g. _creditcard_.
+
+|installment-calculator-request/ +
+amount
+|M
+|Numeric
+|18,3
+|Total order amount. +
+The number of decimal places depends on the currency.
+
+|installment-calculator-request. +
+amount@currency
+|M
+|Alphanumeric
+|3
+|Amount currency of the order. 
+
+|installment-calculator-request. +
+locale
+|M
+|Alphanumeric
+|5
+|Locale code containing country and language code. +
+E.g. en_SG for English language in Singapore. +
+The language defines the localized labels of the result fields.
+|===
+
+.Response Fields
+[#GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO2]
+M=**M**andatory, O=**O**ptional
+[%autowidth]
+[cols="e,,,,"]
+|===
+|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO2, M/O>> |Data Type |Size |Description
+
+|installment-calculator-response. +
+merchant-account-id
+|M
+|Alphanumeric
+|36
+|Unique identifier of merchant account.
+
+|installment-calculator-response.payment-method
+|M
+|Enumeration
+|15
+|Name of the payment method, e.g. _creditcard_.
+
+|installment-calculator-response. +
+amount
+|M
+|Numeric
+|18,3
+|Total order amount. +
+The number of decimal places depends on the currency.
+
+|installment-calculator-response +
+amount@currency
+|M
+|Alphanumeric
+|3
+|The currency in which the order was placed. 
+
+|installment-calculator-response. +
+locale
+|M
+|Alphanumeric
+|5
+|Locale code containing country and language code. +
+E.g. en_SG for English language in Singapore. +
+The language defines the localized labels of the result fields.
+
+|installment-calculator-response. +
+state
+|M
+|Enumeration
+|
+|The state of the response: success, failed. 
+
+|installment-calculator-response. +
+statuses
+|M
+|Complex
+|
+|List of response statuses.
+
+|installment-calculator-response.statuses. +
+status
+|M
+|Complex
+|
+|Response status.
+
+|installment-calculator-response.statuses. +
+status@code
+|M
+|Alphanumeric
+|12
+|The status code of the response. Click
+<<StatusCodes, Status Codes and Transaction Status>> for a complete list
+of all status codes.
+
+|installment-calculator-response.statuses. +
+status@description
+|M
+|Alphanumeric
+|256
+|The description to the status code of the response.
+
+|installment-calculator-response.statuses. +
+status@severity
+|M
+|Enumeration
+|
+|Indicates if the status means ``warning``, ``error`` or ``information``.
+
+|installment-calculator-response.statuses. +
+status@provider-code
+|O
+|Alphanumeric
+|34
+|Error code as provided by the issuing bank.
+
+|installment-calculator-response.statuses. +
+status@provider-message
+|O
+|Alphanumeric
+|
+|Error message as provided by the issuing bank +
+It does not need to be shown to the consumer.
+
+|installment-calculator-response. +
+installments
+|O
+|Complex
+|
+|Contains all available installment payment plans.
+
+|installment-calculator-response.installments. +
+installment
+|O
+|Complex
+|
+|Each installment complex contains information on a specific IPP.
+
+|installment-calculator-response.installments.installment. +
+product-id
+|M
+|Numeric
+|
+|This ID uniquely identifies the corresponding installment
+payment plan.
+
+|installment-calculator-response.installments.installment. +
+name
+|O
+|Alphanumeric
+|
+|Name of the payment option in English. +
+// Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment. +
+terms
+|O
+|Alphanumeric +
+URI
+|
+|Absolute URL to the terms for this payment method. +
+Links to the terms and conditions of the corresponding provider offering
+payments on installments.
+// Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment. +
+logo
+|O
+|Alphanumeric +
+URI
+|
+|Absolute URL to the logo used for this payment method.  +
+Links to the logo of the corresponding provider offering payments on
+installments which can be shown on the checkout page.
+// Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment. +
+type
+|O
+|Alphanumeric
+|
+|??? +
+// Payment option group: invoice for payment on invoice and for “Buy now,
+// pay in X months”, part_payment for payment by installments.
+
+|installment-calculator-response.installments.installment. +
+type@title
+|O
+|Alphanumeric
+|
+|Title to display the IPP  on the checkout page in the corresponding language.
+// Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment. +
+details
+|O
+|Complex
+|
+|Breakdown of fees and various information about the
+corresponding IPP.
+
+|installment-calculator-response.installments.installment.details. +
+interest-rate
+|O
+|Alphanumeric
+|
+|Interest rate for IPP. +
+Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details. +
+interest-rate@label
+|O
+|Alphanumeric
+|
+|Title to display the interest rate  on the checkout page in the
+corresponding language.
+
+|installment-calculator-response.installments.installment.details. +
+interest-rate@symbol
+| 
+|Alphanumeric
+|
+|The unit of the interest rate. Usually %.
+
+|installment-calculator-response.installments.installment.details. +
+monthly-invoice-fee
+|O
+|Alphanumeric
+|
+|Monthly administrator invoice fee. +
+Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details. +
+monthly-invoice-fee@label
+|O
+|Alphanumeric
+|
+|Title to display the monthly invoice fee on the checkout page in the
+corresponding language. 
+
+|installment-calculator-response.installments.installment.details. +
+monthly-invoice-fee@symbol
+|O
+|Alphanumeric
+|
+|The unit of the monthly invoice fee. +
+Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details. +
+setup-fee
+|O
+|Alphanumeric
+|
+|The start fee of the installment. +
+Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details. +
+setup-fee@label
+|O
+|Alphanumeric
+|
+|Title to display the setup fee on the checkout page in the
+corresponding language.
+
+|installment-calculator-response.installments.installment.details. +
+setup-fee@symbol
+|O
+|Alphanumeric
+|
+|The unit of the setup fee. +
+Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details. +
+monthly-pay
+|O
+|Alphanumeric
+|
+|Calculated amount of monthly payment. +
+// For the flexible installment plans for Germany, Sweden, Finland and Norway it contains the minimal monthly payment amount.
+Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details. +
+monthly-pay@label
+|O
+|Alphanumeric
+|
+|Title to display the monthly payment on the checkout page in the
+corresponding language. 
+
+|installment-calculator-response.installments.installment.details. +
+monthly-pay@symbol
+|O
+|Alphanumeric
+|
+|The unit of the monthly payment. +
+Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details. +
+annual-percentage-rate
+|O
+|Alphanumeric
+|
+|Calculated annual percentage rate. +
+Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details. +
+annual-percentage-rate@label
+|O
+|Alphanumeric
+|
+|Title to display the annual percentage rate on the checkout page
+in the corresponding language. 
+
+|installment-calculator-response.installments.installment.details. +
+annual-percentage-rate@symbol
+|O
+|Alphanumeric
+|
+|The unit of the annual percentage rate. Usually %. 
+
+|installment-calculator-response.installments.installment.details. +
+months
+|O
+|Alphanumeric
+|
+|Number of installments (months) to pay for this IPP. +
+Only available for fixed installment plans.
+
+|installment-calculator-response.installments.installment.details. +
+months@label
+|O
+|Alphanumeric
+|
+|Title to display the number of installments (months) on the checkout page
+in the corresponding language. +
+e.g. "months"
+
+|installment-calculator-response.installments.installment.details. +
+month
+|O
+|Alphanumeric
+|
+|The name of the month when the order must be paid. In English. +
+// Only available for Pay now, pay in X months.
+
+|installment-calculator-response.installments.installment.details. +
+month@label
+|O
+|Alphanumeric
+|
+|The name of the month in the corresponding language as displayed
+on the checkout page.
+
+|installment-calculator-response.installments.installment.details. +
+total-credit-purchase-price
+|O
+|Alphanumeric
+|
+|The total amount that is payable for this purchase, including starting
+fee, administrative fees and interest rates. +
+Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details. +
+total-credit-purchase-price@label
+|O
+|Alphanumeric
+|
+|Title to display the total amount on the checkout page in the
+corresponding language.
+
+|installment-calculator-response.installments.installment.details. +
+total-credit-purchase-price@symbol
+|O
+|Alphanumeric
+|
+|The unit of the total amount. +
+Usually the currency code in the corresponding language
+
+|installment-calculator-response.installments.installment.details. +
+minimum-amount
+|O
+|Alphanumeric
+|
+|Minimum total order amount for this IPP. +
+// Only available for Netherlands, Austria, and Denmark.
+
+|installment-calculator-response.installments.installment.details. +
+interestrate-min
+|O
+|Decimal
+|
+|Minimum interest rate for this IPP.
+
+|installment-calculator-response.installments.installment.details. +
+interest-rate-default
+|O
+|Decimal
+|
+|The default interest rate is used if the interest rate submitted in the
+calculation request is invalid.
+
+|installment-calculator-response.installments.installment.details. +
+interestrate-max
+|O
+|Decimal
+|
+|Maximum interest rate for this IPP.
+
+|installment-calculator-response.installments.installment.details. +
+interest-rate-merchant2bank
+|O
+|Decimal
+|
+|The interest rate defined contractually between the merchant and the issuer.
+
+|installment-calculator-response.installments.installment.details. +
+month-number-min
+|O
+|Integer
+|
+|Minimum duration of this IPP in months.
+
+|installment-calculator-response.installments.installment.details. +
+month-number-max
+|O
+|Integer
+|
+|Maximum duration of this IPP in months.
+
+|installment-calculator-response.installments.installment.details. +
+month-longrun
+|O
+|Integer
+|
+|Minimum duration of this IPP in months to mark it as a long run IPP.
+
+|installment-calculator-response.installments.installment.details. +
+amount-min-longrun
+|O
+|Decimal
+|
+|Minimum total order amount to qualify for a long run IPP.
+
+|installment-calculator-response.installments.installment.details. +
+month-allowed
+|O
+|Decimal
+|
+|Comma separated list of allowed durations, stated in months.
+
+|installment-calculator-response.installments.installment.details. +
+valid-payment-firstdays
+|O
+|String
+|1 - 28
+|Comma separated list of calendar days which are allowed as starting
+days of the IPP. +
+Currently allowed: 28
+
+|installment-calculator-response.installments.installment.details. +
+payment-firstday
+|O
+|Integer
+|
+|Default calendar day of the first payment.
+
+|installment-calculator-response.installments.installment.details. +
+payment-amount
+|O
+|Integer
+|
+|???.
+
+|installment-calculator-response.installments.installment.details. +
+payment-lastrate
+|O
+|Decimal
+|
+|Minimum amount of last installment. +
+If the last calculated installment is less than this amount,
+it will be skipped. The amount will be added to the last but one rate,
+which will be correspondingly higher.
+
+|installment-calculator-response.installments.installment.details. +
+rate-min-normal
+|O
+|Decimal
+|
+|Minimum interest rate of a normal IPP.
+
+|installment-calculator-response.installments.installment.details. +
+service-charge
+|O
+|Decimal
+|
+|Minimum interest rate of a long run IPP.
+
+|installment-calculator-response.installments.installment.details. +
+rate-min-normal
+|O
+|Decimal
+|
+|Additional additional financing costs, such as ???
+
+|installment-calculator-response.installments.installment.details. +
+min-difference-dueday
+|O
+|Integer
+|
+| ???
+
+
+|installment-calculator-response.installments.installment. +
+title
+|O
+|Alphanumeric
+|
+|Title to display the IPP on the checkout page in
+the corresponding language. +
+e.g.: "Pay in 14 days." 
+
+|installment-calculator-response.installments.installment. +
+description
+|O
+|Alphanumeric
+|
+|Detailed information about this IPP. +
+// Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment. +
+use-case
+|O
+|Alphanumeric
+|
+|Calculation example for this IPP. +
+// Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment. +
+expiration-date
+|O
+|Alphanumeric
+|
+|Payment option expiry date in the format YYYY-MM-DD. +
+// This is used for Buy now, pay in X months.
+// Only available for Netherlands, Austria, and Denmark.
+|===
