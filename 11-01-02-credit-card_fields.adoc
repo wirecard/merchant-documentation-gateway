@@ -215,14 +215,14 @@ The amount of the decimal place is dependent of the currency.
 transaction.
 |transaction-type |M |String |30 |This is the type for a transaction.
 2+| account-holder 3+| <<CC_Fields_xmlobjects_request_accountholder, account-holder>>
-2+| card 3+| <<CC_Fields_xmlobjects_request_card, card>>
-2+| card-token 3+| <<CC_Fields_xmlobjects_request_cardtoken, card-token>>
+2+| card 3+| <<CC_Fields_xmlobjects_request_card, card>>, used with the first request of card use only.
+2+| card-token 3+| <<CC_Fields_xmlobjects_request_cardtoken, card-token>>, used from the first response of card use and later.
 |descriptor |M |String |64 |Description on the settlement of the account
 holder's account about a transaction. The following characters are allowed: 0-9,
 a-z, A-Z
 |order-detail |O |String |65535 |This is a field for details of an order
 filled by the merchant.
-2+| order-items 3+| <<CC_Fields_xmlobjects_request_orderitems, order-items>>
+2+| order-items 3+| <<CC_Fields_xmlobjects_request_orderitem, order-item>>, ``order-items`` is a container used for multiple ``order-item`` elements.
 |order-number |M |String |32 |This is the order number of the merchant.
 The following characters are allowed: ASCII characters Code 32-38 and 40-126.
 |parent-transaction-id |C |String |36 |This is the unique identifier of
@@ -274,14 +274,17 @@ installment, recurring
 
 2+| airline-industry 3+| <<CC_Fields_xmlobjects_request_airlineindustry, airline-industry>>
 2+| cruise-industry 3+| <<CC_Fields_xmlobjects_request_cruiseindustry, cruise-industry>>
-2+| notifications 3+| <<CC_Fields_xmlobjects_request_notifications, notifications>>
+2+| notifications 3+| <<CC_Fields_xmlobjects_request_notification, notification>>, 
+``notifications`` is a container used for multiple ``notification`` elements.
 2+| avs-code 3+| <<CC_Fields_xmlobjects_response_avs, avs>>, used in response only.
 2+| three-d 3+| <<CC_Fields_xmlobjects_request_threed, three-d>>
 2+| browser 3+| <<CC_Fields_xmlobjects_request_browser, browser>>
 2+| credit-sender-data 3+| <<CC_Fields_xmlobjects_request_creditsenderdata, credit-sender-data>>
-2+| custom-fields 3+| <<CC_Fields_xmlobjects_request_customfields, custom-fields>>
+2+| custom-fields 3+| <<CC_Fields_xmlobjects_request_customfield, custom-field>>,
+``custom-fields`` is a container used for multiple ``custom-field`` elements.
 2+| device 3+| <<CC_Fields_xmlobjects_request_device, device>>
-2+| payment-methods 3+| <<CC_Fields_xmlobjects_request_paymentmethods, payment-methods>>
+2+| payment-methods 3+| <<CC_Fields_xmlobjects_request_paymentmethod, payment-method>>,
+``payment-methods`` is a container used for multiple ``payment-method`` elements.
 2+| shipping 3+| <<CC_Fields_xmlobjects_request_shipping, shipping>>
 2+| sub-merchant-info 3+| <<CC_Fields_xmlobjects_request_submerchantinfo, sub-merchant-info>>
 
@@ -608,24 +611,9 @@ version of  "card.account-number" of the consumer. E.g. 440804******7893
 [#CC_Fields_xmlobjects_request_cardtype]
 .card-type
 
-``card-type`` belongs to the
-<<CC_Fields_xmlobjects_request_cardtypes, ``card-types``>> object. It provides
-a list of all supported card types. Please look at
-https://doc.wirecard.com/Appendix_Xml.html
-to see the complete list of supported card types.
-
-[#CC_Fields_xmlobjects_request_cardtypes]
-.card-types
-
-``card-types`` belongs to the
-<<CC_Fields_xmlobjects_request_paymentmethods, ``payment-methods``>> object.
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-2+| card-types 3+| <<CC_Fields_xmlobjects_request_cardtype, card-type>>
-
-|===
+``card-type`` belongs to the container ``card-types`` in the 
+<<CC_Fields_xmlobjects_request_paymentmethod, ``payment-methods``>> object. It provides a list of all supported card types. Please look at
+https://doc.wirecard.com/Appendix_Xml.html to see the complete list of supported card types.
 
 [#CC_Fields_xmlobjects_request_creditsenderdata]
 .credit-sender-data
@@ -710,8 +698,8 @@ can be defined.
 [#CC_Fields_xmlobjects_request_customfield]
 .custom-field
 
-``custom-field`` belongs to the
-<<CC_Fields_xmlobjects_request_customfields, ``custom-fields``>> object.
+``custom-field`` belongs to the container ``custom-fields`` in the 
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
 
 Additional fields can be found in the
 <<CC_Fields_xmlobjects_response_customfield, response > ``custom-field``>> section.
@@ -722,23 +710,6 @@ Additional fields can be found in the
 
 | field-name | O | String | 64 | ??
 | field-value | O | String | 256 | ??
-
-|===
-
-[#CC_Fields_xmlobjects_request_customfields]
-.custom-fields
-
-``custom-fields`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
-
-Additional fields can be found in the
-<<CC_Fields_xmlobjects_response_customfield, response > ``custom-field``>> section.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-2+| custom-fields 3+| <<CC_Fields_xmlobjects_request_customfield, ``custom-field``>>
 
 |===
 
@@ -777,10 +748,10 @@ Additional fields can be found in the
 |===
 
 
-[#CC_Fields_xmlobjects_request_notifications]
-.notifications
+[#CC_Fields_xmlobjects_request_notification]
+.notification
 
-``notifications`` belongs to the
+``notification`` belongs to the container ``notifications`` in the 
 <<CC_Fields_xmlobjects_request_payment, ``payment``>> object. ``notifications``
 is used to specify <<GeneralPlatformFeatures_IPN, IPN>>. It is highly
 recommended that the merchants use IPN. IPN keeps the merchants informed about
@@ -800,10 +771,10 @@ they can use a different URL.
 |notification@url |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
 |===
 
-[#CC_Fields_xmlobjects_request_orderitems]
-.order-items
+[#CC_Fields_xmlobjects_request_orderitem]
+.order-item
 
-``order-items`` belongs to the
+``order-item`` belongs to the container ``order-items`` in the 
 <<CC_Fields_xmlobjects_request_payment, ``payment``>> object. This is a field
 for order's items filled by the merchant. Order item amount always includes tax.
 Tax can be specified either by tax-amount or by tax-rate.
@@ -816,37 +787,23 @@ When filled by the merchant: Is ``order-items`` a request or response field?
 |===
 |Field |Cardinality |Datatype |Size |Description
 
-|order-item.name | M	|Alphanumeric | ?? |Name of the item in the basket.
-|order-item.description | O	|Alphanumeric | ?? | ??
-|order-item.article-number | O	|Alphanumeric | ?? |EAN or other article identifier for merchant.
-|order-item.amount | M	|Number | ?? |Item's price per unit.
-|order-item.tax-amount | O	|Alphanumeric | ?? | ??
-|order-item.tax-rate | O	|Number | ?? |Item's tax rate per unit.
-|order-item.quantity | M	|Number | ?? |Total count of items in the order.
-|order-item.type | O	|Number | ?? | ??
-|order-item.discount | O	|Number | ?? | ??
-
-|===
-
-[#CC_Fields_xmlobjects_request_payload]
-.payload
-
-``payload`` belongs to the
-<<CC_Fields_xmlobjects_request_paymentmethods, ``payment-methods``>> object.
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-2+| payload-field 3+|<<CC_Fields_xmlobjects_request_payloadfield, payload-field>>
+| name | M	|Alphanumeric | ?? |Name of the item in the basket.
+| description | O	|Alphanumeric | ?? | ??
+| article-number | O	|Alphanumeric | ?? |EAN or other article identifier for merchant.
+| amount | M	|Number | ?? |Item's price per unit.
+| tax-amount | O	|Alphanumeric | ?? | ??
+| tax-rate | O	|Number | ?? |Item's tax rate per unit.
+| quantity | M	|Number | ?? |Total count of items in the order.
+| type | O	|Number | ?? | ??
+| discount | O	|Number | ?? | ??
 
 |===
 
 [#CC_Fields_xmlobjects_request_payloadfield]
 .payload-field
 
-``payload-field`` belongs to the
-<<CC_Fields_xmlobjects_request_payload, ``payload``>> object.
+``payload-field`` belongs to the container ``payload`` in the 
+<<CC_Fields_xmlobjects_request_paymentmethod, ``payment-methods``>> object.
 
 [cols="30,6,9,7,48a"]
 |===
@@ -858,11 +815,11 @@ When filled by the merchant: Is ``order-items`` a request or response field?
 |===
 
 
-[#CC_Fields_xmlobjects_request_paymentmethods]
-.payment-methods
+[#CC_Fields_xmlobjects_request_paymentmethod]
+.payment-method
 
-``payment-methods`` belongs to the
-<<CC_Fields_xmlobjects_request_payment, ``payment``>> object
+``payment-method`` belongs to the container ``payment-methods`` in the 
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
 
 The value for the tag ``payment-method@name`` is always ``creditcard``.
 
@@ -873,14 +830,14 @@ Additional fields can be found in the
 |===
 |Field |Cardinality |Datatype |Size |Description
 
-| payment-method |M | ?? | ?? |This is used for specifying the payment method used
-for this transaction.
-| payment-method@name |M |String |15 |This is the name of the payment method
+| name |M |String |15 |This is the name of the payment method
 that that the consumer selected. The value is always ``creditcard``.
-| payment-method@url |O |String |256 |The URL to be used for proceeding with
+| url |O |String |256 |The URL to be used for proceeding with
 payment on provider side.
-2+| card-types 3+| <<CC_Fields_xmlobjects_request_cardtypes, card-types>>
-2+| payload 3+| <<CC_Fields_xmlobjects_request_payload, payload>>
+2+| card-types 3+| <<CC_Fields_xmlobjects_request_cardtype, card-type>>, 
+``card-types`` is a container used for multiple ``card-type`` elements.
+2+| payload 3+| <<CC_Fields_xmlobjects_request_payload, payload-field>>, 
+``payload`` is a container used for multiple ``payload-field`` elements.
 
 |===
 
@@ -1070,8 +1027,8 @@ See the complete list of the
 [#CC_Fields_xmlobjects_response_customfield]
 .custom-field
 
-``custom-field`` belongs to the
-<<CC_Fields_xmlobjects_request_customfields, ``custom-fields``>> object.
+``custom-field`` belongs to the container ``custom-fields`` in the 
+<<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
 
 Wirecard can configure ``custom-field`` for you.
 For possible field values see the following selected examples. If you need the
@@ -1099,8 +1056,7 @@ P (Prepaid)
 [#CC_Fields_xmlobjects_response_paymentmethod]
 .payment-method
 
-``payment-method`` belongs to the  ``payment-methods`` object, which is part of the
-<<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
+``payment-method`` belongs to the   container ``payment-methods`` object in the <<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
 
 [cols="30,6,9,7,48a"]
 |===
