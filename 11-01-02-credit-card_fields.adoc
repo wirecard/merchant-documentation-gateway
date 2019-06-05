@@ -168,7 +168,8 @@ field descriptions.
 
 ``order-items``: <<CC_Fields_xmlobjects_request_orderitems, request>>
 
-``payment-methods``: <<CC_Fields_xmlobjects_request_paymentmethods, request>>
+``payment-methods``: <<CC_Fields_xmlobjects_request_paymentmethod, request>>, 
+<<CC_Fields_xmlobjects_response_paymentmethod, response>>
 
 ``segment``: <<CC_Fields_xmlobjects_request_segment, request>>
 
@@ -821,8 +822,6 @@ When filled by the merchant: Is ``order-items`` a request or response field?
 ``payment-method`` belongs to the container ``payment-methods`` in the 
 <<CC_Fields_xmlobjects_request_payment, ``payment``>> object.
 
-The value for the tag ``payment-method@name`` is always ``creditcard``.
-
 Additional fields can be found in the
 <<CC_Fields_xmlobjects_response_paymentmethod, response > payment-method>> section.
 
@@ -834,6 +833,11 @@ Additional fields can be found in the
 that that the consumer selected. The value is always ``creditcard``.
 | url |O |String |256 |The URL to be used for proceeding with
 payment on provider side.
+
+////
+Is ``url`` sent in the request or response? 
+////
+
 2+| card-types 3+| <<CC_Fields_xmlobjects_request_cardtype, card-type>>, 
 ``card-types`` is a container used for multiple ``card-type`` elements.
 2+| payload 3+| <<CC_Fields_xmlobjects_request_payload, payload-field>>, 
@@ -987,8 +991,9 @@ verification results.
 |consumer-id | ?? |String |50 |The id of the consumer.
 |api-id | ?? |String |36 |The api-id is always returned in the notification.
 2+| custom-fields 3+| <<CC_Fields_xmlobjects_response_customfields, custom-field>>
-2+| payment-methods 3+| <<CC_Fields_xmlobjects_response_paymentmethod, payment-method>>
-2+| statuses 3+| <<CC_Fields_xmlobjects_response_status, status>>
+2+| payment-methods 3+| <<CC_Fields_xmlobjects_response_paymentmethod, payment-method>>, ``payment-methods`` is a container used for multiple ``payment-method`` elements.
+2+| statuses 3+| <<CC_Fields_xmlobjects_response_status, status>>, 
+``statuses`` is a container used for multiple ``status`` elements.
 |signature | ?? | | |The Signature info, consisting of SignedInfo, SignatureValue and KeyInfo.
 |instrument-country	| ?? | | |If this field is configured it will be sent in
 the response. Use a two-digit country code, such as DE (Germany), ES (Spain),
@@ -1061,12 +1066,15 @@ P (Prepaid)
 [cols="30,6,9,7,48a"]
 |===
 |Field |Cardinality |Datatype |Size |Description
+
+| url | M | ?? | ?? | ??
+
 |===
 
 [#CC_Fields_xmlobjects_response_status]
 .status
 
-``status`` belongs to the  ``statuses`` object, which is part of the
+``status`` belongs to the  container ``statuses`` in the
 <<CC_Fields_xmlobjects_response_payment, ``payment``>> object.
 ``status`` informs the merchants about the result of the previously sent
 request. They can use this information to send the consumers to an adequate
@@ -1076,25 +1084,11 @@ response page (success page or failure page).
 |===
 |Field |Cardinality |Datatype |Size |Description
 
-| status | M | String | 12 | This is the status of a transaction.
-| status@code | M | String | 12 | This is the code of the status of a transaction.
-| status@description | M | String | 256 | This is the description to the status
+| code | M | String | 12 | This is the code of the status of a transaction.
+| description | M | String | 256 | This is the description to the status
 code of a transaction.
-| status@severity | M | String | 20 | This field gives information if a status
+| severity | M | String | 20 | This field gives information if a status
 is a warning, an error or an information.
-|===
-
-[#CC_Fields_xmlobjects_response_statuses]
-.statuses
-
-[cols="30,6,9,7,48a"]
-|===
-|Field |Cardinality |Datatype |Size |Description
-
-|  |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-
 |===
 
 [#CC_Fields_xmlobjects_response_threed]
