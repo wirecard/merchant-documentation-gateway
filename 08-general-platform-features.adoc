@@ -3194,8 +3194,49 @@ request to WPG.
 6. Merchant shows the available installment plans to the consumer
 (on the checkout page).
 7. Consumer selects the appropriate installment plan. By submitting,
-   the selected program/tenure is sent with the payment authorization request
-   to WPG.
+   the selected program/tenure is sent with the payment authorization request to WPG.
+   The fields sent in this __purchase__ or __authorization__ request are:
+
+[##GeneralPlatformFeatures_IPP_Scenarios_Fields]
+[%autowidth]
+[cols="e,,,,"]
+|===
+|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO, M/O>> |Data Type |Size |Description
+
+|tenor
+|M
+|Integer
+|
+|Installment tenure. Number of months the consumer has to pay in installments.
+
+|name
+|M
+|Alphanumeric
+|
+|Label of this specific IPP as provided by the issuing bank.
+
+|===
+
+These additional fields are sent in the response to this request:
+
+[%autowidth]
+[cols="e,,,"]
+|===
+|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO, M/O>> |Data Type |Description
+
+|monthly-pay
+|M
+|Decimal
+|Amount that the consumer pays to issuing bank per month.
+
+|interest-rate
+|M
+|Alphanumeric
+|Interest rate of selected IPP. +
+Value is displayed in localized format depending on the locale.
+
+|===
+
 //-
 
 [discrete]
@@ -3223,8 +3264,7 @@ request to WPG.
 10. Merchant shows the available installment plans to the consumer
 (on the checkout page).
 11. Consumer selects the appropriate installment plan. By submitting,
-   the selected program/tenure is sent with the payment authorization request
-   to WPG.
+   the selected program/tenure is sent with the payment authorization request to WPG. The mandatory <<GeneralPlatformFeatures_IPP_Scenarios_Fields, fields for the __purchase__ or __authorization__ request>> are the same as for scenario 1.
 
 [#GeneralPlatformFeatures_IPP_InstallmentCalculator]
 ==== Installment Calculator
@@ -3248,7 +3288,28 @@ contains the order amount and the ISO locale code (including country and
 3. The issuing bank generates a list of all available IPPs and sends it
 to the merchant.
 
-/engine/rest/utils/installmentcalculator
+
+.URLs (Endpoints)
+[cols="1h,3"]
+|===
+|Test URL       |``\https://api-test.wirecard.com/engine/rest/utils/installmentcalculator``
+|Production URL |``\https://api-test.wirecard.com/engine/rest/utils/installmentcalculator``
+|===
+
+.Test Credentials
+[cols="1h,3"]
+|===
+|Merchant Account ID |???
+|Username            |???
+|Password            |???
+|===
+
+.Communication Formats
+[cols="1h,3"]
+|===
+| Format   | XML
+| Methods  | POST
+|===
 
 [#GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields]
 .Request Fields
@@ -3484,7 +3545,7 @@ interest-rate
 |O
 |Alphanumeric
 |
-|Interest rate for IPP. +
+|Interest rate of selected IPP. +
 Value is displayed in localized format depending on the locale.
 
 |installment-calculator-response.installments.installment.details. +
@@ -3555,7 +3616,7 @@ monthly-pay
 |O
 |Alphanumeric
 |
-|Calculated amount of monthly payment. +
+|Calculated amount of monthly payment. Amount that the consumer pays to issuing bank per month.+
 // For the flexible installment plans for Germany, Sweden, Finland and Norway it contains the minimal monthly payment amount.
 Value is displayed in localized format depending on the locale.
 
@@ -3789,7 +3850,6 @@ min-difference-dueday
 |
 | ???
 
-
 |installment-calculator-response.installments.installment. +
 title
 |O
@@ -3824,3 +3884,57 @@ expiration-date
 // This is used for Buy now, pay in X months.
 // Only available for Netherlands, Austria, and Denmark.
 |===
+
+[#GeneralPlatformFeatures_IPP_InstallmentCalculator_Samples]
+.Installment Calculator Sample Request
+[source,xml]
+----
+<installment-calculator-request xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>{{merchant-account-id}}</merchant-account-id>
+    <payment-method>ratepay-install</payment-method>
+    <amount currency="EUR">10.01</amount>
+    <locale>de_de</locale>
+</installment-calculator-request>
+----
+
+
+.Installment Calculator Sample Response
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<installment-calculator-response xmlns="http://www.elastic-payments.com/schema/utils">
+    <merchant-account-id>{{merchant-account-id}}</merchant-account-id>
+    <payment-method>ratepay-install</payment-method>
+    <state>success</state>
+    <statuses>
+        <status code="200.0000" description="Successful Response" severity="information"/>
+    </statuses>
+    <amount currency="EUR">10.01</amount>
+    <locale>de_de</locale>
+    <installments>
+        <installment>
+            <name>WIRECARD_TE_DEU_ECOM_RATEPAY</name>
+            <details>
+                <interest-rate-default>13.699999999999999289457264239899814128875732421875</interest-rate-default>
+                <interest-rate-min>5</interest-rate-min>
+                <interest-rate-max>15</interest-rate-max>
+                <interest-rate-merchant2bank>13.699999999999999289457264239899814128875732421875</interest-rate-merchant2bank>
+                <month-number-min>3</month-number-min>
+                <month-number-max>36</month-number-max>
+                <month-longrun>24</month-longrun>
+                <amount-min-longrun>1000</amount-min-longrun>
+                <month-allowed>3,6,7,8,9,10,11,12,24,36</month-allowed>
+                <valid-payment-firstdays>1,15,28</valid-payment-firstdays>
+                <payment-firstday>28</payment-firstday>
+                <payment-amount>200</payment-amount>
+                <payment-lastrate>0</payment-lastrate>
+                <rate-min-normal>20</rate-min-normal>
+                <rate-min-longrun>10</rate-min-longrun>
+                <service-charge>1.9499999999999999555910790149937383830547332763671875</service-charge>
+                <min-difference-dueday>28</min-difference-dueday>
+            </details>
+            <type label="DEFAULT"/>
+        </installment>
+    </installments>
+</installment-calculator-response>
+----
