@@ -38,6 +38,7 @@ decrypts credit card data for later reuse. The sender only gets back a
 _token-ID_. This _token-ID_ can be reused many times as unique
 identifier for this specific credit card without sending or storing
 credit card data on shop side.
+
 //-
 
 What is the difference between these two options?
@@ -105,13 +106,13 @@ does not store card holder data, it reduces the merchant's applicable
 controls required for PCI DSS validation.
 
 If the merchant wants to store card holder data (using
-parent-transaction-id), it increases the merchant's applicable controls
+``parent-transaction-id``), it increases the merchant's applicable controls
 required for PCI DSS validation.
 
 The following table describes, which data can be stored and which data
 must not be stored to be PCI DSS compliant.
 
-[cols="1,2,3, 4, 5"]
+[cols="1,2,3,4,5"]
 [%autowidth]
 |===
 2+| |Data Element |Storage permitted? |Data needs to be unreadable (in line with PCI DSS requirements)?
@@ -128,11 +129,11 @@ must not be stored to be PCI DSS compliant.
 *Referencing by _token-id_*
 
 Referencing based on a token can be performed by using the Field
-<token-id>.
+``<token-id>``.
 
 With that feature it is possible to refer a NEW transaction to an
 already submitted initial transaction. In the initial transaction the
-cluster of the <card> tag will be summarized in a _token-id_.
+cluster of the ``<card>`` tag will be summarized in a _token-id_.
 This _token-id_ will be used in any subsequent transaction, which is
 based on this initial transaction. The _token-id_ can be seen as a
 black box which guarantees a correct correlation of subsequent
@@ -144,12 +145,12 @@ transactions without transmitting the complete card data repeatedly.
 .2+h|Transaction Sequence .2+h|Transaction Type 2+h|Token-ID .2+h|<card-token>
                                                 h|Token Definition h|Value
 
-|Initial transaction (Request) |authorization |the <card>-section and all its fields +
-e.g.: <account-number>, <expiration-month> etc +
-obtains the substitute _token-id_ Value
+|Initial transaction (Request) |authorization |the ``<card>``-section and all its fields +
+e.g.: ``<account-number>``, ``<expiration-month>``, etc +
+obtains the substitute _token-id_ value
 |1234567890987654 |empty
-|Response on initial transaction |authorization 2+|uses _token-id_ value generated from <card> data given in the initial transaction |1234567890987654
-|Any subsequent transaction of this initial transaction |purchase 2+|uses _token-id_ value generated from <card> data given in the initial transaction |1234567890987654
+|Response on initial transaction |authorization 2+|uses _token-id_ value generated from ``<card>`` data given in the initial transaction |1234567890987654
+|Any subsequent transaction of this initial transaction |purchase 2+|uses _token-id_ value generated from ``<card>`` data given in the initial transaction |1234567890987654
 |===
 
 See the
@@ -243,7 +244,7 @@ For transaction process details see the
 ====== Detokenize a Credit Card
 
 The transaction type _detokenize_ is the inverse of the transaction type
-_tokenize._ With the transaction type _detokenize_ a token-id is
+_tokenize._ With the transaction type _detokenize_ a _token-id_ is
 provided to retrieve the original credit card information.
 
 [#CreditCard_PaymentFeatures_Tokenization_DetokenizeCreditCard_Fields]
@@ -321,30 +322,30 @@ NOTE: The transaction type _detokenize_ *is not included in default configurati
 For further information please contact: {e-mail-support}
 
 [#CreditCard_PaymentFeatures_3DSecure]
-===== 3-D Secure
+===== 3D Secure
 
-3-D Secure is a protocol supported by all major card schemes that
+3D Secure is a protocol supported by all major card schemes that
 provides secure authentication and processing of online payments.
-Merchants wishing to comply need to integrate the specific 3-D requests
+Merchants wishing to comply need to integrate the specific 3D requests
 and payment parameters.
 
-The Three Domain (3-D) Secure initiative by VISA is a payment standard
+The Three Domain (3D) Secure initiative by VISA is a payment standard
 for secure handling of credit card transactions in electronic commerce.
 This provides Issuers with the ability to authenticate cardholders
 during an online purchase. Branded as Verified by Visa and MasterCard
-SecureCode, Amex SafeKey and JCB J/Secure, 3-D Secure is designed to
+SecureCode, Amex SafeKey and JCB J/Secure, 3D Secure is designed to
 clearly identify cardholders and accelerate the growth of electronic
 commerce through increased consumer confidence.
 
 Authentication is accomplished by verification of certain data which is
 maintained by the card issuing bank and identifies the individual making
-an online purchase as the legal owner of the card used. 3-D Secure is
+an online purchase as the legal owner of the card used. 3D Secure is
 more than a payment authentication method or a technology definition. It
 is a model to isolate the liabilities of the various parties involved in
 the payment transaction cycle. The payment environment requires the
 participating cardholder to be registered (enrolled) for the process
 with his issuing bank. In essence, all parties involved in the payment
-flow must support the 3-D secure transactions. The 3-D framework
+flow must support the 3D Secure transactions. The 3D framework
 requires the card issuing and acquiring banks to provide cardholders and
 merchants with an authentication methodology, without binding them to
 proprietary technology.
@@ -364,16 +365,16 @@ choose to leverage the enrollment check and payment authentication using
 a hosted or an integrated MPI. Both options will notify the merchant if
 either of the two validations failed.
 
-Payments need to be submitted with the relevant 3-D Secure artifacts
+Payments need to be submitted with the relevant 3D Secure artifacts
 obtained from the MPI. See the
 <<CreditCard_PaymentFeatures_3DSecure_Workflow, Process Flow>>
-in order to see how to submit the relevant 3-D Secure artifacts. 
+in order to see how to submit the relevant 3D Secure artifacts. 
 
 [#CreditCard_PaymentFeatures_3DSecure_MPI_{payment-provider-name}MPI]
 *{payment-provider-name} MPI*
 
 This chapter describes the integrated MPI hosted by {payment-provider-name}, for
-merchants that wish to use {payment-provider-name} as its 3-D Secure MPI Provider. This
+merchants that wish to use {payment-provider-name} as its 3D Secure MPI Provider. This
 solution performs all of the relevant validations and exchanges as
 required by the card schemes.
 
@@ -381,9 +382,9 @@ required by the card schemes.
 *Payment Request with 3rd Party MPI*
 
 If a merchant wishes to use a 3^rd^ Party MPI, only payments need to be
-submitted with the relevant 3-D Secure artifacts obtained from the 3^rd^
+submitted with the relevant 3D Secure artifacts obtained from the 3^rd^
 Party MPI. The protocol is exactly the same as defined for
-authorization or purchase request. Only the relevant 3-D artifacts
+authorization or purchase request. Only the relevant 3D artifacts
 should be included in addition, conditionally on their availability. The
 response remains the same as defined.
 
@@ -392,7 +393,7 @@ response remains the same as defined.
 
 See the field description at
 <<CreditCard_Fields_Payment, payment fields>> plus the fields, which are specific to
-<<CreditCard_Fields_ThreeD, 3-D Secure>>.
+<<CreditCard_Fields_ThreeD, 3D Secure>>.
 
 [#CreditCard_PaymentFeatures_3DSecure_MPI_Samples]
 *Samples*
@@ -406,7 +407,7 @@ for _Payment Request with 3rd Party MPI_.
 
 image::images/11-01-03-credit-card_payment-features/CreditCard_3dPartyMPI.png[CreditCard_3dPartyMPI]
 
-Processing 3-D Secure transactions differs from standard payment
+Processing 3D Secure transactions differs from standard payment
 processing. Merchants must construct and route their transaction
 requests accordingly.
 
@@ -415,18 +416,19 @@ The three necessary steps for processing are:
 . *Check Enrollment*
 . *Customer ACS Communication*
 . *Check Payer Response* – Validation of the authentication result. This is used in conjunction with check enrollment.
+
 //-
 
 [#CreditCard_PaymentFeatures_3DSecure_CheckEnrollment]
 ====== Check Enrollment
 
 {payment-processing-api} permits merchants to check if a
-card/cardholder is enrolled in the 3-D Secure program. To verify
+card/cardholder is enrolled in the 3D Secure program. To verify
 Enrollment status, the merchant system sends a transaction request to
 {payment-provider-name}'s MPI which in turn posts an Enrollment check request (VEReq)
 to the card schemes' directory servers. In an exchange of messages the
 directory communicates with the ACS of the card issuer, if required, to
-determine if the cardholder is enrolled for 3-D Secure. A response
+determine if the cardholder is enrolled for 3D Secure. A response
 message (VERes) is returned by the ACS to the MPI to prove that the
 cardholder is enrolled or that authentication has been attempted.
 
@@ -435,7 +437,7 @@ cardholder is enrolled or that authentication has been attempted.
 
 See the field description at
 <<CreditCard_Fields_Payment, payment fields>> plus the fields, which are specific to
-<<CreditCard_Fields_ThreeD, 3-D Secure>>.
+<<CreditCard_Fields_ThreeD, 3D Secure>>.
 
 [#CreditCard_PaymentFeatures_3DSecure_CheckEnrollment_Samples]
 *Samples*
@@ -449,16 +451,16 @@ for _Check Enrollment_.
 
 _Customer ACS Communication_ redirects the consumer to the Access
 Control Server (ACS) URL, a webpage provided by the cardholder's bank.
-This allows the consumer to authenticate himself by entering his 3-D
+This allows the consumer to authenticate himself by entering his 3D
 credentials.
 
 In addition to the interface setup between the merchant and {payment-provider-name},
-the successful 3-D Secure implementation requires some interaction
+the successful 3D Secure implementation requires some interaction
 between the merchant and the issuing bank via the cardholder browser.
 
 WARNING: *There is NO interaction with {payment-provider-name} for this step.*
 
-To get the 3-D authentication to work, it is necessary that the merchant
+To get the 3D authentication to work, it is necessary that the merchant
 communicates with the Access Control Server (ACS) by SSL-encrypted HTTP
 POST request. In setting up the HTTPS Post authentication request, the
 merchant must ensure that the following enrollment check of the purchase
@@ -470,33 +472,33 @@ Control Server (ACS).
 
 See the field description at
 <<CreditCard_Fields_Payment, payment fields>> plus the fields, which are specific to
-<<CreditCard_Fields_ThreeD, 3-D Secure>>.
+<<CreditCard_Fields_ThreeD, 3D Secure>>.
 
 [#CreditCard_PaymentFeatures_3DSecure_CustomerACS_HTTPSRedirect]
 *ACS HTTPS Redirect*
 
 In case a card is eligible and enrolled ('check-enrollment', Transaction
-Status Code = 200.0000) the merchant system must redirect the customer's
-browser to the ACS URL provided in the Verify 3-D Participation
+Status Code = ``200.0000``) the merchant system must redirect the customer's
+browser to the ACS URL provided in the Verify 3D Participation
 response. If the card is not enrolled (('check-enrollment', Transaction
-Status Code = 500.1072) , the ACS redirect must be skipped.
+Status Code = ``500.1072``) , the ACS redirect must be skipped.
 
 This HTTPS POST message includes the web address (URL) of the ACS and
-three hidden input types: <PaReq>, <TermUrl> and <MD>.
+three hidden input types: ``<PaReq>``, ``<TermUrl>`` and ``<MD>``.
 
-The <PaReq>   defined as the Payment Authentication Request.
+``<PaReq>`` defined as the Payment Authentication Request.
 
-The <TermUrl> defines the web address of the merchant site to
+``<TermUrl>`` defines the web address of the merchant site to
 which the issuer returns the Payment Authentication Response (PARes)
 message.
 
-The parameter type <MD> is reserved for specific merchant data.
+The parameter type ``<MD>`` is reserved for specific merchant data.
 Although this field is mandatory, it does not need to have a value
 defined. If this input type is omitted an authentication error will
-occur and the payment process is aborted. The <MD> may be useful for
+occur and the payment process is aborted. ``<MD>`` may be useful for
 retrieving transaction data from the database or recalling a
 transaction. The data is returned untouched by the ACS with the Payment
-Authentication Response (PARes).
+Authentication Response (_PARes_).
 
 .Example: Auto submission POST Request
 [source,html]
@@ -526,7 +528,7 @@ Authentication Response (PARes).
 *ACS HTTPS Redirect to TermURL*
 
 The cardholder's browser passes the encrypted *_PaReq_* message
-unprocessed to the ACS.
+unprocessed to the _ACS_.
 
 This step is made up of two phases: The server invokes an authentication
 popup or inline window in the cardholder's browser. The cardholder
@@ -549,12 +551,12 @@ merchant data (*_MD_*).
 
 The merchant has received the PARes via the *_TermUrl_*. This request
 should be used in case you are using the Payment Processing API as "MPI
-only".  Otherwise the PARes should be included along with the subsequent
+only".  Otherwise the _PARes_ should be included along with the subsequent
 payment request.
 
 NOTE: To ensure a unique transaction flow the _Check Payer Response_ should be
-called for ALL 3-D transactions regardless of the enrollment status. The
-_Check Payer Response_ includes the ECI  which is needed for further
+called for ALL 3D transactions regardless of the enrollment status. The
+_Check Payer Response_ includes the ECI which is needed for further
 payment processing.
 
 [#CreditCard_PaymentFeatures_3DSecure_CheckPayersResponse_Fields]
@@ -562,7 +564,7 @@ payment processing.
 
 See the field description at
 <<CreditCard_Fields_Payment, payment fields>> plus the fields, which are specific to
-<<CreditCard_Fields_ThreeD, 3-D Secure>>.
+<<CreditCard_Fields_ThreeD, 3D Secure>>.
 
 [#CreditCard_PaymentFeatures_3DSecure_CheckPayersResponse_Samples]
 *Samples*
@@ -574,7 +576,7 @@ for _Check Payer Response_.
 [#CreditCard_PaymentFeatures_3DSecure_PaymentRequestPARes]
 ====== Payment Request with PARes
 
-The merchant has received the PARes via the *_TermUrl_*. The PARes is
+The merchant has received the _PARes_ via the *_TermUrl_*. The _PARes_ is
 forwarded to {payment-provider-name} along with payment request.
 
 [#CreditCard_PaymentFeatures_3DSecure_PaymentRequestPARes_Fields]
@@ -582,12 +584,12 @@ forwarded to {payment-provider-name} along with payment request.
 
 See the field description at
 <<CreditCard_Fields_Payment, payment fields>> plus the fields, which are specific to
-<<CreditCard_Fields_ThreeD, 3-D Secure>>.
+<<CreditCard_Fields_ThreeD, 3D Secure>>.
 
 NOTE: The _parent-transaction-id_ supplied is the transaction-id of the
 "check-enrollment" response. +
-The PARes is received after communicating with the issuing bank. +
-EE checks the payer response encoded in PARes. If successful, it will
+The _PARes_ is received after communicating with the issuing bank. +
+{payment-provider-name} checks the payer response encoded in _PARes_. If successful, it will
 perform the transaction.
 
 [#CreditCard_PaymentFeatures_3DSecure_PaymentRequestPARes_Samples]
@@ -652,9 +654,7 @@ statement. {payment-provider-name} can thus not guarantee that the dynamic descr
 data submitted to the issuers via the scheme networks is fully printed
 on the cardholder's statement.
 
-////
-conditional start
-////
+ifdef::env-wirecard[]
 Wirecard Bank (WDB) receives the transaction data from the Wirecard
 processing platform, looks up the merchant address, consolidates static
 address details and dynamic sales data (including _Merchant Name_ and
@@ -662,9 +662,7 @@ _Merchant Location_) and routes the information along with the
 settlement request to the issuer. To what level the routed details will
 later appear on the customer's card statement may vary from issuer to
 issuer.
-////
-conditional end
-////
+endif::[]
 
 [#CreditCard_PaymentFeatures_DynamicDescriptor_HowItWorks]
 ====== How It Works
@@ -674,7 +672,7 @@ the data provided in the reserved transaction field tag expands the
 address information registered in the card acquirer’s MID database.
 
 NOTE: The dynamic descriptor is created for settlement transaction types such
-as _purchase_, _capture_ or _credit_. _authorisation_ is not supported.
+as ``purchase``, ``capture`` or ``credit``. ``authorization`` is not supported.
 
 [#CreditCard_PaymentFeatures_DynamicDescriptor_HowItWorks_Workflow]
 *Workflow*
@@ -689,13 +687,10 @@ one of the <Transaction-ID>, <Order Number>, <Request ID> or
 <Descriptor> tag) to the _{payment-gateway}_.
 . _{payment-gateway}_ processes the request and forwards
 the transaction details to the acquirer
-////
-conditional start
-////
+ifdef::env-wirecard[]
 (e.g. Wirecard Bank).
-////
-conditional end
-////
+endif::[]
+
 . The acquirer acquires the card and sales details, reads the
 related identifier values, looks up the merchant's name and business
 details in the MID database and complements the merchant data with the
@@ -705,6 +700,7 @@ dynamic text to the issuer.
 . The issuer processes the request, debits the consumer's
 account and adds a new debit item with the dynamic descriptor to the
 credit card statement.
+
 //-
 
 [#CreditCard_PaymentFeatures_PaymentFacilitator]
@@ -719,16 +715,16 @@ Requests in _Payment Facilitator_ traffic require additional sub
 merchant information in the
 <<<CreditCard_Fields_SubMerchantInfo, sub-merchant-info>>>
 tag of each first request in the transaction flow (e.g.
-_check-enrollment_, _authorization-only_, _authorization_ or
-_purchase_).
+``check-enrollment``, ``authorization-only``, ``authorization`` or
+``purchase``).
 
-The sub merchant information is only required for MasterCard traffic,
+The _sub merchant information_ is only required for MasterCard traffic,
 but {payment-provider-name} recommends to send it for every credit card brand to avoid
 complexity in implementation.
 
-NOTE: Each transaction type must contain the <sub-merchant-info> in the
-initial step. For the following steps <sub-merchant-info> is not
-mandatory, but {payment-provider-name} recommends to send <sub-merchant-info> in every
+NOTE: Each transaction type must contain ``<sub-merchant-info>`` in the
+initial step. For the following steps ``<sub-merchant-info>`` is not
+mandatory, but {payment-provider-name} recommends to send ``<sub-merchant-info>`` in every
 step. This helps to avoid complexity in implementation.
 
 [#CreditCard_PaymentFeatures_PaymentFacilitator_HowItWorks]
@@ -745,7 +741,7 @@ See the
 To submit a
 <<GeneralPlatformFeatures_Transactions_Recurring, recurring transaction>>
 the merchant must submit a request with the transaction
-type _authorization-only_, _authorization_ or _purchase_ including
+type ``authorization-only``, ``authorization`` or ``purchase`` including
 the
 <<GeneralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
 element and a
@@ -755,16 +751,15 @@ element and a
 ====== Credit Card specific _Periodic Types_
 
 Aside from the standard _Periodic Types, Credit Card_ can also be used
-with the _Periodic Types ucof_ and _ci_.
+with the _Periodic Types_ ``ucof`` and ``ci``.
 
 [#CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ucof]
 *_ucof_*
 
-
 _The Unscheduled Credential on File (ucof)_ allows the merchant to
 reference a regularly based transaction (like an unlimited periodic
 payment or an installment payment) to an already successfully submitted
-transaction. _ucof_ is a transaction using a stored credential for a
+transaction. ``ucof`` is a transaction using a stored credential for a
 fixed or variable amount that does not occur on a scheduled or regularly
 occurring transaction date, where the cardholder has provided consent
 for the merchant to initiate one or more future transactions. An example
@@ -773,12 +768,12 @@ of such transaction is an account auto-top up transaction.
 [#CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ci]
 *_ci_*
 
-The periodic type _ci_ (Consumer Initiated) allows the merchant to
+The periodic type ``ci`` (Consumer Initiated) allows the merchant to
 identify that the cardholder himself initiated the transaction and
 whether this is an initial (first) or subsequent (recurring) one. As
 soon as this is subsequent merchant initiated transaction (e.g. the
 cardholder used an account on merchant side ) and the corresponding
-information is sent to {payment-gateway}, CVV could be omitted
+information is sent to {payment-gateway}, _CVV_ could be omitted
 within the transaction and Visa will still approve it. So this will lead
 to higher approve rate in the future.
 
@@ -793,7 +788,7 @@ have to be met to use a recurring transaction.
 ====== Samples
 
 See
-<<CreditCard_Samples, request/response samples>> for _Recurring Transaction_.
+<<CreditCard_Samples, request/response samples>> for _Recurring Transaction._
 
 [#CreditCard_PaymentFeatures_RecurringTransaction_PossibleScenarios]
 ====== Possible Scenarios
@@ -803,12 +798,13 @@ See
 
 _Establish Stored Credential/First Transaction_
 
-. Cardholder consent is obtained: _merchant-tokenization-flag_ set
-to _true_
-. Cardholder provides the Credit Card data including CVV/CVC2 code
-(required): _periodic/periodic-type = 'ci'_ included in the transaction
-and _periodic/sequence-type = 'first'_
+. Cardholder consent is obtained: ``merchant-tokenization-flag`` set
+to ``true``
+. Cardholder provides the Credit Card data including _CVV/CVC2_ code
+(required): ``periodic/periodic-type = 'ci'`` included in the transaction
+and ``periodic/sequence-type = 'first'``
 . Merchant sends the transaction to _{payment-gateway}_
+
 //-
 
 .Example: Establishment of Stored Credential/First Transaction
@@ -820,7 +816,7 @@ and _periodic/sequence-type = 'first'_
     <sequence-type>first</sequence-type>
    </periodic>
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>d2648f3b-1017-4787-a6de-4fb013036843</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <account-holder>
@@ -843,14 +839,15 @@ and _periodic/sequence-type = 'first'_
 
 _Subsequent Cardholder Initiated Purchase_
 
-. Cardholder consent is obtained: _merchant-tokenization-flag_ set
-to _true_
-. Cardholder data is saved within a cardholder's account (CVV is not
+. Cardholder consent is obtained: ``merchant-tokenization-flag`` set
+to ``true``
+. Cardholder data is saved within a cardholder's account (_CVV_ is not
 required)
 . Cardholder uses the account to make a
-purchase: _periodic/periodic-type = 'ci'_ included in the transaction
-and _periodic/sequence-type = 'recurring'_
+purchase: ``periodic/periodic-type = 'ci'`` included in the transaction
+and ``periodic/sequence-type = 'recurring'``
 . Merchant sends the transaction to _{payment-gateway}_
+
 //-
 
 .Example: Subsequent Cardholder initiated purchase
@@ -862,7 +859,7 @@ and _periodic/sequence-type = 'recurring'_
     <sequence-type>recurring</sequence-type>
    </periodic>
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>4f59f9c0-73d7-49fc-9414-a7f90aa94b7f</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <parent-transaction-id>0c036ea9-3aef-41e6-82d4-d16514379bee</parent-transaction-id>
@@ -885,19 +882,20 @@ and _periodic/sequence-type = 'recurring'_
 _Guest Account/Single Transaction_
 
 . Since Cardholder doesn't create a account, Cardholder data is not
-being saved: the default value for _merchant-tokenization-flag_ is
-_false_
-. Cardholder provides the Credit Card data including CVV/CVC2 code
+being saved: the default value for ``merchant-tokenization-flag`` is
+``false``
+. Cardholder provides the Credit Card data including _CVV/CVC2_ code
 (required)
 . Merchant sends the transaction to _{payment-gateway}_
+
 //-
 
-.Example: guest account/single transaction
+.Example: Guest account/single transaction
 [source,xml]
 ----
  <payment xmlns="http://www.elastic-payments.com/schema/payment">
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>d2648f3b-1017-4787-a6de-4fb013036843</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <account-holder>
@@ -922,25 +920,26 @@ _false_
 
 _First Recurring or Installment_
 
-. Cardholder consent is obtained: _merchant-tokenization-flag_ set
-to _true_
+. Cardholder consent is obtained: ``merchant-tokenization-flag`` set
+to ``true``
 . Cardholder would like to initiate Recurring or Installment payments
-. Cardholder provides the Credit Card data including CVV/CVC2
-code: _periodic/periodic-type = 'installment'/'recurring'_ included in
-the transaction and _periodic/sequence-type = 'first'_
+. Cardholder provides the Credit Card data including _CVV/CVC2_
+code: ``periodic/periodic-type = 'installment'``/``'recurring'`` included in
+the transaction and ``periodic/sequence-type = 'first'``
 . Merchant sends the transaction to {payment-gateway}
+
 //-
 
 .Example: First Recurring or Installment
 [source,xml]
 ----
- <payment xmlns="http://www.elastic-payments.com/schema/payment">
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
    <periodic>
     <periodic-type>recurring</periodic-type>
     <sequence-type>first</sequence-type>
    </periodic>
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>4f59f9c0-73d7-49fc-9414-a7f90aa94b7f</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <parent-transaction-id>0c036ea9-3aef-41e6-82d4-d16514379bee</parent-transaction-id>
@@ -968,9 +967,10 @@ the transaction and _periodic/sequence-type = 'first'_
 _Merchant Initiated Transaction_
 
 . Merchant initiates a subsequent Recurring or Installment
-payment: _periodic/periodic-type = 'installment'/'recurring'_ included
-in the transaction and _periodic/sequence-type = 'recurring'_
+payment: ``periodic/periodic-type = 'installment'``/``'recurring'`` included
+in the transaction and ``periodic/sequence-type = 'recurring'``
 . Merchant sends the transaction to {payment-gateway}
+
 //-
 
 .Example: Merchant initiated transaction
@@ -982,7 +982,7 @@ in the transaction and _periodic/sequence-type = 'recurring'_
     <sequence-type>recurring</sequence-type>
    </periodic>
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>4f59f9c0-73d7-49fc-9414-a7f90aa94b7f</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <parent-transaction-id>0c036ea9-3aef-41e6-82d4-d16514379bee</parent-transaction-id>
@@ -1008,13 +1008,14 @@ in the transaction and _periodic/sequence-type = 'recurring'_
 _Example_: auto-top up for transit or mobile – date is irregular, i.e.
 not known as usage driven
 
-. Cardholder consent is obtained: _merchant-tokenization-flag_ set
-to _true_
+. Cardholder consent is obtained: ``merchant-tokenization-flag`` set
+to ``true``
 . Cardholder would like to initiate _ucof_ payments
-. Cardholder provides the Credit Card data including CVV/CVC2
-code: _periodic/periodic-type = 'ucof'_ included in the transaction
-and__ periodic/sequence-type = 'first'__
+. Cardholder provides the Credit Card data including _CVV/CVC2_
+code: ``periodic/periodic-type = 'ucof'`` included in the transaction
+and ``periodic/sequence-type = 'first'``
 . Merchant sends the transaction to {payment-gateway}
+
 //-
 
 .Example: First UCOF (sequence-type = 'first')
@@ -1026,7 +1027,7 @@ and__ periodic/sequence-type = 'first'__
     <sequence-type>first</sequence-type>
    </periodic>
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>4f59f9c0-73d7-49fc-9414-a7f90aa94b7f</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <account-holder>
@@ -1050,9 +1051,10 @@ and__ periodic/sequence-type = 'first'__
 _Merchant Initiated Transaction_
 
 . Merchant initiates a subsequent UCOF
-payment: _periodic/periodic-type = 'ucof'_  included in the transaction
-and _periodic/sequence-type = 'recurring'_
+payment: ``periodic/periodic-type = 'ucof'``  included in the transaction
+and ``periodic/sequence-type = 'recurring'``
 . Merchant sends the transaction to {payment-gateway}
+
 //-
 
 .Example: Subsequent UCOF (sequence-type = 'recurring')
@@ -1064,7 +1066,7 @@ and _periodic/sequence-type = 'recurring'_
     <sequence-type>recurring</sequence-type>
    </periodic>
    <merchant-account-id>32bb900b-265b-414f-9971-23f7a0542434</merchant-account-id>
-   <request-id>4f59f9c0-73d7-49fc-9414-a7f90aa94b7f</request-id>
+   <request-id>{{guid}}</request-id>
    <transaction-type>authorization</transaction-type>
    <requested-amount currency="USD">1.02</requested-amount>
    <parent-transaction-id>0c036ea9-3aef-41e6-82d4-d16514379bee</parent-transaction-id>
@@ -1090,25 +1092,26 @@ and _periodic/sequence-type = 'recurring'_
 In an offline transaction process it is possible to have a
 non-referenced capture authorization. The _{payment-gateway}_ can
 support such a type of transaction when using a special
-capture-authorization _Credit Card_ transaction.
+``capture-authorization`` _Credit Card_ transaction.
 
 A transaction is considered non-referenced capture when it meets all
 the  following four conditions in the payment XML request:
 
-. The transaction type is _capture-authorization_
-. The payment-method is _Credit Card_
-. The _Parent-Transaction-ID_ is empty (no tag present)
-. The authorization-code is present (can have empty value)
+. The transaction type is ``capture-authorization``
+. ``payment-method`` is _Credit Card_
+. ``parent-transaction-id`` is empty (no tag present)
+. ``authorization-code`` is present (can have empty value)
+
 //-
 
 If all conditions are met, then the transaction is sent to _{payment-gateway}_. 
 
 The most exceptional fact in this process is, that it is missing the
-_Parent-Transaction-ID_. By default, _capture-authorization_ takes most
+_Parent-Transaction-ID_. By default ``capture-authorization`` takes most
 of its properties from the parent transaction.
 
 Even though no parent transaction is available, captures which have not
 been referenced by _{payment-gateway}_ can be processed. Cases
-like this will be handled a non-referenced _Capture-Authorization_
+like this will be handled a non-referenced ``capture-authorization``
 transaction type. In that case all fields must be supplied with the
 _capture-authorization_ request.
