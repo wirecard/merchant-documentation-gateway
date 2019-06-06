@@ -136,7 +136,7 @@ function testAnchors( $anchorsArray ) {
                                    'severity' => 'WARN' ),
 
                             array( 'type'     => 'format',
-                                   'pattern'  => '/[^A-Za-z0-9_]/',
+                                   'pattern'  => '/[^A-Za-z0-9_\{\}]/',
                                    'message'  => 'Invalid Anchor Format',
                                    'severity' => 'ERROR' )
                           );
