@@ -7,12 +7,12 @@
 [NOTE]
 ====
 Authentication required: Yes +
-Card-on-file flagging required: No 
+Card-on-file flagging required: No
 ====
 
 ====== Option 1: One-Step Payment with *Authentication*
 
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>. 
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>.
 +
 CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
 +
@@ -25,14 +25,14 @@ a|
 <transaction-type>check-enrollment</transaction-type>
 <three-d>
     <version>2.1</version>
-</three-d> 
+</three-d>
 ----
 m|transaction-type +
 check-enrollment +
 three-d/version
 |===
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
 
@@ -47,7 +47,7 @@ a|
 <parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
 <three-d>
     <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx…</pares>
-</three-d> 
+</three-d>
 ----
 m|transaction-type +
 check-payer-response +
@@ -85,7 +85,7 @@ three-d/pares
 
 ====== Option 2: Two-Step Payment with *Authentication*
 
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>. 
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>.
 +
 CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
 +
@@ -159,19 +159,22 @@ three-d/pares
 . *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field
 
 [#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout]
-===== First Payment and Consumer-Initiated (CI) One-Click Checkout 
+===== First Payment and Consumer-Initiated (CI) One-Click Checkout
 
 [NOTE]
 ====
 Authentication required: Yes +
-Card-on-file flagging required: Yes 
+Card-on-file flagging required: Yes
 ====
 
 ====== First Payment with Authentication
 
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>. 
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>.
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04`` and flag the transaction as consumer-initiated in ``periodic-type/ci``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout,
+include the new field ``three-d/version`` and set its value
+to ``2.1``. Set ``challenge-indicator`` to ``04`` and flag the transaction
+as consumer-initiated in ``periodic-type/ci``.
 +
 [%autowidth]
 |===
@@ -233,7 +236,7 @@ three-d/pares
 .. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
 
 +
-If the *check-payer-response* was not executed, the merchant instead uses the *PARes* received via Term Url as part of the response to the ACS HTTP POST request. 
+If the *check-payer-response* was not executed, the merchant instead uses the *PARes* received via Term Url as part of the response to the ACS HTTP POST request.
 +
 The *purchase* request must include the ``ci`` (consumer initiated) flag.
 +
@@ -262,4 +265,301 @@ three-d/pares +
 periodic-type/ci +
 sequence-type/first +
 merchant-tokenization-flag
+|===
+
+====== Option 1: One-Step Subsequent Payment with *Authentication*
+
+. *Check-enrollment* (full amount): This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in
+the <<Appendix_Xml, REST API payment XSD>>.
++
+CAUTION: For 3D Secure 2 transactions, include the new field
+``three-d/version`` and set its value to ``2.1``. In addition, include
+``periodic-type`` set to ``ci`` and ``sequence-type`` set to ``recurring``.
++
+
+NOTE: It is not required to include the ``parent-transaction-id`` or to
+set ``challenge-indicator`` to ``04``.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+        <periodic-type>ci</periodic-type>
+        <sequence-type>recurring</sequence-type>
+   </periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m|transaction-type
+m|check-enrollment
+
+m|three-d/version
+m|2.1
+
+m|periodic/periodic-type
+m|recurring
+
+m|periodic/sequence-type
+m|recurring
+
+m|card/merchant-tokenization-flag
+|
+|===
++
+. *Check-payer-response* (Optional): This request is executed if merchants
+want to receive, analyze and store authentication values on their side or
+use their connection to the Wirecard Payment Gateway for the “MPI Only”
+option. The *check-payer-response* provides the authentication
+values needed later on in the *purchase.* It is executed _after_
+the *check-enrollment* response and the *PARes* have been received.
+The *PARes* is the result of the 3D Secure versioning request that is used
+to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the
+ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response.
+The *check-payer-response* must contain the following fields:
+ - ``three-d/pares``: This is the digitally signed, base64-encoded authentication
+ response message containing ARes/CRes received from the issuer.
+ - ``parent-transaction-id``: Use the value returned in the ``transaction-id``
+ field of the *check-enrollment* response.
++
+
+NOTE: It is not required to include the ``periodic-type`` set  to ``ci`` and
+the ``sequence-type`` set to ``recurring``.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx…</pares>
+</three-d>
+----
+m|transaction-type
+m|check-payer-response
+
+m|parent-transaction-id
+|
+
+m|three-d/pares
+|
+|===
++
+. *Purchase*: This final step in the transaction flow must reference either
+the previous *check-enrollment*, or the *check-payer-response*, depending on
+whether the *check-payer-response* has been executed or not.
+
+.. Following *check-enrollment*: Include the ``transaction-id`` from
+the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id``
+returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+
++
+If the *check-payer-response* was not executed, the merchant instead uses
+the *PARes* received via Term Url as part of the response to the ACS HTTP POST
+request.
+
+CAUTION: Include the ``periodic-type`` set to ``ci`` and
+the ``sequence-type`` set to ``recurring``.
+
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+    <parent-transaction-id> fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+    <three-d>
+        <pares>eJydV1lzqsoWfv.......</pares>
+    </three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+        <sequence-type>recurring</sequence-type>
+    </periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m|transaction-type
+m|purchase
+
+m|parent-transaction-id
+|
+
+m|three-d/pares
+|
+
+m|periodic/periodic-type
+m|ci
+
+m|periodic/sequence-type
+m|recurring
+
+m|card/merchant-tokenization-flag
+|
+|===
+
+//-
+
+====== Option 2: Two-Step Subsequent Payment with *Authentication*
+
+. *Check-enrollment* (full amount): This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in
+the <<Appendix_Xml, REST API payment XSD>>.
++
+
+CAUTION: For 3D Secure 2 transactions, include the new field
+``three-d/version`` and set its value to ``2.1``. In addition, include
+``periodic-type`` set to ``ci`` and ``sequence-type`` set to ``recurring``.
++
+
+NOTE: It is not required to include the ``parent-transaction-id`` or to
+set ``challenge-indicator`` to ``04``.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m|transaction-type
+m|check-enrollment
+
+m|three-d/version
+m|2.1
+
+m|periodic/periodic-type
+m|ci
+
+m|periodic/sequence-type
+m|recurring
+
+m|card/merchant-tokenization-flag
+|
+|===
++
+. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+ - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
++
+
+NOTE: It is not required to include the ``periodic-type`` set  to ``ci`` and
+the ``sequence-type`` set to ``recurring``.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx…</pares>
+</three-d>
+----
+m|transaction-type
+m|check-payer-response
+
+m|parent-transaction-id
+|
+
+m|three-d/pares
+|
+|===
++
+. *Authorization*: This step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
+
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+
++
+If the *check-payer-response* was not executed, the merchant instead uses the *PARes* received via Term Url as part of the response to the ACS HTTP POST request.
+
+CAUTION: Include the ``periodic-type`` set to ``ci`` and
+the ``sequence-type`` set to ``recurring``.
+
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id> fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m|transaction-type
+m|authorization
+
+m|parent-transaction-id
+|
+
+m|three-d/pares
+|
+
+m|periodic/periodic-type
+m|ci
+
+m|periodic/sequence-type
+m|recurring
+
+m|card/merchant-tokenization-flag
+|
+|===
+
+. *Capture-authorization*: This step in the transaction flow must reference
+the ``transaction-id`` from the *authorization* response in the
+``parent-transaction-id`` field.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+m|transaction-type
+m|capture-authorization
+
+m|parent-transaction-id
+|
 |===
