@@ -35,7 +35,7 @@ m|three-d/version
 m|2.1
 |===
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
 
@@ -118,7 +118,7 @@ m|2.1
 |===
 
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
 
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
@@ -176,8 +176,9 @@ m|three-d/pares
 |
 |===
 +
-. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
 
+***
 [#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout]
 ===== First Payment and Consumer-Initiated (CI) One-Click Checkout
 
@@ -187,13 +188,13 @@ Authentication required: Yes +
 Card-on-file flagging required: Yes
 ====
 
+
 [#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_First]
 ====== First Payment with Authentication
 
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>.
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value
-to ``2.1``. Set ``challenge-indicator`` to ``04`` and flag the transaction as ``ci`` (consumer-initiated) in ``periodic-type``.
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Mark the transaction as ``ci`` (consumer-initiated) in ``periodic-type``.
 
 +
 [%autowidth]
@@ -239,9 +240,11 @@ m|true
 |===
 
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
+NOTE: It is not required to mark the *check-payer-response* as ``ci`` (consumer-initiated) and ``recurring``.
 
 +
 [%autowidth]
@@ -352,6 +355,8 @@ The *check-payer-response* must contain the following fields:
  response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id``
  field of the *check-enrollment* response.
+
+NOTE: It is not required to mark the *check-payer-response* as ``ci`` (consumer-initiated) and ``recurring``.
 
 +
 [%autowidth]
@@ -480,9 +485,12 @@ m|card/merchant-tokenization-flag
 |
 |===
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
+NOTE: It is not required to mark the *check-payer-response* as ``ci`` (consumer-initiated) and ``recurring``.
+
 +
 
 [%autowidth]
@@ -559,9 +567,7 @@ m|card/merchant-tokenization-flag
 |===
 
 +
-. *Capture-authorization*: This step in the transaction flow must reference
-the ``transaction-id`` from the *authorization* response in the
-``parent-transaction-id`` field.
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
 
 +
 [%autowidth]
@@ -580,6 +586,7 @@ m|parent-transaction-id
 |
 |===
 
+***
 [#API_CC_3DS2_PaymentFlows_StoringCardCredentialsSubsequentCICheckout]
 ===== Storing Credit Card Credentials and Subsequent Consumer-Initiated (CI) One-Click Checkout
 
@@ -599,8 +606,7 @@ the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in
 the <<Appendix_Xml, REST API payment XSD>>.
 
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value
-to ``2.1``. Set ``challenge-indicator`` to ``04`` and flag the transaction as ``ci`` (consumer-initiated) in ``periodic-type``.
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Mark the transaction as ``ci`` (consumer-initiated) in ``periodic-type``.
 
 +
 [%autowidth]
@@ -646,9 +652,11 @@ m|card/merchant-tokenization-flag
 |===
 
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
+NOTE: It is not required to mark the *check-payer-response* as ``ci`` (consumer-initiated) and ``recurring``.
 
 +
 [%autowidth]
@@ -730,8 +738,9 @@ m|card/merchant-tokenization-flag
 
 ////
 
+***
 [#API_CC_3DS2_PaymentFlows_StoringCardCredentials_AuthAndVoid]
-====== Option 1: Storing Card Credentials (Reserve and Void Amount) with *Authentication*
+====== Storing Card Credentials (Reserve and Void Amount) with *Authentication*
 
 . *Check-enrollment* (full amount): This is the initial request and initiates
 the payment session. New 3D Secure 2 fields can be found in
@@ -739,8 +748,7 @@ the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in
 the <<Appendix_Xml, REST API payment XSD>>.
 
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value
-to ``2.1``. Set ``challenge-indicator`` to ``04`` and flag the transaction as ``ci`` (consumer-initiated) in ``periodic-type``.
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Mark the transaction as ``ci`` (consumer-initiated) in ``periodic-type``.
 
 +
 [%autowidth]
@@ -787,9 +795,11 @@ m|card/merchant-tokenization-flag
 |===
 
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
+NOTE: It is not required to mark the *check-payer-response* as ``ci`` (consumer-initiated) and ``recurring``.
 
 +
 [%autowidth]
@@ -893,8 +903,9 @@ m|parent-transaction-id
 |
 |===
 
+
 [#API_CC_3DS2_PaymentFlows_StoringCardCredentials_Subsequent]
-====== Subsequent One-Step payment with *Authentication*
+====== Subsequent One-Step Payment with *Authentication*
 
 . *Check-enrollment* (full amount): This is the initial request and initiates
 the payment session. New 3D Secure 2 fields can be found in
@@ -949,8 +960,7 @@ The *check-payer-response* must contain the following fields:
  field of the *check-enrollment* response.
 
 +
-NOTE: It is not required to include the ``periodic-type`` set  to ``ci`` and
-the ``sequence-type`` set to ``recurring``.
+NOTE: It is not required to mark the *check-payer-response* as ``ci`` (consumer-initiated) and ``recurring``.
 
 +
 [%autowidth]
@@ -991,8 +1001,7 @@ the *PARes* received via Term Url as part of the response to the ACS HTTP POST
 request.
 
 +
-CAUTION: Include the ``periodic-type`` set to ``ci`` and
-the ``sequence-type`` set to ``recurring``.
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
 
 +
 [%autowidth]
@@ -1002,7 +1011,7 @@ the ``sequence-type`` set to ``recurring``.
 .6+a|
 ----
 <transaction-type>purchase</transaction-type>
-<parent-transaction-id> fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
 <three-d>
     <pares>eJydV1lzqsoWfv.......</pares>
 </three-d>
@@ -1033,6 +1042,7 @@ m|card/merchant-tokenization-flag
 |
 |===
 
+***
 [#API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription]
 ===== Merchant-Initiated Transaction (MIT): First Payment and Scheduled Subscription
 
@@ -1047,7 +1057,7 @@ Card-on-file flagging required: Yes
 
 . *Check-enrollment* (full amount): This is the initial request and initiates the payment session. New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in the <<Appendix_Xml, REST API payment XSD>>. 
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04`` and flag the transaction as recurring in ``periodic-type/recurring``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04`` and mark the transaction as recurring in ``periodic-type/recurring``.
 
 +
 [%autowidth]
@@ -1093,12 +1103,12 @@ m|true
 |===
 
 +
-. *Check-payer-response* (optional): This request is executed if merchants want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
+. *Check-payer-response* (optional): This request is for merchants who want to receive, analyze and store authentication values on their side or use their connection to the Wirecard Payment Gateway for the “MPI Only” option.  The *check-payer-response* serves to provide the authentication values needed later on in the *purchase.* It is executed _after_ the *check-enrollment* response and the *PARes* have been received. The *PARes* is the result of the 3D Secure versioning request that is used to initiate *AReq* as part of the HTTPS POST redirect of the consumer to the ACS URL. The HTTPS POST redirect returns the *PARes* as part of the response. The *check-payer-response* must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
 
 +
-NOTE: It is not required to provide ``recurring`` transaction flag for *check-payer-response*.
+NOTE: It is not required to mark the *check-payer-response* as ``recurring``.
 
 +
 [%autowidth]
@@ -1268,3 +1278,5 @@ m|capture-authorization
 m|parent-transaction-id
 |
 |===
+
+//-
