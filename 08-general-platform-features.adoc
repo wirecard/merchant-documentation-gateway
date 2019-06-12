@@ -3197,7 +3197,7 @@ There are two different IPP scenarios:
 //===== 1. Consumer has only one credit card
 ==== Workflow
 1. Consumer checks out products in merchant's shop.
-2. Merchant displays payment form, where consumer is to enter card data (PAN).
+2. Merchant displays payment form, where consumer is to enter credit card data (PAN).
 3. WPG checks card's IPP eligibility by validating the card number against the BIN ranges activated at the issuing bank. 
 The BIN range is part of the agreement between merchant and issuing bank. It lists all  **B**ank **I**dentification **N**umbers (1st 6 digits of credit card number) that qualify for installment payment.
 //+
@@ -3206,8 +3206,7 @@ The BIN range is part of the agreement between merchant and issuing bank. It lis
 WPG also checks if the transaction and the transaction currency are  domestic. 
 
 ** Validation fail: Consumer is redirected to the regular (credit card) payment form.
-** Validation OK: Consumer can select either regular payment or payment in
-installments.
+** Validation OK: Consumer can select either regular payment or payment in installments.
 4. If consumer selects "Payment on Installments", merchant
 sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to WPG. This request
 contains the order amount and the ISO locale code (including country and language).
@@ -3354,30 +3353,26 @@ M=**M**andatory, O=**O**ptional
 |===
 |Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO1, M/O>> |Data Type |Size |Description
 
-|installment-calculator-request. +
-merchant-account-id
+|merchant-account-id
 |M
 |Alphanumeric
 |36
 |Unique identifier of merchant account.
 
-|installment-calculator-request/ +
-payment-method
+|payment-method
 |M
 |Enumeration
 |15
 |Set to _creditcard_.
 
-|installment-calculator-request/ +
-amount
+|amount
 |M
 |Numeric
 |18,3
 |Total order amount. +
 The number of decimal places depends on the currency.
 
-|installment-calculator-request. +
-amount@currency
+|amount@currency
 |M
 |Alphanumeric
 |3
@@ -3385,12 +3380,11 @@ amount@currency
 
 |account-number
 |M
-|Alphanumeric
-|3
-|Consumer's credit card number (PAN).
+|Token
+|36
+|Consumer's credit card number (primary account number).
 
-|installment-calculator-request. +
-locale
+|locale
 |M
 |Alphanumeric
 |5
@@ -3407,36 +3401,38 @@ M=**M**andatory, O=**O**ptional
 |===
 |Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO2, M/O>> |Data Type |Size |Description
 
-|installment-calculator-response. +
-merchant-account-id
+|merchant-account-id
 |M
 |Alphanumeric
 |36
 |Unique identifier of merchant account.
 
-|installment-calculator-response.payment-method
+|payment-method
 |M
 |Enumeration
 |15
 |Always _creditcard_.
 
-|installment-calculator-response. +
-amount
+|amount
 |M
 |Numeric
 |18,3
 |Total order amount. +
 The number of decimal places depends on the currency.
 
-|installment-calculator-response +
-amount@currency
+|amount@currency
 |M
 |Alphanumeric
 |3
 |The currency in which the order was placed. 
 
-|installment-calculator-response. +
-locale
+|account-number
+|M
+|Token
+|36
+|Consumer's credit card number (primary account number).
+
+|locale
 |M
 |Alphanumeric
 |5
@@ -3444,29 +3440,25 @@ locale
 E.g. en_SG for English language in Singapore. +
 The language defines the localized labels of the result fields.
 
-|installment-calculator-response. +
-state
+|state
 |M
 |Enumeration
 |
 |The state of the response: success, failed. 
 
-|installment-calculator-response. +
-statuses
+|statuses
 |M
 |Complex
 |
 |List of response statuses.
 
-|installment-calculator-response.statuses. +
-status
+|statuses.status
 |M
 |Complex
 |
 |Response status.
 
-|installment-calculator-response.statuses. +
-status@code
+|statuses.status@code
 |M
 |Alphanumeric
 |12
@@ -3474,35 +3466,31 @@ status@code
 <<StatusCodes, Status Codes and Transaction Status>> for a complete list
 of all status codes.
 
-|installment-calculator-response.statuses. +
-status@description
+|statuses.status@description
 |M
 |Alphanumeric
 |256
 |The description to the response status code.
 
-|installment-calculator-response.statuses. +
-status@severity
+|statuses.status@severity
 |M
 |Enumeration
 |
 |Indicates if the status means __warning__, __error__ or __information__.
 
-|installment-calculator-response. +
-installments
+|installments
 |M
 |Complex
 |
 |Contains all available IPPs.
 
-|installment-calculator-response.installments. +
-installment
+|installments.installment
 |M
 |Complex
 |
 |Each installment complex contains information on a specific IPP.
 
-|installment-calculator-response.installments.installment. +
+|installments.installment. +
 program-id
 |M
 |Numeric
@@ -3510,7 +3498,7 @@ program-id
 |This ID uniquely identifies the corresponding IPP. +
  Insert this value as __program-id__ of a subsequent purchase request.
 
-|installment-calculator-response.installments.installment. +
+|installments.installment. +
 program-name
 |O
 |Alphanumeric
@@ -3518,7 +3506,7 @@ program-name
 |Label of this specific IPP as provided by the issuing bank. +
 // Only available for Germany, Sweden, Finland and Norway.
 
-|installment-calculator-response.installments.installment. +
+|installments.installment. +
 details
 |M
 |Complex
@@ -3533,8 +3521,8 @@ corresponding IPP.
 //|
 //|Lists all available tenures. 
  
-|installment-calculator-response.installments.installment.details. +
-months
+|installments.installment. +
+details.months
 |M
 |Alphanumeric
 |
