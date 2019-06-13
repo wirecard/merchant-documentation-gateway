@@ -2249,6 +2249,8 @@ m| true
 ====== Option 2: Two-Step Merchant Initiated Transaction (MIT)
 
 . *Authorization*: The *authorization* in the transaction flow must reference the initial ``installment`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set ``sequence-type`` to ``recurring`` or ``final``.
++
+CAUTION: Mark the transaction as ``installment`` in ``periodic-type``.
 
 +
 [%autowidth]
@@ -2471,4 +2473,110 @@ m|first
 
 m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
 m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_]
+====== Subsequent Payment without Authentication
+
+[#API_CC_3DS2_PaymentFlows_]
+====== Option 1: One-Step Merchant Initiated Transaction (MIT)
+
+. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring``.
++
+CAUTION: Mark the transaction as ``ucof`` in ``periodic-type``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_]
+====== Option 2: Two-Step Merchant Initiated Transaction (MIT)
+
+. *Authorization*: The *authorization* in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set ``sequence-type`` to ``recurring`` or ``final``.
++
+CAUTION: Mark the transaction as ``ucof`` in ``periodic-type``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+|``recurring`` or ``final``
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
+|
 |===
