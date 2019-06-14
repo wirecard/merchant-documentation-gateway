@@ -25,7 +25,7 @@ install:
   - npm install --save minimist
   - npm install -g mermaid.cli
 script:
-  - mkdir -p build/html
+  - mkdir -p build/html images/diagrams
   - cp -r errorpages/* css images js fonts resources build/html/
   - php buildscripts/tests/basic-tests.php || true
   - RUBYOPT="-E utf-8" asciidoctor -b html5 --failure-level=WARN -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html
@@ -33,6 +33,7 @@ script:
   - node buildscripts/search/lunr-index-builder.js
   - RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN  -a linkcss -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
   - mv toc.json searchIndex.json *.html build/html/
+  - mv images/diagrams build/html/images/
 deploy:
   - provider: s3
     access_key_id: $S3ACCESSID
