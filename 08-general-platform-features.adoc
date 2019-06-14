@@ -3086,12 +3086,10 @@ problems.
 [#GeneralPlatformFeatures_IPP]
 === Installment Payment Plan (IPP)
 
-**I**nstallment **P**ayment **P**lan is a feature that empowers the
-consumer to pay larger amounts not at one time but with equal
-installments over a certain period of time. +
-Depending on the total order amount, the merchant can offer various IPPs to the consumer. These IPPs vary with regard to tenure and installment payment framework (e.g. interest rate). +
+**I**nstallment **P**ayment **P**lan is a feature that allows the consumer to pay in equal installments. +
+Depending on the total order amount, you can can offer a range of payment plans to the consumer. These IPPs differ in tenure and installment payment framework (e.g. interest rate). +
  +
-IPP parameters have to be contractually agreed upon by merchant and issuing bank. The issuing bank provides Wirecard with these IPP parameters.
+Set up a contract with your issuing bank to agree on the IPP parameters. The issuing bank then provides Wirecard with these IPP parameters.
 
 ////
 - **tenure:** duration of installment payment in months. Depends on financial institutions
@@ -3107,22 +3105,17 @@ higher than this value qualify for installment payment.
 NOTE: If your merchant account has not yet been set up for IPP, <<ContactUs, contact merchant support>>.
 
 .IPP Characteristics
-- **fixed**: Installments are of equal height.
-- **on-us:** Issuing bank and acquiring bank are the same.
-- **issuer-based:** Post clearing, the merchant receives the full amount from
-the acquiring bank. The cardholder pays back to their issuing bank (same
-  entity as acquiring bank since on-us) in installments.
-- **domestic payments only:** The instrument country, i.e. the country where the
-consumer's card was issued, must match the country of the merchant.
-- **domestic currency only:** The consumer can only pay in the local currency of the merchant country.
-- **credit card:** This feature  is only available for credit card payments. 
+- *Fixed*: Installments are of equal amount.
+- *On-us:* Issuing bank and acquiring bank are the same.
+- *Issuer-based:* Post-clearing, you receive the full amount from the acquiring bank. The consumer pays their issuing bank (same entity as acquiring bank since *on-us*) in installments.
+- *Domestic payments only:* The instrument country, i.e. the country where the
+consumer's card was issued, must match the merchant country.
+- *Domestic currency only:* The consumer can only pay in the local currency of the merchant country.
+- *Credit card:* This feature is available for credit card payments only. +
+_Supported card brands:_
 +
-Supported card brands:
-+
- ** Mastercard
- ** Visa
-//-
-
+* Mastercard
+* Visa
 //-
 
 [#GeneralPlatformFeatures_IPP_CountriesCurrencies]
@@ -3133,16 +3126,18 @@ Supported card brands:
 [%autowidth]
 [cols="h,"]
 |===
-| Countries | HK, ID, MY, PH, SG, TH, TW
-| Currencies | HKD, IDR, MYR, PHP, SGD, THB, TWD
+|Countries 
+|HK, ID, MY, PH, SG, TH, TW
+
+|Currencies 
+|HKD, IDR, MYR, PHP, SGD, THB, TWD
 |===
-//-
+
 
 [#GeneralPlatformFeatures_IPP_TransactionTypes]
 [discrete]
 ==== Transaction Types
-There is no dedicated transaction type defined for installment plan payments.
-IPP works with transaction type __purchase__.
+**I**nstallment **P**ayment **P**lan works with transaction type _purchase_.
 
 ////
 [#GeneralPlatformFeatures_IPP_Setup]
@@ -3196,73 +3191,68 @@ There are two different IPP scenarios:
 [discrete]
 //===== 1. Consumer has only one credit card
 ==== Workflow
-1. Consumer checks out products in merchant's shop.
-2. Merchant displays payment form, where consumer is to enter credit card data (PAN).
-3. WPG checks card's IPP eligibility by validating the card number against the BIN ranges activated at the issuing bank. 
-The BIN range is part of the agreement between merchant and issuing bank. It lists all  **B**ank **I**dentification **N**umbers (1st 6 digits of credit card number) that qualify for installment payment.
+. The consumer checks out products in the merchant's shop.
+. The merchant's shop displays the payment form, where the consumer enters their credit card data (PAN).
+. WPG checks the card's IPP eligibility by validating the card number against the BIN ranges activated at the issuing bank. 
+The BIN range is part of the contract between merchant and issuing bank. It lists all  **B**ank **I**dentification **N**umbers (the first 6 digits of credit card number) that qualify for installment payment.
 //+
 //The BIN range lists all **B**ank **I**dentification **N**umbers that qualify for installment payment.
 +
-WPG also checks if the transaction and the transaction currency are  domestic. 
+WPG also checks if the transaction and the transaction currency are domestic. 
 
-** Validation fail: Consumer is redirected to the regular (credit card) payment form.
-** Validation OK: Consumer can select either regular payment or payment in installments.
-4. If consumer selects "Payment on Installments", merchant
-sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to WPG. This request
-contains the order amount and the ISO locale code (including country and language).
-5. WPG forwards the request to issuing bank.
-6. Issuing bank generates a list of all available IPPs and sends it to merchant.
-7. Merchant shows the available installment plans to consumer
-(on the checkout page).
-8. Consumer selects the appropriate installment plan. By submitting,
-   the selected program/tenure is sent with the __purchase__ request to WPG.
-   The mandatory IPP fields sent in this __purchase__ request are <<GeneralPlatformFeatures_IPP_Fields, __tenure__>> and <<GeneralPlatformFeatures_IPP_Fields, __program-id__>>. 
-9. WPG forwards the request to the issuing bank.
-10. Issuing bank processes request and sends response to WPG.
-11. WPG forwards response to merchant. 
-12. Merchant informs consumer about transaction outcome. 
-13. Issuing bank pays the total order amount to merchant.
-14. Consumer pays back to their issuing bank (same
-  entity as acquiring bank since on-us) in installments.
+* Validation fail: The consumer is redirected to the regular (credit card) payment form.
+* Validation OK: The consumer can select either regular payment or payment in installments.
+. The consumer selects "Payment in Installments". 
+. The merchant sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to WPG. This request contains the order amount and the ISO locale code (including country and language).
+. WPG forwards the request to the issuing bank.
+. The issuing bank generates a list of all available IPPs and sends it to the merchant.
+. The merchant's shop displays the available installment plans to the consumer (on the checkout page).
+. The consumer selects an installment plan and submits the payment. The selected program/tenure is sent with the _purchase_ request to WPG.
+*Mandatory IPP fields* in this _purchase_ request are <<GeneralPlatformFeatures_IPP_Fields, __tenure__>> and <<GeneralPlatformFeatures_IPP_Fields, __program-id__>>. 
+. WPG forwards the request to the issuing bank.
+. The issuing bank processes the request and sends the response to WPG.
+. WPG forwards the response to the merchant. 
+. The merchant informs the consumer about the transaction outcome. 
+. The issuing bank pays the total order amount to the merchant.
+. The consumer pays the issuing bank (same
+  entity as acquiring bank since *on-us*) in installments.
    
 [#GeneralPlatformFeatures_IPP_Fields]
 [discrete]
 ==== Fields
-A __purchase__ request with installment payment requires two additional **mandatory** fields that identify the IPP selected by the consumer:
+A _purchase_ request with IPP requires two additional **mandatory** fields that identify the installment plan selected by the consumer:
 
 [%autowidth]
-[cols="e,,,"]
+
 |===
 |Field |Data Type |Size |Description
 
-v|tenure
+m|tenure
 |Integer
 |10
 |Installment tenure. Number of months the consumer has to pay in installments. +
-Enter the value from the field __months__ from the Installment Calculator response.
+Enter the value from the field ``months`` provided in the Installment Calculator response.
 
-v|program-id
+m|program-id
 |Alphanumeric
 |36
-|This ID uniquely identifies the corresponding installment
-payment plan.
+|This ID uniquely identifies the corresponding installment payment plan.
 
 |===
 
 Two additional fields are sent in the response to this request:
 
 [%autowidth]
-[cols="e,,"]
 |===
 |Field |Data Type |Description
 
-|monthly-pay
+m|monthly-pay
 |Decimal
-|Amount that the consumer pays to issuing bank per month.
+|Amount that the consumer pays to the issuing bank per month.
 
-|interest-rate
+m|interest-rate
 |Alphanumeric
-|Interest rate of selected IPP. +
+|Interest rate of the selected IPP. +
 Value is displayed in localized format depending on the locale.
 
 |===
@@ -3301,8 +3291,7 @@ to the merchant.
 
 [#GeneralPlatformFeatures_IPP_InstallmentCalculator]
 ==== Installment Calculator
-The Installment Calculator is a valuable tool to retrieve all available
-installment plans as agreed upon by merchant and issuing bank.
+The Installment Calculator retrieves the available installment plans defined in the contract between the merchant and the issuing bank.
 
 ////
 * **Input:** purchase amount and currency +
@@ -3347,9 +3336,9 @@ to the merchant.
 [#GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO1]
 M=**M**andatory, O=**O**ptional
 [%autowidth]
-[cols="e,,,,"]
+[cols="m,,,,"]
 |===
-|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO1, M/O>> |Data Type |Size |Description
+|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO1, *M/O*>> |Data Type |Size |Description
 
 |merchant-account-id
 |M
@@ -3361,7 +3350,7 @@ M=**M**andatory, O=**O**ptional
 |M
 |Enumeration
 |15
-|Set to _creditcard_.
+|Set to ``creditcard``.
 
 //|amount
 //|M
@@ -3395,9 +3384,9 @@ M=**M**andatory, O=**O**ptional
 [#GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO2]
 M=**M**andatory, O=**O**ptional
 [%autowidth]
-[cols="e,,,,"]
+[cols="m,,,,"]
 |===
-|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO2, M/O>> |Data Type |Size |Description
+|Field |<<GeneralPlatformFeatures_IPP_InstallmentCalculator_Fields_MO2, *M/O*>> |Data Type |Size |Description
 
 |merchant-account-id
 |M
@@ -3409,7 +3398,7 @@ M=**M**andatory, O=**O**ptional
 |M
 |Enumeration
 |15
-|Always _creditcard_.
+|Always ``creditcard``.
 
 //|amount
 //|M
@@ -3442,7 +3431,7 @@ M=**M**andatory, O=**O**ptional
 |M
 |Enumeration
 |
-|The state of the response: success, failed. 
+|The state of the response: ``success``, ``failed``. 
 
 |statuses
 |M
@@ -3474,7 +3463,7 @@ of all status codes.
 |M
 |Enumeration
 |
-|Indicates if the status means __warning__, __error__ or __information__.
+|Possible values: ``warning``, ``error`` or ``information``.
 
 |installments
 |M
@@ -3494,7 +3483,7 @@ program-id
 |Alphanumeric
 |36
 |This ID uniquely identifies the corresponding IPP. +
- Insert this value as __program-id__ of a subsequent purchase request.
+ Insert this value as ``program-id`` of a subsequent purchase request.
 
 |installments.installment. +
 program-name
@@ -3525,7 +3514,7 @@ details.months
 |Alphanumeric
 |10
 |Number of installments (months) to pay for this IPP. +
- Insert this value as __tenure__ of a subsequent purchase request. 
+ Insert this value as ``tenure`` of a subsequent purchase request. 
 |===
 
 [discrete]
