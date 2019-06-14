@@ -23,6 +23,7 @@ install:
   - npm install --save lunr
   - npm install --save asciidoctor.js
   - npm install --save minimist
+  - npm install -g mermaid.cli
 script:
   - mkdir -p build/html
   - cp -r errorpages/* css images js fonts resources build/html/
@@ -31,7 +32,8 @@ script:
   - node buildscripts/split-pages/create-toc.js
   - node buildscripts/search/lunr-index-builder.js
   - RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN  -a linkcss -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
-  - mv toc.json searchIndex.json *.html build/html/
+  - sed -i 's/normal\ normal\ 400\ normal\ 16px/normal normal 400 normal 15px/g' *.svg
+  - mv *.svg toc.json searchIndex.json *.html build/html/
 deploy:
   - provider: s3
     access_key_id: $S3ACCESSID
