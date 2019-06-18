@@ -877,7 +877,7 @@
 }).data( 'smoothState' );
 
 //var globalPriorityPages = [ 'PaymentPageSolutions.html', 'WPP.html', 'PP.html' ];
-var globalPriorityPages = [ 'WPP.html' ];
+var globalPriorityPages = [ 'PPv2.html' ];
 
 function fetchPageUnlessCached( pageName ) {
   if( smoothState.cache[pageName] === undefined) {
