@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#           __    __ __         __       __          __ 
+#           __    __ __         __       __          __
 # .--.--.--|  |--|__|  |_.-----|  .---.-|  |--.-----|  |
 # |  |  |  |     |  |   _|  -__|  |  _  |  _  |  -__|  |
 # |________|__|__|__|____|_____|__|___._|_____|_____|__|
@@ -120,7 +120,7 @@ function buildPartner() {
 
     debugMsg "Executing custom scripts.."
     # execute all custom scripts of the partner
-    # IMPORTANT: script MUST NOT use exit, only return! 
+    # IMPORTANT: script MUST NOT use exit, only return!
     for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
       debugMsg "$(basename ${script}):"
       source ${script} || scriptError $(basename ${script})
@@ -164,7 +164,7 @@ function buildPartner() {
 
   mv toc.json searchIndex.json ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" \
     || increaseErrorCount
-  
+
   cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" \
     || increaseErrorCount
 
@@ -179,7 +179,9 @@ function main() {
   cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
   PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
   for partner in WD $(cat "${PARTNERSLIST_FILE}" | grep -v '^#'); do
-    ERRORS=0  
+    ERRORS=0
+    # sanitize partner name for \r and possibly others
+    partner=$(sed 's/[^A-Za-z_-]//g' <<< ${partner})
     buildPartner ${partner}
     if [[ $? -eq 0 ]]; then           # if everything built well then
       debugMsg "SUCCESS! Partner ${partner} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
@@ -192,7 +194,7 @@ function main() {
       debugMsg "Failed! Could not build partner ${partner}"
       FAILED_BUILDS+=(${partner})     # and add partner to list of failed builds
       continue
-    fi    
+    fi
   done
   return 0
 }
