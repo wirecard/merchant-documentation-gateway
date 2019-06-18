@@ -49,13 +49,11 @@ _Paylib_ is a French mobile wallet initiated by a collaboration of major French 
 [##WPP_paylib_TestCredentials]
 ====== Test Credentials
 
-Test credentials for transaction types <<???, _debit_>>,
-<<???, _authorization_>> and
-<<???, _capture-authorization_>>.
+Test credentials for transaction types <<WPP_paylib_TransactionType_debitauth, _debit_>> and <<WPP_paylib_TransactionType_debitauth, _authorization_>>.
 
 [cols="35h,65"]
 |===
-| URI (Endpoint)
+| URL (Endpoint)
 |``\https://wpp-test.wirecard.com/api/payment/register``
 | Merchant Account ID (MAID)
 | d79cbe98-cb2c-4882-a16e-47eaeb99ad44
@@ -64,7 +62,7 @@ Test credentials for transaction types <<???, _debit_>>,
 | Password
 | qD2wzQ_hrc!8
 | Secret Key (used for response verification)
-| ????
+| Please <<ContactUs, contact merchant support>> for complete test credentials.
 |===
 
 [#WPP_paysafecard_TestCredentials_Additional]
@@ -93,23 +91,7 @@ are relevant for _Paylib_.
 [##WPP_paylib_TransactionTypes]
 ====== Transaction Types
 
-Every successful _Paylib_ payment request results in two distinct transactions in the database:
-
-- one for the _Paylib_ wallet,
-- one for _Credit Card_.
-
-//-
-
-For <<Glossary_TransactionType, transaction type>> details look at <<AppendixB, Appendix B: Transaction Types>>.
-
-[%autowidth]
-|===
-|Paylib |  |Credit Card |Link to the Sample
-
-|_debit_ |AND |_purchase_ |See <<WPP_Paylib_Samples, samples>>.
-|===
-
-//-
+_Paylib_ can be used with the transaction types <<WPP_paylib_TransactionType_debitauth, _debit_>> and <<WPP_paylib_TransactionType_debitauth, _authorization_>>.
 
 We provide JSON examples for each step of this process. You can find
 them below. You need to adapt the field values to your system.
@@ -126,8 +108,10 @@ Wirecard contract to base64 encode the authorization.
 |===
 
 
-[##WPP_paylib_TransactionType_debit]
-====== Transaction Type _debit_
+[#WPP_paylib_TransactionType_debitauth]
+====== Transaction Type _debit_ or _authorization
+
+You can use the following sample for both transaction types. Please enter the desired value for ``transaction-type``.
 
 [source,json]
 ----
@@ -185,7 +169,7 @@ Allowed characters: [a-zA-Z0-9-_]
 Available transaction types for _Paylib_:
 
 - _debit_
-- _purchase_
+- _authorization_
 
 //-
 
@@ -197,9 +181,9 @@ transaction amount. For _Paylib_ payments, the currency must be set to ``EUR``.
 Format: 3-character abbreviation according to ISO 4217.
 |payment-methods e|payment-method e|name |String |required |256 |The name of the
 payment method used for the transaction, i.e. ``Paylib``.
-2.3+|account-holder e|first-name |String |required ???|24 ??? |The first name of the account holder.
-e|last-name |String |required ??? |24 ??? |The last name of the account holder.
-e|email |String |required ???|24 ??? |The email address of the account holder.
+2.3+|account-holder e|first-name |String |optional |32 |The first name of the account holder.
+e|last-name |String |optional |32 |The last name of the account holder.
+e|email |String |optional |256 ??? |The email address of the account holder.
 3+|success-redirect-url |String |required |2000 a|The URL to which the consumer
 is redirected after a successful payment,
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
@@ -221,555 +205,13 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
 }
 ----
 
-. Use the URL you receive in the _debit_ response.
+. Use the URL you receive in the response (Don't use the one above).
 . Initiate the payment process.
 . Enter _User Name_ on _Paylib_ side.
 . Validate your entry.
 . Enter _Password_ on _Paylib_ side.
 . Validate your entry.
-. Enter your credit card number.
-. Validate your entry.
-
-////
-I do need a card number to verify the complete payment process...
-
-Next steps:
-1) How does it continue?
-2) Where does the response come from?
-3) How does the purchase interact with the debit?
-4) Where do I get the purchase-sample from?
-////
-
-[cols="15e,10,75"]
-|===
-|Field (JSON) |Data Type |Description
-
-|payment-redirect-url |String |The URL which redirects to the payment
-form (hosted by _Paylib_). Sent as a response to the initial request.
-|===
-
-At this point, you need to redirect your consumer to
-``payment-redirect-url`` (or render it in an _iframe_ depending on your
-<<PPv2, integration method>>﻿).
-
-Consumers are redirected to the payment form. There they enter their
-data and submit the form to confirm the payment. A payment can be:
-
-- successful (``transaction-state: success``),
-- failed (``transaction-state: failed``),
-- canceled. The consumer canceled the payment before/after submission
-(``transaction-state: failed``).
-
-//-
-
-The transaction result is the value of ``transaction-state`` in the
-payment response. More details (including the status code) can also be
-found in the payment response in the ``statuses`` object. Canceled
-payments are returned as  _failed_, but the ``status description`` indicates it
-was canceled.
-
-In any case (unless the consumer cancels the transaction on a 3rd party
-provider page), a base64 encoded response containing payment information
-is sent to the configured redirection URL. See
-<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
-for more details on redirection targets after payment & transaction status
-notifications.
-
-You can find a decoded payment response example below.
-
-.3. Parse and Process the Payment Response (Decoded Payment Response)
-
-[source,json]
-----
-{
-    "payment" : {
-        "merchant-account-id" : {
-            "value" : "your-custom-MAID-..."
-        },
-        "request-id" : "66b62159-691f-40e3-8411-24c854bb0f8b",
-        "account-holder" : {
-            "phone" : "+436641234567"
-        },
-        "transaction-type" : "purchase",
-        "parent-transaction-id" : "8d2ec658-d234-44cb-b557-791489e8464f",
-        "payment-methods" : {
-            "payment-method" : [ {
-                "name" : "paybox"
-            } ]
-        },
-        "transaction-state" : "success",
-        "transaction-id" : "1f806091-5ab1-4832-8ccf-64232f1a7677",
-        "completion-time-stamp" : "2018-09-26T05:54:20",
-        "requested-amount" : {
-            "currency" : "EUR",
-            "value" : 10.100000
-        },
-        "statuses" : {
-            "status" : [ {
-                "description" : "The resource was successfully created.",
-                "severity" : "information",
-                "code" : "201.0000"
-            } ]
-        },
-        "api-id" : "wpp",
-        "success-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/success",
-        "cancel-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/cancel",
-        "fail-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/error"
-    }
-}
-----
-
-[cols="30e,5,5,5,55"]
-|===
-3+|Field (JSON) |Data Type |Description
-
-2+|merchant-account-id e|value |String |A unique identifier assigned to every
-merchant account (by Wirecard). You receive a unique merchant account ID for
-each payment method.
-3+|request-id |String |A unique identifier assigned to every request
-(by merchant). Used when searching for or referencing it later.
-2+|account-holder e|phone |String |The phone number of the account holder
-(= consumer).
-3+|transaction-type |String |The requested transaction type, i.e. ``purchase``.
-3+|parent-transaction-id |String |The ID of the transaction being referenced
-as a parent. As a purchase transaction is internally split into
-sub-transactions, the parent transaction ID serves to link these sub-transactions.
-|payment-methods e|payment-method e|name |String |The name of the payment method
-used for the transaction, i.e. ``Paylib``.
-3+|transaction-state |String a|The current transaction state.
-
-Possible values:
-
-- ``in-progress``
-- ``success``
-- ``failed``
-
-//-
-
-Typically, a transaction starts with state _in-progress_ and finishes with
-state either _success_ or _failed_. This information is returned in the
-response only.
-3+|transaction-id |String |A unique identifier assigned to every transaction.
-Used when searching for or referencing it later.
-3+|completion-time-stamp |Date |The UTC/ISO time-stamp documenting the time and
-date when the transaction was executed.
-
-Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+e|value |Numeric |The full amount that was
-requested/contested in the transaction.
-2+|currency |String a|The currency of the requested/contested transaction amount.
-
-Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+e|status e|description  |String a|The description of the transaction status message.
-
-<<StatusCodes, Complete list of status codes and descriptions>>.
-
-|severity |String a|The definition of the status message.
-
-Possible values:
-
-- ``information``
-- ``warning``
-- ``error``
-
-//-
-
-|code  |String a|Status code of the status message.
-
-<<StatusCodes, Complete list of status codes and descriptions>>.
-
-3+|api-id |String |Identifier of the currently used API.
-3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
-
-3+|cancel-redirect-url |String a|The URL to which the consumer is redirected after having canceled a payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
-
-3+|fail-redirect-url |String a|The URL to which the consumer is redirected after an unsuccessful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
-|===
-
-[##WPP_paylib_TransactionType_authorization]
-====== Transaction Type _authorization_
-
-For a successful _authorization_ transaction:
-
-. Create an authorization session (initial authorization request).
-. Redirect the consumer to the payment page (initial response URL).
-. Highly recommended: Parse and process the payment response.
-
-//-
-
-We provide JSON examples for each step of this process. You can find
-them below. You need to adapt the field values to your system.
-
-.API Endpoint Production/Live
-
-Please contact <<ContactUs, merchant support>> for your production
-credentials. You must use these credentials for test purposes.
-
-.Request Headers
-[cols="20,80"]
-|===
-h| Authorization
-| needs to be formatted as: "Authorization"="Basic"  +
-base64(“username:password”). Use username and password as given in your
-Wirecard contract to base64 encode the authorization.
-h| Content-Type
-| application/json
-|===
-
-.1. Create an _authorization_ Request
-
-[source,json]
-----
-{
-    "payment":{
-        "merchant-account-id":{
-            "value":"your-custom-MAID-..."
-        },
-        "request-id":"{{$guid}}",
-        "transaction-type":"authorization",
-        "requested-amount":{
-            "value":10.1,
-            "currency":"EUR"
-        },
-        "account-holder":{
-            "phone":"+436641234567"
-        },
-        "payment-methods":{
-            "payment-method":[
-               {
-               "name":"paybox"
-                }
-            ]
-        },
-        "order-number": "7171456",
-        "descriptor": "Here are the details to your payment. Thank you for shopping!",
-        "notifications": {
-            "notification": [
-                {
-                "url": "https://example.com/ipn.php"
-                }
-            ]
-        },
-        "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/success",
-        "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/cancel",
-        "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/error"
-    }
-}
-----
-
-[cols="15e,5,5,5,5,5,60"]
-|===
-3+|Field (JSON) |Data Type |Cardinality |Size |Description
-
-2+|merchant-account-id e|value |String |required |36 |A unique identifier
-assigned to every merchant account (by Wirecard). You receive a unique
-merchant account ID for each payment method.
-3+|request-id |String |required |64 a|A unique identifier assigned by the
-merchant to each request. Used when searching for or referencing it later.
-
-You may enter any request ID that has never been used before.
-
-As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; e.g.
-Postman uses it to generate a random ``request-id`` for testing.
-
-Allowed characters: [a-zA-Z0-9-_]
-
-//-
-
-3+|transaction-type |String |required |n/a a|The requested transaction type.
-
-Available transaction types for _Paylib_:
-
-- _authorization_
-- _purchase_
-
-//-
-
-.2+|requested-amount  2+e|value |Numeric |required |9.2 |The full amount that is
-requested/contested in a transaction. 2 decimals digits allowed.
-2+|currency |String |required |3 a|The currency of the requested/contested
-transaction amount. For _Paylib_ payments, the currency must be set to ``EUR``.
-
-Format: 3-character abbreviation according to ISO 4217.
-2+|account-holder e|phone |String |required |24 |The phone number of the account
-holder (= consumer). Has to be a valid Austrian mobile phone number starting
-with +43.
-|payment-methods e|payment-method e|name |String |required |256 |The name of the
-payment method used for the transaction, i.e. ``Paylib``.
-3+|order-number |String |optional |40 |Merchant-side order number.
-3+|descriptor |String |optional |60 |The descriptor is the text representing an
-order on the bank statement issued to your consumer by their bank. It provides
-information for the consumer, as it associates a specific debit on the
-consumer's account to a specific purchase in your shop.
-2+|notification e|url |String |optional |256 |The URL to which Wirecard Payment
-Gateway sends the transaction outcome.
-3+|success-redirect-url |String |required |2000 a|The URL to which the consumer
-is redirected after a successful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
-3+|cancel-redirect-url |String |required |2000 a|The URL to which the consumer
-is redirected after having canceled a payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
-3+|fail-redirect-url |String |required |2000 a|The URL to which the consumer
-is redirected after an unsuccessful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
-|===
-
-.2. Redirect the Consumer to the Payment Page (Sample Response URL)
-
-The response to this initial _authorization_ request is the 
-``payment-redirect-url``.
-Proceed with <<#WPP_paylib_TransactionType_purchase_Redirect, step 2>> in a
-similar way as described for _purchase_.
-
-.3. Parse and Process the _authorization_ Response (Decoded Payment Response)
-
-[source,json]
-----
-{
-    "payment" : {
-        "merchant-account-id" : {
-            "value" : "your-custom-MAID-..."
-        },
-        "request-id" : "66b62159-691f-40e3-8411-24c854bb0f8b",
-        "account-holder":{
-            "phone":"+436641234567"
-        },
-        "transaction-type" : "authorization",
-        "parent-transaction-id" : "8d2ec658-d234-44cb-b557-791489e8464f",
-        "payment-methods" : {
-            "payment-method" : [ {
-                "name" : "paybox"
-            } ]
-        },
-        "transaction-state" : "success",
-        "transaction-id" : "The-transaction-id-received-here-is-the-parent-transaction-id-of-the-following-capture-authorization",
-        "completion-time-stamp" : "2018-09-26T05:54:20",
-        "requested-amount" : {
-            "currency" : "EUR",
-            "value" : 10.100000
-        },
-        "statuses" : {
-            "status" : [ {
-                "description" : "The resource was successfully created.",
-                "severity" : "information",
-                "code" : "201.0000"
-            } ]
-        },
-        "api-id" : "wpp",
-        "success-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/success",
-        "cancel-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/cancel",
-        "fail-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/error"
-    }
-}
-----
-
-[cols="30e,5,5,5,55"]
-|===
-3+|Field (JSON) |Data Type |Description
-
-2+|merchant-account-id e|value |String |A unique identifier assigned to every
-merchant account (by Wirecard). You receive a unique merchant account ID for
-each payment method.
-3+|request-id |String |A unique identifier assigned to every request
-(by merchant). Used when searching for or referencing it later.
-2+|account-holder e|phone |String |The phone number of the account holder
-(= consumer).
-3+|transaction-type |String |The requested transaction type ``authorization``.
-3+|parent-transaction-id |String |The ID of the transaction being referenced
-as a parent. As a purchase transaction is internally split into
-sub-transactions, the parent transaction ID serves to link these sub-transactions.
-|payment-methods e|payment-method e|name |String |The name of the payment method
-used for the transaction: ``Paylib``.
-3+|transaction-state |String a|The current transaction state.
-
-Possible values:
-
-- ``in-progress``
-- ``success``
-- ``failed``
-
-//-
-
-Typically, a transaction starts with state _in-progress_ and finishes with
-state either _success_ or _failed_. This information is returned in the
-response only.
-3+|transaction-id |String |A unique identifier assigned to every transaction.
-Used when searching for or referencing it later.
-3+|completion-time-stamp |DateTime |The UTC/ISO time-stamp documenting the time and
-date when the transaction was executed.
-
-Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
-.2+|requested-amount  2+e|value |Numeric |The full amount that was
-requested/contested in the transaction.
-2+|currency |String a|The currency of the requested/contested transaction amount.
-
-Format: 3-character abbreviation according to ISO 4217.
-.3+|statuses .3+e|status e|description  |String a|The description of the transaction status message.
-
-<<StatusCodes, Complete list of status codes and descriptions>>.
-
-|severity |String a|The definition of the status message.
-
-Possible values:
-
-- ``information``
-- ``warning``
-- ``error``
-
-//-
-
-|code  |String a|Status code of the status message.
-
-<<StatusCodes, Complete list of status codes and descriptions>>.
-
-3+|api-id |String |Identifier of the currently used API.
-3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
-
-3+|cancel-redirect-url |String a|The URL to which the consumer is redirected after having canceled a payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
-
-3+|fail-redirect-url |String a|The URL to which the consumer is redirected after an unsuccessful payment,
-e.g.``\ https://demoshop-test.wirecard.com/demoshop/#/error``
-|===
-
-.How to proceed after an authorization
-
-To transfer money, the authorized amount has to be captured. WPP does
-not support capturing. However, you can capture an authorization using
-the <<RestApi, REST API>>,
-
-if
-
-- the _authorization_ was successful AND has not yet been captured AND has not
-been voided (which can also be done using the <<RestApi, REST API>>).
-- you provide the ``parent-transaction-id``: This is the ``transaction-id`` of
-the preceding _authorization_. You can gather it from the response to a
-successful _authorization_.
-
-//-
-
-Click the REST API <<Paylib, _paylib_ specification>> for details.
-
-[##WPP_paylib_TransactionType_refund]
-====== Transaction Type _refund_
-
-Basically, _Paylib_ with WPP supports _purchase_ and _authorization_ only. 
-For refunds, use the <<RestApi, REST API>>.
-
-You must provide the necessary data:
-
-- ``parent-transaction-id``: This is the transaction ID of the preceding
-debit. You can gather it from the response to a successful debit.
-- ``amount`` (can be either the total amount for refunding the full
-amount, or a partial amount for a partial refund).
-
-//-
-
-Click the REST API <<Paylib, _paylib_ specification>> for details.
-
-[##WPP_paylib_JSONNVPFields]
-====== JSON/NVP Field Reference
-
-NVP equivalents for JSON fields (for migrating merchants).
-
-Here you can:
-
-- find the NVP equivalents for JSON fields (for migrating merchants),
-- see the structure of a full request (optional fields included).
-
-//-
-
-[##WPP_paylib_JSONNVPFields_request]
-.JSON Structure for _Paylib_ Requests
-
-[source,json]
-----
-{
-    "payment" : {
-          "merchant-account-id" : {
-                "value" : "string"
-          },
-          "request-id" : "string",
-          "transaction-type" : "string",
-          "requested-amount" : {
-                "value" : 0,
-                "currency" : "string"
-          },
-          "account-holder" : {
-                "phone" : "string"
-          },
-          "payment-methods" : {
-                "payment-method" : [
-                   {
-                   "name" : "string"
-                   }
-                ]
-          },
-          "order-number": "string",
-          "descriptor": "string",
-          "success-redirect-url" : "string",
-          "cancel-redirect-url" : "string",
-          "fail-redirect-url" : "string"
-     }
-}
-----
-
-[cols="e,e,e"]
-|===
-|Field (NVP) |Field (JSON) |JSON Parent
-
-|merchant_account_id |value |merchant-account-id ({ })
-|request_id |request-id |payment ({ })
-|transaction_type |transaction-type |payment ({ })
-|requested_amount |value |requested-amount ({ })
-|requested_amount_currency |currency |requested-amount ({ })
-|phone |phone |account-holder ({ })
-|payment_method |payment-method ([ ])/name |payment-methods ({ })
-|order_number |order-number |payment ({ })
-|descriptor |descriptor |payment ({ })
-|success_redirect_url |success-redirect-url |payment ({ })
-|cancel_redirect_url |cancel-redirect-url |payment ({ })
-|fail_redirect_url |fail-redirect-url |payment ({ })
-|===
-
-
-.Response-Only Fields
-
-[source,json]
-----
-{
-    "payment" : {
-        "transaction-state" : "string",
-        "transaction-id" : "string",
-        "completion-time-stamp" : "date",
-        "api-id" : "string",
-        "statuses" : {
-            "status" : [ {
-                "description" : "string",
-                "severity" : "string",
-                "code" : "string"
-            } ]
-        }
-    }
-}
-----
-
-[##WPP_paylib_JSONNVPField_response]
-[cols="e,e,e"]
-|===
-|Field (NVP) |Field (JSON) |JSON Parent
-
-|transaction_id |transaction-id |payment ({ })
-|transaction_state |transaction-state |payment ({ })
-|completion_time_stamp |completion-time-stamp |payment ({ })
-|api_id |api-id |payment ({ })
-|status_description_n |status ([ {} ])/ description |statuses ({ })
-|status_severity_n |status ([ {} ])/ severity |statuses ({ })
-|status_code_n |status ([ {} ])/ code |statuses ({ })
-|===
+. Use the provided credit card number.
+. Send your payment.
 
 //-
