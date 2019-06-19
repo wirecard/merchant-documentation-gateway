@@ -214,10 +214,8 @@ function getAuthorOfFile( $filename ) {
 }
 
 function getLastEditedByOfFile( $filename ) {
-  $cmd_git_log_email = 'git log -n 1 --follow --pretty=format:%ae -- "' . $filename . '" | head -n 1';
-  $author_email_local_part = preg_replace( '/([0-9\+]+)?(.*)@.*/', '$2', exec( $cmd_git_log_email ) );
-  $author = ucwords( str_replace( '.', ' ', $author_email_local_part ) );
-  return $author;
+  $author = 'git log -1 --pretty=format:%an -- "' . $filename . '"';
+  return exec( $author );
 }
 
 function getCurrentBranch() {
