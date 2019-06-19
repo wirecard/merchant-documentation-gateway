@@ -442,6 +442,9 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
+  if( empty(getenv( 'SLACK_TOKEN' )) ) {
+    echo "Environment Var SLACK_TOKEN not set -> output to console";
+  }
   $currentBranch = getCurrentBranch();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
   if( sizeof( $results ) > 0 ) {
@@ -533,7 +536,6 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
   if( empty(getenv( 'SLACK_TOKEN' )) ) {
-    echo "Environment Var SLACK_TOKEN not set -> output to console";
     echo $messageString;
     return true;
   }
