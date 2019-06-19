@@ -44,6 +44,13 @@ function buildTOC(data) {
   }
 }
 
+function replaceRootHref() {
+  var element = $('li.tocify-item[data-unique=Home] > a');
+  console.log("home element:");
+  console.log(element);
+  element.attr('href', '/');
+}
+
 function addTOCbindings() {
   $( 'li.tocify-item > a' ).click( function( event ) {
     // workaround for smoothState
@@ -110,6 +117,7 @@ $.getJSON( 'toc.json', function( data ) {
   if( maskString ) applyMask( maskString );
   if ( typeof scrollSpyLoaded !== undefined ) documentReady();
   addTOCbindings();
+  replaceRootHref();
   if( editorMode ) initMaskEditor( data );
   if( !isEdgeBrowser && !isInternetExplorer ) {
     //recursivePreload( globalTOC );
