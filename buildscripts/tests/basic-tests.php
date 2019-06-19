@@ -305,6 +305,8 @@ function testPatterns( $filename ){
 }
 
 function isInvalidReferenceError( $msg ) { if( substr( $msg, 0, 18 ) === 'invalid reference:' ) { return true; } else { return false; } }
+function isMermaidError( $msg ) { if( $msg === 'invalid style for listing block: mermaid' ) { return true; } else { return false; } }
+
 
 function validateTests( $tests ) {
   $failed = false;
@@ -359,11 +361,17 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 
   // get all asciidoctor errors and add them to the corresponding file entry in the tests results list
   // index == filename
-  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $adError ) {
+  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $e => $adError ) {
     $filename = $adError['filename'];
     // skip file search for invalid references if not in index
     if( $filename !== 'index.adoc' )
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = $adError;
+
+    if( isMermaidError( $adError['message'] ) ) {
+      // skip mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
+      unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
+      continue;
+    }
 
     // if it is an invalid reference error add it to the pile that we use later to search the files with
     if( isInvalidReferenceError( $adError['message'] ) ) {
