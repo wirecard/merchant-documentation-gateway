@@ -305,6 +305,8 @@ function testPatterns( $filename ){
 }
 
 function isInvalidReferenceError( $msg ) { if( substr( $msg, 0, 18 ) === 'invalid reference:' ) { return true; } else { return false; } }
+function isMermaidError( $msg ) { if( $msg === 'invalid style for listing block: mermaid' ) { return true; } else { return false; } }
+
 
 function validateTests( $tests ) {
   $failed = false;
@@ -353,13 +355,23 @@ function validateTests( $tests ) {
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 
+  // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
+  foreach( $testsResultsArray as $tr ) {
+    foreach( $tr['tests']['asciidoctor'] as $e => $adError ) {
+      if( isMermaidError( $adError['message'] ) ) {
+        unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
+        continue;
+      }
+    }
+  }
+
   if( array_key_exists( 'index.adoc', $testsResultsArray ) === false ) return $testsResultsArray;
 
   $invalidReferencesArray = array();
 
   // get all asciidoctor errors and add them to the corresponding file entry in the tests results list
   // index == filename
-  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $adError ) {
+  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $e => $adError ) {
     $filename = $adError['filename'];
     // skip file search for invalid references if not in index
     if( $filename !== 'index.adoc' )
@@ -430,6 +442,9 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
+  if( empty(getenv( 'SLACK_TOKEN' )) ) {
+    echo "Environment Var SLACK_TOKEN not set -> output to console";
+  }
   $currentBranch = getCurrentBranch();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
   if( sizeof( $results ) > 0 ) {
@@ -520,6 +535,10 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
+  if( empty(getenv( 'SLACK_TOKEN' )) ) {
+    echo $messageString;
+    return true;
+  }
   $ch = curl_init( $slackWebhookUrl );
     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'POST' );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $messageString );
