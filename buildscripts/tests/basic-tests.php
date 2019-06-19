@@ -355,6 +355,16 @@ function validateTests( $tests ) {
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 
+  // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
+  foreach( $testsResultsArray as $tr ) {
+    foreach( $tr['tests']['asciidoctor'] as $e => $adError ) {
+      if( isMermaidError( $adError['message'] ) ) {
+        unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
+        continue;
+      }
+    }
+  }
+
   if( array_key_exists( 'index.adoc', $testsResultsArray ) === false ) return $testsResultsArray;
 
   $invalidReferencesArray = array();
@@ -366,12 +376,6 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     // skip file search for invalid references if not in index
     if( $filename !== 'index.adoc' )
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = $adError;
-
-    if( isMermaidError( $adError['message'] ) ) {
-      // skip mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
-      unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
-      continue;
-    }
 
     // if it is an invalid reference error add it to the pile that we use later to search the files with
     if( isInvalidReferenceError( $adError['message'] ) ) {
@@ -528,6 +532,11 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
+  if( empty(getenv( 'SLACK_TOKEN' )) ) {
+    echo "Environment Var SLACK_TOKEN not set -> output to console";
+    echo $messageString;
+    return true;
+  }
   $ch = curl_init( $slackWebhookUrl );
     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'POST' );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, $messageString );
