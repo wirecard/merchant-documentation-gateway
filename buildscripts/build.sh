@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 
 # set up environment
 mkdir -p build/html
