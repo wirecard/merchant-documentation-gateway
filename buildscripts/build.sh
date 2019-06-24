@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # set up environment
 mkdir -p build/html
 cp -r errorpages/* css images js fonts resources build/html/
