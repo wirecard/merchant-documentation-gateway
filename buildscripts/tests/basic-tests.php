@@ -399,6 +399,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
       if( array_key_exists( 'filename', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['filename'] = $filename;
       if( array_key_exists( 'branch', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['branch'] = getBranchOfFile( $filename );
       if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = getLastEditedByOfFile( $filename );
+      if( array_key_exists( 'partner', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['partner'] = getenv( 'PARTNER' );
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = array(
                                                                       'severity'   => 'WARN',
                                                                       'filename'   => $filename,
@@ -452,8 +453,13 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
     $filename = $result['filename'];
     $branch = $result['branch'];
     $author = $result['author'];
+    $partner = $result['partner']
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => '*'.$filename.'* (<https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*',
+                             'pretext'     => '*'.$filename.'* (<https://github.com/wirecard/merchant-documentation-gateway/blob/'
+                                .$currentBranch.'/'.$filename.'|Github Link>)PHP_EOL'
+                                .'Partner: *'.$partner.'*PHP_EOL'
+                                .'Last edited by: *'.$author.'*PHP_EOL'
+                                .'Branch: *'.$currentBranch.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );

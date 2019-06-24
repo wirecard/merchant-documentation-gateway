@@ -13,12 +13,14 @@
 # To be used in Travis-CI. For details see EOF.
 #
 
+set -e
+
 LC_ALL=C
 
 DEBUG=YES #unset to disable
 
 INITDIR="$(pwd)"
-BUILDFOLDER_PATH="${HOME}/build"
+BUILDFOLDER_PATH="/tmp/build"
 TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
 
 WIRECARD_REPO_NAME=merchant-documentation-gateway
@@ -36,11 +38,6 @@ WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
 ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
-# prepare master template
-mkdir -p "${MASTERTEMPLATE_PATH}"
-cp -r "${INITDIR}"/* "${MASTERTEMPLATE_PATH}/"
-cd "${MASTERTEMPLATE_PATH}" \
-  || exitWithError "Line ${LINENO}: Failed to create template."
 
 function increaseErrorCount() {
   # unless argument contains only digits set increase error count by 1
@@ -86,7 +83,11 @@ function cloneWhitelabelRepository() {
   debugMsg "inside cloneWhitelabelRepository()"
   mkdir -p "${INITDIR}/${WL_REPO_ORG}"
   writeRepoKey
-  GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
+  if [[ -d "${WL_REPO_PATH}" ]]; then
+    ( cd "${WL_REPO_PATH}" && GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git pull )
+  else
+    GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
+  fi
   return $?
 }
 
@@ -99,6 +100,9 @@ function createPartnerFolder() {
   mkdir -p "${BUILDFOLDER_PATH}"
 
   # copy the master template to the build directory and name it after the partner
+  if [[ -d "${BUILDFOLDER_PATH}/${PARTNER}" ]]; then
+    rm -rf "${BUILDFOLDER_PATH}/${PARTNER}"
+  fi
   cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}"
 
   if [[ ${PARTNER} != 'WD' ]]; then
@@ -159,7 +163,7 @@ function buildPartner() {
   HTMLFILES=$(ls *.html | grep -vP 'docinfo(-footer)?.html')
 
   debugMsg "Moving created web resources to deploy html folder"
-  mkdir "${BUILDFOLDER_PATH}/${PARTNER}/html" \
+  mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}/html" \
     || increaseErrorCount
 
   mv toc.json searchIndex.json ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" \
@@ -175,27 +179,38 @@ function buildPartner() {
 # if build succeeds set Travis-CI deployment ENV for this partner
 # if build fails, abort and continue with next whitelabel partner
 function main() {
+  PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
+  if ! grep "${PARTNER}" "${PARTNERSLIST_FILE}"; then
+    exit 1
+  fi
+
+  # prepare master template
+  # need to delete folder before to avoid weird file permission errors
+  if [[ -d "${MASTERTEMPLATE_PATH}" ]]; then
+    rm -rf "${MASTERTEMPLATE_PATH}"
+  fi
+  mkdir -p "${MASTERTEMPLATE_PATH}"
+  cp -r "${INITDIR}"/* "${MASTERTEMPLATE_PATH}/"
+  cd "${MASTERTEMPLATE_PATH}" \
+    || exitWithError "Line ${LINENO}: Failed to create template."
+
   debugMsg "inside main()"
   cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
-  PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
-  for partner in WD $(cat "${PARTNERSLIST_FILE}" | grep -v '^#'); do
-    ERRORS=0
-    # sanitize partner name for \r and possibly others
-    partner=$(sed 's/[^A-Za-z_-]//g' <<< ${partner})
-    buildPartner ${partner}
-    if [[ $? -eq 0 ]]; then           # if everything built well then
-      debugMsg "SUCCESS! Partner ${partner} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
-      debugMsg "export DEPLOY_${partner}=TRUE"
-      export DEPLOY_${partner}=TRUE
-      # workaround to get Travis to recognize the ENV vars
-      echo "${partner}" >> "${TRAVIS_ENVSET_FILE}"
-      SUCCESSFUL_BUILDS+=(${partner}) # add to list of successfully built partners
-    else                              # if error occurred continue w next in list
-      debugMsg "Failed! Could not build partner ${partner}"
-      FAILED_BUILDS+=(${partner})     # and add partner to list of failed builds
-      continue
-    fi
-  done
+
+  ERRORS=0
+  buildPartner ${PARTNER}
+  if [[ $? -eq 0 ]]; then           # if everything built well then
+    debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
+    debugMsg "export DEPLOY_${PARTNER}=TRUE"
+    export DEPLOY_${PARTNER}=TRUE
+    # workaround to get Travis to recognize the ENV vars
+    echo "${PARTNER}" >> "${TRAVIS_ENVSET_FILE}"
+    SUCCESSFUL_BUILDS+=(${PARTNER}) # add to list of successfully built partners
+  else                              # if error occurred continue w next in list
+    debugMsg "Failed! Could not build partner ${PARTNER}"
+    FAILED_BUILDS+=(${PARTNER})     # and add partner to list of failed builds
+    continue
+  fi
   return 0
 }
 
