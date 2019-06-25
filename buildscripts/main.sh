@@ -98,6 +98,7 @@ function createPartnerFolder() {
 
   # create folder where we will build the documentation
   mkdir -p "${BUILDFOLDER_PATH}"
+  debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
   # copy the master template to the build directory and name it after the partner
   if [[ -d "${BUILDFOLDER_PATH}/${PARTNER}" ]]; then
@@ -177,6 +178,9 @@ function buildPartner() {
 
 # main() logic: build partner, set by ENV variable ${PARTNER}, see .travis.yml
 function main() {
+  debugMsg "inside main()"
+  cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
+
   PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
   echo "[*] DEBUG"
   ls "${WL_REPO_PATH}"
@@ -194,9 +198,6 @@ function main() {
   cp -r "${INITDIR}"/* "${MASTERTEMPLATE_PATH}/"
   cd "${MASTERTEMPLATE_PATH}" \
     || exitWithError "Line ${LINENO}: Failed to create template."
-
-  debugMsg "inside main()"
-  cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
 
   ERRORS=0
   buildPartner ${PARTNER}
