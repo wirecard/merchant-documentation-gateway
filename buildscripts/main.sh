@@ -182,11 +182,8 @@ function main() {
   cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
 
   PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
-  echo "[*] DEBUG"
-  ls "${WL_REPO_PATH}"
-  echo "[*] DEBUG END"
-  if ! grep "${PARTNER}" "${PARTNERSLIST_FILE}"; then
-    exit 1
+  if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}"; then
+    exit 0
   fi
 
   # prepare master template
