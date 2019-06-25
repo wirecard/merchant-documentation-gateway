@@ -175,11 +175,12 @@ function buildPartner() {
   return ${ERRORS}
 }
 
-# main() logic: get list of buildable partners, try build of each partner
-# if build succeeds set Travis-CI deployment ENV for this partner
-# if build fails, abort and continue with next whitelabel partner
+# main() logic: build partner, set by ENV variable ${PARTNER}, see .travis.yml
 function main() {
   PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
+  echo "[*] DEBUG"
+  ls "${WL_REPO_PATH}"
+  echo "[*] DEBUG END"
   if ! grep "${PARTNER}" "${PARTNERSLIST_FILE}"; then
     exit 1
   fi
