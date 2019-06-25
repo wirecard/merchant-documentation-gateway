@@ -76,6 +76,22 @@ are relevant for _Paylib_.
 | Currencies   | EUR
 |===
 
+[#WPP_paylib_Transactions]
+====== Transaction Types _debit_ and _authorization_
+
+A _debit_ charges the specified amount from the account holder’s bank account and marks it for immediate transfer.
+
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later money transfer.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+
+. Redirect the consumer to the payment page (initial response URL).
+
+. Highly recommended: Parse and process the payment response.
+
+
 [#WPP_paylib_Samples]
 ====== Samples
 
@@ -196,13 +212,273 @@ e.g. ``{pp-redirect-url-error}``
 }
 ----
 
-. Use the URL you receive in the response (Don't use the one above).
-. Initiate the payment process.
-. Enter _User Name_ on _Paylib_ side.
-. Validate your entry.
-. Enter _Password_ on _Paylib_ side.
-. Validate your entry.
-. Use the provided credit card number.
-. Send your payment.
+[cols="15e,10,75"]
+|===
+| Field (JSON) | Data Type | Description
+
+| payment-redirect-url | String | The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>﻿).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64-encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>﻿﻿
+for more details on redirection targets after payment and transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json]
+----
+{
+  "payment" : {
+    "transaction-id" : "b9e85877-1f01-418a-bd91-f8839b9e8569",
+    "request-id" : "f5dad8da-fc80-4dce-9d7b-9f5cdfb8a36b",
+    "transaction-type" : "debit",
+    "transaction-state" : "success",
+    "completion-time-stamp" : "2019-06-25T08:13:43",
+    "requested-amount" : {
+      "currency" : "EUR",
+      "value" : 10.100000
+    },
+    "statuses" : {
+      "status" : [ {
+        "description" : "The resource was successfully created.",
+        "severity" : "information",
+        "code" : "201.0000"
+      }, {
+        "description" : "The acquirer returned Processing temporarily not possible.  Please try again later.",
+        "severity" : "error",
+        "code" : "500.1068"
+      } ]
+    },
+    "authorization-code" : "",
+    "parent-transaction-id" : "f45378ba-98dc-48f4-b539-60f6f681ef25",
+    "card-token" : {
+      "token-id" : "4610322451144455",
+      "masked-account-number" : "444444******4455"
+    },
+    "success-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/success",
+    "processing-redirect-url" : "https://sandbox-engine.thesolution.com/shop/processing.html",
+    "merchant-account-id" : {
+      "value" : "d79cbe98-cb2c-4882-a16e-47eaeb99ad44"
+    },
+    "cancel-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/cancel",
+    "fail-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/error",
+    "account-holder" : {
+      "account-info" : { },
+      "last-name" : "Wu",
+      "first-name" : "Wing",
+      "email" : "wiwu@example.com"
+    },
+    "payment-methods" : {
+      "payment-method" : [ {
+        "payload" : { },
+        "name" : "paylib"
+      } ]
+    },
+    "api-id" : "wpp",
+    "descriptor" : "mda"
+  }
+}
+----
+
+[cols="15e,10,10,65"]
+|===
+2+| Field (JSON) | Data Type | Description
+
+2+| transaction-id | String | A unique identifier assigned to every transaction (by Wirecard). Used
+when searching for or referencing to it later.
+2+| request-id | String | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later.
+2+| transaction-type | String | The requested transaction type. For _Sofort_ payments, the
+transaction-type must be set to ``authorization`` or `debit`.
+2+| transaction-state | String a| The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes
+with state either _success_ or _failed_. This information is returned in
+the response only.
+2+| completion-time-stamp | YYYY-MM-DD-Thh:mm:ss | The UTC/ISO time-stamp documents the time and date when the transaction
+was executed. 
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount. For
+_Sofort_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+                      | value    | Numeric | The full amount that is requested/contested in a transaction.
+.3+| status e| description | String | The description of the transaction status message.
+| severity    | String a| The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+| code | String | Status code of the status message.
+2+| authorization-code | String | Output code for transaction type ``authorization``.
+2+| parent-transaction-id | String | The ID of the transaction being referenced as a parent.
+.2+| card-token | token-id | String | A unique identifier assigned to every card token.
+| masked-account-number  | String | This is the masked card account number of the consumer.
+2+| success-redirect-url | String | The URL to which the consumer is redirected after a successful
+payment, e.g. ``{pp-redirect-url-success}``
+2+| processing-redirect-url | String | The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page on the merchant’s website.
+| merchant-account-id  | value  | String | A unique identifier assigned to every merchant account (by Wirecard).
+2+| cancel-redirect-url | String | The URL to which the consumer is redirected after having canceled a
+payment, e.g. ``{pp-redirect-url-cancel}``
+2+| fail-redirect-url | String | The URL to which the consumer is redirected after a failed payment,
+e.g. ``{pp-redirect-url-error}``
+.3+| account-holder e| first-name | String | The first name of the account holder.
+                    | last-name  | String | The last name of the account holder.
+
+                    | email  | String | The email address of the account holder.
+.2+| payment-method e| payload  |   a| 
+//// 
+Here is a description from Paylib (API): 
+String
+Only if transaction-state is success.
+This is the input field name of the form that the merchant has to submit to the Paylib URL (payment-methods/payment-method[@url]).
+////
+| name | String | The name of the payment method used.
+2+| api-id       | String | Identifier of the currently used API.
+2+| descriptor   | String    | Description of the transaction for account holder's bank statement purposes.
+|===
+
+[#WPP_paylib_JSONNVP_Field_Reference]
+====== JSON/NVP Field Reference
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+.JSON Structure for _Paylib_ Requests
+
+[source,json]
+----
+ {
+    "payment": {
+        "merchant-account-id": {
+            "value":"string"
+        },
+        "request-id":"string",
+        "transaction-type": "string",
+        "requested-amount": {
+            "value": 0,
+            "currency": "string"
+        },
+        "payment-methods": {
+            "payment-method":[
+            {
+                "name": "string"
+            }
+            ]
+        },
+        "account-holder" : {
+            "first-name" : "string",
+            "last-name" : "string"
+        },
+        "descriptor": "string",
+        "success-redirect-url": "string",
+        "fail-redirect-url": "string",
+        "cancel-redirect-url": "string"
+    }
+}
+----
+
+[#WPP_paylib_JSON_NVPFields_Request]
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount |value |requested-amount ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|descriptor |descriptor |payment ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|===
+
+
+.Response-Only Fields
+
+[source,json]
+----
+{
+"payment": {
+  "transaction-id" : "string",
+  "transaction-state" : "string",
+  "completion-time-stamp" : "2018-03-23T10:41:34",
+  "api-id" : "string",
+  "statuses" : {
+    "status" : [ {
+      "description" : "string",
+      "severity" : "string",
+      "code" : "string"
+    } ]
+  }
+  }
+}
+----
+
+
+[#WPP_Sofort_JSON_NVPFields_Response]
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+|transaction_id |transaction-id |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|api_id |api-id |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
+|===
+
 
 //-
