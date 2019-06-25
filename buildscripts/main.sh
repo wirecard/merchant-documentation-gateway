@@ -21,7 +21,6 @@ DEBUG=YES #unset to disable
 
 INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
-TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
 
 WIRECARD_REPO_NAME=merchant-documentation-gateway
 

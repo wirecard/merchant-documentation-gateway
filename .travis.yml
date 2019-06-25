@@ -1,13 +1,12 @@
 language: php
 php: 7.2
 env:
-  - TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
-
-matrix:
-  include:
-    - env: PARTNER=WD
-    - env: PARTNER=PO
-    - env: PARTNER=MS
+  global:
+    - TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
+  matrix:
+    - PARTNER=WD
+    - PARTNER=PO
+    - PARTNER=MS
 
 before_script:
   - INIT_DIR=$(pwd)
@@ -35,7 +34,8 @@ install:
 script:
   - chmod +x buildscripts/main.sh
   - ./buildscripts/main.sh
-  - for p in $(cat ${TRAVIS_ENVSET_FILE}); do export DEPLOY_${p}=TRUE; done
+  - echo "TRAVIS_ENVSET_FILE=${TRAVIS_ENVSET_FILE}"
+  - if [[ -f "${TRAVIS_ENVSET_FILE}" ]]; then export DEPLOY_${PARTNER}=TRUE; fi
 before_deploy:
   - echo "in before_deploy section beginning " ${DEPLOY_PO}
 deploy:
