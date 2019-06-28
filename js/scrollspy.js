@@ -126,7 +126,7 @@ function documentReady() {
     $('pre > code').each(function (i, block) {
       requestIdleCallback(function () {
         hljs.highlightBlock(block);
-      }).bind(null, block);
+      });
     });
   }, { timeout: 15000 });
 }
