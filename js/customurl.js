@@ -19,8 +19,8 @@ function recursiveBuildTocArray(elements, level, maxLevel=3) {
 }
 */
 function applyMask(maskString) {
-  console.log('inside applymask');
-  console.log(tocArray);
+  //console.log('inside applymask');
+  //console.log(tocArray);
   if(!maskString) return true;
   var maskItems = maskString.split('-');
   var maskRegexp = /([0-9]+)(s([0-9]+))?(i([0-9]+))?/;
