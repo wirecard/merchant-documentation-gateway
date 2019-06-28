@@ -218,6 +218,11 @@ function getLastEditedByOfFile( $filename ) {
   return exec( $author );
 }
 
+function getCommitAuthor() {
+  $commiter = 'git log -1 --pretty=format:%an';
+  return exec( $commiter );
+}
+
 function getCurrentBranch() {
   $cmd_git_branch = 'git name-rev --name-only HEAD';
   $currentBranch = exec( $cmd_git_branch );
@@ -444,17 +449,18 @@ function sendNotifications ( $results ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console";
   }
   $currentBranch = getCurrentBranch();
+  $commitAuthor = getCommitAuthor();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
   if( sizeof( $results ) > 0 ) {
     foreach( $results as $filename => $result ) {
-      $slackMessage = createSlackMessageFromErrors( $result, $currentBranch );
+      $slackMessage = createSlackMessageFromErrors( $result, $currentBranch, $commitAuthor );
       if( $slackMessage !== false )
         $status = postToSlack( $slackWebhookUrl, $slackMessage );
     }
   }
   else {
     // empty error array creates "success" msg in createSlackMessageFromErrors
-    $slackMessage = createSlackMessageFromErrors( array(), $currentBranch );
+    $slackMessage = createSlackMessageFromErrors( array(), $currentBranch, $commitAuthor );
     if( $slackMessage !== false )
       $status = postToSlack( $slackWebhookUrl, $slackMessage );
   }
@@ -462,7 +468,7 @@ function sendNotifications ( $results ) {
 }
 
 // creates a single error message
-function createSlackMessageFromErrors( $result, $currentBranch ) {
+function createSlackMessageFromErrors( $result, $currentBranch, $commitAuthor ) {
 
   $numErrors = 0;
   if( sizeof( $result ) > 0 ){
@@ -476,7 +482,7 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
     }
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*',
+                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*PHP_EOLCommit from: *'.$commitAuthor.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
@@ -521,7 +527,7 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
     }
   } else {
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => 'Branch: *'.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)',
+                             'pretext'     => 'Branch: *'.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)PHP_EOLCommit from: *'.$commitAuthor.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
