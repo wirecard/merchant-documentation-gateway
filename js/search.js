@@ -87,14 +87,15 @@ if ( !editorMode ) {
     $("#searchterm").on("search paste keydown keyup click change", function(event) {
       // skip event IF arrow key up or down is pressed,
       // in order to display selected items correct
-      switch(event.which) {
-        case 38:
-        case 40:
+      var keyCode = event.keyCode || event.which;
+      switch(keyCode) {
+        case 13: // enter
+        case 38: // arrow up
+        case 40: // arrow down
         return;
       }
 
       if ( searchIndexStatus == 'empty' ) loadLunrIndex();
-      var keyCode = event.keyCode || event.which;
       if ( keyCode === 13 ) {
         event.preventDefault();
       }
@@ -156,8 +157,9 @@ if( $(window).width() < mobileLayoutCutoffWidth ) {
 // enable the user to use arrow keys and enter to navigate search results
 $('#searchfield').keydown(function(e) {
   var results = $('#resultslist');
+  var keyCode = e.keyCode || e.which;
 
-  switch (e.which) {
+  switch (keyCode) {
     case 38: // arrow up
       e.preventDefault();
       results.find(':not(:first-child).selected').removeClass('selected')
@@ -172,6 +174,10 @@ $('#searchfield').keydown(function(e) {
         results.children(':first').addClass('selected');
         searchKeyNavigation = true;
       }
+      break;
+      case 13: // enter
+      e.preventDefault();
+      results.find('.selected').click();
       break;
   }
 })
