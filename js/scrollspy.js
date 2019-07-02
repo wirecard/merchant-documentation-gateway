@@ -1,15 +1,26 @@
 var currentlyHighlightedElementID;
 
+function replaceHash(hID) {
+  window.history.replaceState({}, document.title, window.location.pathname + (hID.length ? '#' + hID : ''));
+}
+
+var hashToSet = '';
+var hashChangeTimer;
 function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
     var subsectionTitleElement = $(this).find("h4:first, h3:first");
-    /*
-    // works fine without this:
-    if( subsectionTitleElement.hasClass('discrete') ){
-      subsectionTitleElement = $(this).find("h4:first");
-    }*/
     var hID = subsectionTitleElement.attr('id');
-    //console.log('header in viewport: ' + hID);
+    if(subsectionTitleElement.length > 1) {
+      hashToSet = ''
+    }
+    else {
+      hashToSet = hID;
+    }
+
+    window.clearTimeout(hashChangeTimer);
+    hashChangeTimer = setTimeout(function () {
+      replaceHash(hashToSet);
+    }, 100);
 
     var hasMinitoc = $('#minitoc > ul').has('li').length ?
       $('#minitoc-title').html() == subsectionTitleElement.text() : true ? false
@@ -53,7 +64,6 @@ function documentReady() {
   document.title = pageTitle + ' - ' + docTitle;
   $("div.sect3 > table.tableblock, div.sect2 > table.tableblock").wrap("<div class='tablewrapper'></div>");
   $('#content').addClass('scene_element--fadeinup');
-  //highlightTOC();
   if (getUrlHash() !== false) {
     highlightTOCelement(getUrlHash());
   } else {
@@ -61,12 +71,12 @@ function documentReady() {
     highlightTOCelement($('#content h2, #content h3').first().attr('id'));
   }
   var scrollTimer;
-  var scrollDelay = 100;
+  var scrollDelay = 200;
   $(window).on('scroll', function () {
-    window.cancelIdleCallback(scrollTimer);
-    scrollTimer = requestIdleCallback(function () {
+    window.clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function () {
       window.requestAnimationFrame(highlightTOC);
-    }, { timeout: scrollDelay });
+    }, scrollDelay);
   });
 
   var resizeTimer;
