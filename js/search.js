@@ -1,5 +1,5 @@
 // indicates whether user uses arrow keys to navigate
-var searchKeyNavigation = false;
+var hightlightSearchResult = false;
 
 var previousSearchTerm = '';
 if ( !editorMode ) {
@@ -23,13 +23,24 @@ if ( !editorMode ) {
     }
     for ( var i = 0; i < maxResults; i++ ) {
       var result = results[i];
-      var tocAnchor = $( 'li.tocify-item[data-unique=' + result.ref + '] > a' );
-      var tocParentAnchor = tocAnchor.parent().parent().prev( 'li' );
+      var tocAnchor = $('li.tocify-item[data-unique=' + result.ref + '] > a');
+      var tocParentAnchor = tocAnchor.parent().parent().prev('li');
       var parentText = tocParentAnchor.text();
-      if ( tocParentAnchor.length == 0 ) parentText = 'Home';
-      $( '#resultslist' ).append('<li class="tocify-item"><a tocref="' + result.ref + '">' + tocAnchor.text() + '</a><br><span class="searchresultsection">in: ' + parentText + '</span></li>');
+      if (tocParentAnchor.length == 0) parentText = 'Home';
+      // $('#resultslist').append('<li class="tocify-item"><a tocref="' + result.ref + '">' +
+      //   tocAnchor.text() + '</a><br><span class="searchresultsection">in: ' + parentText + '</span></li>');
+      $('<li/>', { class: "tocify-item" })
+        .append($('<a/>', { tocref: result.ref, text: tocAnchor.text() }))
+        .append($('<br>'))
+        .append($('<span/>', { class: "searchresultsection", text: "in: " + parentText }))
+        .hover(function() {
+          $('.selected').removeClass('selected');
+          $(this).addClass('selected');
+          hightlightSearchResult = true;
+        })
+        .appendTo($('#resultslist'));
     }
-    if ( results.length == 0 ) {
+    if ( results.length === 0 ) {
       $( '#resultslist' ).append('<li class="tocify-item"><a>No results.</a></li>');
     }
     keepClickedSearchResultsBold();
@@ -107,7 +118,7 @@ if ( !editorMode ) {
       window.clearTimeout( typingTimer );
       typingTimer = setTimeout(function() {
         executeSearch( st );
-        searchKeyNavigation = false;
+        hightlightSearchResult = false;
       }, searchDelay);
 
       window.clearTimeout( markingTimer );
@@ -170,9 +181,9 @@ $('#searchfield').keydown(function(e) {
       results.find(':not(:last-child).selected').removeClass('selected')
         .next().addClass('selected');
       // initial add of 'selected' class
-      if(!searchKeyNavigation && results.length > 0) {
+      if(!hightlightSearchResult && results.length > 0) {
         results.children(':first').addClass('selected');
-        searchKeyNavigation = true;
+        hightlightSearchResult = true;
       }
       break;
       case 13: // enter
