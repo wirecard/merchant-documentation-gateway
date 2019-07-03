@@ -191,4 +191,4 @@ $('#searchfield').keydown(function(e) {
       results.find('.selected').click();
       break;
   }
-})
+});
