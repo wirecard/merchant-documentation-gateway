@@ -1,3 +1,5 @@
+// indicates whether user uses arrow keys to navigate
+var hightlightSearchResult = false;
 
 var previousSearchTerm = '';
 if ( !editorMode ) {
@@ -21,13 +23,24 @@ if ( !editorMode ) {
     }
     for ( var i = 0; i < maxResults; i++ ) {
       var result = results[i];
-      var tocAnchor = $( 'li.tocify-item[data-unique=' + result.ref + '] > a' );
-      var tocParentAnchor = tocAnchor.parent().parent().prev( 'li' );
+      var tocAnchor = $('li.tocify-item[data-unique=' + result.ref + '] > a');
+      var tocParentAnchor = tocAnchor.parent().parent().prev('li');
       var parentText = tocParentAnchor.text();
-      if ( tocParentAnchor.length == 0 ) parentText = 'Home';
-      $( '#resultslist' ).append('<li class="tocify-item"><a tocref="' + result.ref + '">' + tocAnchor.text() + '</a><br><span class="searchresultsection">in: ' + parentText + '</span></li>');
+      if (tocParentAnchor.length == 0) parentText = 'Home';
+      // $('#resultslist').append('<li class="tocify-item"><a tocref="' + result.ref + '">' +
+      //   tocAnchor.text() + '</a><br><span class="searchresultsection">in: ' + parentText + '</span></li>');
+      $('<li/>', { class: "tocify-item" })
+        .append($('<a/>', { tocref: result.ref, text: tocAnchor.text() }))
+        .append($('<br>'))
+        .append($('<span/>', { class: "searchresultsection", text: "in: " + parentText }))
+        .hover(function() {
+          $('.selected').removeClass('selected');
+          $(this).addClass('selected');
+          hightlightSearchResult = true;
+        })
+        .appendTo($('#resultslist'));
     }
-    if ( results.length == 0 ) {
+    if ( results.length === 0 ) {
       $( '#resultslist' ).append('<li class="tocify-item"><a>No results.</a></li>');
     }
     keepClickedSearchResultsBold();
@@ -83,8 +96,17 @@ if ( !editorMode ) {
     });
 
     $("#searchterm").on("search paste keydown keyup click change", function(event) {
-      if ( searchIndexStatus == 'empty' ) loadLunrIndex();
+      // skip event IF arrow key up or down is pressed,
+      // in order to display selected items correct
       var keyCode = event.keyCode || event.which;
+      switch(keyCode) {
+        case 13: // enter
+        case 38: // arrow up
+        case 40: // arrow down
+        return;
+      }
+
+      if ( searchIndexStatus == 'empty' ) loadLunrIndex();
       if ( keyCode === 13 ) {
         event.preventDefault();
       }
@@ -96,6 +118,7 @@ if ( !editorMode ) {
       window.clearTimeout( typingTimer );
       typingTimer = setTimeout(function() {
         executeSearch( st );
+        hightlightSearchResult = false;
       }, searchDelay);
 
       window.clearTimeout( markingTimer );
@@ -110,28 +133,29 @@ function keepClickedSearchResultsBold() {
     var e = $(this);
     var tocref = e.find('a').first().attr('tocref');
     var tocItem = $('li.tocify-item[data-unique=' + tocref + '] > a');
-    var pageID = tocItem.attr('href').replace(/\.html.*/, '');
-      e.on("click touch", function(event){
-        $('#resultslist > li > a').css("font-weight","normal");
-        e.css("font-weight","bold");
-        tocItem.click();
-        // exclude Edge workaround
-        if ( isEdgeBrowser || isInternetExplorer ) {
-          window.location.href = tocItem[0].href;
-          return true;
-        }
+    if(tocItem.attr('href') !== undefined)
+      var pageID = tocItem.attr('href').replace(/\.html.*/, '');
+    e.on("click touch", function (event) {
+      $('#resultslist > li > a').css("font-weight", "normal");
+      e.css("font-weight", "bold");
+      tocItem.click();
+      // exclude Edge workaround
+      if (isEdgeBrowser || isInternetExplorer) {
+        window.location.href = tocItem[0].href;
+        return true;
+      }
 
-        if(pageID != tocref) {
-          window.requestAnimationFrame(function() {
-            setTimeout(function() {
-              window.location.href='#' + tocref;
-            }, 200);
-            setTimeout(function() {
-              window.location.href='#' + tocref;
-            }, 1000);
-          });
-        }
-      });
+      if (pageID != tocref) {
+        window.requestAnimationFrame(function () {
+          setTimeout(function () {
+            window.location.href = '#' + tocref;
+          }, 200);
+          setTimeout(function () {
+            window.location.href = '#' + tocref;
+          }, 1000);
+        });
+      }
+    });
       tocItem.trigger('mouseenter');
   });
 }
@@ -140,3 +164,31 @@ if( $(window).width() < mobileLayoutCutoffWidth ) {
     $('#resultslist').empty();
   } );
 }
+
+// enable the user to use arrow keys and enter to navigate search results
+$('#searchfield').keydown(function(e) {
+  var results = $('#resultslist');
+  var keyCode = e.keyCode || e.which;
+
+  switch (keyCode) {
+    case 38: // arrow up
+      e.preventDefault();
+      results.find(':not(:first-child).selected').removeClass('selected')
+        .prev().addClass('selected');
+      break;
+    case 40: // arrow down
+      e.preventDefault();
+      results.find(':not(:last-child).selected').removeClass('selected')
+        .next().addClass('selected');
+      // initial add of 'selected' class
+      if(!hightlightSearchResult && results.length > 0) {
+        results.children(':first').addClass('selected');
+        hightlightSearchResult = true;
+      }
+      break;
+      case 13: // enter
+      e.preventDefault();
+      results.find('.selected').click();
+      break;
+  }
+})
