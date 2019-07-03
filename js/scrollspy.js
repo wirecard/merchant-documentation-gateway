@@ -10,8 +10,8 @@ function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
     var subsectionTitleElement = $(this).find("h4:first, h3:first");
     var hID = subsectionTitleElement.attr('id');
-    if(subsectionTitleElement.length > 1) {
-      hashToSet = ''
+    if (subsectionTitleElement.length > 1) {
+      hashToSet = '';
     }
     else {
       hashToSet = hID;
@@ -110,9 +110,7 @@ function documentReady() {
     new ClipboardJS('.clipboard', {
       target: function (b) {
         var p = b.parentNode;
-        return p.className.includes("highlight")
-          ? p.childNodes[0]
-          : p.childNodes[0];
+        return p.className.includes("highlight") ? p.childNodes[0] : p.childNodes[0];
       }
     }).on('success', function (e) {
       e.clearSelection();
