@@ -6,6 +6,9 @@ echo "set up environment"
 mkdir -p build/html
 cp -r errorpages/* css images js fonts resources build/html/
 
+# echo "run babel"
+# node_modules/.bin/babel js/ -d build/html/js/
+
 echo "run basic tests"
 php buildscripts/tests/basic-tests.php || true
 
