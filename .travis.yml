@@ -3,55 +3,53 @@ php: 7.2
 git:
   depth: false
 before_script:
-  - INIT_DIR=$(pwd)
-  - cd /home/travis/build/
-  - echo | pecl install channel://pecl.php.net/yaml-2.0.2
-  - git clone https://github.com/krakjoe/pthreads.git
-  - cd pthreads
-  - git checkout 6c6b15138c923b69cfa46ee05fc2dd45da587287
-  - phpize
-  - ./configure && make && make install
-  - cd ..
-  - echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - cd ${INIT_DIR}
-  - bash buildscripts/asciidoc/create_mermaid_config.sh
+- INIT_DIR=$(pwd)
+- cd /home/travis/build/
+- echo | pecl install channel://pecl.php.net/yaml-2.0.2
+- git clone https://github.com/krakjoe/pthreads.git
+- cd pthreads
+- git checkout 6c6b15138c923b69cfa46ee05fc2dd45da587287
+- phpize
+- "./configure && make && make install"
+- cd ..
+- echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+- cd ${INIT_DIR}
+- bash buildscripts/asciidoc/create_mermaid_config.sh
 install:
-  - gem install asciidoctor -v 1.5.8
-  - gem install asciidoctor-diagram -v 1.5.14
-  - gem install asciidoctor-pdf --pre
-  - gem install rouge
-  - gem install concurrent-ruby
-  - npm install -g inline-source-cli
-  - npm install --save cheerio
-  - npm install --save lunr
-  - npm install --save asciidoctor.js
-  - npm install --save minimist
-  - npm install -g mermaid.cli
+- gem install asciidoctor -v 1.5.8
+- gem install asciidoctor-diagram -v 1.5.14
+- gem install asciidoctor-pdf --pre
+- gem install rouge
+- gem install concurrent-ruby
+- npm install -g inline-source-cli
+- npm install --save cheerio
+- npm install --save lunr
+- npm install --save asciidoctor.js
+- npm install --save minimist
+- npm install -g mermaid.cli
 script:
-  - travis_wait bash buildscripts/build.sh
+- travis_wait bash buildscripts/build.sh
 deploy:
-  - provider: s3
-    access_key_id: $S3ACCESSID
-    secret_access_key: $S3ACCESSKEY
-    bucket: wirecard-docs-internal
-    region: eu-central-1
-    skip_cleanup: true
-    local-dir: build/html
-    on:
-      branch: staging
-  - provider: s3
-    access_key_id: $S3ACCESSID
-    secret_access_key: $S3ACCESSKEY
-    bucket: wirecard-docs
-    region: eu-central-1
-    skip_cleanup: true
-    local-dir: build/html
-    on:
-      branch: master
-
+- provider: s3
+  access_key_id: "$S3ACCESSID"
+  secret_access_key: "$S3ACCESSKEY"
+  bucket: wirecard-docs-internal
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: build/html
+  on:
+    branch: staging
+- provider: s3
+  access_key_id: "$S3ACCESSID"
+  secret_access_key: "$S3ACCESSKEY"
+  bucket: wirecard-docs
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: build/html
+  on:
+    branch: master
 notifications:
   slack:
-    rooms:
-      secure: iO63Djwg7GzOVdRS60WM09dgX825tC4jOb1DGIEvTUYC3OZFU0qaktoHczIcGbvjxfVLg/zxBycaZrpCUQbPKd3pFSaoRU0UL+BRp+7cV2e5Vus/FuOfYpVYzFtfUe6G/6Z5p01o53943zNja0eLMmM2ir7cQZxL2+ikbw6v2fKD+uJ7sxH4c00vYJ9K9zepM1ADkZhenLdPZcxxMO82r0+3KnmgG3TlMLbgoAY96CmF4+ZXTtu8QO0cU+4U7ny1b3pasUlctuU96X2/dJ2KHrfOs6V4LY0qLOWd0NPjj7OJ9bEWso0ON8kyX2LrwJb/S1XleffRMUFHI8tGZ4UVEdIAjmDnVtOv3KSpYLUqGzgg62rLBRjAgG/UV2uN6Rmkn+SnwPe9p8cxz7K6QJ7x6t40TkgOqS3LmjAjU2cf72/0D5elBgOfZ+tIQKnTvei+dd4rRLOpQnVv+7Fh3PT752NirrMy/wHK2aRWqXj5jfLE4ZtP/H9VKsylfNmeOhxoIko7s0DMGt4HI74cTVF+be0gAC9t66jMpZCi8+whqP+DmMNWqjj1esQrPIlK7jhZazsru59AslyhOmeepJY5rXiAWhdtzRui+r14E8qo5XS9hZTvUs7X+CWQEm/7TA6cM4obzNVAL/70mxQXPbgbDKAnr+F1cBB2jFAC417CLl4=
-      on_success: always
-      on_failure: always
+    secure: gLcNWlnUwgLsclp92HVejJbcVAR0OuHQw4rFubuVAivha3n3AAMwkznk2peILYNTQjLCRdCzYslOo8GD+qgY69sMqVogzootLne3Pvx7zi1cfmTeCGqQ4y071Lx4TF7UpQcbZjWgoPfA6dn2d0XLKtM6JNOAjzK5tzGL4CE+VvWHksnd+2hHfx+lsaNxzkNxDo1e7Xuz4/X/Os+36kQE1lXcBk/gFEXSRDQI8nl9zB/Z4FPRFgmPsF4puw0J2Wh4Pa9aPLEDvLT+aF03NrLGGCCSrLWXlMA719FalHm1H8YmxrKwt7SPxXTmQ488TJ8yIOfeSCk0Z4jcrUZXgzLS0t3lXmjvwSleVFJrzQXG7AnYmtCMZAL04krEIbmKrFT0aJR1JUtskj6p23LrOQ2k16k87GmqpWRrXTcmFHuod0y0Q6KI8QX5x4VGFjZHzqi7IGV4hIc1WG/zRvWZp4D6pqI7qq9Gi7JK6UtY+COJOQiBTkNnr6nDq9sVfLxsiqG1WPiV8F1Mva/TWnFYvm83CylqPWLgi8N9sgOG5Wq3R2kD62YGPsPbEI6Z0bS4D4uqweq/sflXbh5+OEVBvHKvUFr9H6TvVmSCJqYq6jC9fYfH1+xppZhtqzx+bNn2TVKPbLvebYbP0MKYdwuDymE2R4UNH84ZcSELbtQdZe4yLco=
+    on_success: always
+    on_failure: always
