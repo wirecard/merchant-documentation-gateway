@@ -3227,18 +3227,20 @@ There are two different IPP scenarios:
 ==== Workflow
 . The consumer checks out products in the merchant's shop.
 . The merchant's shop displays the payment form, where the consumer enters their credit card data (PAN).
-. WPG checks the card's IPP eligibility by validating the card number against the BIN ranges activated at the issuing bank. 
+. The merchant sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to WPG to check the card's IPP eligibility.
+. The <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> 
+** validates the credit card number against the BIN ranges activated at the issuing bank. + 
 The BIN range is part of the contract between merchant and issuing bank. It lists all  **B**ank **I**dentification **N**umbers (the first 6 digits of credit card number) that qualify for installment payment.
-
-+
-WPG also checks if the transaction and the transaction currency are domestic. 
-
+** checks if the transaction and the transaction currency are domestic.
+=====================================================================
 * Validation fail: The consumer is redirected to the regular (credit card) payment form.
 * Validation OK: The consumer can select either regular payment or payment in installments.
+=====================================================================
+
+[start=5]
+. The <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> generates a list of all available IPPs and sends it to the merchant.
+. The Merchant offers "Payment in Installments" to the consumer.
 . The consumer selects "Payment in Installments". 
-. The merchant sends an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to WPG.
-. WPG forwards the request to the issuing bank.
-. The issuing bank generates a list of all available IPPs and sends it to the merchant.
 . The merchant's shop displays the available installment plans to the consumer (on the checkout page).
 . The consumer selects an installment plan and submits the payment. The selected program/tenure is sent with the _purchase_ request to WPG.
 *Mandatory IPP fields* in this _purchase_ request are <<GeneralPlatformFeatures_IPP_Fields, __tenure__>> and <<GeneralPlatformFeatures_IPP_Fields, __program-id__>>. 
