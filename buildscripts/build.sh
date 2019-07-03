@@ -20,7 +20,7 @@ cp mermaid/*.svg .
 # we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
 checksum_file="/tmp/mermaid-css-checksum.txt"
 sha1sum css/mermaid.css > "$checksum_file"
-if ! diff -q $checksum_file .asciidoctor/mermaid-css-checksum.txt; then
+if ! diff -q --strip-trailing-cr $checksum_file .asciidoctor/mermaid-css-checksum.txt; then
     echo "Delete all *.svg to force re-creation"
     rm *.svg
 fi
