@@ -543,24 +543,9 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
     echo $messageString;
     return true;
   }
-  $ch = curl_init( $slackWebhookUrl );
-    curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'POST' );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $messageString );
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
 
-    // windows...
-    curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
-    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
-
-    curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
-      'Content-Type: application/json',
-      'Content-Length: ' . strlen( $messageString ))
-  );
-  $result = curl_exec( $ch );
-  if( $result === false )
-    return curl_error( $ch );
-  else
-    return $result;
+  $result = exec( "util/post-to-slack.py ".$messageString );
+  return $result;
 }
 
 function main() {
