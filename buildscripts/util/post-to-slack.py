@@ -1,5 +1,6 @@
 #/bin/python3
 
+import argparse
 import sys
 import os
 import json
@@ -30,11 +31,16 @@ def post_to_slack(message):
 
 
 def main():
-    if len(sys.argv) == 1:
-        print("Usage: {} <message in JSON>".format(sys.argv[0]))
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("message", type=str, nargs='?', help="Message to send to Slack channel")
+    args = parser.parse_args()
 
-    message = sys.argv[1]
+    message = ""
+    if args.message == None:
+        message = "".join(sys.stdin.readlines())
+    else:
+        message = args.message
+
     post_to_slack(message)
 
 
