@@ -2,12 +2,36 @@
 
 set -e
 
+function timed_log {
+    echo "[$(date +'%T')] $1"
+}
+
 echo "set up environment"
 mkdir -p build/html
 cp -r errorpages/* css images js fonts resources build/html/
 
 # echo "run babel"
 # node_modules/.bin/babel js/ -d build/html/js/
+
+
+# svg mermaid diagrams are stored in mermaid/.
+# changes need to be created, moved there and committed.
+cp mermaid/*.svg .
+
+# calculate the checksum for mermaid.css.
+# mermaid.css is used for the creation of the mermaid diagrams,
+# which are cached by the asciidoctor-diagram extension in .asciidoctor/diagram/.
+# we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
+checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
+checksum_new="/tmp/mermaid-css-checksum.txt"
+sha1sum --text css/mermaid.css > "${checksum_new}"
+# show hashes
+echo "Reference: $(cat ${checksum_ref})"
+echo "Current:   $(cat ${checksum_new})"
+if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
+    echo "Delete all *.svg to force re-creation"
+    rm *.svg
+fi
 
 echo "run basic tests"
 php buildscripts/tests/basic-tests.php || true
