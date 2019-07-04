@@ -13,7 +13,10 @@ cp -r errorpages/* css images js fonts resources build/html/
 # echo "run babel"
 # node_modules/.bin/babel js/ -d build/html/js/
 
+timed_log "create mermaid config from CSS"
+bash buildscripts/asciidoc/create-mermaid-config.sh
 
+timed_log "check mermaid CSS hash"
 # svg mermaid diagrams are stored in mermaid/.
 # changes need to be created, moved there and committed.
 cp mermaid/*.svg .
@@ -29,7 +32,7 @@ sha1sum --text css/mermaid.css > "${checksum_new}"
 echo "Reference: $(cat ${checksum_ref})"
 echo "Current:   $(cat ${checksum_new})"
 if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
-    echo "Delete all *.svg to force re-creation"
+    timed_log "delete all *.svg to force re-creation"
     rm *.svg
 fi
 
