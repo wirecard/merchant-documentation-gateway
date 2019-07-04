@@ -24,7 +24,7 @@ cp mermaid/*.svg .
 # we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
 checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
 checksum_new="/tmp/mermaid-css-checksum.txt"
-sha1sum --text -z css/mermaid.css > "${checksum_new}"
+sha1sum --text css/mermaid.css > "${checksum_new}"
 # show hashes
 echo "Reference: $(cat ${checksum_ref})"
 echo "Current:   $(cat ${checksum_new})"
