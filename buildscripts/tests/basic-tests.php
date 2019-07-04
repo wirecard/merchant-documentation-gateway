@@ -544,7 +544,7 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
     return true;
   }
 
-  $result = exec( "util/post-to-slack.py '".$messageString."'" );
+  $result = exec( "../util/post-to-slack.py '".$messageString."'" );
   return $result;
 }
 
