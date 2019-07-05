@@ -6,6 +6,20 @@ function timed_log {
     echo "[$(date +'%T')] $1"
 }
 
+while (( "$#" )); do
+    case "$1" in
+    -s|--skip)
+    SKIP="true"
+    ;;
+    --single-file)
+    SINGLE_FILE="true"
+    ;;
+    *)
+    ;;
+    esac
+    shift
+done
+
 timed_log "set up environment"
 mkdir -p build/html
 cp -r errorpages/* css images js fonts resources build/html/
@@ -37,19 +51,32 @@ if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
 fi
 
 timed_log "run basic tests"
-php buildscripts/tests/basic-tests.php || true
+if [[ $SKIP ]]; then
+    echo "skipping tests"
+else
+    php buildscripts/tests/basic-tests.php || true
+fi
 
 timed_log "build big html"
-RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font index.adoc -o index.html &> /dev/null
+if [[ $SINGLE_FILE ]]; then
+    mkdir -p /tmp/build-adoc
+    for adoc in *.adoc; do
+        RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font $adoc -o /tmp/build-adoc/$adoc
+    done
+else
+    RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font index.adoc -o index.html
+fi
+
 timed_log "create toc"
-node buildscripts/split-pages/create-toc.js &> /dev/null
+node buildscripts/split-pages/create-toc.js
 timed_log "create search index"
-node buildscripts/search/lunr-index-builder.js &> /dev/null
+node buildscripts/search/lunr-index-builder.js
 timed_log "build multipage docs"
-RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 --failure-level=WARN -a linkcss -a systemtimestamp=$(date +%s) -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
+RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 -a linkcss -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram -r ./buildscripts/asciidoc/multipage-html5-converter.rb index.adoc
+timed_log "build done"
 
 # improve naming, CSS, etc.
-cp Home.html index.html &> /dev/null
+cp Home.html index.html
 # sed -i 's/normal\ normal\ 400\ normal\ 16px/normal normal 400 normal 15px/g' *.svg
 # sed -i 's/foreignObject width="[1-9][0-9]\+\.[0-9]\+" height="[1-9][0-9]\+\.[0-9]\+"/foreignObject width="100%" height="100%"/g' *.svg
 timed_log "post process svg files"
@@ -57,4 +84,4 @@ sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' *.svg
 
 # create correct document structure
 mv *.svg toc.json searchIndex.json *.html build/html/
-timed_log "build complete."
+timed_log "build complete"
