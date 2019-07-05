@@ -1,6 +1,7 @@
 /*
 
-helper script to talk to asciidoctor.js api
+talks to asciidoctor.js api
+tests words
 
 */
 
@@ -10,13 +11,67 @@ const fs = require('fs');
 const levenshtein = require('js-levenshtein');
 
 const infoFile = 'buildscripts/info-files.json';
-try {
-    var infoFileContents = fs.readFileSync(infoFile);
-    infoFiles = JSON.parse(infoFileContents);
-} catch (err) {
-    throw err;
-}
+const infoFiles = stfuGetJsonFromFile(infoFile);
+
 const anchorIndexFile = infoFiles['anchor-index-file'];
+const AnchorIndex = stfuGetJsonFromFile(anchorIndexFile);
+
+const typoWordsListFile = infoFiles['typo-words-list'];
+const typoWordsList = readLines(typoWordsListFile);
+
+var Result = new Object();
+
+/**
+ * Reads plain text file
+ *
+ * Returns a lines array without empty lines.
+ *
+ * @param {string} file Path to text file.
+ * 
+ * @return {Array} Array of lines split by newline.
+ */
+function readLines(file) {
+    var fileContents;
+    try {
+        fileContents = fs.readFileSync(file);
+    } catch (err) {
+        throw err;
+    }
+    return fileContents.toString()
+        .split(/\r?\n/)         // split by line
+        .filter(function (e) {
+            return e !== '';    // remove empty array entries
+        });
+}
+
+/**
+ * Reads JSON file without complaining about empty files or invalid content
+ *
+ * If file doesn't exist returns empty Object.
+ * If file content is invalid JSON it returns empty Object unless strict == true
+ *
+ * @param {string} file Path to .json file.
+ * @param {boolean} strict Decides wether to throw or ignore invalid JSON
+ * 
+ * @return {Object} Object or {}.
+ */
+function stfuGetJsonFromFile(file, strict = false) {
+    var fileContents;
+    try {
+        fileContents = fs.readFileSync(file);
+    } catch (err) {
+        if (err.code === 'ENOENT') fileContents = '{}';
+        else throw err;
+    }
+    try {
+        JsonObject = JSON.parse(fileContents);
+    }
+    catch (err) {
+        if (strict) throw err;
+        else JsonObject = {};
+    }
+    return JsonObject;
+}
 
 if (argv['file'] !== undefined) adocFilename = argv['file'];
 
@@ -28,11 +83,35 @@ if (argv['file'] !== undefined) adocFilename = argv['file'];
 
 const doc = asciidoctor.loadFile(adocFilename, { 'safe': 'safe', 'catalog_assets': true });
 
+var _similarWords = []
+doc.getSourceLines().forEach((line, lineNumber) => {
+    if (line) {
+        var words = line.match(/[^\W_]{5,}/g);
+        if (words) {
+            words.forEach(word => {
+                typoWordsList.forEach(referenceWord => {
+                    var levenshteinScore = levenshtein(referenceWord, word);
+                    // only look at lv values > 0 && <= 3
+                    if (levenshteinScore && levenshteinScore <= 4){
+                        _similarWords.push({
+                            "line": lineNumber + 1,
+                            "word": word,
+                            "reference-word": referenceWord,
+                            "scores": {
+                                "levenshtein": levenshteinScore
+                            }
+                        });
+                    }
+                });
+            });
+        }
+    }
+});
+Result.similarWords = _similarWords;
+
 // to get warnings for wrong internal references!
 Opal.gvars.VERBOSE = true;
 doc.convert();
-
-var Result = new Object();
 
 Result.links = doc.getLinks();
 Result.ids = doc.getIds();
@@ -43,23 +122,6 @@ Result.errors = memoryLogger.getMessages();
 //Result.indexTerms = doc.getIndexTerms()
 
 if (adocFilename !== 'index.adoc') {
-    var AnchorIndex = {};
-    var fileContents;
-    try {
-        fileContents = fs.readFileSync(anchorIndexFile);
-    } catch (err) {
-        if (err.code === 'ENOENT') {
-            fileContents = '{}';
-        } else {
-            throw err;
-        }
-    }
-    try {
-        AnchorIndex = JSON.parse(fileContents);
-    }
-    catch (err) {
-        AnchorIndex = {};
-    }
     AnchorIndex[adocFilename] = Result.ids;
     try {
         fs.writeFileSync(anchorIndexFile, JSON.stringify(AnchorIndex, null, 2));
@@ -70,4 +132,4 @@ if (adocFilename !== 'index.adoc') {
 }
 
 // do not remove. output is required by basic-tests.php
-console.log( JSON.stringify( Result, null, 2 ) );
+console.log(JSON.stringify(Result, null, 2));
