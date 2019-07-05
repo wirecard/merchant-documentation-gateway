@@ -7,6 +7,16 @@ helper script to talk to asciidoctor.js api
 const argv = require('minimist')(process.argv.slice(2));
 const asciidoctor = require('asciidoctor.js')();
 const fs = require('fs');
+const levenshtein = require('js-levenshtein');
+
+const infoFile = 'buildscripts/info-files.json';
+try {
+    var infoFileContents = fs.readFileSync(infoFile);
+    infoFiles = JSON.parse(infoFileContents);
+} catch (err) {
+    throw err;
+}
+const anchorIndexFile = infoFiles['anchor-index-file'];
 
 if (argv['file'] !== undefined) adocFilename = argv['file'];
 
@@ -33,14 +43,12 @@ Result.errors = memoryLogger.getMessages();
 //Result.indexTerms = doc.getIndexTerms()
 
 if (adocFilename !== 'index.adoc') {
-    const anchorIndexFile = 'anchor-index.json';
     var AnchorIndex = {};
     var fileContents;
     try {
         fileContents = fs.readFileSync(anchorIndexFile);
     } catch (err) {
         if (err.code === 'ENOENT') {
-            console.log('File not found. Will be created.');
             fileContents = '{}';
         } else {
             throw err;
