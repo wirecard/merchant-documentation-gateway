@@ -40,7 +40,6 @@ if (adocFilename !== 'index.adoc') {
         fileContents = fs.readFileSync(anchorIndexFile);
     } catch (err) {
         if (err.code === 'ENOENT') {
-            console.log('File not found. Will be created.');
             fileContents = '{}';
         } else {
             throw err;
