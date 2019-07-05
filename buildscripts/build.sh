@@ -47,7 +47,7 @@ echo "Reference: $(cat ${checksum_ref})"
 echo "Current:   $(cat ${checksum_new})"
 if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
     timed_log "delete all *.svg to force re-creation"
-    rm *.svg
+    rm ./*.svg
 fi
 
 timed_log "run basic tests"
@@ -80,8 +80,8 @@ cp Home.html index.html
 # sed -i 's/normal\ normal\ 400\ normal\ 16px/normal normal 400 normal 15px/g' *.svg
 # sed -i 's/foreignObject width="[1-9][0-9]\+\.[0-9]\+" height="[1-9][0-9]\+\.[0-9]\+"/foreignObject width="100%" height="100%"/g' *.svg
 timed_log "post process svg files"
-sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' *.svg
+sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' ./*.svg
 
 # create correct document structure
-mv *.svg toc.json searchIndex.json *.html build/html/
+mv ./*.svg toc.json searchIndex.json ./*.html build/html/
 timed_log "build complete"
