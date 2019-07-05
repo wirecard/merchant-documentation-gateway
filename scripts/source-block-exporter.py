@@ -132,16 +132,21 @@ used_file_names = set()
 # BEGIN PROCESSING                                                            #
 ###############################################################################
 for (file_in, file_out) in zip(files, temp_files):
-    debug("Processing {}".format(file_in))
+    info("Processing {}".format(file_in))
     # reset variables
     contains_src = False
+    include_found = False
     last_header = None
     block_title = NO_BLK_TITLE
+
+    file_name = None
+    temp_src_file = None
     with open(file_in, "r", encoding='utf8') as f_input:
         with open(file_out, "w+", encoding='utf8') as f_output:
             line_count = 0
             for line in f_input.readlines():
                 if inside_source and "include" in line:
+                    include_found = True
                     line_count += 1
                     f_output.write(line)
                     continue
@@ -158,26 +163,32 @@ for (file_in, file_out) in zip(files, temp_files):
                 # close newly created source file once source block is read completely
                 # and write include statement to .adoc
                 if line.rstrip() == SRC_BLK_DELIM and inside_source:
-                    contains_src = True
-                    debug("finish {}: {}".format(last_header, block_title))
                     inside_source = False
                     found_source_block = False
-                    block_title = NO_BLK_TITLE
-                    f_output.write("include::{}[]\n".format(
-                        temp_src_file.name.replace('\\', '/')))
-                    line_count += 1
-                    temp_src_file.close()
+                    if not include_found:
+                        contains_src = True
+                        debug("finish {}: {}".format(last_header, block_title))
+                        block_title = NO_BLK_TITLE
+                        f_output.write("include::{}[]\n".format(
+                            temp_src_file.name.replace('\\', '/')))
+                        line_count += 1
+                        temp_src_file.close()
+                        temp_src_file = None
 
                 # output file 1:1 unless we have a source block
-                if not inside_source:
+                if not inside_source or include_found:
                     line_count += 1
                     f_output.write(line)
                 else:
+                    if temp_src_file is None:
+                        info("Creating {}".format(file_name))
+                        temp_src_file = open(file_name, "w+", encoding="utf8")
                     temp_src_file.write(line)
 
                 # line is "----" and we found a source block header, we're now inside the source
                 if line.rstrip() == SRC_BLK_DELIM and found_source_block and not inside_source:
                     inside_source = True
+                    include_found = False
 
                 # find extension in source block header
                 result = re.match(ADOC_REGEX.SOURCE_BLOCK, line)
@@ -201,18 +212,15 @@ for (file_in, file_out) in zip(files, temp_files):
                         out_dir, extension, ".".join([fbase_name, extension]))
 
                     # check for conflicting filenames and append id if necessary
-                    if not file_name in used_file_names:
-                        used_file_names.add(file_name)
-                    else:
-                        # warning("Conflicting filename: {0:2}".format(".".join([fbase_name, extension])))
-                        fbase_name += "_{}".format(fname_id)
+                    while file_name in used_file_names:
+                        indexed_fbase_name = "{}_{}".format(fbase_name, fname_id)
                         fname_id += 1
                         file_name = os.path.join(
-                            out_dir, extension, ".".join([fbase_name, extension]))
-                        used_file_names.add(file_name)
+                            out_dir, extension, ".".join([indexed_fbase_name, extension]))
+
+                    used_file_names.add(file_name)
 
                     # info("Creating {} source file {}".format(extension, file_name))
-                    temp_src_file = open(file_name, "w+", encoding="utf8")
 
     if not contains_src:
         os.remove(file_out)
