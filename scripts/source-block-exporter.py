@@ -129,6 +129,14 @@ used_file_names = set()
 ###############################################################################
 # BEGIN PROCESSING                                                            #
 ###############################################################################
+# 1. if we find a source block of form `[source, <extension>]`,
+# go into found_source_block state and remember extension.
+# 2. if we find `====` go into inside_source state.
+# 2.5. if we find an include, assume we already replaced this source block,
+# do nothing, go into include_found state and continue.
+# 3. if we didn't find an include, open the new source file,
+# and write to it line by line.
+###############################################################################
 for (file_in, file_out) in zip(files, temp_files):
     debug("Processing {}".format(file_in))
     # reset variables
