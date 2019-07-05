@@ -19,6 +19,7 @@ var $;
 var statusCode = 0;
 var invalidRedirects = {};
 const anchorIndexFile = 'anchor-index.json';
+const gitInfoFile = 'git-info.json';
 
 var anchorIndexFileContents;
 try {
@@ -27,6 +28,20 @@ try {
     throw err;
 }
 AnchorIndex = JSON.parse(anchorIndexFileContents);
+
+var gitInfoFileContents;
+try {
+    gitInfoFileContents = fs.readFileSync(gitInfoFile);
+} catch (err) {
+    throw err;
+}
+/* GitInfo, e.g.
+{
+    "commit_author": "Herbert Knapp",
+    "branch": "RDRMAPCHK"
+}
+*/
+GitInfo = JSON.parse(gitInfoFileContents);
 
 function getAdocFileNameByAnchorName(anchorName) {
     for (adocFileName in AnchorIndex) {
@@ -57,27 +72,7 @@ for (key in redirectMap) {
         }
     }
 }
-//console.log(invalidRedirects);
-/*
-[
-	{
-		"type": "section",
-		"text": {
-			"type": "mrkdwn",
-			"text": "*Error*: Faulty redirects in *redirect-map.js*: "
-		}
-	},
-	{
-		"type": "section",
-		"fields": [
-			{
-				"type": "mrkdwn",
-				"text": "RestApi.html#bla (_cf. 04-00-rest-api.adoc_)\nWrongLink.html\n"
-			}
-		]
-	}
-]
-*/
+
 function createSlackMessage(invalidRedirects) {
     var string = '';
     var text = function(invalidRedirects) {
@@ -97,12 +92,13 @@ function createSlackMessage(invalidRedirects) {
         }
         return string;
     }
+    
     var msg = [
         {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": "*Error*: Faulty redirects in *redirect-map.js*: "
+                "text": "*Error*: Invalid or outdated redirect in redirect-map.js (<https:\/\/github.com\/wirecard\/merchant-documentation-gateway\/blob\/" + GitInfo.branch + "\/redirect-map.js|Github Link>)\nBranch: *" + GitInfo.branch + "*\nCommit from: *" + GitInfo.commit_author + "*"
             }
         },
         {
@@ -118,4 +114,5 @@ function createSlackMessage(invalidRedirects) {
     return msg;
 }
 console.log( JSON.stringify( createSlackMessage(invalidRedirects), null, 2 ));
+
 process.exit(statusCode);
