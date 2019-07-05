@@ -7,7 +7,6 @@ Use multithreading with thread pool to speed up the process.
 
                                                   herbert.knapp@wirecard.com
 */
-
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
@@ -89,7 +88,9 @@ class UrlTest extends Threaded {
   }
 
   public function run() {
+    error_reporting(E_ALL & ~E_WARNING);
     $this->httpStatusCode = intval( substr( get_headers( $this->url )[0], 9, 3 ) );
+    error_reporting(E_ALL & ~E_WARNING);
   }
 
   // Returns 0 on "false", i.e. timeouts
