@@ -21,6 +21,7 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
 }
 
 const PULL_REQUEST_BRANCH = "Pull Request";
+const INFO_FILE = "buildscripts/info-files.json";
 
 class Task extends Threaded {
   private $threadID;
@@ -160,7 +161,10 @@ class GitInfo {
   }
 }
 
-file_put_contents('git-info.json', json_encode(GitInfo::getInstance()->getInfoArray(), JSON_PRETTY_PRINT));
+$infoFiles = json_decode(file_get_contents(INFO_FILE), true);
+$gitInfoFile = $infoFiles['git-info-file'];
+
+file_put_contents($gitInfoFile, json_encode(GitInfo::getInstance()->getInfoArray(), JSON_PRETTY_PRINT));
 
 // simple pattern matching for anchor validity check
 function testAnchors( $anchorsArray ) {

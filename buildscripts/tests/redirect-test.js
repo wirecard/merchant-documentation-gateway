@@ -18,8 +18,16 @@ try {
 var $;
 var statusCode = 0;
 var invalidRedirects = {};
-const anchorIndexFile = 'anchor-index.json';
-const gitInfoFile = 'git-info.json';
+
+const infoFile = 'buildscripts/info-files.json';
+try {
+    var infoFileContents = fs.readFileSync(infoFile);
+    infoFiles = JSON.parse(infoFileContents);
+} catch (err) {
+    throw err;
+}
+const anchorIndexFile = infoFiles['anchor-index-file'];
+const gitInfoFile = infoFiles['git-info-file'];
 
 var anchorIndexFileContents;
 try {
