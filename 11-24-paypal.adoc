@@ -212,7 +212,7 @@ captured.
 * always use non-zero amount for debit operation
 * the correct (parent-)transaction-id is visible as
 group-transaction-id in WEP for example or can be found out by querying
-Wirecard Payment Gateway using the RequestID from the initial
+{payment-gateway} using the RequestID from the initial
 transaction (see
 <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, here>>).
 //-
@@ -299,10 +299,10 @@ Parent-Transaction-ID field.
 [%autowidth]
 |===
 .2+h|URL(s) Endpoints | The transaction types _debit_, _authorization_, _authorization-only_,
-_preauthorization_, _pending-credit_, _credit_ or _order_ use 2+| ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+_preauthorization_, _pending-credit_, _credit_ or _order_ use 2+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
 | The transaction types _capture-authorization_, _refund-capture_,
 _void-authorization_ and _refund-debit_ use
-2+| ``\https://api-test.wirecard.com/engine/rest/payments/``
+2+| ``\https://{test-instance-hostname}/engine/rest/payments/``
 .3+h|Merchant Account ID (MAID)
 |Show No Address |be17476f-1a0c-442e-8841-70e33996c0aa
 .3+|<<API_PayPal_Configuration_Addresses, See details>>
@@ -345,15 +345,15 @@ image::images/11-24-paypal/PaypalWorkflow_debit.png[debit Workflow]
 
 .  Consumer initiates payment.
 .  Merchant sends _debit_ request to WPG.
-.  WPG sends a response to merchant containing the redirect URL to
+.  {payment-gateway-abbr} sends a response to merchant containing the redirect URL to
 _PayPal_.
 .  Merchant takes URL from response.
 .  Merchant redirects consumer to this URL (URL can be found in parameter <``payment-method url="URL" name="paypal"/``>).
 .  Consumer confirms payment on _PayPal_ site.
-.  WPG redirects consumer back to merchant’s system URL based on
+.  {payment-gateway-abbr} redirects consumer back to merchant’s system URL based on
 payment result (success_url, cancel_url, failed_url <- defined in MAID
 configuration or in first request).
-.  WPG sends IPN to merchant’s system after payment is verified (usually
+.  {payment-gateway-abbr} sends IPN to merchant’s system after payment is verified (usually
 few seconds).
 //-
 
@@ -387,10 +387,10 @@ See <<API_PayPal_Samples_GeneralSamples_credit, _credit_ samples>> for details.
 image::images/11-24-paypal/PaypalWorkflow_credit.png[credit workflow,height=250]
 
 .  Merchant sends _pending-credit_ request to WPG.
-.  WPG processes the transaction.
-.  WPG sends response containing the transaction result back to
+.  {payment-gateway-abbr} processes the transaction.
+.  {payment-gateway-abbr} sends response containing the transaction result back to
 merchant.
-.  WPG sends an IPN to merchant with final transaction status.
+.  {payment-gateway-abbr} sends an IPN to merchant with final transaction status.
 //-
 
 [#API_PayPal_Workflow_authorization]
@@ -407,12 +407,12 @@ _capture_ anytime to capture the requested amount.
 
 .  _authorization_
 ..  Merchant sends _authorization_ request to WPG.
-..  WPG responds with the redirect URL to __PayPal__.
+..  {payment-gateway-abbr} responds with the redirect URL to __PayPal__.
 ..  Merchant takes URL from response and redirects consumer to this URL
 (URL is in field
 <``payment-method url="http://www.paypal.com/?token=EC-MOCK-9N3XB7G4P9PR%22 name="paypal"/``>)
 ..  Consumer authorizes payment on _PayPal_ site
-..  WPG redirects consumer back to merchant’s system. The URL depends on
+..  {payment-gateway-abbr} redirects consumer back to merchant’s system. The URL depends on
 payment result (success_url, cancel_url, failed_url, which is defined
 either in the MAID configuration or in the first request of this payment
 process).
@@ -421,7 +421,7 @@ process).
 _Transaction-ID_ from the preceding successful authorization
 transaction. The _Transaction-ID_ is forwarded in field
 __Parent-Transaction-ID__.
-..  WPG sends the response with the final transaction status to the
+..  {payment-gateway-abbr} sends the response with the final transaction status to the
 merchant (the endpoint is defined via _Redirect URL_).
 ..  The merchant also receives an IPN.
 //-
@@ -438,7 +438,7 @@ image::images/11-24-paypal/PaypalWorkflow_OrderAuthorizationCapture.png[order, a
 
 .  _order_
 ..  Merchant sends an _order_ request.
-..  WPG sends a response containing the _Redirect URL_.
+..  {payment-gateway-abbr} sends a response containing the _Redirect URL_.
 ..  Merchant takes URL from this response and redirects consumer to this
 URL (URL is in field
 <payment-method url="http://www.paypal.com/?token=EC-MOCK-9N3XB7G4P9PR%22 name="paypal"/>)
@@ -446,7 +446,7 @@ URL (URL is in field
 ..  Merchant redirects consumer back to merchant’s system. The URL
 depends on payment result (success_url, cancel_url, failed_url <-
 defined in MAID configuration or in first request)
-..  WPG sends a notification to the merchant's endpoint specified in
+..  {payment-gateway-abbr} sends a notification to the merchant's endpoint specified in
 request or in merchant <<API_PayPal_Configuration_PayPalAccount, account configuration>>.
 The notification contains the *Transaction ID*, which is needed for
 further process.
@@ -454,7 +454,7 @@ further process.
 ..  Merchant submits an _authorization_ request. The request *contains
 the _Transaction-ID_ from the preceding successful _order_* transaction.
 The _Transaction-ID_ is forwarded in field _Parent-Transaction-ID_.
-..  WPG sends a response to the merchant. The response contains the
+..  {payment-gateway-abbr} sends a response to the merchant. The response contains the
 Authorization's _Transaction-ID_, to be used for further capture
 processes.
 .  _capture-authorization_
@@ -462,7 +462,7 @@ processes.
 _Parent-Transaction-ID_ in this request *must contain the
 _Transaction-ID_ from the preceding _authorization_* of this payment
 process).
-..  WPG sends an _authorization-capture_ response to the merchant.
+..  {payment-gateway-abbr} sends an _authorization-capture_ response to the merchant.
 //-
 
 [#API_PayPal_Fields]
@@ -648,7 +648,7 @@ image::images/11-24-paypal/IPN_PayPal_SetNotificationURL.png[PayPal Set Notifica
 [#API_PayPal_Configuration_Addresses]
 ==== Addresses
 
-The _Wirecard Payment Gateway_ offers three options to configure the
+The _{payment-gateway}_ offers three options to configure the
 consumer's address:
 
 - Transmitted address is not shown in the wallet, that means, the
@@ -751,14 +751,14 @@ feature depend on the operating country. Please refer to your country
 specific _PayPal_ Website.
 
 The feature _Seller Protection & Recurring Payments_ is available by
-default in the Wirecard Payment Gateway.
+default in the {payment-gateway}.
 
 The merchant needs to provide a shipping address only in the initial
-payment. For subsequent recurring payments Wirecard Payment Gateway
+payment. For subsequent recurring payments {payment-gateway}
 automatically sends the shipping address from the initial payment to
 _PayPal_.
 
-NOTE: For recurring payments __Wirecard Payment Gateway__ uses the shipping
+NOTE: For recurring payments __{payment-gateway}__ uses the shipping
 address which has been received from _PayPal_ during the initial
 request.
 
@@ -920,7 +920,7 @@ image::images/11-24-paypal/PayPal_CancelHandling.png[PayPal Cancel Handling]
   <SignatureValue>YfrMGpnwcNqHmndRXsQ+ZYUlzW4wliV7bM9QTwXloX1dVEYbEo7oPFZxuKbBKaQKweBKgDSjuXcl3isCvJCqzMUtMdPP+622iPagQ/7kzwVxcLiWo6HKvawVRgRnInEPphLDOzz6dDZAnt1IznSa3usQ30kljMuusHNryLQ9+YaG/GI34Bo/h+gOE+PJ12k2RUFdnEptHcuKkVtYkB07IxAv1eoK8imBjGQRuo7Cn8A00faQYvx2VPFeF1kD1Jval4DLkQQZSpbWtenq1PxioQ96DNIOJDu3TaQ6ko86ad0dxMEnq42rsL5i8zISNlbrNbbhufLIiG5ObVKPc2UKuWf/Rj5j2ZyeXaVBLLeJQ98vW0LKYQ/5aqk883LOSNuNgWDLq62Ap/6m2I1HboSRLqFyGXAdNcaeMX8LlYnFnZR5cqkmLaLCo+rqjtO5hU48L++N5Qerl3xnk856rNmvqWvQ/nu+mtwkafZMQO66+RwJD4lcF/mO8tm6KVOhlUX6UFe5mvs/JsPCoQRWfPPknEWNf20czDYj+bjPW2joTsuu6g9KPWI6+O4V9qW+HVrabKW7iPf/Jh8lbZwo3upJbTTZiZPmu2IAQPDVBVHAmBuNIlnn6wyy+7JesqkcpfHzC72CPC7yvsTGgc5xAxDnDxG4hFHEVPXI/uowygV57hE=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -1144,7 +1144,7 @@ _authorization_ transaction using <<API_PayPal_Express, PayPal Express Checkout>
   <SignatureValue>ALnfzX6cu7ET6q2GZe9uTLRoerh1BFGD+x3gqkEDi1fFBcl+KeR88uRrXhYlL492X34wFCXs2dfcHDorJVKPuUFko1tzl+GX7fcsowYgbyGwRjChfdhn08kdvEwdZMNhGifsS360gNXT4xAAcI34iehlp/uxqedt+hoGzp1B5JPwRbHxsH+bkNdP87bAa3VBTbXFms6oRxzxr2IHQTJ1nJCppQksvnHBTLfv5rfvUjyg29TQJvF1TwW1wXRHiU44nSXM5lwMd5xkUsikAAokjxpN/IySiy0ylZ0o7nZavKkyCArQJUvU5BbXh0yC1jcmMwqjj/S75YXMRcYYdt82T9tqdBWul9QGBeRTBOyv+EhbD5g5mM02z5LN5yCjj+YfHn3+IgArnFIlrjYTtrRQZ6c+kknnb1FbSrN69rU3cfcAdxZH1GCm5Z+xQ5MVt3szPYrkk1aGji5CgREWu8iVZzwOX4+2D2Jir9kvt+diLfeRJWL4JbXeT5+pqQwbmPzxyBOf5NYzFO4Av712Gj0FfI3yBhqlmjgmStXYnH7wUD7vVC/rfVWNNWoBGNRSeLDuyr9Ec5XAdvos6KF+e3L4I+8o2VG7pXw3iSpqUWWKJYHdtISOoVPkx0HBkaTwD6HKSIWq4L+9PFwWOxmqn0aJnOniR1i1krPRSJjgc6lsb4U=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -1388,7 +1388,7 @@ to merchant.
   <SignatureValue>FtGgA5oCnz0poTpoBvrDd83JBzp5PN7zUhzu5djPFVvk1Lmu2Tsciu6bV441yjl8Ytv1XkFKND9Pw8fZPho9aFaTkQXsg1vwhYJPfRrI2RIFK7qNYUZOkIdgPJolj4qfUhAXfkwFg8D1e1Tk58mpEb6uo6iPlfai9aHBcbnOEU2p4McvT2QsH+bzL4SJJ4gRMtYBJZr2SRZKznry6YeCt5SOQKMmOnVWw3tOdVAxJC4HFtaUV0cjPuuYC1HBgwfxpKiJ7tvo0W2zATh+hySUxGRvZqnwTSR5Lik5FfJF1rw8wyPG/r54sqfh4RJiaLC1aNvIR1sCZw63qTIeiBed2nPdvds/hwfP2N8S9NzYLAK5Kr29HO6dnDU2ISLm9Nx7tSMnrnM3rj/fZTZ+tzdBkJcn+2qg7OjZtrd5+L7YG9MI+aF5JZQGBP+Pex/t3BGBlS0VPwt04ZcS3g+mpoLK1YUGnZQ9mbh8KzqFjzYDg2lx4jHCVxvxUpF1iCAtupXpwhFr/7mB+lGruNKcNvEsuZOLg1Z+L/xN52TIdXKd8Vv8PF/I3LeEslPT9g1AOwtTohTEZI41FgQZxiq4LwYMSA5TW+KqhnuGqYCj6lNWQ3RgXLtGPvFSNiGZrl3MPZAE3NlivDKNa81bsfn4sgJRJEh15fEl5vbj20MWei7jpV4=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>MIIF5DCCBMygAwIBAgICLHQwDQYJKoZIhvcNAQELBQAwWzELMAkGA1UEBhMCREUxETAPBgNVBAoTCFdpcmVjYXJkMTkwNwYDVQQDFDB3aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIwHhcNMTcwMTEyMTM1OTI2WhcNMTkwMTEyMTM1OTI2WjCBijELMAkGA1UEBhMCREUxIzAhBgNVBAoTGldpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJIMRMwEQYDVQQLEwpPcGVyYXRpb25zMR4wHAYDVQQDExVhcGktdGVzdC53aXJlY2FyZC5jb20xDzANBgNVBAQTBkJheWVybjEQMA4GA1UEBxMHQXNjaGVpbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKSkExBY8FjRcZdrxOuJF+HZY8+McQaOB8B0E/hTUhoclsF4OJNaMThje7R6w6OYWBMKpssGngHFaZv35rCo5XVUpJmjZa04ytxE72GKO/uP4yIR7ZBXZx42B22MFaJJZTgPRCCFd6jrz906BZ//CmEAmk5gKelfPxfWJgGyTX6xz7I9R/G57E1xNOuEihN0ma5Q2IhD71MPVseFIGazyfGbJD6rYYbeBbOQSGk//TL8sdRCn0BLcm4DH5oqcPxDKzkaBP4ohNkCWsxpLLSyV6Wx0ihT0S1OLVNkEeTvcrYgUk124VyGatwWNUuCBYyOGQSOGqrW8IHmrhjzzT0NQog0/m38lpdqw/eWmt39qhODqSfILUk2Dxv1+W0IRKJCKcJrcTbXEQCuHl+XWY+U2AhinIPNRA0KX2oOgC//inwyKWSGWHdQnaake646R1wHqtoEfCtEcfyaeR+IrMr1rCAA3RZ+MH1J5UlUCWcnxPT0kad6dUwe3Qjq3jK4gaFzYU2yVScX5LVZMlWy2NiGCIvngHQmhArESzxMVvz5METZujfax6hfmiLNRWu0Zqs09Mpxy5zk5m/WRi5izb0uBeCfcA6x9pmjMx8M4OGG5RO2HTXSwLYJTKI47VXNsLLOY+nMFmhj/dkLJ5d3zI7EczToPMRHmHG7EqEdAfbb+oUlAgMBAAGjggGAMIIBfDARBgNVHQ4ECgQIS6wVIA0mJ9IwEwYDVR0jBAwwCoAIQ2weFtQ9BQ4wCwYDVR0PBAQDAgTwMIIBQwYDVR0fBIIBOjCCATYwggEyoIIBLqCCASqGgdVsZGFwOi8vd2lyZWNhcmQubGFuL0NOPXdpcmVjYXJkLURRLU1VQy1pbnRlcm5hbC13ZWJzZXJ2aWNlLWlzc3VpbmdDQV8wMixDTj1DRFAsQ049UHVibGljIEtleSBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLGRjPXdpcmVjYXJkLGRjPWxhbj9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Q1JMRGlzdHJpYnV0aW9uUG9pbnSGUGh0dHA6Ly9jcmwud2lyZWNhcmQubGFuL0NSTF93aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAmlUoiEFPRsOjGPb7SYiuJLxqTXCvZQeuXiUydF6FQl/zIpR/zSltaZKK86L+1i7t1C89OyTTXBD9FN6EKmlHo/ulsMn9V2B4zK3lT/NUclST98BmCla4Jzm+roeOHTqlPz3gPRJiPsr3wdvM+FSAJ2MRdv3l77mTE3v3hjsVVMmShR3VwwpxCICl3mpMsSaJZLyJdOHwvnpXs1m9kESwPD3DQ3RAQ/OGa0pPxAkHaauog4DhPvr/nBQnWHd2Us5b/ep7LME9hZ8u3hu/Kc6Vk24c5p3WUOiyaTiw+Ym3QDXl1wBSl9DdM94KbmAAQ5D/FUqyQnSc4TpmYvJ+Iavag</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -1444,8 +1444,8 @@ to merchant.
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/2a421fa1-8233-4e56-9f99-19c434c2f86e">
-  <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/2a421fa1-8233-4e56-9f99-19c434c2f86e">
+  <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
   <transaction-id>2a421fa1-8233-4e56-9f99-19c434c2f86e</transaction-id>
   <request-id>3bac15d7-2fc2-42d8-9927-c7075a6dba64</request-id>
   <transaction-type>authorization</transaction-type>
@@ -1692,7 +1692,7 @@ to merchant.
   <SignatureValue>amlM1+g+vEAyHIHOFB7zfKFMAspOUBjFXSm7FewldLf8QGbSIT9h6qE2P41r1h6xsNAcvXLPpVhvR9HniFFRHXMMm5h1KYV2Ua56nrnzjn9XhZrkbUwk/dOX0hAYZVPQlz2CmaNlK/lvDo2emc/JaEL+amYd8WAixvBvDEp+aCZ3bFaE4vV8bWS1DSd7rY9vt+xmn/RhoP/HT8AEIGlynPY/5g5FEDtyGGpkJjiLLiuRUk0+2NDeE4BUidENSPGrYIbkCKK/p4ivGWAjs11BTkdVtHXhPYjgVgkM/Vei6CuKenzPUkT+W2G5oStk7CHYKQsuMw3GEtkOHaR3ezJxUkmXyJstrPMetewVTIj0q+66SXBGo7Wj8GCTC/NKLAMq5Pwnlr+aS5ziJ8N+jAAsvZftyN9tRU1ZH2e3OdKwRNluB8S7WIFVr30PTRhEBYtH8h+tOcCIWPUk4wKv9hqfEC3+VaefcSWO83kg/AXs/y9agL9HXkDmNnzjo85LTg1hpdzmr1z+1KTfN1R3K6BKn5ZligKsu27JGfu+VmLPbTRBGwZcCIsCFWFoLHSior4vJYMd2g+c3SZANgOa6GUIxQCT6CDgy8C+neWaZd8ZB2ExAxby/R58VjeHjhuasnG1ixvrgf4FRVPNCaFPZ8SVpzTJag3fIPQKgCBjNns7X9g=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -1783,8 +1783,8 @@ the <``parent-transaction-id``>.
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/aaebd767-6906-4cfd-aeda-60e5798f0a97" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/aaebd767-6906-4cfd-aeda-60e5798f0a97" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</transaction-id>
  <request-id>0c6735dc-7a56-4c92-baf8-f50314723955</request-id>
  <transaction-type>capture-authorization</transaction-type>
@@ -1899,8 +1899,8 @@ the <``parent-transaction-id``>.
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/10bd2521-1fa2-4f83-820f-48ac542f2c22">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/10bd2521-1fa2-4f83-820f-48ac542f2c22">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>10bd2521-1fa2-4f83-820f-48ac542f2c22</transaction-id>
  <request-id>1dea9ef2-02d2-4b20-b626-ab15c47f7c39</request-id>
  <transaction-type>void-authorization</transaction-type>
@@ -2189,7 +2189,7 @@ the <``parent-transaction-id``>.
   <SignatureValue>d4N1IvgfAPUcEdhk/obD6QTFe1p3+UkTSBoSVWjpd9y1Kukkij+7BQeRp/K/evjnPn1GQEj2gEA5nP0PbLarW1ATcfMtgKQoPtiWqO0bS0i7YEhJ1bAgFxOHwEyEMKU3UevixiQ01KA36hl0YpygcuWqznA/1tF+w/4Qlalv7sUfx/GhyxJsKBRwMKQ7wQFwWTYYUMyh+5pJiBMWD/8szgfllIaXW1u6LEBAKjog9KQUApDp0kShikA0XWaOsJZT+UiewIQr7qYlW98VoNK9xhOacH8rah9XcTcqJ1O80Q0VSp3AWz+ICr4x0hKFK4MkRgxRoEbxZhL7eAgUbP3DyswN9nKwMylB7aFnojMuXzce6u3P2JgSzye/lXMVr5cfBNgZSkZUoFWyWMlQJpHWKtDtUz2I0GkSplDzq///gOlj9hxuk5fKnSmG/ZBBVYR1Rx7/euXOy0DrgcL8ZlmvbOZ9cM0b7OsU1wAEGKysTVuE07pslBR6ZQ2bHG86SZFoUHi5kAKAp0w8shZF7GegZs+t7p3JljJ2JyfRJUhCsg0RUBwZNSPDGo0WZ7STwncX4fGbiM/QSzgEub3a2jn+tQLBf9ER6Q7VCT+t4nMgh+MJzZSdG0j/k/nGpuzzP745zY8Uy/cs1OS41UokHfeHezpqzigpRnYbCUl/KthDjQE=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -2293,7 +2293,7 @@ the <``parent-transaction-id``>.
   <SignatureValue>DH8JRYXDdmmcbQuvznqXNr9OnGklAdKss0urideqmC7Z586+jxqLHpVK5vTCHThaT1REMUhZvh9BompfDCCd5InlKiJuY/p9C+WjzrgY4eRgoXe/qmor/KL1zxnxvcI8n257p876fKcL3KWvta0XnzGphHMg+nCTLwd3wve/3ymLd98yqBv2J6sEhApA99sfH7o8i5VbjZ6a7GoeWWSEKcbs9o35wSSUiZwRNEF7kT5v+cXxHxCGOZaNGdBqJd5NzZ8qtJUViz8OK+otMBhlQUZVpxA3Xc/rHuQj5dpfqUYJmhn1/nyPhdJZ+nMqf9JlSxmcNAWnBSErt9C2Web351JZgrvHABwqKXWpy/Xmgf1AcjzSbW0ACIKUkYyPnF/Vy/VObRUp2FcoSra0/mHvrzFIYgvEejnCxKUXp9nMo5CFObCq+ZPZeguCn83eLZsp3r+K70iS4LnONOKhdQm57iAFlzaxMqWXcxgXyQBh+upjxcD3z2tkrN7At0OvfU2KChCu/LIPUotWQkJ9EPTrqkcKNYcKURpbs6Dq7zn9BCC9MQ1gVLhG3rp0GEZsfjvk3zorXpPO/TfiBWXe3fwe00IWZcUnqarOhJ57eO9rTBPZCMU34JHEtzbdc9gge1R2kFe+p894iE8ZjF9pEg52E+EjOXesalrfBmuYi7RwPUc=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -2401,7 +2401,7 @@ the <``parent-transaction-id``>.
   <SignatureValue>kHk/CFZHjPPKS0H+wJ4pRtalikaklkNHsjyYg2i61u5GoZ3IxenNFddbDgK+BMuEAkZyJ+XZZeWv6t9z+8N5VWURoQkwSpIo7tqZcPZMF8ZCcEi/GJQUlOzHPioVWC6hjzo6TjnCO9YdWey5iqWrO10LMKsBBlir1BHmF9ysGeXNGaoS0/QPtRhUyDNoM3CEIDQ2yS8ZrJP3I70e2Q8I251BDaWHnWgusBb6WZuH/PRmAFynhKahXu1AcaH4a17+hNCdHtZyZbN1Zd++DDxNiIUWo8y+crsmjpNEYMG/iNoierAyLmW/7qEPphBtdlBQcqZNwFJqu6yHoMDgQBIjk99FGZV6PEOd1/KbZ5k+4YY2DjlPXtO+b3CD2unGYuOROMq25J8oPqFGYwLdjPwkdlSa1BiYnMWrQVxgiQqlH2FbwCpIvOobwbHVgbftPbAuyPBQgsdOzx5uhGCgYJ+qL7245m6+oVffCB9BQnr6hpOLxBaAZBor7vCLsaytMlpXvk+xBKP8HZkV9sQQ3+MzcmX1SsL1/QraI6Er26rGs5LFCHdvw/SeuXV6YZCJRkzInp34EuEB5I72Ox5vUVq6Auk3rDANgUvYeWrNpcVxwpXrIod/KUwy8W9ITSFXjkRCI2Zl7dsMifQO0gL1TWwcgOZfdJ7nBgbH9flSVL5kRJY=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>MIIF5DCCBMygAwIBAgICLHQwDQYJKoZIhvcNAQELBQAwWzELMAkGA1UEBhMCREUxETAPBgNVBAoTCFdpcmVjYXJkMTkwNwYDVQQDFDB3aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIwHhcNMTcwMTEyMTM1OTI2WhcNMTkwMTEyMTM1OTI2WjCBijELMAkGA1UEBhMCREUxIzAhBgNVBAoTGldpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJIMRMwEQYDVQQLEwpPcGVyYXRpb25zMR4wHAYDVQQDExVhcGktdGVzdC53aXJlY2FyZC5jb20xDzANBgNVBAQTBkJheWVybjEQMA4GA1UEBxMHQXNjaGVpbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKSkExBY8FjRcZdrxOuJF+HZY8+McQaOB8B0E/hTUhoclsF4OJNaMThje7R6w6OYWBMKpssGngHFaZv35rCo5XVUpJmjZa04ytxE72GKO/uP4yIR7ZBXZx42B22MFaJJZTgPRCCFd6jrz906BZ//CmEAmk5gKelfPxfWJgGyTX6xz7I9R/G57E1xNOuEihN0ma5Q2IhD71MPVseFIGazyfGbJD6rYYbeBbOQSGk//TL8sdRCn0BLcm4DH5oqcPxDKzkaBP4ohNkCWsxpLLSyV6Wx0ihT0S1OLVNkEeTvcrYgUk124VyGatwWNUuCBYyOGQSOGqrW8IHmrhjzzT0NQog0/m38lpdqw/eWmt39qhODqSfILUk2Dxv1+W0IRKJCKcJrcTbXEQCuHl+XWY+U2AhinIPNRA0KX2oOgC//inwyKWSGWHdQnaake646R1wHqtoEfCtEcfyaeR+IrMr1rCAA3RZ+MH1J5UlUCWcnxPT0kad6dUwe3Qjq3jK4gaFzYU2yVScX5LVZMlWy2NiGCIvngHQmhArESzxMVvz5METZujfax6hfmiLNRWu0Zqs09Mpxy5zk5m/WRi5izb0uBeCfcA6x9pmjMx8M4OGG5RO2HTXSwLYJTKI47VXNsLLOY+nMFmhj/dkLJ5d3zI7EczToPMRHmHG7EqEdAfbb+oUlAgMBAAGjggGAMIIBfDARBgNVHQ4ECgQIS6wVIA0mJ9IwEwYDVR0jBAwwCoAIQ2weFtQ9BQ4wCwYDVR0PBAQDAgTwMIIBQwYDVR0fBIIBOjCCATYwggEyoIIBLqCCASqGgdVsZGFwOi8vd2lyZWNhcmQubGFuL0NOPXdpcmVjYXJkLURRLU1VQy1pbnRlcm5hbC13ZWJzZXJ2aWNlLWlzc3VpbmdDQV8wMixDTj1DRFAsQ049UHVibGljIEtleSBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLGRjPXdpcmVjYXJkLGRjPWxhbj9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Q1JMRGlzdHJpYnV0aW9uUG9pbnSGUGh0dHA6Ly9jcmwud2lyZWNhcmQubGFuL0NSTF93aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAmlUoiEFPRsOjGPb7SYiuJLxqTXCvZQeuXiUydF6FQl/zIpR/zSltaZKK86L+1i7t1C89OyTTXBD9FN6EKmlHo/ulsMn9V2B4zK3lT/NUclST98BmCla4Jzm+roeOHTqlPz3gPRJiPsr3wdvM+FSAJ2MRdv3l77mTE3v3hjsVVMmShR3VwwpxCICl3mpMsSaJZLyJdOHwvnpXs1m9kESwPD3DQ3RAQ/OGa0pPxAkHaauog4DhPvr/nBQnWHd2Us5b/ep7LME9hZ8u3hu/Kc6Vk24c5p3WUOiyaTiw+Ym3QDXl1wBSl9DdM94KbmAAQ5D/FUqyQnSc4TpmYvJ+Iavag</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -2435,8 +2435,8 @@ the <``parent-transaction-id``>.
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/4e2632ea-4e3c-4bad-8176-ff3656bff9b1">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/4e2632ea-4e3c-4bad-8176-ff3656bff9b1">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>4e2632ea-4e3c-4bad-8176-ff3656bff9b1</transaction-id>
  <request-id>985e769b-2901-440b-9b7c-1b635dbc5a1b</request-id>
  <transaction-type>refund-debit</transaction-type>
@@ -2527,8 +2527,8 @@ the <``parent-transaction-id``>.
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/52bfef6e-a10d-4fce-ad38-74d9cfc6cf65" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/52bfef6e-a10d-4fce-ad38-74d9cfc6cf65" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>52bfef6e-a10d-4fce-ad38-74d9cfc6cf65</transaction-id>
  <request-id>09b39958-32e2-4793-a669-32b89e5ddb4c</request-id>
  <transaction-type>refund-capture</transaction-type>
@@ -2766,7 +2766,7 @@ the <``parent-transaction-id``>.
   <SignatureValue>YfrMGpnwcNqHmndRXsQ+ZYUlzW4wliV7bM9QTwXloX1dVEYbEo7oPFZxuKbBKaQKweBKgDSjuXcl3isCvJCqzMUtMdPP+622iPagQ/7kzwVxcLiWo6HKvawVRgRnInEPphLDOzz6dDZAnt1IznSa3usQ30kljMuusHNryLQ9+YaG/GI34Bo/h+gOE+PJ12k2RUFdnEptHcuKkVtYkB07IxAv1eoK8imBjGQRuo7Cn8A00faQYvx2VPFeF1kD1Jval4DLkQQZSpbWtenq1PxioQ96DNIOJDu3TaQ6ko86ad0dxMEnq42rsL5i8zISNlbrNbbhufLIiG5ObVKPc2UKuWf/Rj5j2ZyeXaVBLLeJQ98vW0LKYQ/5aqk883LOSNuNgWDLq62Ap/6m2I1HboSRLqFyGXAdNcaeMX8LlYnFnZR5cqkmLaLCo+rqjtO5hU48L++N5Qerl3xnk856rNmvqWvQ/nu+mtwkafZMQO66+RwJD4lcF/mO8tm6KVOhlUX6UFe5mvs/JsPCoQRWfPPknEWNf20czDYj+bjPW2joTsuu6g9KPWI6+O4V9qW+HVrabKW7iPf/Jh8lbZwo3upJbTTZiZPmu2IAQPDVBVHAmBuNIlnn6wyy+7JesqkcpfHzC72CPC7yvsTGgc5xAxDnDxG4hFHEVPXI/uowygV57hE=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -2925,7 +2925,7 @@ NOTE: Go to payment method URL provided in _preauthorization_ response (see tag
   <SignatureValue>ALnfzX6cu7ET6q2GZe9uTLRoerh1BFGD+x3gqkEDi1fFBcl+KeR88uRrXhYlL492X34wFCXs2dfcHDorJVKPuUFko1tzl+GX7fcsowYgbyGwRjChfdhn08kdvEwdZMNhGifsS360gNXT4xAAcI34iehlp/uxqedt+hoGzp1B5JPwRbHxsH+bkNdP87bAa3VBTbXFms6oRxzxr2IHQTJ1nJCppQksvnHBTLfv5rfvUjyg29TQJvF1TwW1wXRHiU44nSXM5lwMd5xkUsikAAokjxpN/IySiy0ylZ0o7nZavKkyCArQJUvU5BbXh0yC1jcmMwqjj/S75YXMRcYYdt82T9tqdBWul9QGBeRTBOyv+EhbD5g5mM02z5LN5yCjj+YfHn3+IgArnFIlrjYTtrRQZ6c+kknnb1FbSrN69rU3cfcAdxZH1GCm5Z+xQ5MVt3szPYrkk1aGji5CgREWu8iVZzwOX4+2D2Jir9kvt+diLfeRJWL4JbXeT5+pqQwbmPzxyBOf5NYzFO4Av712Gj0FfI3yBhqlmjgmStXYnH7wUD7vVC/rfVWNNWoBGNRSeLDuyr9Ec5XAdvos6KF+e3L4I+8o2VG7pXw3iSpqUWWKJYHdtISOoVPkx0HBkaTwD6HKSIWq4L+9PFwWOxmqn0aJnOniR1i1krPRSJjgc6lsb4U=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -2969,8 +2969,8 @@ NOTE: Go to payment method URL provided in _authorization_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/aaebd767-6906-4cfd-aeda-60e5798f0a97" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/aaebd767-6906-4cfd-aeda-60e5798f0a97" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>aaebd767-6906-4cfd-aeda-60e5798f0a97</transaction-id>
  <request-id>0c6735dc-7a56-4c92-baf8-f50314723955</request-id>
  <transaction-type>capture-authorization</transaction-type>
@@ -3087,8 +3087,8 @@ NOTE: Go to payment method URL provided in _authorization_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/52bfef6e-a10d-4fce-ad38-74d9cfc6cf65" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/52bfef6e-a10d-4fce-ad38-74d9cfc6cf65" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>52bfef6e-a10d-4fce-ad38-74d9cfc6cf65</transaction-id>
  <request-id>09b39958-32e2-4793-a669-32b89e5ddb4c</request-id>
  <transaction-type>refund-capture</transaction-type>
@@ -3277,7 +3277,7 @@ NOTE: Go to payment method URL provided in _authorization_ response (see tag
   <SignatureValue>DH8JRYXDdmmcbQuvznqXNr9OnGklAdKss0urideqmC7Z586+jxqLHpVK5vTCHThaT1REMUhZvh9BompfDCCd5InlKiJuY/p9C+WjzrgY4eRgoXe/qmor/KL1zxnxvcI8n257p876fKcL3KWvta0XnzGphHMg+nCTLwd3wve/3ymLd98yqBv2J6sEhApA99sfH7o8i5VbjZ6a7GoeWWSEKcbs9o35wSSUiZwRNEF7kT5v+cXxHxCGOZaNGdBqJd5NzZ8qtJUViz8OK+otMBhlQUZVpxA3Xc/rHuQj5dpfqUYJmhn1/nyPhdJZ+nMqf9JlSxmcNAWnBSErt9C2Web351JZgrvHABwqKXWpy/Xmgf1AcjzSbW0ACIKUkYyPnF/Vy/VObRUp2FcoSra0/mHvrzFIYgvEejnCxKUXp9nMo5CFObCq+ZPZeguCn83eLZsp3r+K70iS4LnONOKhdQm57iAFlzaxMqWXcxgXyQBh+upjxcD3z2tkrN7At0OvfU2KChCu/LIPUotWQkJ9EPTrqkcKNYcKURpbs6Dq7zn9BCC9MQ1gVLhG3rp0GEZsfjvk3zorXpPO/TfiBWXe3fwe00IWZcUnqarOhJ57eO9rTBPZCMU34JHEtzbdc9gge1R2kFe+p894iE8ZjF9pEg52E+EjOXesalrfBmuYi7RwPUc=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -3316,8 +3316,8 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/4e2632ea-4e3c-4bad-8176-ff3656bff9b1">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/4e2632ea-4e3c-4bad-8176-ff3656bff9b1">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>4e2632ea-4e3c-4bad-8176-ff3656bff9b1</transaction-id>
  <request-id>985e769b-2901-440b-9b7c-1b635dbc5a1b</request-id>
  <transaction-type>refund-debit</transaction-type>
@@ -3524,7 +3524,7 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
   <SignatureValue>ifncJTCZBn/zDefvF/QFKOxk1EuCpWRRvn4P3WsCf8YuR8D5qvpUoTIHTQO+2baty3XhLInL1VLnz3644elXJACdFghayxYQuuabss0n8x7rnj9xFQXcy//4TffE1L+IYtid084zf9UQvOLhO/055gWSWv/NdF7K0PmwFWfN7VuvEDtQA09mgEnd91UQtIdWxzLchU5MFjbnB0wta1b2MyFD41rlozkkRkURz9m3/0toJISW2u73rGh1or73L86RraJ8q53EP/06uTWSePksiVhRIaUrI/bTX9jSojanXrv40nzWxgX+gByW6qCDKL0lcP054iO/yb19sV3VE2wCdgMnJnvWMwwSQUDiihhXIK2G+TZ0p+KKCFvCQQd/zkOYEWzHINoDJeYZX94pppNVEhPJBHffWwsU2KCKveLsxuwHiQcLby5yLUeFYkjKKV+dc+HSjCJxlwfQvHzfkUQaDLsmMgHQNg7cCHBBQTkMFcp97zNUiVu+2/PjWMEN8OJb5Wljyj/kr4443iV0PMmL0bgK9D3uvHHjLUs33I+EiV6CKljN9t4A7GH+GbwrXPbmf6u/y/fgrrGjTAWHbKGbT0+Rr1Nf2CacjKOFK9A1BAzXRlJ0Mi38CowUY3Sl/sPLTKgEM5zA1sxbJJRp+ikVxW6V/0Dd0qvyuEu1TRQ/wCs=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -3570,8 +3570,8 @@ corresponds to
 [source,xml]
 ----
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/10bd2521-1fa2-4f83-820f-48ac542f2c22">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/10bd2521-1fa2-4f83-820f-48ac542f2c22">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>10bd2521-1fa2-4f83-820f-48ac542f2c22</transaction-id>
  <request-id>1dea9ef2-02d2-4b20-b626-ab15c47f7c39</request-id>
  <transaction-type>void-authorization</transaction-type>
@@ -3771,7 +3771,7 @@ NOTE: Go to payment method URL provided in _void-authorization_ response (see ta
   <SignatureValue>kHk/CFZHjPPKS0H+wJ4pRtalikaklkNHsjyYg2i61u5GoZ3IxenNFddbDgK+BMuEAkZyJ+XZZeWv6t9z+8N5VWURoQkwSpIo7tqZcPZMF8ZCcEi/GJQUlOzHPioVWC6hjzo6TjnCO9YdWey5iqWrO10LMKsBBlir1BHmF9ysGeXNGaoS0/QPtRhUyDNoM3CEIDQ2yS8ZrJP3I70e2Q8I251BDaWHnWgusBb6WZuH/PRmAFynhKahXu1AcaH4a17+hNCdHtZyZbN1Zd++DDxNiIUWo8y+crsmjpNEYMG/iNoierAyLmW/7qEPphBtdlBQcqZNwFJqu6yHoMDgQBIjk99FGZV6PEOd1/KbZ5k+4YY2DjlPXtO+b3CD2unGYuOROMq25J8oPqFGYwLdjPwkdlSa1BiYnMWrQVxgiQqlH2FbwCpIvOobwbHVgbftPbAuyPBQgsdOzx5uhGCgYJ+qL7245m6+oVffCB9BQnr6hpOLxBaAZBor7vCLsaytMlpXvk+xBKP8HZkV9sQQ3+MzcmX1SsL1/QraI6Er26rGs5LFCHdvw/SeuXV6YZCJRkzInp34EuEB5I72Ox5vUVq6Auk3rDANgUvYeWrNpcVxwpXrIod/KUwy8W9ITSFXjkRCI2Zl7dsMifQO0gL1TWwcgOZfdJ7nBgbH9flSVL5kRJY=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -4103,7 +4103,7 @@ No notification available
   <SignatureValue>d4N1IvgfAPUcEdhk/obD6QTFe1p3+UkTSBoSVWjpd9y1Kukkij+7BQeRp/K/evjnPn1GQEj2gEA5nP0PbLarW1ATcfMtgKQoPtiWqO0bS0i7YEhJ1bAgFxOHwEyEMKU3UevixiQ01KA36hl0YpygcuWqznA/1tF+w/4Qlalv7sUfx/GhyxJsKBRwMKQ7wQFwWTYYUMyh+5pJiBMWD/8szgfllIaXW1u6LEBAKjog9KQUApDp0kShikA0XWaOsJZT+UiewIQr7qYlW98VoNK9xhOacH8rah9XcTcqJ1O80Q0VSp3AWz+ICr4x0hKFK4MkRgxRoEbxZhL7eAgUbP3DyswN9nKwMylB7aFnojMuXzce6u3P2JgSzye/lXMVr5cfBNgZSkZUoFWyWMlQJpHWKtDtUz2I0GkSplDzq///gOlj9hxuk5fKnSmG/ZBBVYR1Rx7/euXOy0DrgcL8ZlmvbOZ9cM0b7OsU1wAEGKysTVuE07pslBR6ZQ2bHG86SZFoUHi5kAKAp0w8shZF7GegZs+t7p3JljJ2JyfRJUhCsg0RUBwZNSPDGo0WZ7STwncX4fGbiM/QSzgEub3a2jn+tQLBf9ER6Q7VCT+t4nMgh+MJzZSdG0j/k/nGpuzzP745zY8Uy/cs1OS41UokHfeHezpqzigpRnYbCUl/KthDjQE=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>MIIF5DCCBMygAwIBAgICLHQwDQYJKoZIhvcNAQELBQAwWzELMAkGA1UEBhMCREUxETAPBgNVBAoTCFdpcmVjYXJkMTkwNwYDVQQDFDB3aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIwHhcNMTcwMTEyMTM1OTI2WhcNMTkwMTEyMTM1OTI2WjCBijELMAkGA1UEBhMCREUxIzAhBgNVBAoTGldpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJIMRMwEQYDVQQLEwpPcGVyYXRpb25zMR4wHAYDVQQDExVhcGktdGVzdC53aXJlY2FyZC5jb20xDzANBgNVBAQTBkJheWVybjEQMA4GA1UEBxMHQXNjaGVpbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKSkExBY8FjRcZdrxOuJF+HZY8+McQaOB8B0E/hTUhoclsF4OJNaMThje7R6w6OYWBMKpssGngHFaZv35rCo5XVUpJmjZa04ytxE72GKO/uP4yIR7ZBXZx42B22MFaJJZTgPRCCFd6jrz906BZ//CmEAmk5gKelfPxfWJgGyTX6xz7I9R/G57E1xNOuEihN0ma5Q2IhD71MPVseFIGazyfGbJD6rYYbeBbOQSGk//TL8sdRCn0BLcm4DH5oqcPxDKzkaBP4ohNkCWsxpLLSyV6Wx0ihT0S1OLVNkEeTvcrYgUk124VyGatwWNUuCBYyOGQSOGqrW8IHmrhjzzT0NQog0/m38lpdqw/eWmt39qhODqSfILUk2Dxv1+W0IRKJCKcJrcTbXEQCuHl+XWY+U2AhinIPNRA0KX2oOgC//inwyKWSGWHdQnaake646R1wHqtoEfCtEcfyaeR+IrMr1rCAA3RZ+MH1J5UlUCWcnxPT0kad6dUwe3Qjq3jK4gaFzYU2yVScX5LVZMlWy2NiGCIvngHQmhArESzxMVvz5METZujfax6hfmiLNRWu0Zqs09Mpxy5zk5m/WRi5izb0uBeCfcA6x9pmjMx8M4OGG5RO2HTXSwLYJTKI47VXNsLLOY+nMFmhj/dkLJ5d3zI7EczToPMRHmHG7EqEdAfbb+oUlAgMBAAGjggGAMIIBfDARBgNVHQ4ECgQIS6wVIA0mJ9IwEwYDVR0jBAwwCoAIQ2weFtQ9BQ4wCwYDVR0PBAQDAgTwMIIBQwYDVR0fBIIBOjCCATYwggEyoIIBLqCCASqGgdVsZGFwOi8vd2lyZWNhcmQubGFuL0NOPXdpcmVjYXJkLURRLU1VQy1pbnRlcm5hbC13ZWJzZXJ2aWNlLWlzc3VpbmdDQV8wMixDTj1DRFAsQ049UHVibGljIEtleSBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLGRjPXdpcmVjYXJkLGRjPWxhbj9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Q1JMRGlzdHJpYnV0aW9uUG9pbnSGUGh0dHA6Ly9jcmwud2lyZWNhcmQubGFuL0NSTF93aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAmlUoiEFPRsOjGPb7SYiuJLxqTXCvZQeuXiUydF6FQl/zIpR/zSltaZKK86L+1i7t1C89OyTTXBD9FN6EKmlHo/ulsMn9V2B4zK3lT/NUclST98BmCla4Jzm+roeOHTqlPz3gPRJiPsr3wdvM+FSAJ2MRdv3l77mTE3v3hjsVVMmShR3VwwpxCICl3mpMsSaJZLyJdOHwvnpXs1m9kESwPD3DQ3RAQ/OGa0pPxAkHaauog4DhPvr/nBQnWHd2Us5b/ep7LME9hZ8u3hu/Kc6Vk24c5p3WUOiyaTiw+Ym3QDXl1wBSl9DdM94KbmAAQ5D/FUqyQnSc4TpmYvJ+Iavag</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -4264,7 +4264,7 @@ No notification available
   <SignatureValue>amlM1+g+vEAyHIHOFB7zfKFMAspOUBjFXSm7FewldLf8QGbSIT9h6qE2P41r1h6xsNAcvXLPpVhvR9HniFFRHXMMm5h1KYV2Ua56nrnzjn9XhZrkbUwk/dOX0hAYZVPQlz2CmaNlK/lvDo2emc/JaEL+amYd8WAixvBvDEp+aCZ3bFaE4vV8bWS1DSd7rY9vt+xmn/RhoP/HT8AEIGlynPY/5g5FEDtyGGpkJjiLLiuRUk0+2NDeE4BUidENSPGrYIbkCKK/p4ivGWAjs11BTkdVtHXhPYjgVgkM/Vei6CuKenzPUkT+W2G5oStk7CHYKQsuMw3GEtkOHaR3ezJxUkmXyJstrPMetewVTIj0q+66SXBGo7Wj8GCTC/NKLAMq5Pwnlr+aS5ziJ8N+jAAsvZftyN9tRU1ZH2e3OdKwRNluB8S7WIFVr30PTRhEBYtH8h+tOcCIWPUk4wKv9hqfEC3+VaefcSWO83kg/AXs/y9agL9HXkDmNnzjo85LTg1hpdzmr1z+1KTfN1R3K6BKn5ZligKsu27JGfu+VmLPbTRBGwZcCIsCFWFoLHSior4vJYMd2g+c3SZANgOa6GUIxQCT6CDgy8C+neWaZd8ZB2ExAxby/R58VjeHjhuasnG1ixvrgf4FRVPNCaFPZ8SVpzTJag3fIPQKgCBjNns7X9g=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -4375,8 +4375,8 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/b57c6426-e03c-43b2-b316-8065ea2b1e1d" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/b57c6426-e03c-43b2-b316-8065ea2b1e1d" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>b57c6426-e03c-43b2-b316-8065ea2b1e1d</transaction-id>
  <request-id>6c5ca467-6aa8-4dea-ac60-e692e03e73e9</request-id>
  <transaction-type>debit</transaction-type>
@@ -4483,8 +4483,8 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/72deb593-3ca5-41a6-b895-43f50a18ffaa" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/72deb593-3ca5-41a6-b895-43f50a18ffaa" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>72deb593-3ca5-41a6-b895-43f50a18ffaa</transaction-id>
  <request-id>23dee65b-ca45-44f8-9ceb-2ffee971860e</request-id>
  <transaction-type>debit</transaction-type>
@@ -4671,7 +4671,7 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
   <SignatureValue>ZNZQoZ6i6PL9Y9Yce1UF/g43XVfzzfp0WF1gBeT+sjCsSBTnUzjDH8xsKsmvZMRn1ChaOsUmdZDTw552/If2yqF3HFM6wGSZVq1KickpzqDQUwVsJpDIINFKwM6rkGQuuOhsqwIgDASJfTpJY4ZJtd9YR/pvvVo9YDASbZMPWUnVe2h95AB1xN9hGu5U6cWQ9Ug+a0EZPaX6rQDf4tEziSXt8e5b/Y4Q/PMwRwRyAYyaPU176AgpCwQx6Hwei2/IdPvwgoqxw/Z6c9gOiZa+uiyuHx609UHJJkosHs7BtKQKRK/ev66vgYcd1wUhJaHZgh0gPg2ZytbQI/ahAlyUOdroYHk9eGtjrFkknBGsVty3whFmv6s2KqK0sorozJIDF95ELMphXwbHSviF95CVnhbDnyFXYGwVZi4X6VaiHRkZ+HoMls8oGAjBKQF5xwdd/N/Q2iSDS8jBVeL6K+HFgeKNPQlCCYaa7h/rUr+F226QE2HxYONYacw3bBc30elFuccXVEGJtTHaK877XS7wIj5f+JQ9Ap5bcbkUXcbPP++4liWFN4RBPIyCH+GPrDnbgnEiC+IJrC9x//VbaofykaxXbQSN4s0uOwky1nvJPdGQTWsA2/vKQlGPFYmDMrGnY7uHe+FG1wPuWq9B72Oqjq5hcHvMv9HU7tsVzXHBBpo=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -4717,8 +4717,8 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/92bbc280-31cc-438d-a4a9-289decef6f53" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/92bbc280-31cc-438d-a4a9-289decef6f53" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>92bbc280-31cc-438d-a4a9-289decef6f53</transaction-id>
  <request-id>50648796-09f1-4c14-b7e1-84a202e4aca2</request-id>
  <transaction-type>debit</transaction-type>
@@ -4823,8 +4823,8 @@ NOTE: Go to payment method URL provided in _debit_ response (see tag
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment self="https://api-test.wirecard.com:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/ddf524ea-b1e8-4306-9d7e-32867948e51c" xmlns="http://www.elastic-payments.com/schema/payment">
- <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
+<payment self="https://{test-instance-hostname}:443/engine/rest/merchants/be17476f-1a0c-442e-8841-70e33996c0aa/payments/ddf524ea-b1e8-4306-9d7e-32867948e51c" xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id ref="https://{test-instance-hostname}:443/engine/rest/config/merchants/be17476f-1a0c-442e-8841-70e33996c0aa">be17476f-1a0c-442e-8841-70e33996c0aa</merchant-account-id>
  <transaction-id>ddf524ea-b1e8-4306-9d7e-32867948e51c</transaction-id>
  <request-id>13b11e4f-3ce9-492f-bc46-d8b9a70963bd</request-id>
  <transaction-type>debit</transaction-type>
@@ -5043,7 +5043,7 @@ use the _MAID_ 8695f3e4-76e8-414b-96cd-a1e5dafcf20c.
   <SignatureValue>V7KNSgY3DkyVDVSCxV5EpBsqTX66CYkjSRfoSprwJMV8y1miNVvdy8Xo3HSdSmAuI9WgvuCOtKFWFd11f9KEis1cYrZ0yq07AsVURiAbsuoSyXv6hklzQDGVMTXX5w9SfPDjUUZrad6cMDeS46ZkEpOEN76ufzhBq/op0jYRItdL6DhdzM24PVgyb8cz9O5OPOQYiTk8tMTt0Quy71RL+m/bbdlQsrz4YyYqaHzEG/nWKAoGHkbSKYyG29nzveDq+PbejfTIckTvy70eTfCItJSu0aYE6ZOFN/JdPBIQhQiG9B4vNQuQ/xWuL3FE7CVkQf6FgDzUK5ii0u6CfUJGeAa3ALX/QTRQXmOi/MFbJz8A1Fo3TqbdiKI5ymtDCn/Jwym2HgPXbCQkUkCrwtxPzLiVtdavJNwuSyBVXo/qhwAdCfE4dkVipYxrgyLY71OxZAkfEWXm9kqdk3vHqh3ui4BOLIq8eqKXAMPvUt0/YS0xf6Us4FOudghDkgIiMRQlydEQdfFWrNR7k7V6lEaiozcvgyaK7P2rLp1lrcLIQFagBsQV4qg4SQws500d14oeaL5xhEgvV0A3CwdiB5GYDCUrIZKOarDr899bYfS6Umy3qYsGg9ps090IZSUF5msl1eGzLSlk5oPJ5JWG5qETDjvGju+ovj3d61S+GUNsZZs=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>MIIF5DCCBMygAwIBAgICLHQwDQYJKoZIhvcNAQELBQAwWzELMAkGA1UEBhMCREUxETAPBgNVBAoTCFdpcmVjYXJkMTkwNwYDVQQDFDB3aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIwHhcNMTcwMTEyMTM1OTI2WhcNMTkwMTEyMTM1OTI2WjCBijELMAkGA1UEBhMCREUxIzAhBgNVBAoTGldpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJIMRMwEQYDVQQLEwpPcGVyYXRpb25zMR4wHAYDVQQDExVhcGktdGVzdC53aXJlY2FyZC5jb20xDzANBgNVBAQTBkJheWVybjEQMA4GA1UEBxMHQXNjaGVpbTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKSkExBY8FjRcZdrxOuJF+HZY8+McQaOB8B0E/hTUhoclsF4OJNaMThje7R6w6OYWBMKpssGngHFaZv35rCo5XVUpJmjZa04ytxE72GKO/uP4yIR7ZBXZx42B22MFaJJZTgPRCCFd6jrz906BZ//CmEAmk5gKelfPxfWJgGyTX6xz7I9R/G57E1xNOuEihN0ma5Q2IhD71MPVseFIGazyfGbJD6rYYbeBbOQSGk//TL8sdRCn0BLcm4DH5oqcPxDKzkaBP4ohNkCWsxpLLSyV6Wx0ihT0S1OLVNkEeTvcrYgUk124VyGatwWNUuCBYyOGQSOGqrW8IHmrhjzzT0NQog0/m38lpdqw/eWmt39qhODqSfILUk2Dxv1+W0IRKJCKcJrcTbXEQCuHl+XWY+U2AhinIPNRA0KX2oOgC//inwyKWSGWHdQnaake646R1wHqtoEfCtEcfyaeR+IrMr1rCAA3RZ+MH1J5UlUCWcnxPT0kad6dUwe3Qjq3jK4gaFzYU2yVScX5LVZMlWy2NiGCIvngHQmhArESzxMVvz5METZujfax6hfmiLNRWu0Zqs09Mpxy5zk5m/WRi5izb0uBeCfcA6x9pmjMx8M4OGG5RO2HTXSwLYJTKI47VXNsLLOY+nMFmhj/dkLJ5d3zI7EczToPMRHmHG7EqEdAfbb+oUlAgMBAAGjggGAMIIBfDARBgNVHQ4ECgQIS6wVIA0mJ9IwEwYDVR0jBAwwCoAIQ2weFtQ9BQ4wCwYDVR0PBAQDAgTwMIIBQwYDVR0fBIIBOjCCATYwggEyoIIBLqCCASqGgdVsZGFwOi8vd2lyZWNhcmQubGFuL0NOPXdpcmVjYXJkLURRLU1VQy1pbnRlcm5hbC13ZWJzZXJ2aWNlLWlzc3VpbmdDQV8wMixDTj1DRFAsQ049UHVibGljIEtleSBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9uLGRjPXdpcmVjYXJkLGRjPWxhbj9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/b2JqZWN0Q2xhc3M9Q1JMRGlzdHJpYnV0aW9uUG9pbnSGUGh0dHA6Ly9jcmwud2lyZWNhcmQubGFuL0NSTF93aXJlY2FyZC1EUS1NVUMtaW50ZXJuYWwtd2Vic2VydmljZS1pc3N1aW5nQ0FfMDIuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQAmlUoiEFPRsOjGPb7SYiuJLxqTXCvZQeuXiUydF6FQl/zIpR/zSltaZKK86L+1i7t1C89OyTTXBD9FN6EKmlHo/ulsMn9V2B4zK3lT/NUclST98BmCla4Jzm+roeOHTqlPz3gPRJiPsr3wdvM+FSAJ2MRdv3l77mTE3v3hjsVVMmShR3VwwpxCICl3mpMsSaJZLyJdOHwvnpXs1m9kESwPD3DQ3RAQ/OGa0pPxAkHaauog4DhPvr/nBQnWHd2Us5b/ep7LME9hZ8u3hu/Kc6Vk24c5p3WUOiyaTiw+Ym3QDXl1wBSl9DdM94KbmAAQ5D/FUqyQnSc4TpmYvJ+Iavag</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -5282,7 +5282,7 @@ use the _MAID_ ecfec3fa-87a2-41bb-86e9-4e738b89c91a.
   <SignatureValue>JKvsN5fl0aXbV5Wj5GY2siiei15R8ciw2I2b1240/WZxNGwQzRef8x0wqaUVCK1WueiuwlJBVZ14ADEZRLTTo6eafWG6M8fTc45qBgx4/ro/7a8/EoZ6lF/3PoTTieXXwGSH/1bOMltKSSTIt56dPdTwKnLaYVGTGV3rctjmVu+irc1fRJts6jmtXK/LmXKbF/JgnY+sNXkmIdG5GXVySXD8Byngd/t/s8t46du2ddHm3Pl09b+ZsU//0LSGOjHykr11JpxsJr2nN09iUrQXi1qQoSqF1T3aYgPxZ9kV0ceVZXwTh91uReDuZyiiAv6HsPpO/Zo3hDMe8fyMA0/qxCYcOWs1bF13I7nw4PW7J7rY5Os5b/Au3TffAFpTUzC3hz1tj+RJc7yIHbjNeMXjTPLqEATi8BjtveJ1AndGIoe+EEGi8hLBGiRcjMf0dhjwhaFvXr9C5FnFdpkaUIwIFVosY1wSjwT5NEbuxNgLvMdCKcCzemD6agcgf+xd1oHU8bT3kubSjXc/vzVdEXy5uAPx805+3gcuIo3J8ffG3NYWWSfnEWTRhW2KiIhn+Okj5oS4ljsiLt2JutyjXeUfNTz3GDvlGF49dSs/+RjiyAj5WQsDlIi/kekMpolMxAidQuldPo3KLYj7mQ80zGOo6RKnXTFF/uP4qg0jJbtytH8=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>

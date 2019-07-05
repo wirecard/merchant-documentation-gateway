@@ -102,7 +102,7 @@ NOTE: For additional information regarding referenced transaction functionality,
 [#eps_Transactions_Restrictions]
 ===== Restrictions
 NOTE: When using _eps-Überweisung_, some banks do not transmit consumer data
-(e.g. account details) to _Wirecard Payment Gateway_. As these fields
+(e.g. account details) to _{payment-gateway}_. As these fields
 are mandatory for a refund (e.g. via SEPA _Credit Transfer_), the
 merchant is obliged to provide the consumer data to guarantee a
 successful __refund__.
@@ -116,7 +116,7 @@ successful __refund__.
 |===
 |*URLs (Endpoints)*
 |For transaction type _get-url_
-|``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+|``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
 |*Merchant Account ID (MAID)*
 2+|1f629760-1a66-4f83-a6b4-6a35620b4a6d
 |*Username*
@@ -155,27 +155,27 @@ which contains either the URL of the consumers online banking system (if
 BIC is provided in the request) or the eps bank selection page, to which the
 consumer must be redirected. The consumer is redirected back to merchants shop after the
 transaction is approved and the merchant receives a _debit_ payment notification
-from _Wirecard Payment Gateway_.
+from _{payment-gateway}_.
 
 image::images/11-09-eps/eps_DebitWorkflow.png[width=950, align="center"]
 
 . Consumer adds items to their shopping basket.
 . Consumer selects _eps-Überweisung_.
-. The merchant sends a _get-url_ request to _Wirecard Payment Gateway_.
-. _Wirecard Payment Gateway_ processes and validates the
+. The merchant sends a _get-url_ request to _{payment-gateway}_.
+. _{payment-gateway}_ processes and validates the
 transaction.
-. _Wirecard Payment Gateway_ forwards the request to
+. _{payment-gateway}_ forwards the request to
 _eps-Überweisung_.
 . _eps-Überweisung_ provides the URL of the consumer's online banking
 account for payment verification.
-. _Wirecard Payment Gateway_ processes the response.
-. _Wirecard Payment Gateway_ redirects the consumer to the provided
+. _{payment-gateway}_ processes the response.
+. _{payment-gateway}_ redirects the consumer to the provided
 online banking URL.
 . Consumer verifies the payment within the personal online banking system.
 . _eps-Überweisung_ transfers funds from the consumer's bank account
 to the merchant's bank account.
-. _eps-Überweisung_ sends a payment notification to the _Wirecard Payment Gateway_.
-. _Wirecard Payment Gateway_ processes the notification and sends the
+. _eps-Überweisung_ sends a payment notification to the _{payment-gateway}_.
+. _{payment-gateway}_ processes the notification and sends the
 payment _debit_ notification to the merchant.
 . The merchant receives the notification with the payment result.
 
@@ -231,7 +231,7 @@ The data is included only if the consumer's bank provided the data in
 the final bank notification for successful payment. It is not mandatory
 for banks to send this data.
 
-Therefore, it is required to process a payment query using WPG Rest
+Therefore, it is required to process a payment query using {payment-gateway-abbr} Rest
 interface after the shop system received a debit payment notification or
 the consumer has been redirected to the shop.
 
@@ -392,7 +392,7 @@ https://coderstoolbox.net/string/#!encoding=xml&action=decode&charset=us_ascii
   <SignatureValue>Qd7xMPndqS+r6NY4zF/09Dn3bZXeeeZptLLmQvmFMXsmwXXDrKedRK31ipBRuNFhq2UXy7CopCD/T45RNOW0qIPp7XjN4juCbPK8TKDZFey4DVbjoLI/Q3mq0nalaoxP9t99/J4th3T8h+KNQIWCvmRz0dF4UUVvVmUaysaqEt7xT5nm3c73jpA5NkPRA1sX0Y0Q70Qdy6jIPjphRhYGgtnUM6Vr1bn0uwkiiCAfN19EcTCdmz5LtW9FQv1ra6vcIwEIiG1r/iym/M3DsF4BBtthAEbL1B4Y5to0OrVdGh1AEaojJ90vYd60FMOtqobs+j4G0CRutgZ5NtwlGcL70Xu7WEWWw76OcQexvXah5i1WgtvFYIcWMyLm0YNe1a7FjVeA5Wyzo2cR3n3ph8VFg3NpeH+oDnx1Ps2NvIspxBZ+DzalBcFeQWJmpOMlQ3oqWlt7YxyeiqDjPmGzsPB892MqjS/QqDGwfZzvX3u/SyPnOoDF7Si9s188zreHnjj+NlZY1i1B1sEFJ56104qJbQdt+O6s1QqLj6vKs26VrV477lNGhgDOEKkf1TQFMxr5kDHbp0wZ+nrpskIt+A6dnY0oH7dXs+uAK6BRK++T22gOdexI8/iJsXYSDdrws07N3Uxxq1mah8JbFCYNhUQLB6hxTGyKb/s+wj34Vo9O1V0=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
 <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -573,7 +573,7 @@ PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48cGF5bWVudCB4bWxucz0iaHR0cDov
   <SignatureValue>J3B+0jkbdHpihFIxScpZtNTZHS9wD5G1FnA1FbjSTwQ6J6gccUrHykcnm02LfDqKx9m6LPR3NaV0ifjCo+t8unWp6uIZd9sQHehQVxsi5aIkRhEFwE07j5+QMnr0EziauUMUuPrFlLe9w+VeLD/rODQ9AS2aq5UuGuy4e2/KrTB0tUYhdp9RKGDSg8fn6t4yZ6xg5/Dh1ypDTJYmstUAzrCHzY99m5B3aVczN4CrF8gvTN0BCv/oh0vUqtU5w/FDtdqwgiYblNXLqCJ7LlJUS5aD+vIj+nIEbL86hEWjlvA3BHynHWI3Dx5vj4Fqa2+M+82RDGwAUWD4zrSNSD6Zi4LjZ6cAugD3mIeKQ3TmCEBdrOac8jGO7ZU1ywHYbosJGEJyaYkGb2Wp+y42hodW/rWiJoCOo5B1b9g9goX3AUT36KYprAY6X0657bE/zKYza5L60CPcO7nQvJgqB+cq1fvsJ7gLN2rvXoO8M1wSzvTN/HPahcpqMT1bfiF7SORmppd8UsyIs/REIHUg0XVMxhi73vODi2xQKVu/fBU/d3vgG/UU04df9B+NV4d0B4LRrx6t/QcH9dyOkHPB/qTVPIbgD61rNOWL2BYS8py7ZClukp0T1ITCImJmL5mgzdeywKtD+a2KAeE7r0yiXIz7yETmAMBNw6yQhRwnkecnA40=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -685,7 +685,7 @@ PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48cGF5bWVudCB4bWxucz0iaHR0cDov
   <SignatureValue>banKJSUea5M7K2DMC0jIGg3cc6VX1D0RsoIyqZ+Y1GhFPU8Ys2NAnN0MFU6tDTM7e10I9ewriOhGl6Vibc+DZPpuH66ZjDKAT03LrX1VI/dVTmC+PX3BS84Ex3jSWe+1MiQFtww5DYBiuqAUQvuNINoaIPfP+h+VjSoUiwtau97JzygAZahN26DKMNs3i8VhoFhWgjispC1xRwl9MHtnSadngsZX7pAgIoz9/bjhIr6KM5ZZRzgkwUmD3eryCHsXyIWlTMswqEWufBfOCD9Qfy5Oo8NrbCrcvHL3aj8/IelWzgnWmc3lfTZ6eSqNoSS9acW/rQkWoyKy0jilJwFY7KKO5DtAKBKeJ9JovZ2Jm5RU4riryq1PPcboZ6gFi7izC7nSDumAvCeH1BpuFv8LaKquIY9kr8Ye/XIP7mD66K4slh3eX3Eg+XnAJlhLHPfULq42bAh2B9d5269nBZWI+Fg6WbeL0EYn+G0wwHEZfCXMn2izV16lPCqdyo3VGwlYd4YhXiS1yEDbyA0WFnbQxCJOp9qsDqBmMI0hVOaJ3iOdhR8nvZx8qkvtyGCh2XOptV/Bx8Ig38nFJtOMOYI84EAj0AuFwB0KF4H9minGf2zMqhb6pujKduoL+2MiXHBqCLm/udBaiDc5A0SclQOlmMBtCYh/skbVPNJc6KueLfc=</SignatureValue>
   <KeyInfo>
    <X509Data>
-    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN=api-test.wirecard.com,OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
+    <X509SubjectName>L=Ascheim,2.5.4.4=#130642617965726e,CN={test-instance-hostname},OU=Operations,O=Wirecard Technologies GmbH,C=DE</X509SubjectName>
     <X509Certificate>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</X509Certificate>
    </X509Data>
   </KeyInfo>
@@ -758,8 +758,8 @@ PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48cGF5bWVudCB4bWxucz0iaHR0cDov
 [source, XML, syntaxhighlighter-pre]
 ----
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com/engine/rest/merchants/184bcc34-82ea-4f67-94d6-dc782ab86da3/payments/1e12e5ef-2ebe-4b46-962d-d93ae51a2a07">
-    <merchant-account-id ref="https://api-test.wirecard.com/engine/rest/config/merchants/184bcc34-82ea-4f67-94d6-dc782ab86da3">184bcc34-82ea-4f67-94d6-dc782ab86da3</merchant-account-id>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://{test-instance-hostname}/engine/rest/merchants/184bcc34-82ea-4f67-94d6-dc782ab86da3/payments/1e12e5ef-2ebe-4b46-962d-d93ae51a2a07">
+    <merchant-account-id ref="https://{test-instance-hostname}/engine/rest/config/merchants/184bcc34-82ea-4f67-94d6-dc782ab86da3">184bcc34-82ea-4f67-94d6-dc782ab86da3</merchant-account-id>
     <transaction-id>1e12e5ef-2ebe-4b46-962d-d93ae51a2a07</transaction-id>
     <request-id>${get-url request-id}</request-id>
     <transaction-type>debit</transaction-type>
