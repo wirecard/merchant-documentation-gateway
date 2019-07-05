@@ -4,37 +4,62 @@ helper script to talk to asciidoctor.js api
 
 */
 
-var argv = require( 'minimist' )( process.argv.slice( 2 ) );
-var asciidoctor = require( 'asciidoctor.js' )();
+const argv = require('minimist')(process.argv.slice(2));
+const asciidoctor = require('asciidoctor.js')();
+const fs = require('fs');
 
-if( argv['file'] !== undefined ) adocFilename = argv['file']
+if (argv['file'] !== undefined) adocFilename = argv['file'];
 
 const memoryLogger = asciidoctor.MemoryLogger.$new();
 asciidoctor.LoggerManager.setLogger(memoryLogger);
 
-var adocFilename = 'index.adoc'
-if( argv['file'] !== undefined ) adocFilename = argv['file']
+var adocFilename = 'index.adoc';
+if (argv['file'] !== undefined) adocFilename = argv['file'];
 
-const doc = asciidoctor.loadFile( adocFilename, {'safe': 'safe', 'catalog_assets': true} )
+const doc = asciidoctor.loadFile(adocFilename, { 'safe': 'safe', 'catalog_assets': true });
 
 // to get warnings for wrong internal references!
-Opal.gvars.VERBOSE = true
-doc.convert()
+Opal.gvars.VERBOSE = true;
+doc.convert();
 
-/*
-console.log(errorMessage.severity.toString()); // 'ERROR'
-console.log(errorMessage.message['text']); // 'invalid part, must have at least one section (e.g., chapter, appendix, etc.)'
-*/
+var Result = new Object();
 
-var result = new Object()
+Result.links = doc.getLinks();
+Result.ids = doc.getIds();
+Result.errors = memoryLogger.getMessages();
+//Result.references = doc.getRefs()
+//Result.images = doc.getImages()
+//Result.footnotes = doc.getFootnotes()
+//Result.indexTerms = doc.getIndexTerms()
 
-result.links = doc.getLinks()
-result.ids = doc.getIds()
-result.errors = memoryLogger.getMessages()
-//result.references = doc.getRefs()
-//result.images = doc.getImages()
-//result.footnotes = doc.getFootnotes()
-//result.indexTerms = doc.getIndexTerms()
+if (adocFilename !== 'index.adoc') {
+    const anchorIndexFile = 'anchor-index.json';
+    var AnchorIndex = {};
+    var fileContents;
+    try {
+        fileContents = fs.readFileSync(anchorIndexFile);
+    } catch (err) {
+        if (err.code === 'ENOENT') {
+            console.log('File not found. Will be created.');
+            fileContents = '{}';
+        } else {
+            throw err;
+        }
+    }
+    try {
+        AnchorIndex = JSON.parse(fileContents);
+    }
+    catch (err) {
+        AnchorIndex = {};
+    }
+    AnchorIndex[adocFilename] = Result.ids;
+    try {
+        fs.writeFileSync(anchorIndexFile, JSON.stringify(AnchorIndex, null, 2));
+    }
+    catch (err) {
+        throw err;
+    }
+}
 
-console.log( JSON.stringify( result, null, 2 ) )
-//console.log( doc.getRefs() )
+// do not remove. output is required by basic-tests.php
+console.log( JSON.stringify( Result, null, 2 ) );
