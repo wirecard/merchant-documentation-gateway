@@ -1,8 +1,12 @@
 #!/bin/python3
 """
 asciidoctor source block exporter
-typically called like: python3 exporter.py -d src-files *.adoc
-TODO: skip already exported blocks
+typically called like:
+* python3 -u exporter.py -d src-files *.adoc
+or
+* PYTHONUNBUFFERED="1" python3 exporter.py -d src-files *.adoc
+
+TODO: skip already exported blocks (maybe done?)
 """
 
 import argparse
@@ -13,7 +17,22 @@ import re
 from shutil import copyfile
 from concurrent.futures import ThreadPoolExecutor
 
+
 SRC_BLK_DELIM = "----"
+NO_BLK_TITLE = "NoBlockTitle"
+
+
+class color:
+   PURPLE = '\033[95m'
+   CYAN = '\033[96m'
+   DARKCYAN = '\033[36m'
+   BLUE = '\033[94m'
+   GREEN = '\033[92m'
+   YELLOW = '\033[93m'
+   RED = '\033[91m'
+   BOLD = '\033[1m'
+   UNDERLINE = '\033[4m'
+   END = '\033[0m'
 
 
 def debug(msg):
@@ -22,11 +41,32 @@ def debug(msg):
 
 
 def info(msg):
-    print("[*] " + msg)
+    print(color.GREEN + "[*] " + msg + color.END)
+
+
+def warning(msg):
+    print(color.BOLD + color.RED + "[***] " + msg + color.END)
 
 
 def normalize_header(header):
-    return re.sub(r"[\(\)]|XML ", "", header).replace(' ', '_')
+    # info("normalize input:  {}".format(header))
+    new_header = re.sub(r"[\(\)<>]|XML |i\.e\.|[\.,=\"–/]",
+                        "", header).replace("-", "_").replace("#", "_")
+    words = re.split(r" |_", new_header)
+    final_header_list = []
+    if len(words) > 10:
+        final_header_list = [w[0] for w in words if len(w) > 0]
+    else:
+        for w in words:
+            if w.isupper():
+                final_header_list.append("_")
+            final_header_list.append(w.title() if w.islower() else w)
+            if w.isupper():
+                final_header_list.append("_")
+    final_header = re.sub(
+        r"_+", "_", "".join(final_header_list).rstrip("_").lstrip("_"))
+    # info("normalize output: {}".format(final_header))
+    return final_header
 
 
 def dir_try_or_create(name):
@@ -69,48 +109,68 @@ last_header = None
 adoc_header_regex = re.compile(r"^\[#([a-zA-Z0-9_]+)\]$")
 # https://regex101.com/r/BuiDJ9/1
 block_title = None
-adoc_block_title_regex = re.compile(r"^\.([a-zA-Z0-9_ ()]+)$")
+adoc_block_title_regex = re.compile(
+    r"^\.((\d+\.)?[-a-zA-Z0-9_ ()<>,=\.\"–/'#]+):?$")
 temp_file = None
+
+
+class ADOC_REGEX:
+    SOURCE_BLOCK = adoc_src_blk_regex
+    HEADER = adoc_header_regex
+    BLOCK_TITLE = adoc_block_title_regex
+
+
+fname_id = 1
 
 # for each input adoc file, we create a temporary file in a tempfolder.
 # these will be copied back later on
 temp_files = [os.path.join(temp_folder, os.path.basename(filename))
               for filename in files]
+used_file_names = set()
 
+###############################################################################
+# BEGIN PROCESSING                                                            #
+###############################################################################
 for (file_in, file_out) in zip(files, temp_files):
-    info("Processing {}".format(file_in))
+    debug("Processing {}".format(file_in))
+    # reset variables
     contains_src = False
+    last_header = None
+    block_title = NO_BLK_TITLE
     with open(file_in, "r", encoding='utf8') as f_input:
         with open(file_out, "w+", encoding='utf8') as f_output:
+            line_count = 0
             for line in f_input.readlines():
                 if inside_source and "include" in line:
-                    pass # TODO: skip if include is found in source block
+                    line_count += 1
+                    f_output.write(line)
+                    continue
 
                 # set last_header if this line is a header
-                result = re.match(adoc_header_regex, line.rstrip())
+                result = re.match(ADOC_REGEX.HEADER, line.rstrip())
                 if result:
-                    last_header = result.group(1)
-                    debug("found header {}".format(last_header))
+                    last_header = normalize_header(result.group(1))
                 # set block title if this line is the title
-                result = re.match(adoc_block_title_regex, line.rstrip())
+                result = re.match(ADOC_REGEX.BLOCK_TITLE, line.rstrip())
                 if result:
                     block_title = normalize_header(result.group(1))
-                    debug("found title {}".format(block_title))
 
                 # close newly created source file once source block is read completely
                 # and write include statement to .adoc
                 if line.rstrip() == SRC_BLK_DELIM and inside_source:
-                    debug("finish {}".format(last_header))
+                    contains_src = True
+                    debug("finish {}: {}".format(last_header, block_title))
                     inside_source = False
                     found_source_block = False
-                    last_header = None
-                    block_title = None
+                    block_title = NO_BLK_TITLE
                     f_output.write("include::{}[]\n".format(
                         temp_src_file.name.replace('\\', '/')))
+                    line_count += 1
                     temp_src_file.close()
 
                 # output file 1:1 unless we have a source block
                 if not inside_source:
+                    line_count += 1
                     f_output.write(line)
                 else:
                     temp_src_file.write(line)
@@ -118,10 +178,9 @@ for (file_in, file_out) in zip(files, temp_files):
                 # line is "----" and we found a source block header, we're now inside the source
                 if line.rstrip() == SRC_BLK_DELIM and found_source_block and not inside_source:
                     inside_source = True
-                    contains_src = True
 
                 # find extension in source block header
-                result = re.match(adoc_src_blk_regex, line)
+                result = re.match(ADOC_REGEX.SOURCE_BLOCK, line)
                 if result:
                     extension = result.group(1)
                     if extension not in extensions_to_extract:
@@ -130,16 +189,35 @@ for (file_in, file_out) in zip(files, temp_files):
                     found_source_block = True
 
                     dir_try_or_create(os.path.join(out_dir, extension))
+                    # only use last_header as filename if no block is detected
+                    # and let the id mechanism watch out for name collisions
+                    if block_title == NO_BLK_TITLE:
+                        warning("[line:{0:5}] No block title: {1}".format(
+                            line_count, file_in))
+                        fbase_name = last_header
+                    else:
+                        fbase_name = "_".join([last_header, block_title])
                     file_name = os.path.join(
-                        out_dir, extension,
-                        ".".join(["_".join([last_header, block_title]), extension]))
-                    debug("Creating {} source file {}".format(
-                        extension, file_name))
+                        out_dir, extension, ".".join([fbase_name, extension]))
+
+                    # check for conflicting filenames and append id if necessary
+                    if not file_name in used_file_names:
+                        used_file_names.add(file_name)
+                    else:
+                        # warning("Conflicting filename: {0:2}".format(".".join([fbase_name, extension])))
+                        fbase_name += "_{}".format(fname_id)
+                        fname_id += 1
+                        file_name = os.path.join(
+                            out_dir, extension, ".".join([fbase_name, extension]))
+                        used_file_names.add(file_name)
+
+                    # info("Creating {} source file {}".format(extension, file_name))
                     temp_src_file = open(file_name, "w+", encoding="utf8")
+
     if not contains_src:
         os.remove(file_out)
 
-executor = ThreadPoolExecutor(max_workers=8)
-for (file_in, file_out) in zip(files, temp_files):
-    if os.path.isfile(file_out):
-        executor.submit(copyfile(file_out, file_in))
+with ThreadPoolExecutor(max_workers=8) as executor:
+    for (file_in, file_out) in zip(files, temp_files):
+        if os.path.isfile(file_out):
+            executor.submit(copyfile, file_out, file_in)
