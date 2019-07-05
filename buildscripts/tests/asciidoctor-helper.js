@@ -46,7 +46,12 @@ if (adocFilename !== 'index.adoc') {
             throw err;
         }
     }
-    AnchorIndex = JSON.parse(fileContents);
+    try {
+        AnchorIndex = JSON.parse(fileContents);
+    }
+    catch (err) {
+        AnchorIndex = {};
+    }
     AnchorIndex[adocFilename] = Result.ids;
     try {
         fs.writeFileSync(anchorIndexFile, JSON.stringify(AnchorIndex, null, 2));
@@ -55,3 +60,6 @@ if (adocFilename !== 'index.adoc') {
         throw err;
     }
 }
+
+// do not remove. output is required by basic-tests.php
+console.log( JSON.stringify( Result, null, 2 ) );

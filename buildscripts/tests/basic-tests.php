@@ -34,6 +34,10 @@ class Task extends Threaded {
   public function run() {
 
     $asciidoctorOutput = getAsciidoctorOutput( $this->filename );
+    if(!$asciidoctorOutput) {
+      echo "calling asciidoctor helper failed for ".$this->filename.PHP_EOL;
+      die();
+    }
     // filter http links
     $asciidoctorOutput['links'] = preg_grep( '/^https?:/', $asciidoctorOutput['links'] );
     $gitBranch = getBranchOfFile( $this->filename );
@@ -93,7 +97,6 @@ class UrlTest extends Threaded {
   }
 }
 
-
 class SearchFileTask extends Threaded {
   private $searchResults;
   private $filename;
@@ -126,6 +129,38 @@ class SearchFileTask extends Threaded {
     return $this->searchResults;
   }
 }
+
+class GitInfo {
+  private static $instance;
+  private $gitInfoArray;
+
+  private function __construct() {
+    $this->gitInfoArray = array(
+      'commit_author' => getCommitAuthor(),
+      'branch' => getCurrentBranch()
+    );
+  }
+  private function __clone() {}
+
+  public static function getInstance() {
+      if (!GitInfo::$instance instanceof self) {
+        GitInfo::$instance = new self();
+      }
+      return GitInfo::$instance;
+  }
+
+  public function getCommitAuthor() {
+      return $this->gitInfoArray['commit_author'];
+  }
+  public function getBranch() {
+    return $this->gitInfoArray['branch'];
+  }
+  public function getInfoArray() {
+    return $this->gitInfoArray;
+  }
+}
+
+file_put_contents('git-info.json', json_encode(GitInfo::getInstance()->getInfoArray(), JSON_PRETTY_PRINT));
 
 // simple pattern matching for anchor validity check
 function testAnchors( $anchorsArray ) {
@@ -243,6 +278,9 @@ function getAsciidoctorOutput( $filename ) {
   //exec( $cmd, $result['consoleOutput'], $result['exitCode'] );
 
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
+  if(!$asciidoctorJSON) {
+    return false;
+  }
   $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
 
   // Format Output
@@ -447,9 +485,9 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 function sendNotifications ( $results ) {
   if( empty(getenv( 'SLACK_TOKEN' )) ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console";
-  }
-  $currentBranch = getCurrentBranch();
-  $commitAuthor = getCommitAuthor();
+  }  
+  $currentBranch = GitInfo::getInstance()->getBranch();
+  $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
   if( sizeof( $results ) > 0 ) {
     foreach( $results as $filename => $result ) {
