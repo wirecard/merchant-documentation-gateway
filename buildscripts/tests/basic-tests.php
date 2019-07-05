@@ -89,8 +89,9 @@ class UrlTest extends Threaded {
 
   public function run() {
     error_reporting(E_ALL & ~E_WARNING);
-    $this->httpStatusCode = intval( substr( get_headers( $this->url )[0], 9, 3 ) );
-    error_reporting(E_ALL & ~E_WARNING);
+    $h = get_headers( $this->url );
+    error_reporting(E_ALL);
+    $this->httpStatusCode = ($h) ? intval( substr( $h[0], 9, 3 ) ) : 0;
   }
 
   // Returns 0 on "false", i.e. timeouts
