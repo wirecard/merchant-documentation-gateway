@@ -4,6 +4,7 @@
 * - name of author of last commit
 * - branch name (or "Pull_Request")
 */
+/*jshint esversion: 6*/ 
 
 const fs = require('fs');
 const infoFilesFile = 'buildscripts/info-files.json';

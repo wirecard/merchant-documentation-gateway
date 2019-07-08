@@ -492,19 +492,20 @@ function sendNotifications ( $results ) {
   if( empty(getenv( 'SLACK_TOKEN' )) ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console";
   }  
+  $partner = getenv( 'PARTNER' );
   $currentBranch = GitInfo::getInstance()->getBranch();
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
   if( sizeof( $results ) > 0 ) {
     foreach( $results as $filename => $result ) {
-      $slackMessage = createSlackMessageFromErrors( $result, $currentBranch, $commitAuthor );
+      $slackMessage = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor );
       if( $slackMessage !== false )
         $status = postToSlack( $slackWebhookUrl, $slackMessage );
     }
   }
   else {
     // empty error array creates "success" msg in createSlackMessageFromErrors
-    $slackMessage = createSlackMessageFromErrors( array(), $currentBranch, $commitAuthor );
+    $slackMessage = createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor );
     if( $slackMessage !== false )
       $status = postToSlack( $slackWebhookUrl, $slackMessage );
   }
@@ -512,7 +513,7 @@ function sendNotifications ( $results ) {
 }
 
 // creates a single error message
-function createSlackMessageFromErrors( $result, $currentBranch, $commitAuthor ) {
+function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor ) {
 
   $numErrors = 0;
   if( sizeof( $result ) > 0 ){
@@ -526,7 +527,11 @@ function createSlackMessageFromErrors( $result, $currentBranch, $commitAuthor ) 
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
     }
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*PHP_EOLCommit from: *'.$commitAuthor.'*',
+                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOL'
+                             .'*Partner Build: *'.$partner.'PHP_EOL'
+                             .'*Last edited by: *'.$author.'PHP_EOL'
+                             .'*Branch: *'.$currentBranch.'PHP_EOL'
+                             .'*Commit from: *'.$commitAuthor.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
