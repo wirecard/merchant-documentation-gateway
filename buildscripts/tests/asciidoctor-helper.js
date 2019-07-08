@@ -89,10 +89,17 @@ doc.getSourceLines().forEach((line, lineNumber) => {
         var words = line.match(/[^\W_]{5,}/g);
         if (words) {
             words.forEach(word => {
-                typoWordsList.forEach(referenceWord => {
-                    var levenshteinScore = levenshtein(referenceWord, word);
+                var levenshteinScore = 100;
+                var referenceWord;
+                typoWordsList.forEach(_rw => {
+                    var _lv = levenshtein(_rw, word);
                     // only look at lv values > 0 && <= 3
-                    if (levenshteinScore && levenshteinScore <= 4){
+                    if (_lv && _lv < levenshteinScore) {
+                        levenshteinScore = _lv;
+                        referenceWord = _rw;
+                    }
+                });
+                if (levenshteinScore < 5) {
                         _similarWords.push({
                             "line": lineNumber + 1,
                             "word": word,
@@ -103,7 +110,6 @@ doc.getSourceLines().forEach((line, lineNumber) => {
                         });
                     }
                 });
-            });
         }
     }
 });
