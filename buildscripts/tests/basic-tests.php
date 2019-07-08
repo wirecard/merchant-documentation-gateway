@@ -138,9 +138,11 @@ class GitInfo {
   private $gitInfoArray;
 
   private function __construct() {
+    $infoFiles = json_decode(file_get_contents(INFO_FILE), true);
+    $gitInfo = json_decode(file_get_contents($infoFiles['git-info-file']), true);
     $this->gitInfoArray = array(
-      'commit_author' => getCommitAuthor(),
-      'branch' => getCurrentBranch()
+      'commit_author' => $gitInfo['commit-author'],
+      'branch' => $gitInfo['branch']
     );
   }
   private function __clone() {}
@@ -162,11 +164,6 @@ class GitInfo {
     return $this->gitInfoArray;
   }
 }
-
-$infoFiles = json_decode(file_get_contents(INFO_FILE), true);
-$gitInfoFile = $infoFiles['git-info-file'];
-
-file_put_contents($gitInfoFile, json_encode(GitInfo::getInstance()->getInfoArray(), JSON_PRETTY_PRINT));
 
 // simple pattern matching for anchor validity check
 function testAnchors( $anchorsArray ) {
@@ -531,7 +528,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
                              .'*Partner Build: *'.$partner.'PHP_EOL'
                              .'*Last edited by: *'.$author.'PHP_EOL'
                              .'*Branch: *'.$currentBranch.'PHP_EOL'
-                             .'*Commit from: *'.$commitAuthor.'*',
+                             .'*Commit from: *'.$commitAuthor.'PHP_EOL',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
