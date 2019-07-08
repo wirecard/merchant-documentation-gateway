@@ -61,10 +61,10 @@ timed_log "build big html"
 if [[ $SINGLE_FILE ]]; then
     mkdir -p /tmp/build-adoc
     for adoc in *.adoc; do
-        RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font "$adoc" -o "/tmp/build-adoc/$adoc"
+        RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram "$adoc" -o "/tmp/build-adoc/$adoc"
     done
 else
-    RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font index.adoc -o index.html
+    RUBYOPT="-E utf-8" asciidoctor -b html5 -a systemtimestamp="$(date +%s)" -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram index.adoc -o index.html
 fi
 
 timed_log "create toc"
