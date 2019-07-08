@@ -86,7 +86,7 @@ const doc = asciidoctor.loadFile(adocFilename, { 'safe': 'safe', 'catalog_assets
 var _similarWords = []
 doc.getSourceLines().forEach((line, lineNumber) => {
     if (line) {
-        var words = line.match(/[^\W_]{5,}/g);
+        var words = line.match(/(?<![\<:_\#\/\-(\[\w))])[^\W_]{5,}(?![:(\w=)])/g);
         if (words) {
             words.forEach(word => {
                 var levenshteinScore = 100;
@@ -100,16 +100,16 @@ doc.getSourceLines().forEach((line, lineNumber) => {
                     }
                 });
                 if (levenshteinScore < 5) {
-                        _similarWords.push({
-                            "line": lineNumber + 1,
-                            "word": word,
-                            "reference-word": referenceWord,
-                            "scores": {
-                                "levenshtein": levenshteinScore
-                            }
-                        });
-                    }
-                });
+                    _similarWords.push({
+                        "line": lineNumber + 1,
+                        "word": word,
+                        "reference-word": referenceWord,
+                        "scores": {
+                            "levenshtein": levenshteinScore
+                        }
+                    });
+                }
+            });
         }
     }
 });
@@ -138,4 +138,4 @@ if (adocFilename !== 'index.adoc') {
 }
 
 // do not remove. output is required by basic-tests.php
-console.log(JSON.stringify(Result, null, 2));
+//console.log(JSON.stringify(Result, null, 2));
