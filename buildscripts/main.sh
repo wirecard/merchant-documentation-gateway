@@ -170,7 +170,7 @@ function buildPartner() {
 
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
-  if [[ -z $SKIP ]]; then
+  if [[ -z $SKIP ]] && [[ "${PARTNER}" == "WD" ]]; then
     php buildscripts/tests/basic-tests.php || true
   fi
 
