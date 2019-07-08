@@ -106,8 +106,8 @@ function createPartnerFolder() {
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
   # copy the master template to the build directory and name it after the partner
-  if [[ -d "${BUILDFOLDER_PATH}/${PARTNER}" ]]; then
-    rm -rf "${BUILDFOLDER_PATH}/${PARTNER}"
+  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}" ]]; then
+    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}"
   fi
   cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}"
   cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/"
