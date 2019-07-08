@@ -141,7 +141,7 @@ class GitInfo {
     $infoFiles = json_decode(file_get_contents(INFO_FILE), true);
     $gitInfo = json_decode(file_get_contents($infoFiles['git-info-file']), true);
     $this->gitInfoArray = array(
-      'commit_author' => $gitInfo['commit-author'],
+      'commit_author' => $gitInfo['commit_author'],
       'branch' => $gitInfo['branch']
     );
   }
