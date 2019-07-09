@@ -123,9 +123,6 @@ Opal.gvars.VERBOSE = true;
 doc.convert();
 
 Result.links = doc.getLinks();
-console.log(Result.links);
-process.exit(1);
-
 Result.ids = doc.getIds();
 Result.errors = memoryLogger.getMessages();
 //Result.references = doc.getRefs()
