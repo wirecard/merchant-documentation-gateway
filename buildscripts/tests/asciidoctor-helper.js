@@ -9,6 +9,8 @@ const argv = require('minimist')(process.argv.slice(2));
 const asciidoctor = require('asciidoctor.js')();
 const fs = require('fs');
 const levenshtein = require('js-levenshtein');
+const simpleSpellchecker = require('simple-spellchecker');
+var simpleSpellcheckerDict = simpleSpellchecker.getDictionarySync('en-US');
 
 const infoFile = 'buildscripts/info-files.json';
 const infoFiles = stfuGetJsonFromFile(infoFile);
@@ -83,10 +85,13 @@ if (argv['file'] !== undefined) adocFilename = argv['file'];
 
 const doc = asciidoctor.loadFile(adocFilename, { 'safe': 'safe', 'catalog_assets': true });
 
-var _similarWords = []
-doc.getSourceLines().forEach((line, lineNumber) => {
+var _similarWords = [];
+var _spellcheck = [];
+var wordsRegexp = /(?<![\<:_\#\/\-(\[\w))])[^\W_]{5,}(?![:(\w=)])/g;
+doc.getSourceLines().forEach((line, lineIndex) => {
+    var lineNumber = lineIndex + 1;
     if (line) {
-        var words = line.match(/(?<![\<:_\#\/\-(\[\w))])[^\W_]{5,}(?![:(\w=)])/g);
+        var words = line.match(wordsRegexp);
         if (words) {
             words.forEach(word => {
                 var levenshteinScore = 100;
@@ -101,7 +106,7 @@ doc.getSourceLines().forEach((line, lineNumber) => {
                 });
                 if (levenshteinScore < 5) {
                     _similarWords.push({
-                        "line": lineNumber + 1,
+                        "line": lineNumber,
                         "word": word,
                         "reference-word": referenceWord,
                         "scores": {
@@ -109,11 +114,19 @@ doc.getSourceLines().forEach((line, lineNumber) => {
                         }
                     });
                 }
+                if (simpleSpellcheckerDict.isMisspelled(word)) {
+                    _spellcheck.push({
+                        "line": lineNumber,
+                        "word": word,
+                        "suggestions": simpleSpellcheckerDict.getSuggestions(word)
+                    });
+                }
             });
         }
     }
 });
 Result.similarWords = _similarWords;
+Result.spellcheck = _spellcheck;
 
 // to get warnings for wrong internal references!
 Opal.gvars.VERBOSE = true;
@@ -138,4 +151,4 @@ if (adocFilename !== 'index.adoc') {
 }
 
 // do not remove. output is required by basic-tests.php
-//console.log(JSON.stringify(Result, null, 2));
+console.log(JSON.stringify(Result, null, 2));
