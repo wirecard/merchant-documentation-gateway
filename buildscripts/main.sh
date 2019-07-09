@@ -75,7 +75,7 @@ function abortCurrentBuild() {
 # writeRepoKey takes WL_REPO_SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64 | tr -d '\n')
 function writeRepoKey() {
   debugMsg "inside writeRepoKey()"
-
+  
   if [[ -n ${WL_REPO_SSHKEY} ]]; then
     echo "${WL_REPO_SSHKEY}" | base64 -d | gunzip > "${WL_REPO_SSHKEY_PATH}"
     chmod 600 "${WL_REPO_SSHKEY_PATH}"
@@ -100,18 +100,18 @@ function cloneWhitelabelRepository() {
 # takes partner name == folder name as argument
 function createPartnerFolder() {
   PARTNER=${1}
-
+  
   # create folder where we will build the documentation
   mkdir -p "${BUILDFOLDER_PATH}"
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
-
+  
   # copy the master template to the build directory and name it after the partner
   if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}" ]]; then
     rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}"
   fi
   cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}"
   cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/"
-
+  
   if [[ ${PARTNER} != 'WD' ]]; then
     # fill the partner dir with whitelabel content
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/"
@@ -121,21 +121,21 @@ function createPartnerFolder() {
 # builds the doc for the individual wl partner (and WD herself)
 function buildPartner() {
   PARTNER=${1}
-
+  
   debugMsg " "
   debugMsg "::: Building ${PARTNER}"
   createPartnerFolder "${PARTNER}"
   cd "${BUILDFOLDER_PATH}/${PARTNER}"
-
-
+  
+  
   debugMsg "Create mermaid config from CSS"
   bash buildscripts/asciidoc/create-mermaid-config.sh
-
+  
   debugMsg "Check mermaid CSS hash"
   # svg mermaid diagrams are stored in mermaid/.
   # changes need to be created, moved there and committed.
   cp mermaid/*.svg .
-
+  
   # calculate the checksum for mermaid.css.
   # mermaid.css is used for the creation of the mermaid diagrams,
   # which are cached by the asciidoctor-diagram extension in .asciidoctor/diagram/.
@@ -147,12 +147,14 @@ function buildPartner() {
   echo "Reference: $(cat ${checksum_ref})"
   echo "Current:   $(cat ${checksum_new})"
   if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
-      debugMsg "Delete all *.svg to force re-creation"
-      rm ./*.svg
+    debugMsg "Delete all *.svg to force re-creation"
+    rm ./*.svg
+    debugMsg "Overwriting checksum file with new checksum"
+    cp "${checksum_new}" "${checksum_ref}"
   fi
-
+  
   if [[ ${PARTNER} != 'WD' ]]; then
-
+    
     debugMsg "Executing custom scripts.."
     # execute all custom scripts of the partner
     # IMPORTANT: script MUST NOT use exit, only return!
@@ -161,72 +163,88 @@ function buildPartner() {
       source "${script}" || scriptError "$(basename ${script})"
     done
     debugMsg "Custom scripts done. Errors: ${ERRORS}"
-
+    
     # if any script failed, abort right here the build of this WL-partner
     [[ ${ERRORS} -gt 0 ]] && abortCurrentBuild " for WL partner ${PARTNER}." && return 1
     # if any test or script that comes later (common build instructions for all partners) fails
     # then the loop that called buildPartner() will handle the error message
   fi
-
+  
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
   if [[ -z $SKIP ]] && [[ "${PARTNER}" == "WD" ]]; then
     php buildscripts/tests/basic-tests.php || true
   fi
-
+  
   debugMsg "Building blob html"
   # build html for toc and index
   # TODO: replace with asciidoctor.js api calls inside these scripts to avoid costly building of html
   RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html || \
-    scriptError "asciidoctor in line $(( LINENO - 1 ))"
-
+  scriptError "asciidoctor in line $(( LINENO - 1 ))"
+  
   debugMsg "Creating TOC json"
   node buildscripts/split-pages/create-toc.js || \
-    scriptError "create-toc.js in line $(( LINENO - 1 ))"
-
+  scriptError "create-toc.js in line $(( LINENO - 1 ))"
+  
   debugMsg "Creating lunr search index"
   node buildscripts/search/lunr-index-builder.js || \
-    scriptError "lunr-index-builder.js in line $(( LINENO - 1 ))"
-
+  scriptError "lunr-index-builder.js in line $(( LINENO - 1 ))"
+  
   debugMsg "Building split page docs"
   RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 -r ./buildscripts/asciidoc/multipage-html5-converter.rb || \
-    scriptError "asciidoctor in line $(( LINENO - 1 ))"
-
+  scriptError "asciidoctor in line $(( LINENO - 1 ))"
+  
   debugMsg "Post process svg files"
   sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' ./*.svg
-
+  cp ./*.svg mermaid/
+  
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
-
+  
   HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
-
+  
   debugMsg "Moving created web resources to deploy html folder"
   mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}/html"
-
+  
   mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
-    increaseErrorCount
-
+  increaseErrorCount
+  
   cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
-    increaseErrorCount
-
+  increaseErrorCount
+  
   return ${ERRORS}
 }
 
 # main() logic: build partner, set by ENV variable ${PARTNER}, see .travis.yml
 function main() {
   debugMsg "inside main()"
-  cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
-
-  PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
+  
   if [[ -z $PARTNER ]]; then
     debugMsg 'no $PARTNER env variable set'
-    exit 1
+    debugMsg 'assuming $PARTNER=WD'
+    PARTNER="WD"
   fi
+  
+  # check arguments that are passed
+  while (( "$#" )); do
+    case "$1" in
+      -s|--skip)
+        SKIP="true"
+      ;;
+      *)
+      ;;
+    esac
+    shift
+  done
+  
+  cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
+  
+  PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
   if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}" && [[ "${PARTNER}" != "WD" ]]; then
     debugMsg "partner ${PARTNER} not in partners list"
     exit 0
   fi
-
+  
   # prepare master template
   # need to delete folder before to avoid weird file permission errors
   if [[ -d "${MASTERTEMPLATE_PATH}" ]]; then
@@ -236,8 +254,8 @@ function main() {
   cp -r "${INITDIR}"/* "${MASTERTEMPLATE_PATH}/"
   cp -r "${INITDIR}/.asciidoctor" "${MASTERTEMPLATE_PATH}/"
   cd "${MASTERTEMPLATE_PATH}" || \
-    exitWithError "Line ${LINENO}: Failed to create template."
-
+  exitWithError "Line ${LINENO}: Failed to create template."
+  
   ERRORS=0
   if buildPartner "${PARTNER}"; then # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
@@ -255,17 +273,5 @@ function main() {
   return 0
 }
 
-# check arguments that are passed
-while (( "$#" )); do
-    case "$1" in
-    -s|--skip)
-    SKIP="true"
-    ;;
-    *)
-    ;;
-    esac
-    shift
-done
-
-main
+main "$@"
 exit $?
