@@ -100,22 +100,18 @@ dir_try_or_create(temp_folder)
 found_source_block = False
 inside_source = False
 extension = None
-# https://regex101.com/r/q9Puez/1
-adoc_src_blk_regex = re.compile(r"\[source, ?(\w+)\]")
 last_header = None
-# https://regex101.com/r/Fcun13/1
-adoc_header_regex = re.compile(r"^\[#([a-zA-Z0-9_]+)\]$")
-# https://regex101.com/r/BuiDJ9/1
 block_title = None
-adoc_block_title_regex = re.compile(
-    r"^\.((\d+\.)?[-a-zA-Z0-9_ ()<>,=\.\"–/'#]+):?$")
 temp_file = None
 
 
 class ADOC_REGEX:
-    SOURCE_BLOCK = adoc_src_blk_regex
-    HEADER = adoc_header_regex
-    BLOCK_TITLE = adoc_block_title_regex
+   # https://regex101.com/r/q9Puez/1
+    SOURCE_BLOCK = re.compile(r"\[source, ?(\w+)(, ?([a-zA-Z0-9=_\+]+))?\]")
+    # https://regex101.com/r/Fcun13/1
+    HEADER = re.compile(r"^\[#([a-zA-Z0-9_]+)\]$")
+    # https://regex101.com/r/BuiDJ9/1
+    BLOCK_TITLE = re.compile(r"^\.((\d+\.)?[-a-zA-Z0-9_ ()<>,=\.\"–/'#]+):?$")
 
 
 fname_id = 1
@@ -151,10 +147,14 @@ for (file_in, file_out) in zip(files, temp_files):
         with open(file_out, "w+", encoding='utf8') as f_output:
             line_count = 0
             for line in f_input.readlines():
+                # if we find an include, just leave it and continue
                 if inside_source and "include" in line:
                     include_found = True
                     line_count += 1
                     f_output.write(line)
+                    # don't forget to remember the used filename to avoid collisions
+                    file_name = line.replace("include::", "").replace("[]", "")
+                    used_file_names.add(file_name)
                     continue
 
                 # set last_header if this line is a header
