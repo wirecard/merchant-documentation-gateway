@@ -107,7 +107,7 @@ temp_file = None
 
 class ADOC_REGEX:
    # https://regex101.com/r/q9Puez/1
-    SOURCE_BLOCK = re.compile(r"\[source, ?(\w+)(, ?([a-zA-Z0-9=_\+]+))?\]")
+    SOURCE_BLOCK = re.compile(r"\[source, ?(\w+)(, ?([a-zA-Z0-9=_\+\"]+))?\]")
     # https://regex101.com/r/Fcun13/1
     HEADER = re.compile(r"^\[#([a-zA-Z0-9_]+)\]$")
     # https://regex101.com/r/BuiDJ9/1
