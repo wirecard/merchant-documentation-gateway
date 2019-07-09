@@ -81,7 +81,16 @@ asciidoctor.LoggerManager.setLogger(memoryLogger);
 var adocFilename = 'index.adoc';
 if (argv['file'] !== undefined) adocFilename = argv['file'];
 
-const doc = asciidoctor.loadFile(adocFilename, { 'safe': 'safe', 'catalog_assets': true });
+var adocFileContents;
+try {
+    adocFileContents = fs.readFileSync(adocFilename);
+} catch (err) {
+    throw err;
+}
+
+const includeStatement = 'include::shortcuts.adoc[]\n';
+adocFileContents = includeStatement + adocFileContents;
+const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
 
 var _similarWords = []
 doc.getSourceLines().forEach((line, lineNumber) => {
@@ -114,6 +123,9 @@ Opal.gvars.VERBOSE = true;
 doc.convert();
 
 Result.links = doc.getLinks();
+console.log(Result.links);
+process.exit(1);
+
 Result.ids = doc.getIds();
 Result.errors = memoryLogger.getMessages();
 //Result.references = doc.getRefs()
