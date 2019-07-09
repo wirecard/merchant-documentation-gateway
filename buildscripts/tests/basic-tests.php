@@ -41,7 +41,7 @@ class Task extends Threaded {
     // filter http links
     $asciidoctorOutput['links'] = preg_grep( '/^https?:/', $asciidoctorOutput['links'] );
     $gitBranch = getBranchOfFile( $this->filename );
-    $gitAuthor = getLastEditedByOfFile( $this->filename );
+    $gitAuthor = GitInfo::getInstance()->getLastEditedByOfFile( $this->filename );
 
     // Cast as array to prevent implicit conversion to a Volatile object
     $result = (array)array( 'filename' => $this->filename,
@@ -139,10 +139,18 @@ class GitInfo {
 
   private function __construct() {
     $infoFiles = json_decode(file_get_contents(INFO_FILE), true);
-    $gitInfo = json_decode(file_get_contents($infoFiles['git-info-file']), true);
+    try {
+      $gitInfoFileContent = file_get_contents($infoFiles['git-info-file']);
+      $gitInfo = json_decode($gitInfoFileContent, true);
+    }
+    catch (exception $e) {
+      echo "Error: could not read " . INFO_FILE;
+      die();
+    }
     $this->gitInfoArray = array(
       'commit_author' => $gitInfo['commit_author'],
-      'branch' => $gitInfo['branch']
+      'branch' => $gitInfo['branch'],
+      'files' => $gitInfo['files']
     );
   }
   private function __clone() {}
@@ -153,17 +161,22 @@ class GitInfo {
       }
       return GitInfo::$instance;
   }
-
   public function getCommitAuthor() {
       return $this->gitInfoArray['commit_author'];
   }
   public function getBranch() {
     return $this->gitInfoArray['branch'];
   }
+  public function getLastEditedByOfFile($file) {
+    return $this->gitInfoArray['files'][$file]['last_edited_by'];
+  }
   public function getInfoArray() {
     return $this->gitInfoArray;
   }
 }
+
+// instance here to abort early if reading of info files failed
+GitInfo::getInstance();
 
 // simple pattern matching for anchor validity check
 function testAnchors( $anchorsArray ) {
@@ -237,6 +250,9 @@ function testUrls( $urlsArray ) {
 // getBranchOfFile returns originating branch of file
 // if empty returns current branch
 function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
+  //DISABLED. Not in use.
+  return '';
+
   $cmd_origin = 'git --no-pager log --decorate=short --pretty=oneline --follow -- "' . $filename . '" | sed -n "s/.*(origin\/\(' . $pattern . '\)).*/\1/p" | head -n 1';
   $cmd_current = 'git rev-parse --abbrev-ref HEAD';
 
@@ -273,12 +289,6 @@ function getCurrentBranch() {
 //         all anchors                    as $result['anchors']
 //         all error messages of asciidoc as $result['errors']
 function getAsciidoctorOutput( $filename ) {
-
-//  $asciidocPattern = '/asciidoctor: ([A-Z]+): (.*.adoc): line ([0-9]+): (.*)/';
-//  $result = array();
-
-  //$cmd = 'asciidoctor --failure-level=WARN -b html5 -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram "' . $filename . '" -o /dev/null 2>&1';
-  //exec( $cmd, $result['consoleOutput'], $result['exitCode'] );
 
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
   if(!$asciidoctorJSON) {
@@ -350,7 +360,6 @@ function testPatterns( $filename ){
 
 function isInvalidReferenceError( $msg ) { if( substr( $msg, 0, 18 ) === 'invalid reference:' ) { return true; } else { return false; } }
 function isMermaidError( $msg ) { if( $msg === 'invalid style for listing block: mermaid' ) { return true; } else { return false; } }
-
 
 function validateTests( $tests ) {
   $failed = false;
@@ -458,7 +467,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     foreach( $results as $r ) {
       if( array_key_exists( 'filename', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['filename'] = $filename;
       if( array_key_exists( 'branch', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['branch'] = getBranchOfFile( $filename );
-      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = getLastEditedByOfFile( $filename );
+      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = GitInfo::getInstance()->getLastEditedByOfFile( $filename );
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = array(
                                                                       'severity'   => 'WARN',
                                                                       'filename'   => $filename,
@@ -525,10 +534,10 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
     }
     $slackMessage = array( 'attachments' => array(array(
                              'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOL'
-                             .'*Partner Build: *'.$partner.'PHP_EOL'
-                             .'*Last edited by: *'.$author.'PHP_EOL'
-                             .'*Branch: *'.$currentBranch.'PHP_EOL'
-                             .'*Commit from: *'.$commitAuthor.'PHP_EOL',
+                             .'*Partner Build: * '.$partner.'PHP_EOL'
+                             .'*Last edited by: * '.$author.'PHP_EOL'
+                             .'*Branch: * '.$currentBranch.'PHP_EOL'
+                             .'*Commit from: * '.$commitAuthor.'PHP_EOL',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
@@ -573,7 +582,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
     }
   } else {
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => 'Branch: *'.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)PHP_EOLCommit from: *'.$commitAuthor.'*',
+                             'pretext'     => 'Branch: * '.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)PHP_EOLCommit from: *'.$commitAuthor.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
