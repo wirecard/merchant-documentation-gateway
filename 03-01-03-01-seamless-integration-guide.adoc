@@ -1,3 +1,5 @@
+// include::shortcuts.adoc[]
+
 [#PPv2_Seamless_Integration]
 ===== Seamless Integration Guide
 
@@ -10,7 +12,7 @@ endif::[]
 [#PPv2_Seamless_Integration_Overview]
 ====== Overview
 
-To integrate the Wirecard Payment Page in Seamless Mode in your shop,
+To integrate the {payment-page-v2} in Seamless Mode in your shop,
 get your checkout page ready in two steps:
 
 . *Preparing your checkout page:* Add the ``paymentPage.js`` library to
@@ -25,7 +27,7 @@ Then use a backend-to-backend JSON <<PPSolutions_PPv2_Workflow, workflow>>
 for the payment process.
 
 . *Create a payment session:* You send an initial POST request with
-details of the transaction to the Wirecard Payment Page ({payment-page-v2-abbr}). This POST
+details of the transaction to the {payment-page-v2} ({payment-page-v2-abbr}). This POST
 request is secured by basic access authentication.
 
 . *Render the seamless payment form:* {payment-page-v2-abbr} returns an initial response URL.
@@ -68,9 +70,9 @@ the Payment Page Designer.
 
 Add the ``paymentPage.js`` library to your checkout page HTML code:
 
-[source]
+[source,html,subs=attributes+]
 ----
-<script src="https://wpp.wirecard.com/loader/paymentPage.js" type="text/javascript"></script>
+<script src="https://{checkout-page-html-hostname}/loader/paymentPage.js" type="text/javascript"></script>
 ----
 
 This library lets you render the payment form as an iframe in your checkout page.
@@ -86,8 +88,15 @@ seamless appearance when it is embedded in your checkout page.
 
 . Select the *Payment* tab and click on *Colors.*
 +
+
+ifdef::env-wirecard[]
 image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_1.png[Seamless Page Designer 1]
 +
+endif::[]
+ifndef::env-wirecard[]
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_1_whitelabeled.png[Seamless Page Designer 1]
+endif::[]
+
 . In *Colors,* go to the *Content* tab and open the *Content Background Color* window.
 +
 image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_2.png[Seamless Page Designer 2]
@@ -101,18 +110,18 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_3.png[Seamless
 [#PPv2_Seamless_Integration_Example]
 ====== Payment-Processing Example
 
-This is an example of a credit card 3-D Secure transaction to show how to process a payment with the Wirecard Payment Page in Seamless Mode.
+This is an example of a credit card 3-D Secure transaction to show how to process a payment with the {payment-page-v2} in Seamless Mode.
 Currently, Seamless Mode supports *only credit card payments.* For a more payment-method-specific integration guide, go to <<PPv2_CC, Credit Card with {payment-page-v2-abbr}>>.
 
 The payment-processing example is *designed for the testing environment* and *does not use real information.*
 
-Payment processing with Wirecard Payment Page in Seamless Mode deviates a little bit from the
+Payment processing with {payment-page-v2} in Seamless Mode deviates a little bit from the
 
 <<PaymentPageSolutions_PPv2_HPP_Integration, HPP>> and <<PaymentPageSolutions_PPv2_EPP_Integration, EPP>> payment processing workflow:
 
 [%autowidth]
 |===
-h|Payment Processing with Wirecard Payment Page in Seamless Mode
+h|Payment Processing with {payment-page-v2} in Seamless Mode
 a|.  Create a payment session (initial request).
   . Render the Seamless payment form in your checkout page (initial response URL).
   .  Submit the payment.
@@ -133,7 +142,7 @@ set up your testing tool:
 .Test Credentials
 [%autowidth, cols="h,",]
 |===
-|URI (Endpoint)   |``\https://wpp-test.wirecard.com/api/payment/register``
+|URI (Endpoint)   |``\https://{test-instance-hostname}/api/payment/register``
 |Username         |70000-APILUHN-CARD
 |Password         |8mhwavKVb91T
 |MAID             |cad16b4a-abf2-450d-bcb8-1725a4cef443
@@ -149,12 +158,12 @@ set up your testing tool:
 [#PPv2_Seamless_Integration_Example_InitialRequest]
 .1. Create a Payment Session 
 To create a payment session, send a *POST request* to the ``/api/payment/register`` endpoint,
-e.g. ``\https://wpp-test.wirecard.com/api/payment/register``.
+e.g. ``\https://{test-instance-hostname}/api/payment/register``.
 
 This is an HTTP request with two headers:
 
 .Request Headers
-[source,json]
+[source,json,subs=attributes+]
 ----
 Content-Type: application/json
 Authorization: Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
@@ -165,7 +174,7 @@ The ``Authorization`` header needs to be formatted as:
 
  
 .Create a Payment Session (Initial Request)
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
     "payment": {
@@ -202,7 +211,7 @@ The ``Authorization`` header needs to be formatted as:
 |===
  2+|Field (JSON)               |Data Type |Required/Optional |Size |Description
 
-   |_merchant-account-id_ |value |String    |Required          |36   |A unique identifier assigned to every merchant account (by Wirecard).
+   |_merchant-account-id_ |value |String    |Required          |36   |A unique identifier assigned to every merchant account (by {payment-provider-name}).
  2+|_request-id_                 | String   |Required          |64   |A unique identifier assigned to every request (by merchant). Used when
                                                                    searching for or referencing it later. ``{{$guid}}`` serves as a
                                                                    placeholder for a random request-id.
@@ -266,10 +275,10 @@ The response to the initial authorization request contains the
 ``payment-redirect-url``.
 
 .Response to Authorization Request
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
-    "payment-redirect-url": "https://wpp-test.wirecard.com/seamless?wPaymentToken=XUcGTdnxwwCWPEP-YOeDmT05_hg1bKbaibLTpcdR8cU"
+    "payment-redirect-url": "https://{payment-redirect-url-hostname}/seamless?wPaymentToken=XUcGTdnxwwCWPEP-YOeDmT05_hg1bKbaibLTpcdR8cU"
 }
 ----
 
@@ -297,13 +306,13 @@ your HTML code.
 image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamless Payment Form]
 
 
-.Render the Payment Form: Example from Wirecard Demoshop
-[source,html]
+.Render the Payment Form: Example from {payment-provider-name} Demoshop
+[source,html,subs=attributes+]
 ----
 <html>
 <head>
     <!-- ... -->
-    <script src="https://wpp.wirecard.com/loader/paymentPage.js" type="text/javascript"></script>
+    <script src="https://{checkout-page-html-hostname}/loader/paymentPage.js" type="text/javascript"></script>
     <!-- ... -->
 </head>
 <body>
@@ -314,7 +323,7 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
     <!-- the following javascript will render the form; make sure to set paymentredirecturl -->
     <script type="text/javascript">
           // change the next line to include YOUR TOKEN
-          var paymentredirecturl = "https://wpp-test.wirecard.com/seamless?wPaymentToken=YOUR_TOKEN_HERE";
+          var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request (Step 1) must match the domain you are using to test this
           WPP.seamlessRender({
@@ -357,13 +366,13 @@ your HTML code. The consumer can then click the button to submit the
 payment.
 
 
-.Submit the Payment: Example from Wirecard Demoshop
-[source,html]
+.Submit the Payment: Example from {payment-provider-name} Demoshop
+[source,html,subs=attributes+]
 ----
 <html>
 <head>
     <!-- ... -->
-    <script src="https://wpp.wirecard.com/loader/paymentPage.js" type="text/javascript"></script>
+    <script src="https://{checkout-page-html-hostname}/loader/paymentPage.js" type="text/javascript"></script>
     <!-- ... -->
 </head>
 <body>
@@ -374,7 +383,7 @@ payment.
     <!-- the following javascript will render the form; make sure to set paymentredirecturl -->
     <script type="text/javascript">
           // change the next line to include YOUR TOKEN
-          var paymentredirecturl = "https://wpp-test.wirecard.com/seamless?wPaymentToken=YOUR_TOKEN_HERE";
+          var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request must match the domain you are using to test this
           WPP.seamlessRender({
@@ -458,7 +467,7 @@ receive a payment response. The payment response is sent in three parts:
 the ``response-signature-base64``, the ``response-signature-algorithm``,
 and the ``response-base64``.
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 Object {
 "response-signature-base64": "9JSIJ/G4Otz6KbAJTg20LSNOcvidhgGWAPR3BMXfbxQ=",
@@ -469,7 +478,7 @@ Object {
 
 - ``response-base64`` contains the payment data.
 - ``response-signature-base64`` and the ``response-signature-algorithm``, together with the Secret Key you receive upon signing a contract with
-Wirecard, are required for calculating the security response signature.
+{payment-provider-name}, are required for calculating the security response signature.
 The security response signature is essential for verifying the payment
 status. +
 *Please consult <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> for details and examples of response signature verification.*
@@ -492,7 +501,7 @@ payment, please consult *<<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr}
 This is the decoded payment data contained in the example payment response provided above.
 
 .Decoded Payment Response
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
     "payment": {
@@ -556,7 +565,7 @@ This is the decoded payment data contained in the example payment response provi
             "currency": "EUR",
             "value": 10.1
         },
-        "api-id": "wpp"
+        "api-id": "{api-id}"
         },
         "card-token": {
             "masked-account-number": "401200******6002",
@@ -582,10 +591,10 @@ Typically, a transaction starts with state _in-progress_ and finishes with stat
    |_payment-method_ e|name                      |String  |The name of the payment method used for the transaction.
 .2+|_three-d_ e|cardholder-authentication-status |String  |Result of the 3-D Secure check.
             e|attempt-three-d                  |Boolean |Indicates whether the transaction should use the 3-D Secure workflow.
-|_merchant-account-id_ e|value                   |String  |A unique identifier assigned to every merchant account (by Wirecard).
+|_merchant-account-id_ e|value                   |String  |A unique identifier assigned to every merchant account (by {payment-provider-name}).
 .2+|_custom-field_ e|field-name                  |String  |Custom field.
                  e|field-value                 |String  |Custom field.
-2+|_transaction-id_                             |String  |A unique identifier assigned to every transaction(by Wirecard). Used
+2+|_transaction-id_                             |String  |A unique identifier assigned to every transaction(by {payment-provider-name}). Used
                                                         when searching for or referencing to it later.
 2+|_completion-time-stamp_         |YYYY-MM-DD-Thh:mm:ss |The UTC/ISO time-stamp documents the time & date when the transaction was executed. +
                                                         Format: YYYY-MM-DDThh:mm:ss (ISO).

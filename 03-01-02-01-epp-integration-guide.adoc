@@ -1,4 +1,4 @@
-include::shortcuts.adoc[]
+// include::shortcuts.adoc[]
 
 [#PaymentPageSolutions_PPv2_EPP_Integration]
 ===== EPP Integration Guide
@@ -60,7 +60,7 @@ The payment-processing example is *designed for the testing environment* 
 and *does not use real information.*
 
 |===
-a|*Payment processing with the Wirecard Payment Page generally follows the same steps:*
+a|*Payment processing with the {payment-page-v2} generally follows the same steps:*
 
 . Create a payment session (initial request).
 . Render the embedded payment page.
@@ -82,7 +82,7 @@ set up your testing tool:
 [%autowidth, cols="1s,2", stripes="none"]
 |===
 |URI (API Endpoint)
-|``\https://wpp-test.wirecard.com/api/payment/register``
+|``\https://{test-instance-hostname}/api/payment/register``
 |Username
 |70000-APIDEMO-CARD
 |Password
@@ -102,7 +102,7 @@ set up your testing tool:
 
 To create a payment session, send a *POST request* to the
 ``/api/payment/register`` endpoint,
-e.g. ``\https://wpp-test.wirecard.com/api/payment/register``.
+e.g. ``\https://{test-instance-hostname}/api/payment/register``.
 
 This is an HTTP request with two headers:
 
@@ -119,7 +119,7 @@ The Authorization header must be formatted as:
 You can try it using the authorization headers above.
 
 .Create a Payment Session (Initial Request)
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
   "payment": {
@@ -159,7 +159,7 @@ You can try it using the authorization headers above.
 |===
 2+| Field (JSON) | Data Type | Required/Optional | Size | Description
 
-|merchant-account-id e|value |String |Required |36 |A unique identifier assigned to every merchant account (by Wirecard).
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned to every merchant account (by {payment-provider-name}).
 2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
 searching for or referencing it later. ``{{$guid}}`` serves as a
 placeholder for a random ``request-id``.
@@ -221,10 +221,10 @@ the ``payment-redirect-url``, contained in the response to the initial
 authorization request.
 
 .Response to Authorization Request
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
-  "payment-redirect-url": "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
+  "payment-redirect-url": "https://{payment-redirect-url-hostname}/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
 }
 ----
 
@@ -236,9 +236,9 @@ You can use our predefined function to embed the payment page:
 . Add the ``paymentPage.js`` library to your checkout page HTML
 code.
 +
-[source,html]
+[source,html,subs=attributes+]
 ----
-<script src="https://wpp.wirecard.com/loader/paymentPage.js" type="text/javascript"></script>
+<script src="https://{payment-redirect-url-hostname}/loader/paymentPage.js" type="text/javascript"></script>
 ----
 +
 Make sure to pass the ``payment-redirect-url`` value from the initial
@@ -250,9 +250,9 @@ payment page.      
 . Call the ``WPP.embeddedPayUrl(payment-redirect-url)`` function
 in your HTML code to render the new pop-up window.
 +
-[source,html]
+[source,html,subs=attributes+]
 ----
-<script type="text/javascript">WPP.embeddedPayUrl("https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7")</script>
+<script type="text/javascript">WPP.embeddedPayUrl("https://{payment-redirect-url-hostname}/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7")</script>
 ----
 
 //-
@@ -295,7 +295,9 @@ is redirected to at the end of the payment session. *This final response
 contains the payment data* in a base64 encoded JSON format. It is sent
 with a POST request as form data ``response-base64``.
 
+ifdef::env-wirecard[]
 image::images/03-01-02-01-epp-integration-guide/EPP_Base64.png[Base64]
+endif::[]
 
 Before you are able to parse and process the payment response, you need
 to decode it. 
@@ -303,10 +305,17 @@ to decode it. 
 *To test this:*
 
 - Copy and paste the ``payment-redirect-url`` into your browser.
-- Open your browser's console and complete the payment with the credit
-card information provided above.
-- In your browser's console, find the form data ``response-base64`` (see
-screenshot).
+- Open your browser's console and complete the payment with the credit card information provided above.
+
+ifdef::env-wirecard[]
+- In your browser's console, find the form data ``response-base64`` 
+(see screenshot).
+endif::[]
+
+ifndef::env-wirecard[]
+- In your browser's console, find the form data ``response-base64``.
+endif::[]
+
 - Copy and paste the response into a base64 decoder of your choice, e.g.
 https://www.base64decode.org/[Base64 Decode].
 - Decode the response to view the payment response details.
@@ -316,7 +325,7 @@ https://www.base64decode.org/[Base64 Decode].
 You can find a decoded payment response example below.
 
 .Parse and Process the Payment Response (Decoded Payment Response)
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
   "payment": {
@@ -341,7 +350,7 @@ You can find a decoded payment response example below.
     "cancel-redirect-url": "https://{pp-redirect-url-cancel}",
     "success-redirect-url": "https://{pp-redirect-url-success}",
     "fail-redirect-url": "https://{pp-redirect-url-error}",
-    "api-id": "wpp"
+    "api-id": "{api-id}"
   },
   "request-id": "28285dbd-ecd3-49bd-a7e5-0239affa2448",
   "requested-amount": {
@@ -372,12 +381,12 @@ You can find a decoded payment response example below.
 2+| Field (JSON) | Data Type | Description
 
 2+| transaction-type | String |The requested transaction type.
-2+| transaction-id | String |A unique identifier to every transaction (by Wirecard). Used when searching for or referencing to it later.
+2+| transaction-id | String |A unique identifier to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later.
 2+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss |The UTC/ISO time-stamp documents the time & date when the transaction was executed.
 Format: YYYY-MM-DDThh:mm:ss (ISO).
 .2+| card token e| token-id |String |A unique identifier assigned to every card token.
                | masked-account-number | String | This is the masked card account number of the consumer.
-|merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by Wirecard).
+|merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by {payment-provider-name}).
 2+| transaction-state |String a|The current transaction state. Possible values:
 
 - ``in-progress``

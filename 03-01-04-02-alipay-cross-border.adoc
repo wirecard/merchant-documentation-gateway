@@ -1,3 +1,5 @@
+// include::shortcuts.adoc[]
+
 [#PPv2_AlipayCrossborder]
 ===== Alipay Cross-border
 
@@ -60,7 +62,7 @@ Merchant Credentials for Transaction Type
 
 [cols="35h,65"]
 |===
-| URI Endpoint               |``\https://wpp-test.wirecard.com/api/payment/register``
+| URI Endpoint               |``\https://{test-instance-hostname}/api/payment/register``
 | Merchant Account ID (MAID) | 47cd4edf-b13c-4298-9344-53119ab8b9df
 | Username                   | 16390-testing
 | Password                   | 3!3013=D3fD8X7
@@ -123,7 +125,7 @@ For a full structure of a request (optional fields included), see the
 
 .1. Create a Payment Session (Initial Request)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
   "payment": {
@@ -164,7 +166,7 @@ For a full structure of a request (optional fields included), see the
 2+|Field (JSON) |Data Type |Description
 
 |merchant-account-id e|value |String |A unique identifier assigned to every
-merchant account (by Wirecard).
+merchant account (by {payment-provider-name}).
 2+|request-id |String a|A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
@@ -195,10 +197,10 @@ e.g. ``\https://{pp-redirect-url-cancel}``
 
 .2. Redirect the Consumer to the Payment Page (Initial Debit Response)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
-  "payment-redirect-url": "https://wpp-test.wirecard.com/processing?wPaymentToken=qbGUDHkDzUGJ6lMePOZCGMIrM-19k61AXlUAEOaqccU"
+  "payment-redirect-url": "https://{test-instance-hostname}/processing?wPaymentToken=qbGUDHkDzUGJ6lMePOZCGMIrM-19k61AXlUAEOaqccU"
 }
 ----
 
@@ -212,7 +214,7 @@ form. Sent as a response to the initial request.
 
 At this point, you need to redirect your consumer to
 ``payment-redirect-url`` (or render it in an _iframe_ depending on your
-<<PPv2, integration method>>﻿).
+<<PPv2, integration method>>).
 
 Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
@@ -241,7 +243,7 @@ You can find a decoded payment response example below.
 
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
   "payment": {
@@ -286,7 +288,7 @@ You can find a decoded payment response example below.
     },
     "order-number": "180528105918955",
     "order-detail": "Test product 001",
-    "api-id": "wpp"
+    "api-id": "{api-id}"
   }
 }
 ----
@@ -307,7 +309,7 @@ e|value |Numeric |The full amount that is requested/contested in a transaction. 
 Use . (decimal point) as the separator.
 2+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
 2+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
-|merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by Wirecard). You receive a unique merchant account ID for each payment method.
+|merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by {payment-provider-name}). You receive a unique merchant account ID for each payment method.
 2+|transaction-state  |String a|The current transaction state.
 
 Possible values:
@@ -358,9 +360,9 @@ independent _debit_ transactions) or the initial transaction in a chain of
 them (e.g. a first _authorization_ in a chain of recurring transactions).
 However, when it comes to referencing a transaction for any kind of
 post-processing operation — such as a refund of one of your _debit_ transactions 
-— use our <<RestApi, REST API>>﻿﻿ directly.
+— use our <<RestApi, REST API>> directly.
 
-WARNING: Check the REST API
+NOTE: Check the REST API
 <<API_AlipayCrossBorder, _Alipay Cross-border_ specification>> for details on
 _Alipay Cross-border_ specific post-processing operations.
 
@@ -441,7 +443,7 @@ Here you can:
 
 .JSON Structure for _Alipay Cross-border_ _debit_ Responses
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
   "payment": {
@@ -458,7 +460,7 @@ Here you can:
         }
       ]
     },
-    "api-id": "wpp"
+    "api-id": "{api-id}"
   }
 }
 ----

@@ -1,3 +1,5 @@
+// include::shortcuts.adoc[]
+
 [#PPv2_ideal]
 ===== iDEAL
 
@@ -77,7 +79,7 @@ Test Credentials for Transaction Type
 [cols="35h,65"]
 |===
 | URLI (Endpoint)
-|``\https://wpp-test.wirecard.com/api/payment/register``
+|``\https://{test-instance-hostname}/api/payment/register``
 | Merchant Account ID (MAID)
 | adb45327-170a-460b-9810-9008e9772f5f
 | Username
@@ -148,7 +150,7 @@ For a full structure of a request (optional fields included), see the
 
 .1. Create a Payment Session (Initial Request)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
     "payment": {
@@ -177,7 +179,7 @@ For a full structure of a request (optional fields included), see the
 3+|Field (JSON) |Data Type |Cardinality |Size |Description
 
 2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
-to every merchant account (by Wirecard).
+to every merchant account (by {payment-provider-name}).
 3+|request-id |String |Required |64 a|A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
@@ -201,10 +203,10 @@ payment method used. Set this value to ``iDEAL``.
 
 .2. Redirect the Consumer to the Payment Page (Initial Response URL)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
-"payment-redirect-url" : "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
+"payment-redirect-url" : "https://{payment-redirect-url-hostname}/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
 }
 ----
 
@@ -218,7 +220,7 @@ form. Sent as a response to the initial request.
 
 At this point, you need to redirect your consumer to
 ``payment-redirect-url`` (or render it in an _iframe_ depending on your
-<<PPv2, integration method>>﻿).
+<<PPv2, integration method>>).
 
 Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
@@ -247,10 +249,10 @@ You can find a decoded payment response example below.
 
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
-  "api-id" : "up3-wpp",
+  "api-id" : "up3-{api-id}",
   "parent-transaction-id" : "335da412-98ba-446d-a936-52b53f195e6c",
   "payment-methods" : {
     "payment-method" : [ {
@@ -296,7 +298,7 @@ You can find a decoded payment response example below.
 3+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
 |payment-method 2+e|name |String |The name of the payment method used.
 3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
-|merchant-account-id 2+e|value |String |A unique identifier assigned to every merchant account (by Wirecard).
+|merchant-account-id 2+e|value |String |A unique identifier assigned to every merchant account (by {payment-provider-name}).
 3+|transaction-state |String a|The current transaction state.
 
 Possible values:
@@ -315,7 +317,7 @@ only.
 .2+|bank-account 2+e|iban |String |The international bank account number (IBAN) of the account holder.
 2+|bic |String |The bank identifier code (BIC) of the account holder.
 3+|transaction-type |String |The requested transaction type.
-3+|transaction-id |String |A unique identifier assigned to every transaction (by Wirecard). Used when searching for or referencing to it later.
+3+|transaction-id |String |A unique identifier assigned to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later.
 3+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time and date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
@@ -345,7 +347,7 @@ independent _debit_ transactions) or the initial transaction in a chain of
 them (e.g. a first _authorization_ in a chain of recurring transactions).
 However, when it comes to referencing a transaction for any kind of
 post-processing operation — such as a refund of one of your _debit_ transactions 
-— use our <<RestApi, REST API>>﻿﻿ directly. 
+— use our <<RestApi, REST API>> directly. 
 
 WARNING: A direct refund through {payment-page-v2-abbr} is not possible for _iDEAL_ so you have to
 obtain your consumer's banking information and send the refund using
@@ -369,7 +371,7 @@ Here you can:
 [#PPv2_ideal_JSONNVPField_request]
 .JSON Structure for _iDEAL_ Requests
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
     "payment": {
@@ -432,7 +434,7 @@ Here you can:
 [#PPv2_ideal_JSONNVPField_response]
 .Response-Only Fields
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 {
   "api-id" : "string",
