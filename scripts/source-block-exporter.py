@@ -77,11 +77,12 @@ def dir_try_or_create(name):
 ###############################################################################
 # BEGIN SCRIPT                                                                #
 ###############################################################################
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="""Export script for asciidoctor source blocks in the form '[source, ext, key=value]',
+where ext is the file extension (or programming language) and 'key=value' are additional attributes.""")
 parser.add_argument('adocs', metavar='FILE', type=str,
                     nargs='+', help='.adoc Files to process')
-parser.add_argument('-d', '--src-out-dir', default="", type=str,
-                    help='Output directory for extracted source files', required=False)
+parser.add_argument('-d', '--src-out-dir', default=".", type=str,
+                    help='Output directory for extracted source files Default: . (current directory)', required=False)
 parser.add_argument('-t', '--type', dest='extensions', default="xml,json",
                     help='Comma separated list of source code languages which shall be extracted. Default: "xml,json"', required=False)
 args = parser.parse_args()
