@@ -2,48 +2,102 @@ language: php
 php: 7.2
 git:
   depth: false
+env:
+  global:
+    - TRAVIS_ENVSET_FILE="/tmp/set-deploy-env-vars"
+  matrix:
+    - PARTNER=WD
+    - PARTNER=PO
+    - PARTNER=MS
 before_script:
-  - INIT_DIR=$(pwd)
-  - cd /home/travis/build/
-  - echo | pecl install channel://pecl.php.net/yaml-2.0.2
-  - git clone https://github.com/krakjoe/pthreads.git
-  - cd pthreads
-  - git checkout 6c6b15138c923b69cfa46ee05fc2dd45da587287
-  - phpize
-  - ./configure && make && make install
-  - cd ..
-  - echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
-  - cd ${INIT_DIR}
+- sha1sum --help
+- sha1sum --version
+- INIT_DIR=$(pwd)
+- cd /home/travis/build/
+- echo | pecl install channel://pecl.php.net/yaml-2.0.2
+- git clone https://github.com/krakjoe/pthreads.git
+- cd pthreads
+- git checkout 6c6b15138c923b69cfa46ee05fc2dd45da587287
+- phpize
+- "./configure && make && make install"
+- cd ..
+- echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+- cd ${INIT_DIR}
+- find . -name "*.py" | xargs -l1 chmod +x
 install:
-  - gem install asciidoctor -v 1.5.8
-  - gem install asciidoctor-diagram -v 1.5.14
-  - gem install asciidoctor-pdf --pre
-  - gem install rouge
-  - gem install concurrent-ruby
-  - npm install -g inline-source-cli
-  - npm install --save cheerio
-  - npm install --save lunr
-  - npm install --save asciidoctor.js
-  - npm install --save minimist
-  - npm install -g mermaid.cli
+- gem install asciidoctor -v 1.5.8
+- gem install asciidoctor-diagram -v 1.5.14
+- gem install asciidoctor-pdf --pre
+- gem install rouge
+- gem install concurrent-ruby
+- npm install -g inline-source-cli
+- npm install --save cheerio lunr asciidoctor.js minimist js-levenshtein
+- npm install -g mermaid.cli
 script:
-  - bash buildscripts/build.sh
+- node buildscripts/util/create-info-files.js
+- travis_wait bash buildscripts/main.sh
+# - echo "TRAVIS_ENVSET_FILE=${TRAVIS_ENVSET_FILE}"
+- if [[ -f "${TRAVIS_ENVSET_FILE}" ]]; then export DEPLOY_${PARTNER}=TRUE; fi
+# before_deploy:
+# - echo "in before_deploy section beginning " ${DEPLOY_PO}
 deploy:
-  - provider: s3
-    access_key_id: $S3ACCESSID
-    secret_access_key: $S3ACCESSKEY
-    bucket: wirecard-docs-internal
-    region: eu-central-1
-    skip_cleanup: true
-    local-dir: build/html
-    on:
-      branch: staging
-  - provider: s3
-    access_key_id: $S3ACCESSID
-    secret_access_key: $S3ACCESSKEY
-    bucket: wirecard-docs
-    region: eu-central-1
-    skip_cleanup: true
-    local-dir: build/html
-    on:
-      branch: master
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: wirecard-docs-internal
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/WD/html
+  on:
+    branch: staging
+    condition: $DEPLOY_WD = TRUE
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: wirecard-docs
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/WD/html
+  on:
+    branch: master
+    condition: $DEPLOY_WD = TRUE
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: p-bckt-internal
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/PO/html
+  on:
+    branch: staging
+    condition: $DEPLOY_PO = TRUE
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: p-bckt
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/PO/html
+  on:
+    branch: master
+    condition: $DEPLOY_PO = TRUE
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: m-bckt-internal
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/MS/html
+  on:
+    branch: staging
+    condition: $DEPLOY_MS = TRUE
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: m-bckt
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/MS/html
+  on:
+    branch: master
+    condition: $DEPLOY_MS = TRUE

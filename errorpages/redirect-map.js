@@ -12,7 +12,7 @@
 //
 
 var redirectMap = {
-  "/display/PTD/API+merchant+specification" : "Home.html#Home_ProductDemo",
+  "/display/PTD/API+merchant+specification" : "RestApi.html",
   "/display/PTD/Appendix+K:+Test+Access+Data+and+Credentials" : "AppendixK.html",
   "/display/PTD/Wirecard+Payment+Page" : "PPv2.html",
   "/display/PTD/Credit+Card+with+WPP" : "PPv2.html#PPv2_CC",

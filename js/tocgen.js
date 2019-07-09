@@ -2,27 +2,31 @@ function createTOCElements(elements, level, num) {
   rootID = tocData[num].id;
   //console.log('level ' + level + ' rootID ' + rootID);
   var ul = $('<ul/>');
+  var className;
   switch(true) {
       case (level == 2):
           ul.attr('id', 'tocify-header' + num);
-          var className = 'tocify-header';
+          className = 'tocify-header';
           break;
+      // jshint -W086
       case (level > 2): // no break..
         ul.attr('data-tag', level);
       default:
-          var className = 'tocify-subheader';
+          className = 'tocify-subheader';
           break;
+      // jshint +W086
   }
   ul.attr('class', className);
   for (var i = 0; i < elements.length; i++) {
       e = elements[i];
       var li = $('<li/>').attr('data-unique', e.id).attr('class', 'tocify-item');
+      var a;
       if(level == 2 || level == 3 ) {
-        var a = $('<a/>').attr('href', e.id + '.html');
+        a = $('<a/>').attr('href', e.id + '.html');
         if(maskStringEncoded !== '') a.attr('href', e.id + '.html?' + maskStringEncoded);
       }
       else {
-        var a = $('<a/>').attr('href', e.parentID + '.html' + '#' + e.id);
+        a = $('<a/>').attr('href', e.parentID + '.html' + '#' + e.id);
         if(maskStringEncoded !== '') a.attr('href', e.parentID + '.html?' + maskStringEncoded + '#' + e.id);
       }
 
@@ -109,7 +113,7 @@ $.getJSON( 'toc.json', function( data ) {
   serverResponseTime = new Date().getTime() - _timeBefore;
   console.log('server response time, i.e. json load time: ' + serverResponseTime);
   globalTOC = data;
-  console.log('maskstring: ' + maskString)
+  console.log('maskstring: ' + maskString);
   replaceTOCstub();
   buildTOC( data );
   $('#generated-toc').replaceWith( toc );
