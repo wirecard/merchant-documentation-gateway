@@ -1,6 +1,5 @@
 #!/bin/python3
 
-import xml.etree.ElementTree as ET
 import argparse
 import xmltodict
 import json
@@ -101,11 +100,7 @@ def main():
     ###########################################################################
     # START PROCESSING
     ###########################################################################
-
-    # use ET
-    # xml_tree = ET.parse(input_file)
-
-    # use xml2json
+    # use xmltodict
     xml_json_dict = {}
     with open(input_file, "r+", encoding="utf8") as in_xml:
         xml_json_dict = xmltodict.parse(in_xml.read())
