@@ -7,7 +7,6 @@ Use multithreading with thread pool to speed up the process.
 
                                                   herbert.knapp@wirecard.com
 */
-
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
@@ -19,6 +18,9 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
     throw new ErrorException( $message, 0, $severity, $filename, $lineNo );
   }
 }
+
+const PULL_REQUEST_BRANCH = "Pull Request";
+const INFO_FILE = "buildscripts/info-files.json";
 
 class Task extends Threaded {
   private $threadID;
@@ -32,10 +34,14 @@ class Task extends Threaded {
   public function run() {
 
     $asciidoctorOutput = getAsciidoctorOutput( $this->filename );
+    if(!$asciidoctorOutput) {
+      echo "calling asciidoctor helper failed for ".$this->filename.PHP_EOL;
+      die();
+    }
     // filter http links
     $asciidoctorOutput['links'] = preg_grep( '/^https?:/', $asciidoctorOutput['links'] );
     $gitBranch = getBranchOfFile( $this->filename );
-    $gitAuthor = getLastEditedByOfFile( $this->filename );
+    $gitAuthor = GitInfo::getInstance()->getLastEditedByOfFile( $this->filename );
 
     // Cast as array to prevent implicit conversion to a Volatile object
     $result = (array)array( 'filename' => $this->filename,
@@ -82,7 +88,10 @@ class UrlTest extends Threaded {
   }
 
   public function run() {
-    $this->httpStatusCode = intval( substr( get_headers( $this->url )[0], 9, 3 ) );
+    error_reporting(E_ALL & ~E_WARNING);
+    $h = get_headers( $this->url );
+    error_reporting(E_ALL);
+    $this->httpStatusCode = ($h) ? intval( substr( $h[0], 9, 3 ) ) : 0;
   }
 
   // Returns 0 on "false", i.e. timeouts
@@ -90,7 +99,6 @@ class UrlTest extends Threaded {
     return array( 'url' => $this->url, 'httpStatusCode' => $this->httpStatusCode );
   }
 }
-
 
 class SearchFileTask extends Threaded {
   private $searchResults;
@@ -125,6 +133,51 @@ class SearchFileTask extends Threaded {
   }
 }
 
+class GitInfo {
+  private static $instance;
+  private $gitInfoArray;
+
+  private function __construct() {
+    $infoFiles = json_decode(file_get_contents(INFO_FILE), true);
+    try {
+      $gitInfoFileContent = file_get_contents($infoFiles['git-info-file']);
+      $gitInfo = json_decode($gitInfoFileContent, true);
+    }
+    catch (exception $e) {
+      echo "Error: could not read " . INFO_FILE;
+      die();
+    }
+    $this->gitInfoArray = array(
+      'commit_author' => $gitInfo['commit_author'],
+      'branch' => $gitInfo['branch'],
+      'files' => $gitInfo['files']
+    );
+  }
+  private function __clone() {}
+
+  public static function getInstance() {
+      if (!GitInfo::$instance instanceof self) {
+        GitInfo::$instance = new self();
+      }
+      return GitInfo::$instance;
+  }
+  public function getCommitAuthor() {
+      return $this->gitInfoArray['commit_author'];
+  }
+  public function getBranch() {
+    return $this->gitInfoArray['branch'];
+  }
+  public function getLastEditedByOfFile($file) {
+    return $this->gitInfoArray['files'][$file]['last_edited_by'];
+  }
+  public function getInfoArray() {
+    return $this->gitInfoArray;
+  }
+}
+
+// instance here to abort early if reading of info files failed
+GitInfo::getInstance();
+
 // simple pattern matching for anchor validity check
 function testAnchors( $anchorsArray ) {
   $anchorErrorsMap = array(
@@ -134,7 +187,7 @@ function testAnchors( $anchorsArray ) {
                                    'severity' => 'WARN' ),
 
                             array( 'type'     => 'format',
-                                   'pattern'  => '/[^A-Za-z0-9_]/',
+                                   'pattern'  => '/[^A-Za-z0-9_\{\}\-]/',
                                    'message'  => 'Invalid Anchor Format',
                                    'severity' => 'ERROR' )
                           );
@@ -197,6 +250,9 @@ function testUrls( $urlsArray ) {
 // getBranchOfFile returns originating branch of file
 // if empty returns current branch
 function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
+  //DISABLED. Not in use.
+  return '';
+
   $cmd_origin = 'git --no-pager log --decorate=short --pretty=oneline --follow -- "' . $filename . '" | sed -n "s/.*(origin\/\(' . $pattern . '\)).*/\1/p" | head -n 1';
   $cmd_current = 'git rev-parse --abbrev-ref HEAD';
 
@@ -212,15 +268,20 @@ function getAuthorOfFile( $filename ) {
 }
 
 function getLastEditedByOfFile( $filename ) {
-  $cmd_git_log_email = 'git log -n 1 --follow --pretty=format:%ae -- "' . $filename . '" | head -n 1';
-  $author_email_local_part = preg_replace( '/([0-9\+]+)?(.*)@.*/', '$2', exec( $cmd_git_log_email ) );
-  $author = ucwords( str_replace( '.', ' ', $author_email_local_part ) );
-  return $author;
+  $author = 'git log -1 --pretty=format:%an -- "' . $filename . '"';
+  return exec( $author );
+}
+
+function getCommitAuthor() {
+  $commiter = 'git log -1 --pretty=format:%an';
+  return exec( $commiter );
 }
 
 function getCurrentBranch() {
   $cmd_git_branch = 'git name-rev --name-only HEAD';
-  return exec( $cmd_git_branch );
+  $currentBranch = exec( $cmd_git_branch );
+  if ( empty( $currentBranch ) ) return 'Pull_Request';
+  return $currentBranch;
 }
 
 // getAsciidoctorOutput parses asciidoctor helper json output
@@ -229,13 +290,10 @@ function getCurrentBranch() {
 //         all error messages of asciidoc as $result['errors']
 function getAsciidoctorOutput( $filename ) {
 
-//  $asciidocPattern = '/asciidoctor: ([A-Z]+): (.*.adoc): line ([0-9]+): (.*)/';
-//  $result = array();
-
-  //$cmd = 'asciidoctor --failure-level=WARN -b html5 -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram "' . $filename . '" -o /dev/null 2>&1';
-  //exec( $cmd, $result['consoleOutput'], $result['exitCode'] );
-
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
+  if(!$asciidoctorJSON) {
+    return false;
+  }
   $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
 
   // Format Output
@@ -301,6 +359,7 @@ function testPatterns( $filename ){
 }
 
 function isInvalidReferenceError( $msg ) { if( substr( $msg, 0, 18 ) === 'invalid reference:' ) { return true; } else { return false; } }
+function isMermaidError( $msg ) { if( $msg === 'invalid style for listing block: mermaid' ) { return true; } else { return false; } }
 
 function validateTests( $tests ) {
   $failed = false;
@@ -349,13 +408,23 @@ function validateTests( $tests ) {
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 
+  // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
+  foreach( $testsResultsArray as $tr ) {
+    foreach( $tr['tests']['asciidoctor'] as $e => $adError ) {
+      if( isMermaidError( $adError['message'] ) ) {
+        unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
+        continue;
+      }
+    }
+  }
+
   if( array_key_exists( 'index.adoc', $testsResultsArray ) === false ) return $testsResultsArray;
 
   $invalidReferencesArray = array();
 
   // get all asciidoctor errors and add them to the corresponding file entry in the tests results list
   // index == filename
-  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $adError ) {
+  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $e => $adError ) {
     $filename = $adError['filename'];
     // skip file search for invalid references if not in index
     if( $filename !== 'index.adoc' )
@@ -398,7 +467,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     foreach( $results as $r ) {
       if( array_key_exists( 'filename', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['filename'] = $filename;
       if( array_key_exists( 'branch', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['branch'] = getBranchOfFile( $filename );
-      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = getLastEditedByOfFile( $filename );
+      if( array_key_exists( 'author', $testsResultsArray[$filename] ) === false ) $testsResultsArray[$filename]['author'] = GitInfo::getInstance()->getLastEditedByOfFile( $filename );
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = array(
                                                                       'severity'   => 'WARN',
                                                                       'filename'   => $filename,
@@ -426,18 +495,23 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
-  $currentBranch = getCurrentBranch();
+  if( empty(getenv( 'SLACK_TOKEN' )) ) {
+    echo "Environment Var SLACK_TOKEN not set -> output to console";
+  }  
+  $partner = getenv( 'PARTNER' );
+  $currentBranch = GitInfo::getInstance()->getBranch();
+  $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
   if( sizeof( $results ) > 0 ) {
     foreach( $results as $filename => $result ) {
-      $slackMessage = createSlackMessageFromErrors( $result, $currentBranch );
+      $slackMessage = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor );
       if( $slackMessage !== false )
         $status = postToSlack( $slackWebhookUrl, $slackMessage );
     }
   }
   else {
     // empty error array creates "success" msg in createSlackMessageFromErrors
-    $slackMessage = createSlackMessageFromErrors( array(), $currentBranch );
+    $slackMessage = createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor );
     if( $slackMessage !== false )
       $status = postToSlack( $slackWebhookUrl, $slackMessage );
   }
@@ -445,15 +519,25 @@ function sendNotifications ( $results ) {
 }
 
 // creates a single error message
-function createSlackMessageFromErrors( $result, $currentBranch ) {
+function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor ) {
 
   $numErrors = 0;
   if( sizeof( $result ) > 0 ){
     $filename = $result['filename'];
     $branch = $result['branch'];
     $author = $result['author'];
+    if( $branch == PULL_REQUEST_BRANCH ) {
+      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
+    }
+    else {
+      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
+    }
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => '*'.$filename.'* (<https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename.'|Github Link>)PHP_EOLLast edited by: *'.$author.'*PHP_EOLBranch: *'.$currentBranch.'*',
+                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOL'
+                             .'*Partner Build: * '.$partner.'PHP_EOL'
+                             .'*Last edited by: * '.$author.'PHP_EOL'
+                             .'*Branch: * '.$currentBranch.'PHP_EOL'
+                             .'*Commit from: * '.$commitAuthor.'PHP_EOL',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
@@ -498,7 +582,7 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
     }
   } else {
     $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => 'Branch: *'.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)',
+                             'pretext'     => 'Branch: * '.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)PHP_EOLCommit from: *'.$commitAuthor.'*',
                              'mrkdwn_in'   => [ 'text', 'pretext' ]
                               ))
                           );
@@ -510,24 +594,13 @@ function createSlackMessageFromErrors( $result, $currentBranch ) {
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
-  $ch = curl_init( $slackWebhookUrl );
-    curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, 'POST' );
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, $messageString );
-    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+  if( empty(getenv( 'SLACK_TOKEN' )) ) {
+    echo $messageString;
+    return true;
+  }
 
-    // windows...
-    curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 0 );
-    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 0 );
-
-    curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
-      'Content-Type: application/json',
-      'Content-Length: ' . strlen( $messageString ))
-  );
-  $result = curl_exec( $ch );
-  if( $result === false )
-    return curl_error( $ch );
-  else
-    return $result;
+  $result = exec( "python3 buildscripts/util/post-to-slack.py '".$messageString."'" );
+  return $result;
 }
 
 function main() {

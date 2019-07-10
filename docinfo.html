@@ -1,21 +1,25 @@
-<meta http-equiv="Cache-Control" content="no-store" />
 <meta name="robots" content="noindex" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1" />
 <meta name="theme-color" content="#002846" />
-<link rel="preload" href="fonts/DINWebPro.eot" as="font" />
-<link rel="preload" href="fonts/DINWebPro.woff" as="font" />
-<link rel="preload" href="fonts/DINWebPro.ttf" as="font" />
-<link rel="preload" href="fonts/DINWebPro-Bold.eot" as="font" />
-<link rel="preload" href="fonts/DINWebPro-Bold.woff" as="font" />
-<link rel="preload" href="fonts/DINWebPro-Bold.ttf" as="font" />
-<link rel="preload" href="fonts/DINWebPro-Ita.eot" as="font" />
-<link rel="preload" href="fonts/DINWebPro-Ita.woff" as="font" />
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+<link rel="dns-prefetch" href="https://wirecard.matomo.cloud" />
+<link rel="dns-prefetch" href="https://cdn.matomo.cloud" />
+<link rel="preload" href="fonts/DINWebPro.woff" as="font" crossorigin="anonymous" />
+<link rel="preload" href="fonts/DINWebPro-Bold.woff" as="font" crossorigin="anonymous" />
+<link rel="preload" href="fonts/DINWebPro-Ita.woff" as="font" crossorigin="anonymous" />
+<link rel="preload" href="toc.json" as="fetch" crossorigin="anonymous" />
+
 <script>
 paceOptions = {
   initialRate: .15
 }
-var mobileLayoutCutoffWidth = 1313;
-var serverDir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
+var mobileLayoutCutoffWidth = 1213;
+var globalTOC = [];
+var preloadQueue = [];
+var serverResponseTime = 0;
+var searchIndexStatus = 'empty';
+var isInternetExplorer = !!window.MSInputMethodContext && !!document.documentMode;
+var isEdgeBrowser = /Edge/.test( navigator.userAgent );
 
 function getUrlHash() {
   var urlHash = document.URL.substr(document.URL.indexOf('#')+1);
@@ -23,11 +27,19 @@ function getUrlHash() {
   return false;
 }
 
+function redirDocCenter() {
+  if( window.location.hostname.match( new RegExp( "document-center.wirecard.com" ) )) {
+    !isInternetExplorer && window.stop();
+    window.location.replace( 'https://doc.wirecard.com' );
+  }
+}
+redirDocCenter();
+
 function redirectToFirstItem() {
-  if(window.location.pathname.match(/.*\/$/) || window.location.pathname.match(/.*\/index.html/)) {
-    window.stop();
-    var homePageID = 'Home';
-    location.href = serverDir + '/' + homePageID + '.html' + location.search + location.hash;
+  var homePageID = 'Home';
+  if(window.location.pathname.match( new RegExp( ".*\/Home.html" ) ) || window.location.pathname.match( new RegExp( ".*\/index.html" ) )) {
+    !isInternetExplorer && window.stop();
+    window.location.replace( '/' + encodeURIComponent( location.search + location.hash ) );
   }
 }
 redirectToFirstItem();
@@ -45,7 +57,6 @@ function replaceTOCstub(){
 <script src="js/blob.js"></script>
 <!--
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tocify/1.9.0/javascripts/jquery.tocify.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.3.3/lunr.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/2.1.2/jquery.scrollTo.min.js"></script>
@@ -120,5 +131,27 @@ $( document ).ready(function() {
   $('#toc').show();
 });
 </script>
-<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-<script src="js/blob.js"></script>
+<link rel="shortcut icon" type="image/png" href="images/icons/favicon.ico" sizes="256x256">
+<link rel="apple-touch-icon" sizes="256x256" href="images/icons/favicon.ico">
+<meta name="msapplication-TileColor" content="#002846">
+<meta name="msapplication-TileImage" content="images\icons\favicon.ico">
+<script src="js/isInViewport.js"></script>
+<script src="js/scrollspy.js"></script>
+<!-- Matomo -->
+<script type="text/javascript">
+  var _paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  _paq.push(['enableHeartBeatTimer', 15]);
+  (function() {
+    var u="https://wirecard.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '1']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    //g.type='text/javascript'; g.async=true; g.defer=true; g.src='//cdn.matomo.cloud/wirecard.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+    g.type='text/javascript'; g.defer=true; g.src='//cdn.matomo.cloud/wirecard.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="https://wirecard.matomo.cloud/matomo.php?idsite=1&amp;rec=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Matomo Code -->

@@ -94,6 +94,31 @@ html:before {
   width: 30%;
 }
 </style>
+<!-- Matomo -->
+<script type="text/javascript">
+  var _paq = window._paq || [];
+  _paq.push(['setDocumentTitle',  '404/URL = ' +  encodeURIComponent(document.location.pathname+document.location.search) + '/From = ' + encodeURIComponent(document.referrer)]);
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://wirecard.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '1']);
+  })();
+</script>
+<script type="text/javascript" src="//cdn.matomo.cloud/wirecard.matomo.cloud/matomo.js"></script>
+<noscript><p><img src="https://wirecard.matomo.cloud/matomo.php?idsite=1&amp;rec=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Matomo Code -->
+<script>
+var isInternetExplorer = !!window.MSInputMethodContext && !!document.documentMode;
+var isEdgeBrowser = /Edge/.test( navigator.userAgent );
+function redirDocCenter() {
+  if( window.location.pathname.match( new RegExp( '/display/PTD' ) ) || window.location.pathname.match( new RegExp( '/home\.html' ) )) {
+    !isInternetExplorer && window.stop();
+    window.location.replace( 'https://doc.wirecard.com' );
+  }
+}
+</script>
 </head>
 <body>
 <div class="container-404">
@@ -136,16 +161,22 @@ html:before {
   // set defaults, a 404 error
   var errorCode = 404;
   var requestedPage = window.location.pathname + window.location.search.replace(location.hash,'');
-  var redirectBaseUrl = '/';
+  var redirectBaseUrl = 'https://doc.wirecard.com/';
+  var redirectTimeout = 2000;
 
   console.log(requestedPage);
   console.log(redirectMap);
 
   // if we have defined a redirect for the requested url, redirect the user
+  // else if old links redirect to new start page (redirDocCenter())
+  // else display normal 404 page
   if (redirectMap[requestedPage] !== undefined) {
     errorCode = 302;
     var redirectLocation = redirectBaseUrl + redirectMap[requestedPage];
-    setTimeout(function(){ window.location.href = redirectLocation; }, 8000);
+    setTimeout(function(){ document.location.replace(redirectLocation); }, redirectTimeout);
+  }
+  else {
+    redirDocCenter();
   }
 
   var httpErrors = { 404:

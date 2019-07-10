@@ -89,7 +89,8 @@ Are you using 
 <<CreditCard_TransactionTypes_RunningTestSamples, Postman>> to send the requests?
 
 - If yes, you can use the samples as provided below (_Request Header_ and _Request Sample_).
-- If no, please replace ``{{$guid}}`` with a globally unique ID in ``<request-id>``. 
+- If no, please replace ``{{$guid}}`` with a globally unique ID in ``<request-id>``.
+
 //-
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_StatusCodes]
@@ -113,7 +114,7 @@ Read how a
 
 Handling explicit card data requires a strong degree of PCI DSS
 compliance. If your PCI DSS compliance is not sufficient, you can use our
-<<WPP, Wirecard Payment Page>>.
+<<PPv2, {payment-page-v2}>>.
 
 _Fields_
 
@@ -132,39 +133,7 @@ Content-Type: application/xml
 .XML purchase Request (Successful)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>purchase</transaction-type>
-  <requested-amount currency="USD">5.01</requested-amount>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>john.doe@test.com</email>
-    <phone></phone>
-    <address>
-      <street1>123 anystreet</street1>
-      <city>Brantford</city>
-      <state>ON</state>
-      <country>CA</country>
-      <postal-code>M4P1E8</postal-code>
-    </address>
-  </account-holder>
-  <card>
-    <account-number>4271149787014678</account-number>
-    <expiration-month>12</expiration-month>
-    <expiration-year>2020</expiration-year>
-    <card-type>visa</card-type>
-    <card-security-code>123</card-security-code>
-  </card>
-  <order-number>44152</order-number>
-  <order-detail>Test Product</order-detail>
-  <ip-address>127.0.0.1</ip-address>
-  <payment-methods>
-    <payment-method name="creditcard"/>
-  </payment-methods>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataPurchaseUsingCardData_PurchaseRequestSuccessful.xml[]
 ----
 
 *Response*
@@ -180,49 +149,9 @@ when using the credit card for the first time.
 _Sample_
 
 .XML purchase Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/a3296ada-7d63-4131-9b5d-c6d985bb5a48">
-    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <transaction-id>a3296ada-7d63-4131-9b5d-c6d985bb5a48</transaction-id>
-    <request-id>8fb52775-77f1-4124-aa7c-60ba672cc7cf</request-id>
-    <transaction-type>purchase</transaction-type>
-    <transaction-state>success</transaction-state>
-    <completion-time-stamp>2018-11-26T10:11:39.000Z</completion-time-stamp>
-    <statuses>
-        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
-    </statuses>
-    <csc-code>P</csc-code>
-    <requested-amount currency="USD">5.01</requested-amount>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@test.com</email>
-        <phone></phone>
-        <address>
-            <street1>123 anystreet</street1>
-            <city>Brantford</city>
-            <state>ON</state>
-            <country>CA</country>
-            <postal-code>M4P1E8</postal-code>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4127352795354678</token-id>
-        <masked-account-number>427114******4678</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-    <order-number>44152</order-number>
-    <order-detail>Test Product</order-detail>
-    <descriptor></descriptor>
-    <payment-methods>
-        <payment-method name="creditcard"/>
-    </payment-methods>
-    <authorization-code>585422</authorization-code>
-    <api-id>elastic-api</api-id>
-    <provider-account-id>70001</provider-account-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataPurchaseUsingCardData_PurchaseResponseSuccessful.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_PurchaseUsingToken]
@@ -253,29 +182,7 @@ Content-Type: application/xml
 .XML purchase Request (Successful)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>purchase</transaction-type>
-    <requested-amount currency="USD">1.01</requested-amount>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@example.com</email>
-        <phone></phone>
-        <address>
-            <street1>Example Street 1</street1>
-            <city>Example City</city>
-            <country>DE</country>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4845276539271999</token-id>
-        <masked-account-number>456396******1999</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataPurchaseUsingToken_PurchaseRequestSuccessful.xml[]
 ----
 
 *Response*
@@ -288,50 +195,16 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML purchase Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/36fc8d02-4ceb-483c-a3ff-929543452df7">
-    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <transaction-id>36fc8d02-4ceb-483c-a3ff-929543452df7</transaction-id>
-    <request-id>c6de9490-9815-42c0-b98b-830e7067782b</request-id>
-    <transaction-type>purchase</transaction-type>
-    <transaction-state>success</transaction-state>
-    <completion-time-stamp>2018-11-28T09:04:42.000Z</completion-time-stamp>
-    <statuses>
-        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
-    </statuses>
-    <requested-amount currency="USD">1.01</requested-amount>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@example.com</email>
-        <phone></phone>
-        <address>
-            <street1>Example Street 1</street1>
-            <city>Example City</city>
-            <country>DE</country>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4845276539271999</token-id>
-        <masked-account-number>456396******1999</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-    <descriptor></descriptor>
-    <custom-fields>
-        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
-    </custom-fields>
-    <authorization-code>038588</authorization-code>
-    <api-id>elastic-api</api-id>
-    <provider-account-id>70001</provider-account-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataPurchaseUsingToken_PurchaseResponseSuccessful.xml[]
 ----
 
 A successful _purchase_ response can be followed by
 
 - a <<CreditCard_TransactionTypes_Purchase_SendingData_VoidPurchase, _void-purchase_>> (details see <<CreditCard_TransactionTypes_VoidRefund_Void, void>>).
 - a <<CreditCard_TransactionTypes_Purchase_SendingData_RefundPurchase, _refund-purchase_>> (details see <<CreditCard_TransactionTypes_VoidRefund_Refund, refund>>).
+
 //-
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_ReferencingPurchaseTransactions]
@@ -387,43 +260,7 @@ Content-Type: application/xml
 .XML (recurring/first) purchase Request (Success)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-  <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>purchase</transaction-type>
-  <requested-amount currency="USD">5.01</requested-amount>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>john.doe@test.com</email>
-    <phone></phone>
-    <address>
-      <street1>123 anystreet</street1>
-      <city>Brantford</city>
-      <state>ON</state>
-      <country>CA</country>
-      <postal-code>M4P1E8</postal-code>
-    </address>
-  </account-holder>
-  <card>
-    <account-number>4271149787014678</account-number>
-    <expiration-month>12</expiration-month>
-    <expiration-year>2020</expiration-year>
-    <card-type>visa</card-type>
-    <card-security-code>123</card-security-code>
-  </card>
-  <order-number>44152</order-number>
-  <order-detail>Test Product</order-detail>
-  <ip-address>127.0.0.1</ip-address>
-  <periodic>
-    <periodic-type>recurring</periodic-type>
-    <sequence-type>first</sequence-type>
-  </periodic>
-  <payment-methods>
-    <payment-method name="creditcard"/>
-  </payment-methods>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataReferencingPurchaseTransactionsPurchaseRequestFirst_RecurringfirstPurchaseRequestSuccess.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_ReferencingPurchaseTransactions_PurchaseResponseFirst]
@@ -437,53 +274,9 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML (recurring/first) purchase Response (Success)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/cad0c8c0-867a-451e-b820-ed65f48c0c3a">
-    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <transaction-id>cad0c8c0-867a-451e-b820-ed65f48c0c3a</transaction-id>
-    <request-id>9ed3cebf-79f2-4055-95f3-0edbdc33752b</request-id>
-    <transaction-type>purchase</transaction-type>
-    <transaction-state>success</transaction-state>
-    <completion-time-stamp>2018-11-28T12:30:38.000Z</completion-time-stamp>
-    <statuses>
-        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
-    </statuses>
-    <csc-code>P</csc-code>
-    <requested-amount currency="USD">5.01</requested-amount>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@test.com</email>
-        <phone></phone>
-        <address>
-            <street1>123 anystreet</street1>
-            <city>Brantford</city>
-            <state>ON</state>
-            <country>CA</country>
-            <postal-code>M4P1E8</postal-code>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4127352795354678</token-id>
-        <masked-account-number>427114******4678</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-    <order-number>44152</order-number>
-    <order-detail>Test Product</order-detail>
-    <descriptor></descriptor>
-    <payment-methods>
-        <payment-method name="creditcard"/>
-    </payment-methods>
-    <authorization-code>871877</authorization-code>
-    <api-id>elastic-api</api-id>
-    <periodic>
-        <periodic-type>recurring</periodic-type>
-        <sequence-type>first</sequence-type>
-    </periodic>
-    <provider-account-id>70001</provider-account-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataReferencingPurchaseTransactionsPurchaseResponseFirst_RecurringfirstPurchaseResponseSuccess.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_ReferencingPurchaseTransactions_ReferencedPurchaseRequestRecurring]
@@ -506,18 +299,7 @@ Content-Type: application/xml
 .XML referenced-purchase Request (Success)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>referenced-purchase</transaction-type>
-    <parent-transaction-id>cad0c8c0-867a-451e-b820-ed65f48c0c3a</parent-transaction-id>
-    <requested-amount currency="USD">5.01</requested-amount>
-    <periodic>
-        <periodic-type>recurring</periodic-type>
-        <sequence-type>recurring</sequence-type>
-    </periodic>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataReferencingPurchaseTransactionsReferencedPurchaseRequestRecurring_ReferencedPurchaseRequestSuccess.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_ReferencingPurchaseTransactions_ReferencedPurchaseResponseRecurring]
@@ -531,53 +313,9 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML referenced-purchase Response (Success)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/e3baaaf8-3417-4650-998c-058557e5847e">
-    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <transaction-id>e3baaaf8-3417-4650-998c-058557e5847e</transaction-id>
-    <request-id>1f38bbc0-247a-46c2-b4b5-5b669747c93e</request-id>
-    <transaction-type>referenced-purchase</transaction-type>
-    <transaction-state>success</transaction-state>
-    <completion-time-stamp>2019-01-11T07:33:19.000Z</completion-time-stamp>
-    <statuses>
-        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
-    </statuses>
-    <requested-amount currency="USD">5.01</requested-amount>
-    <parent-transaction-id>cad0c8c0-867a-451e-b820-ed65f48c0c3a</parent-transaction-id>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@test.com</email>
-        <phone></phone>
-        <address>
-            <street1>123 anystreet</street1>
-            <city>Brantford</city>
-            <state>ON</state>
-            <country>CA</country>
-            <postal-code>M4P1E8</postal-code>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4127352795354678</token-id>
-        <masked-account-number>427114******4678</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-    <order-number>44152</order-number>
-    <order-detail>Test Product</order-detail>
-    <payment-methods>
-        <payment-method name="creditcard"/>
-    </payment-methods>
-    <parent-transaction-amount currency="USD">5.010000</parent-transaction-amount>
-    <authorization-code>384949</authorization-code>
-    <api-id>elastic-api</api-id>
-    <periodic>
-        <periodic-type>recurring</periodic-type>
-        <sequence-type>recurring</sequence-type>
-    </periodic>
-    <provider-account-id>70001</provider-account-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataReferencingPurchaseTransactionsReferencedPurchaseResponseRecurring_ReferencedPurchaseResponseSuccess.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_ReferencingPurchaseTransactions_ReferencedPurchaseRequestFinal]
@@ -600,18 +338,7 @@ Content-Type: application/xml
 .XML referenced-purchase Request (Success)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>referenced-purchase</transaction-type>
-    <parent-transaction-id>cad0c8c0-867a-451e-b820-ed65f48c0c3a</parent-transaction-id>
-    <requested-amount currency="USD">5.01</requested-amount>
-    <periodic>
-        <periodic-type>recurring</periodic-type>
-        <sequence-type>final</sequence-type>
-    </periodic>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataReferencingPurchaseTransactionsReferencedPurchaseRequestFinal_ReferencedPurchaseRequestSuccess.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_ReferencingPurchaseTransactions_ReferencedPurchaseResponseFinal]
@@ -625,53 +352,9 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML referenced-purchase Response (Success)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
- <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/d9736b05-efe1-46ec-ac27-9e842d5a0785">
-    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <transaction-id>d9736b05-efe1-46ec-ac27-9e842d5a0785</transaction-id>
-    <request-id>0e0b9e60-8c84-42df-ae6e-cf8dfb7f907f</request-id>
-    <transaction-type>referenced-purchase</transaction-type>
-    <transaction-state>success</transaction-state>
-    <completion-time-stamp>2019-01-11T07:39:22.000Z</completion-time-stamp>
-    <statuses>
-        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
-    </statuses>
-    <requested-amount currency="USD">5.01</requested-amount>
-    <parent-transaction-id>cad0c8c0-867a-451e-b820-ed65f48c0c3a</parent-transaction-id>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@test.com</email>
-        <phone></phone>
-        <address>
-            <street1>123 anystreet</street1>
-            <city>Brantford</city>
-            <state>ON</state>
-            <country>CA</country>
-            <postal-code>M4P1E8</postal-code>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4127352795354678</token-id>
-        <masked-account-number>427114******4678</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-    <order-number>44152</order-number>
-    <order-detail>Test Product</order-detail>
-    <payment-methods>
-        <payment-method name="creditcard"/>
-    </payment-methods>
-    <parent-transaction-amount currency="USD">5.010000</parent-transaction-amount>
-    <authorization-code>167472</authorization-code>
-    <api-id>elastic-api</api-id>
-    <periodic>
-        <periodic-type>recurring</periodic-type>
-        <sequence-type>final</sequence-type>
-    </periodic>
-    <provider-account-id>70001</provider-account-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataReferencingPurchaseTransactionsReferencedPurchaseResponseFinal_ReferencedPurchaseResponseSuccess.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_VoidPurchase]
@@ -706,14 +389,7 @@ Content-Type: application/xml
 .XML void-purchase Request (Successful)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>void-purchase</transaction-type>
-    <parent-transaction-id>36fc8d02-4ceb-483c-a3ff-929543452df7</parent-transaction-id>
-    <ip-address>127.0.0.1</ip-address>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataVoidPurchase_VoidPurchaseRequestSuccessful.xml[]
 ----
 
 *Response*
@@ -726,46 +402,9 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML void-purchase Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" self="http://sandbox-engine.thesolution.com/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/baf93d19-15ec-11e5-87be-00163e5411b5">
-  <merchant-account-id ref="http://sandbox-engine.thesolution.com/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-  <transaction-id>baf93d19-15ec-11e5-87be-00163e5411b5</transaction-id>
-  <request-id>{{$guid}}</request-id>
-  <transaction-type>void-purchase</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2015-06-18T19:03:41.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information" provider-transaction-id="C847532143465422040880"/>
-  </statuses>
-  <requested-amount currency="USD">1.01</requested-amount>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>john.doe@test.com</email>
-    <phone></phone>
-    <address>
-      <street1>123 anystreet</street1>
-      <city>Brantford</city>
-      <state>ON</state>
-      <country>CA</country>
-      <postal-code>M4P1E8</postal-code>
-    </address>
-  </account-holder>
-  <card-token>
-    <token-id>4119529611183494</token-id>
-    <masked-account-number>414720******3494</masked-account-number>
-  </card-token>
-  <ip-address>127.0.0.1</ip-address>
-  <order-number>5114</order-number>
-  <order-detail>Test Product</order-detail>
-  <payment-methods>
-    <payment-method name="creditcard"/>
-  </payment-methods>
-  <authorization-code>940987</authorization-code>
-  <api-id>elastic-api</api-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataVoidPurchase_VoidPurchaseResponseSuccessful.xml[]
 ----
 
 [#CreditCard_TransactionTypes_Purchase_SendingData_RefundPurchase]
@@ -802,14 +441,7 @@ Content-Type: application/xml
 .XML refund-purchase Request (Successful)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>refund-purchase</transaction-type>
-    <parent-transaction-id>36fc8d02-4ceb-483c-a3ff-929543452df7</parent-transaction-id>
-    <ip-address>127.0.0.1</ip-address>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataRefundPurchase_RefundPurchaseRequestSuccessful.xml[]
 ----
 
 *Response*
@@ -822,44 +454,9 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML refund-purchase Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" self="http://sandbox-engine.thesolution.com/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/01a62281-15e4-11e5-87be-00163e5411b5">
-  <merchant-account-id ref="http://sandbox-engine.thesolution.com/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-  <transaction-id>01a62281-15e4-11e5-87be-00163e5411b5</transaction-id>
-  <request-id>${response}</request-id>
-  <transaction-type>refund-purchase</transaction-type>
-  <transaction-state>success</transaction-state>
-  <completion-time-stamp>2015-06-18T18:01:14.000Z</completion-time-stamp>
-  <statuses>
-    <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information" provider-transaction-id="C851766143465047366859"/>
-  </statuses>
-  <requested-amount currency="USD">1.01</requested-amount>
-  <account-holder>
-    <first-name>John</first-name>
-    <last-name>Doe</last-name>
-    <email>john.doe@test.com</email>
-    <phone></phone>
-    <address>
-      <street1>123 anystreet</street1>
-      <city>Brantford</city>
-      <state>ON</state>
-      <country>CA</country>
-      <postal-code>M4P1E8</postal-code>
-    </address>
-  </account-holder>
-  <card-token>
-    <token-id>4266575172147814</token-id>
-    <masked-account-number>413496******7814</masked-account-number>
-  </card-token>
-  <ip-address>127.0.0.1</ip-address>
-  <payment-methods>
-    <payment-method name="creditcard"/>
-  </payment-methods>
-  <authorization-code>136208</authorization-code>
-  <api-id>elastic-api</api-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataRefundPurchase_RefundPurchaseResponseSuccessful.xml[]
 ----
 
 A successful _refund-purchase_ response can be followed by a
@@ -891,14 +488,7 @@ Content-Type: application/xml
 .XML void-refund-purchase Request (Successful)
 [source,xml]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment">
-    <merchant-account-id>9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <request-id>{{$guid}}</request-id>
-    <transaction-type>void-refund-purchase</transaction-type>
-    <parent-transaction-id>01a62281-15e4-11e5-87be-00163e5411b5</parent-transaction-id>
-    <ip-address>127.0.0.1</ip-address>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataVoidRefundPurchase_VoidRefundPurchaseRequestSuccessful.xml[]
 ----
 
 *Response*
@@ -911,48 +501,7 @@ We provide detailed descriptions of all
 _Sample_
 
 .XML void-refund-purchase Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction" self="https://api-test.wirecard.com:443/engine/rest/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea/payments/9ff6eb1f-d729-4b93-bad2-75300abd3168">
-    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/9105bb4f-ae68-4768-9c3b-3eda968f57ea">9105bb4f-ae68-4768-9c3b-3eda968f57ea</merchant-account-id>
-    <transaction-id>9ff6eb1f-d729-4b93-bad2-75300abd3168</transaction-id>
-    <request-id>5cffdb9b-91ce-4ddb-945e-961a025e6582</request-id>
-    <transaction-type>void-refund-purchase</transaction-type>
-    <transaction-state>success</transaction-state>
-    <completion-time-stamp>2018-12-27T12:09:51.000Z</completion-time-stamp>
-    <statuses>
-        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
-    </statuses>
-    <requested-amount currency="USD">1.01</requested-amount>
-    <parent-transaction-id>87fffba5-0824-4bba-843f-ed7574ae2022</parent-transaction-id>
-    <account-holder>
-        <first-name>John</first-name>
-        <last-name>Doe</last-name>
-        <email>john.doe@example.com</email>
-        <phone>5555555555</phone>
-        <address>
-            <street1>Example Street 1</street1>
-            <city>Example City</city>
-            <state>ON</state>
-            <country>DE</country>
-            <postal-code>M4P1E8</postal-code>
-        </address>
-    </account-holder>
-    <card-token>
-        <token-id>4845276539271999</token-id>
-        <masked-account-number>456396******1999</masked-account-number>
-    </card-token>
-    <ip-address>127.0.0.1</ip-address>
-    <custom-fields>
-        <custom-field field-name="elastic-api.card_id" field-value="dc947622-551b-11e8-a4ae-3cfdfe334962"/>
-    </custom-fields>
-    <payment-methods>
-        <payment-method name="creditcard"/>
-    </payment-methods>
-    <parent-transaction-amount currency="USD">1.010000</parent-transaction-amount>
-    <authorization-code>550452</authorization-code>
-    <api-id>elastic-api</api-id>
-    <provider-account-id>70001</provider-account-id>
-</payment>
+include::samples/xml/CreditCardTransactionTypesPurchaseSendingDataVoidRefundPurchase_VoidRefundPurchaseResponseSuccessful.xml[]
 ----

@@ -2,34 +2,41 @@ function createTOCElements(elements, level, num) {
   rootID = tocData[num].id;
   //console.log('level ' + level + ' rootID ' + rootID);
   var ul = $('<ul/>');
+  var className;
   switch(true) {
       case (level == 2):
           ul.attr('id', 'tocify-header' + num);
-          var className = 'tocify-header';
+          className = 'tocify-header';
           break;
+      // jshint -W086
       case (level > 2): // no break..
         ul.attr('data-tag', level);
       default:
-          var className = 'tocify-subheader';
+          className = 'tocify-subheader';
           break;
+      // jshint +W086
   }
   ul.attr('class', className);
   for (var i = 0; i < elements.length; i++) {
       e = elements[i];
       var li = $('<li/>').attr('data-unique', e.id).attr('class', 'tocify-item');
+      var a;
       if(level == 2 || level == 3 ) {
-        var a = $('<a/>').attr('href', e.id + '.html');
+        a = $('<a/>').attr('href', e.id + '.html');
         if(maskStringEncoded !== '') a.attr('href', e.id + '.html?' + maskStringEncoded);
       }
       else {
-        var a = $('<a/>').attr('href', e.parentID + '.html' + '#' + e.id);
+        a = $('<a/>').attr('href', e.parentID + '.html' + '#' + e.id);
         if(maskStringEncoded !== '') a.attr('href', e.parentID + '.html?' + maskStringEncoded + '#' + e.id);
       }
 
       a.text(e.attributes.text);
       li.append(a);
       ul.append(li);
-      if(e.children.length > 0 && level < 4) ul.append(createTOCElements(e.children, level+1, num));
+      if(e.children.length > 0 && level < 4) {
+        li.addClass('has-children');
+        ul.append(createTOCElements(e.children, level+1, num));
+      }
   }
   return ul;
 }
@@ -41,84 +48,87 @@ function buildTOC(data) {
   }
 }
 
+function replaceRootHref() {
+  var element = $('li.tocify-item[data-unique=Home] > a');
+  console.log("home element:");
+  console.log(element);
+  element.attr('href', '/');
+}
+
 function addTOCbindings() {
-  $('li.tocify-item > a').click(function(event){
+  $( 'li.tocify-item > a' ).click( function( event ) {
     // workaround for smoothState
     // uses window.location bc body id doesn't reliably change
-    var currentPageID = location.pathname.substring(location.pathname.lastIndexOf("/") + 1).replace(/\.html.*/, '');
-    var clickedItemID = $(this).parent().attr('data-unique');
-    setTimeout(function() {
-      highlightTOCelement(clickedItemID);
-    },0);
-    var pageUrl = $(this).attr('href');
-    console.log('currentPageID ' + currentPageID + ', clickedItemID ' + clickedItemID + ', pageUrl ' + pageUrl);
-    if(pageUrl == currentPageID + '.html') {
+    var currentPageID = location.pathname.substring( location.pathname.lastIndexOf("/") + 1).replace( new RegExp( "\.html.*" ), '' );
+    var clickedItemID = $(this).parent().attr( 'data-unique' );
+    setTimeout( function() {
+      highlightTOCelement( clickedItemID );
+    }, 0 );
+    var pageUrl = $(this).attr( 'href' );
+    if ( pageUrl == currentPageID + '.html' ) {
       event.preventDefault();
-      window.scrollTo(0,0);
+      window.scrollTo( 0,0 );
+      removeHash();
       return false;
     }
-    if( pageUrl.indexOf( currentPageID + '.html') == -1 ) {
+    if( pageUrl.indexOf( currentPageID + '.html') != 0 ) {
+      // exclude Edge workaround
+      if ( isEdgeBrowser || isInternetExplorer ) {
+        window.location.href = pageUrl;
+        return true;
+      }
+      window.stop();
       setTimeout(function() {
-        // exclude Edge workaround
-          if (window.navigator.userAgent.indexOf("Edge") > -1) {
-            console.log('Edge. load ' + pageUrl);
-            window.location.href = pageUrl;
-            return true;
-          }
           smoothState.load( pageUrl );
       },20);
     event.preventDefault();
-/*     var virtualAnchor = $(this).clone();
-     virtualAnchor.appendTo('div.nav-footer');
-     virtualAnchor.click();
-     virtualAnchor.remove();
-     event.preventDefault();
-*/
    }
   });
-  $('li.tocify-item > a, #content a').on('mouseenter touchstart', function(event){
-    var pageName = $(this).attr('href').replace( /#.*/, '' );
-    if( smoothState.cache[pageName] === undefined) {
-      console.log('not in cache: ' + pageName);
-      smoothState.fetch( pageName );
+
+  var priorityTimeoutHandler;
+  $( 'li.tocify-item > a' ).on( 'mouseenter touchstart', function( event ){
+    if ( searchIndexStatus !== 'loaded' ) {
+      console.log('index not loaded yet, skipping preload on mouseover to prevent bubbling');
+      return false;
     }
+    if ( location.hostname !== this.hostname ) {
+      console.log('external link, no preload');
+      return false;
+    }
+    clearTimeout( priorityTimeoutHandler );
+    var pageName = $( this ).attr( 'href' ).replace( new RegExp( "#.*/ "), '' );
+    priorityTimeoutHandler = setTimeout( function() {
+      console.log('inside priorityTimeoutHandler, pagename: ' + pageName);
+      prioritizePage( pageName );
+    }, 180 );
   });
 }
 
-function recursivePreload( branch ) {
-  for (var i = 0; i < branch.length; i++) {
-    var item = branch[i];
-    if (item.level > 2) return true;
+var toc = $( '<div>' );
+toc.attr( 'id', 'generated-toc' );
+toc.addClass( 'tocify' );
+var _timeBefore= new Date().getTime();
 
-    window.requestIdleCallback(function() {
-      console.log('recursivePreload: ' + item.id);
-      var tocItem = $('li.tocify-item[data-unique=' + item.id + '] > a');
-      tocItem.trigger('mouseenter');
-    });
-
-    if(item.children.length > 0) {
-      recursivePreload(item.children);
-    }
-
-  }
-  return true;
-}
-
-var toc = $('<div>');
-toc.attr('id', 'generated-toc');
-toc.addClass('tocify');
-$.getJSON( "toc.json", function( data ) {
-  tocArray = data;
-  console.log('maskstring: ' + maskString)
+$.getJSON( 'toc.json', function( data ) {
+  serverResponseTime = new Date().getTime() - _timeBefore;
+  console.log('server response time, i.e. json load time: ' + serverResponseTime);
+  globalTOC = data;
+  console.log('maskstring: ' + maskString);
   replaceTOCstub();
-  buildTOC(data);
-  $('#generated-toc').replaceWith(toc);
+  buildTOC( data );
+  $('#generated-toc').replaceWith( toc );
   console.log('applymask');
-  if(maskString) applyMask(maskString);
-  documentReady();
+  if( maskString ) applyMask( maskString );
+  if ( typeof scrollSpyLoaded !== undefined ) documentReady();
   addTOCbindings();
-  if(editorMode) initMaskEditor(data);
-  if (window.navigator.userAgent.indexOf("Edge") == -1) {
-    recursivePreload( data );
+  replaceRootHref();
+  if( editorMode ) initMaskEditor( data );
+  if( !isEdgeBrowser && !isInternetExplorer ) {
+    //recursivePreload( globalTOC );
+    fillPreloadQueueWithTOC( globalTOC );
+    initPagePreloading();
+  }
+  else {
+    loadLunrIndex();
   }
 });

@@ -10,11 +10,11 @@ necessary for integrating this payment method into your Hosted and Embedded Paym
 .Are you unfamiliar with Wirecard Payment Page (WPP)?
 
 NOTE: Visit one of the integration guides
-(<<PaymentPageSolutions_WPP_HPP_Integration, Hosted>>,
-<<PaymentPageSolutions_WPP_EPP_Integration, Embedded>>) for a quick explanation and
+(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
 a step-by-step guide before continuing.
 
-All <<WPP, WPP>> integrations share a
+All <<PPv2, WPP>> integrations share a
 <<PPSolutions_WPP_Workflow, common process flow>>﻿ for creating payments.
 
 Below, you find example requests for the available transaction type
@@ -122,30 +122,7 @@ For a full structure of a request (optional fields included), see the
 
 [source,json]
 ----
- {
-    "payment": {
-        "merchant-account-id": {
-            "value":"f19d17a2-01ae-11e2-9085-005056a96a54"
-        },
-        "request-id":"{{$guid}}",
-        "transaction-type": "debit",
-        "requested-amount": {
-            "value": "10.1",
-            "currency": "EUR"
-        },
-        "payment-methods": {
-            "payment-method":[
-            {
-                "name": "sofortbanking"
-            }
-            ]
-        },
-        "descriptor": "test",
-        "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/success",
-        "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/error",
-        "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/cancel"
-    }
-}
+include::samples/json/WPP_SofortTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
 ----
 
 [cols="15e,10,10,10,5,50"]
@@ -170,7 +147,7 @@ Use . (decimal point) as the separator.
 
 Format: 3-character abbreviation according to ISO 4217.
 | payment-method      e| name     | String | Required | 15 | The name of the payment method used. Set this value to ``sofortbanking``.
-2+| descriptor                   | String | Optional | 100 | Description of the transaction for account holder's bank statement
+2+| descriptor                   | String | Required | 27 | Description of the transaction for account holder's bank statement
 purposes. 
 2+| success-redirect-url         | String | Required | 2000 a| The URL to which the consumer is redirected after a successful payment,
 e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
@@ -185,9 +162,7 @@ e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
 
 [source,json]
 ----
-{
-"payment-redirect-url" : "https://wpp.wirecard.com/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7"
-}
+include::samples/json/WPP_SofortTransactionTypeDebit_2RtCttPPIRU.json[]
 ----
 
 
@@ -202,7 +177,7 @@ form. Sent as a response to the initial request.
 
 At this point, you need to redirect your consumer to
 ``payment-redirect-url`` (or render it in an _iframe_ depending on your
-<<WPP, integration method>>﻿).
+<<PPv2, integration method>>﻿).
 
 Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
@@ -234,42 +209,7 @@ You can find a decoded payment response example below.
 
 [source,json]
 ----
- {
-  "descriptor" : "test",
-  "payment-methods" : {
-    "payment-method" : [ {
-      "name" : "sofortbanking"
-    } ]
-  },
-  "parent-transaction-id" : "e9a8b4ad-161b-4721-a799-e512141f1512",
-  "api-id" : "up3-wpp",
-  "transaction-id" : "974d9b1e-5381-4813-b09c-5f755da43840",
-  "statuses" : {
-    "status" : [ {
-      "description" : "Successful confirmation received from the bank.",
-      "severity" : "information",
-      "code" : "201.1126"
-    } ]
-  },
-  "account-holder" : {
-    "first-name" : "Max",
-    "last-name" : "Mustermann"
-  },
-  "request-id" : "e2234c45-84ab-44a2-b299-56cab4fcc927",
-  "requested-amount" : {
-    "value" : 10.100000,
-    "currency" : "EUR"
-  },
-  "transaction-state" : "success",
-  "success-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/success",
-  "merchant-account-id" : {
-    "value" : "f19d17a2-01ae-11e2-9085-005056a96a54"
-  },
-  "completion-time-stamp" : "2018-04-13T10:47:10",
-  "cancel-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/cancel",
-  "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/error",
-  "transaction-type" : "debit"
-}
+include::samples/json/WPP_SofortTransactionTypeDebit_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
 ----
 
 [cols="15e,10,10,65"]
@@ -365,34 +305,7 @@ Here you can:
 
 [source,json]
 ----
- {
-    "payment": {
-        "merchant-account-id": {
-            "value":"string"
-        },
-        "request-id":"string",
-        "transaction-type": "string",
-        "requested-amount": {
-            "value": 0,
-            "currency": "string"
-        },
-        "payment-methods": {
-            "payment-method":[
-            {
-                "name": "string"
-            }
-            ]
-        },
-        "account-holder" : {
-            "first-name" : "string",
-            "last-name" : "string"
-        },
-        "descriptor": "string",
-        "success-redirect-url": "string",
-        "fail-redirect-url": "string",
-        "cancel-redirect-url": "string"
-    }
-}
+include::samples/json/WPP_Sofort_JSON_NVPFields_JSON_StructureForSofortRequests.json[]
 ----
 
 [#WPP_Sofort_JSON_NVPFields_Request]
@@ -419,21 +332,7 @@ Here you can:
 
 [source,json]
 ----
-{
-"payment": {
-  "transaction-id" : "string",
-  "transaction-state" : "string",
-  "completion-time-stamp" : "2018-03-23T10:41:34",
-  "api-id" : "string",
-  "statuses" : {
-    "status" : [ {
-      "description" : "string",
-      "severity" : "string",
-      "code" : "string"
-    } ]
-  }
-  }
-}
+include::samples/json/WPP_Sofort_JSON_NVPFieldsRequest_ResponseOnlyFields.json[]
 ----
 
 
