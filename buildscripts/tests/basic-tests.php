@@ -168,7 +168,13 @@ class GitInfo {
     return $this->gitInfoArray['branch'];
   }
   public function getLastEditedByOfFile($file) {
-    return $this->gitInfoArray['files'][$file]['last_edited_by'];
+    if (array_key_exists($this->gitInfoArray['files'][$file]['last_edited_by'])) {
+      $lastEditedBy = $this->gitInfoArray['files'][$file]['last_edited_by'];
+    }
+    else {
+      $lastEditedBy = '';
+    }
+    return $lastEditedBy;
   }
   public function getInfoArray() {
     return $this->gitInfoArray;
