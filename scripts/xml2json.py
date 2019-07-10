@@ -7,19 +7,68 @@ import json
 from collections import OrderedDict
 
 
-def walk(dict_ref, dict_working):
+MOVE_TO_VALUE_KEYWORDS = "merchant-account-id".split()
+CONVERT_VALUE_KEYWORDS = "amount".split()
+
+
+def try_float(number):
+    """
+    Take a string and try to convert it to float,
+    return either the original string or the new float.
+    """
+    try:
+        return float(number)
+    except ValueError:
+        return number
+
+
+def format_key(key):
+    """Takes an old key and returns the new, generic key"""
+    if key.startswith("@"):
+        return key[1:]
+    elif key == "#text":
+        return "value"
+    else:
+        return key
+
+
+def walk(dict_ref, dict_working, last_key=None):
     # iterate over keys of this subtree
-    for key in iter(dict_ref):
-        if isinstance(dict_ref[key], dict):
+    for key, value in dict_ref.items():
+        # LIST
+        if last_key == key + "s":  # handle list items
+            # add list instead of dict
+            if dict_working.get(last_key) is None:
+                dict_working[last_key] = list()
+            # for each element add the "walked over" element,
+            # i.e. the processed element
+            temp_dict = {}
+            if isinstance(value, list):
+                for element in value:
+                    temp_dict = {}
+                    walk(element, temp_dict, last_key)
+                    dict_working[last_key].append(temp_dict)
+            else:
+                walk(value, temp_dict, last_key)
+                dict_working[last_key].append(temp_dict)
+        # DICT
+        elif isinstance(value, dict):
             if dict_working.get(key) is None:
                 dict_working[key] = OrderedDict()
-            walk(dict_ref[key], dict_working[key])
-        elif key.startswith("@"):
-            dict_working[key[1:]] = dict_ref[key]
-        elif key == "#text":
-            dict_working["value"] = dict_ref[key]
+            walk(value, dict_working[key], last_key=key)
+        # certain words have a key { "value": value } ordering
+        elif key in MOVE_TO_VALUE_KEYWORDS:
+            dict_working[key] = OrderedDict({"value": value})
+        # handle the rest
         else:
-            dict_working[key] = dict_ref[key]
+            new_key = format_key(key)
+            # use string as datatype unless parent element has a keyword like 'amount' in its name
+            # and can be converted to float
+            dict_working[new_key] = value
+            if last_key and \
+                    any(w in last_key for w in CONVERT_VALUE_KEYWORDS) and \
+                    new_key == "value":
+                dict_working[new_key] = try_float(value)
 
 
 def post_process_json(info_dict):
