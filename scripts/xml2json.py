@@ -5,8 +5,11 @@ import xmltodict
 import json
 from collections import OrderedDict
 
-
+# these keywords will be converted from "KEYWORD": "VALUE" to
+# "KEYWORD": { "value": "VALUE" }
 MOVE_TO_VALUE_KEYWORDS = "merchant-account-id".split()
+# the value item below keys that contain any word in this list
+# will be converted to float, e.g. "request-amount"
 CONVERT_VALUE_KEYWORDS = "amount".split()
 
 
