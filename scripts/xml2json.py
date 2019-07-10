@@ -4,6 +4,9 @@ import argparse
 import xmltodict
 import json
 from collections import OrderedDict
+# import pprint
+# pp = pprint.PrettyPrinter(indent=2)
+
 
 # these keywords will be converted from "KEYWORD": "VALUE" to
 # "KEYWORD": { "value": "VALUE" }
@@ -40,19 +43,19 @@ def walk(dict_ref, dict_working, last_key=None):
         # LIST
         if last_key == key + "s":  # handle list items
             # add list instead of dict
-            if dict_working.get(last_key) is None:
-                dict_working[last_key] = list()
+            if dict_working.get(key) is None:
+                dict_working[key] = list()
             # for each element add the "walked over" element,
             # i.e. the processed element
             temp_dict = {}
             if isinstance(value, list):
                 for element in value:
                     temp_dict = {}
-                    walk(element, temp_dict, last_key)
-                    dict_working[last_key].append(temp_dict)
+                    walk(element, temp_dict, key)
+                    dict_working[key].append(temp_dict)
             else:
-                walk(value, temp_dict, last_key)
-                dict_working[last_key].append(temp_dict)
+                walk(value, temp_dict, key)
+                dict_working[key].append(temp_dict)
         # DICT
         elif isinstance(value, dict):
             if dict_working.get(key) is None:
@@ -66,6 +69,7 @@ def walk(dict_ref, dict_working, last_key=None):
             new_key = format_key(key)
             # use string as datatype unless parent element has a keyword like 'amount' in its name
             # and can be converted to float
+            # DISCLAIMER: might not be necessary
             dict_working[new_key] = value
             if last_key and \
                     any(w in last_key for w in CONVERT_VALUE_KEYWORDS) and \
