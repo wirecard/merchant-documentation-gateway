@@ -19,6 +19,7 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   }
 }
 
+const URLTEST_MAXRETRIES = 3;
 const PULL_REQUEST_BRANCH = "Pull Request";
 const INFO_FILE = "buildscripts/info-files.json";
 
@@ -88,10 +89,17 @@ class UrlTest extends Threaded {
   }
 
   public function run() {
-    error_reporting(E_ALL & ~E_WARNING);
-    $h = get_headers( $this->url );
-    error_reporting(E_ALL);
-    $this->httpStatusCode = ($h) ? intval( substr( $h[0], 9, 3 ) ) : 0;
+    $statusCode = 0;
+    $attempts = 0;
+    while ($attemps <= URLTEST_MAXRETRIES && $statuscode === 0) {
+      error_reporting(E_ALL & ~E_WARNING);
+      $h = get_headers( $this->url );
+      error_reporting(E_ALL);
+      $statusCode = ($h) ? intval( substr( $h[0], 9, 3 ) ) : 0;
+      if($statusCode === 0) sleep(2);
+      $attempts++;
+    }
+    $this->httpStatusCode = $statusCode;
   }
 
   // Returns 0 on "false", i.e. timeouts
