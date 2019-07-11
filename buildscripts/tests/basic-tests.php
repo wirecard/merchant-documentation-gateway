@@ -91,7 +91,7 @@ class UrlTest extends Threaded {
   public function run() {
     $statusCode = 0;
     $attempts = 0;
-    while ($attempts <= URLTEST_MAXRETRIES && $statuscode === 0) {
+    while ($attempts <= URLTEST_MAXRETRIES && $statusCode === 0) {
       error_reporting(E_ALL & ~E_WARNING);
       $h = get_headers( $this->url );
       error_reporting(E_ALL);
