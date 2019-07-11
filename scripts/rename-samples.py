@@ -13,6 +13,8 @@ from colors import color, error
 SUPPORTED_FILETYPES = "xml json".split()
 OPERATION_KEYWORDS = "failure success".split()
 REPORT_FILE_NAME = "report-rename.json"
+ERROR_REPORT_FILE_NAME = "errors.json"
+ERRORS = {"errors": []}
 
 
 def remove_namespace(root):
@@ -37,18 +39,18 @@ def read_mixed_file(file_name):
     return ("\n".join(header), "\n".join(xml) if xml else None)
 
 
-def process_file_name(file_name, exception_dict=None):
+def process_file_name(file_name, header_dict=None):
     """Take a file name and return the new adapted file name + possible header information.
-    
+
     Return: (new_file_name, header_file_name)
     """
     if not any(file_name.endswith(ext) for ext in SUPPORTED_FILETYPES):
         raise ValueError("Unsupported file extension: must be one of {}".format(
             ",".join(SUPPORTED_FILETYPES)))
 
-    # skip all responses
-    if "response" in file_name.lower():
-        return None, None
+    # skip all responses and android xml
+    if any((keyword in file_name.lower()) for keyword in "response android".split()):
+        return None
 
     # get whether the request is a success or failure example
     success_or_fail = ""
@@ -71,23 +73,26 @@ def process_file_name(file_name, exception_dict=None):
                     folder, ".".join(["header_%s" % ("file_name"), "txt"]))
                 with open(header_file_name, "w+", encoding="utf8") as header_f:
                     header_f.write(raw_header)
-                return None, header_file_name
+                header_dict[file_name] = {"header": header_file_name}
+                return None
 
             with open(file_name, "w+", encoding="utf8") as xml_f:
                 xml_f.write(raw_xml)
             new_xml_file_name = process_file_name(file_name)
             header_file_name = os.path.join(folder,
-                                            ".".join(["header_" + new_xml_file_name[0].split(".")[0],
+                                            ".".join(["header_" + new_xml_file_name.split(".")[0],
                                                       "txt"]))
             with open(header_file_name, "w+", encoding="utf8") as header_f:
                 header_f.write(raw_header)
 
-            return new_xml_file_name[0], header_file_name
+            header_dict[new_xml_file_name] = {"header": header_file_name}
+            return new_xml_file_name
 
         else:
             error("[E] File: {}".format(file_name))
             error("    {}".format(e))
-            return None, None
+            ERRORS["errors"].append({"filename": file_name, "error": str(e)})
+            return None
 
     root = tree.getroot()
     remove_namespace(root)
@@ -105,9 +110,10 @@ def process_file_name(file_name, exception_dict=None):
         # error("[E] File: {}".format(file_name))
         # error("    no element found: {}".format(e))
         # print(ET.dump(root))
-        return None, None
+        return None
 
-    return "{}_{}_{}.{}".format(payment_method, transaction_type, success_or_fail, file_name.split(".")[-1]), None
+    return "{}_{}_{}.{}".format(payment_method, transaction_type,
+                                success_or_fail, file_name.split(".")[-1])
 
 
 def main():
@@ -136,19 +142,22 @@ def main():
             files = [line.strip() for line in f]
 
     # exception dict is needed for splitting up files with header information
-    exception_dict = {}
-    processed_files = [process_file_name(file) for file in files]
+    header_dict = {}
+    processed_files = [process_file_name(
+        file, header_dict=header_dict) for file in files]
 
-    report_dict = {"renames": [{"old": old, "new": new[0], "opt": {"header": new[1]}}
-                               if new[1] is not None else {"old": old, "new": new[0]}
+    report_dict = {"renames": [{"old": old, "new": new}
                                for old, new in zip(files, processed_files)
                                if new is not None]}
 
     if args.report:
-        with open(REPORT_FILE_NAME, "w+", encoding="utf8") as f:
-            f.write(json.dumps(report_dict, indent=2))
+        with open(REPORT_FILE_NAME, "w+", encoding="utf8") as report_f:
+            report_f.write(json.dumps(report_dict, indent=2))
     else:
         print(json.dumps(report_dict, indent=2))
+
+    with open(ERROR_REPORT_FILE_NAME, "w+", encoding="utf8") as error_f:
+        error_f.write(json.dumps(ERRORS, indent=2))
 
     if args.dry_run:
         return
