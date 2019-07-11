@@ -1,0 +1,1514 @@
+{
+	"info": {
+		"_postman_id": "c9e44a5b-dc10-40d7-8471-105d3dfbc428",
+		"name": "00DOC",
+		"description": "Total collection for all requests used in doc.wirecard.com",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Creditcard",
+			"item": [
+				{
+					"name": "preauthorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d444caa1-80bf-44ba-88e2-f90b8734ec09",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>{{non-3d-maid}}</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>preauthorization</transaction-type>\r\n  <requested-amount currency=\"USD\">1.00</requested-amount>\r\n  <account-holder>\r\n    <first-name>John</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>john.doe@test.com</email>\r\n    <phone>5555555555</phone>\r\n    <address>\r\n      <street1>123 anystreet</street1>\r\n      <city>Brantford</city>\r\n      <state>ON</state>\r\n      <country>CA</country>\r\n      <postal-code>M4P1E8</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <card>\r\n    <account-number>{{cc-number}}</account-number>\r\n    <expiration-month>01</expiration-month>\r\n    <expiration-year>2023</expiration-year>\r\n    <card-type>mastercard</card-type>\r\n    <card-security-code>{{non-3d-cvv}}</card-security-code>\r\n  </card>\r\n  <order-number>29469</order-number>\r\n  <order-detail>Test Product</order-detail>\r\n  <ip-address>127.0.0.1</ip-address>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "authorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a1f92bd0-9a37-47a4-a3de-22fab10845b5",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "ohysS0-dvfMx",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "70000-APIDEMO-CARD",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>{{non-3d-maid}}</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>authorization</transaction-type>\r\n  <requested-amount currency=\"USD\">1.00</requested-amount>\r\n  <account-holder>\r\n    <first-name>John</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>john.doe@test.com</email>\r\n    <phone>5555555555</phone>\r\n    <address>\r\n      <street1>123 anystreet</street1>\r\n      <city>Brantford</city>\r\n      <state>ON</state>\r\n      <country>CA</country>\r\n      <postal-code>M4P1E8</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <card>\r\n    <account-number>{{cc-number}}</account-number>\r\n    <expiration-month>01</expiration-month>\r\n    <expiration-year>2023</expiration-year>\r\n    <card-type>mastercard</card-type>\r\n    <card-security-code>{{non-3d-cvv}}</card-security-code>\r\n  </card>\r\n  <order-number>29469</order-number>\r\n  <order-detail>Test Product</order-detail>\r\n  <ip-address>127.0.0.1</ip-address>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokenize",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a16d107c-338f-4c8d-b93a-cdfbf2dccedf",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>{{non-3d-maid}}</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>tokenize</transaction-type>\r\n  <account-holder>\r\n    <first-name>John</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>john.doe@test.com</email>\r\n    <phone>555 555 5555</phone>\r\n    <address>\r\n      <street1>123 anystreet</street1>\r\n      <street2>apt 2</street2>\r\n      <city>Brantford</city>\r\n      <state>ON</state>\r\n      <country>CA</country>\r\n      <postal-code>M4P1E8</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <card>\r\n    <account-number>{{cc-number}}</account-number>\r\n    <expiration-month>01</expiration-month>\r\n    <expiration-year>2023</expiration-year>\r\n    <card-type>mastercard</card-type>\r\n  </card>\r\n  <ip-address>127.0.0.1</ip-address>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n  \r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokenize Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a16d107c-338f-4c8d-b93a-cdfbf2dccedf",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>{{non-3d-maid}}</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>tokenize</transaction-type>\r\n  <account-holder>\r\n    <first-name>John</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>john.doe@test.com</email>\r\n    <phone>555 555 5555</phone>\r\n    <address>\r\n      <street1>123 anystreet</street1>\r\n      <street2>apt 2</street2>\r\n      <city>Brantford</city>\r\n      <state>ON</state>\r\n      <country>CA</country>\r\n      <postal-code>M4P1E8</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <card>\r\n    <account-number>{{cc-number}}</account-number>\r\n    <expiration-month>01</expiration-month>\r\n    <expiration-year>2023</expiration-year>\r\n    <card-type>mastercard</card-type>\r\n  </card>\r\n  <ip-address>127.0.0.1</ip-address>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n  \r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "detokenize",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7d121ad0-4030-4f7b-990c-cced162b06f7",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>{{non-3d-maid}}</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>detokenize</transaction-type>\r\n  <card-token>\r\n    <token-id>5168216323601006</token-id>\r\n  </card-token>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "authorization-only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "84a85931-c5f2-40e7-b7b8-9f1fd80f9831",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>{{non-3d-maid}}</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>authorization-only</transaction-type>\r\n  <requested-amount currency=\"USD\">0.00</requested-amount>\r\n  <account-holder>\r\n    <first-name>John</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>john.doe@test.com</email>\r\n    <phone>5555555555</phone>\r\n    <address>\r\n      <street1>123 anystreet</street1>\r\n      <city>Brantford</city>\r\n      <state>ON</state>\r\n      <country>CA</country>\r\n      <postal-code>M4P1E8</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <card>\r\n    <account-number>{{cc-number}}</account-number>\r\n    <expiration-month>01</expiration-month>\r\n    <expiration-year>2023</expiration-year>\r\n    <card-type>mastercard</card-type>\r\n    <card-security-code>{{non-3d-cvv}}</card-security-code>\r\n  </card>\r\n  <order-number>29469</order-number>\r\n  <order-detail>Test Product</order-detail>\r\n  <ip-address>127.0.0.1</ip-address>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "8mhwavKVb91T",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "70000-APILUHN-CARD",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "b8b25616-8202-4da9-aeaf-5388b4b07a7a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9d68c1f2-038a-4c25-ad4b-805162d35271",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Creditcard Demo",
+			"item": [
+				{
+					"name": "authorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a1f92bd0-9a37-47a4-a3de-22fab10845b5",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "ohysS0-dvfMx",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "70000-APIDEMO-CARD",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>9cf2d63d-9a78-47d3-8949-97e83661c9d0</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>authorization</transaction-type>\r\n  <requested-amount currency=\"USD\">1.00</requested-amount>\r\n  <account-holder>\r\n    <first-name>John</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>john.doe@test.com</email>\r\n    <phone>5555555555</phone>\r\n    <address>\r\n      <street1>123 anystreet</street1>\r\n      <city>Brantford</city>\r\n      <state>ON</state>\r\n      <country>CA</country>\r\n      <postal-code>M4P1E8</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <card>\r\n    <account-number>4200000000000018</account-number>\r\n    <expiration-month>01</expiration-month>\r\n    <expiration-year>2023</expiration-year>\r\n    <card-type>visa</card-type>\r\n    <card-security-code>018</card-security-code>\r\n  </card>\r\n  <order-number>29469</order-number>\r\n  <order-detail>Test Product</order-detail>\r\n  <ip-address>127.0.0.1</ip-address>\r\n  <payment-methods>\r\n    <payment-method name=\"creditcard\"/>\r\n  </payment-methods>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "authorization-supplementary",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "84a85931-c5f2-40e7-b7b8-9f1fd80f9831",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "ohysS0-dvfMx",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "70000-APIDEMO-CARD",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n    <merchant-account-id>7a6dd74f-06ab-4f3f-a864-adc52687270a</merchant-account-id>\r\n    <request-id>{{$guid}}</request-id>\r\n    <transaction-type>authorization-supplementary</transaction-type>\r\n    <requested-amount currency=\"USD\">2.01</requested-amount>\r\n    <parent-transaction-id>d3955ab3-47c6-4cb8-ad11-0f526b0fa937</parent-transaction-id>\r\n    <ip-address>127.0.0.1</ip-address>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{payments-endpoint}}",
+							"host": [
+								"{{payments-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "8mhwavKVb91T",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "70000-APIDEMO-CARD",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "b8b25616-8202-4da9-aeaf-5388b4b07a7a",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "9d68c1f2-038a-4c25-ad4b-805162d35271",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "!!Alipay X-border",
+			"item": [
+				{
+					"name": "debit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4984a8fb-abb6-43e3-99d8-20ce033b0288",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n   <merchant-account-id>47cd4edf-b13c-4298-9344-53119ab8b9df</merchant-account-id>\r\n   <request-id>{{$guid}}</request-id>\r\n   <transaction-type>debit</transaction-type>\r\n   <requested-amount currency=\"USD\">2.01</requested-amount>\r\n   <payment-methods>\r\n      <payment-method name=\"alipay-xborder\"/>\r\n   </payment-methods>\r\n   <order-detail>XBOX</order-detail>\r\n   <sub-merchant-info>\r\n      <store-id>BJ_ZZ_001</store-id>\r\n      <store-name>Muku in the Dreieichstrabe</store-name>\r\n   </sub-merchant-info>\r\n   <ip-address>127.0.0.1</ip-address>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "authorization-only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4dec43bd-53b7-4dbd-9397-a1b427d26c0c",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "text/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n   <merchant-account-id>47cd4edf-b13c-4298-9344-53119ab8b9df</merchant-account-id>\r\n   <request-id>{{$guid}}</request-id>\r\n   <transaction-type>authorization-only</transaction-type>\r\n   <requested-amount currency=\"USD\">1.00</requested-amount>\r\n   <order-detail>XBOX</order-detail>\r\n   <periodic>\r\n      <periodic-type>recurring</periodic-type>\r\n      <sequence-type>first</sequence-type>\r\n   </periodic>\r\n   <ip-address>127.0.0.1</ip-address>\r\n   <payment-methods>\r\n   <payment-method name=\"alipay-xborder\"/>\r\n   </payment-methods>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "debit Recur",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "28129f68-2238-47e9-9ebb-44c89ab241c0",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n   <merchant-account-id>47cd4edf-b13c-4298-9344-53119ab8b9df</merchant-account-id>\r\n   <request-id>{{$guid}}</request-id>\r\n   <transaction-type>debit</transaction-type>\r\n   <parent-transaction-id>925766c6-795c-409a-b113-8d91b476e8bd</parent-transaction-id>\r\n   <requested-amount currency=\"USD\">2.01</requested-amount>\r\n   <payment-methods>\r\n      <payment-method name=\"alipay-xborder\"/>\r\n   </payment-methods>\r\n   <order-detail>XBOX</order-detail>\r\n   <periodic>\r\n      <periodic-type>recurring</periodic-type>\r\n      <sequence-type>recurring</sequence-type>\r\n   </periodic>\r\n   <sub-merchant-info>\r\n      <store-id>BJ_ZZ_001</store-id>\r\n      <store-name>Muku in the Dreieichstrabe</store-name>\r\n   </sub-merchant-info>\r\n   <ip-address>127.0.0.1</ip-address>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{APM-PW}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{APM-User}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "91bf8323-5979-41f8-9b31-b344ec507496",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "130ea0ce-7188-482b-b515-03cc63876851",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Bancontact MC",
+			"item": [
+				{
+					"name": "debit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "51de4211-38e0-458c-afd8-07ed0ac9680d",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n   <merchant-account-id>86f03c98-6691-421d-94c8-232c3d5c2573</merchant-account-id>\r\n   <request-id>{{$guid}}</request-id>\r\n   <transaction-type>debit</transaction-type>\r\n   <requested-amount currency=\"EUR\">0.01</requested-amount>\r\n   <payment-methods>\r\n      <payment-method name=\"bancontact\" />\r\n   </payment-methods>\r\n   <order-number>180924114516875</order-number>\r\n   <account-holder>\r\n\r\n      <email>john.doe@test.com</email>\r\n      <phone/>\r\n      <address>\r\n         <street1>123 anystreet</street1>\r\n         <city>Brantford</city>\r\n         <country>CA</country>\r\n         <postal-code>M4P1E8</postal-code>\r\n         <state>ON</state>\r\n      </address>\r\n   </account-holder>\r\n   <bank-account>\r\n      <account-number/>\r\n      <bank-code/>\r\n   </bank-account>\r\n   <shipping>\r\n\r\n      <phone>+49123123123</phone>\r\n      <address>\r\n         <street1>123 anystreet</street1>\r\n         <city>Brantford</city>\r\n         <country>CA</country>\r\n         <postal-code>M4P1E8</postal-code>\r\n      </address>\r\n   </shipping>\r\n   <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/cancel</cancel-redirect-url>\r\n   <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/success</success-redirect-url>\r\n   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/error</fail-redirect-url>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "sepa-credit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7bb3fd30-5862-4026-a5b5-54208673170f",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n    <merchant-account-id>59a01668-693b-49f0-8a1f-f3c1ba025d45</merchant-account-id>\r\n    <request-id>{{$guid}}</request-id>\r\n    <transaction-type>pending-credit</transaction-type>\r\n    <parent-transaction-id>7a41c9da-9d0e-4069-abac-8396c63dbf81</parent-transaction-id>\r\n    <requested-amount currency=\"EUR\">0.01</requested-amount>\r\n    <account-holder>\r\n    \t<last-name>doe</last-name>\r\n        <email>john.doe@example.com</email>\r\n        <address>\r\n            <street1>Example Street 1</street1>\r\n            <city>Example City</city>\r\n            <country>DE</country>\r\n        </address>\r\n    </account-holder>\r\n    <!-- optional  <order-number>4509334</order-number> -->\r\n    <!-- optional   <descriptor>test</descriptor> -->\r\n    <payment-methods>\r\n        <payment-method name=\"sepacredit\" />\r\n    </payment-methods>\r\n    <bank-account>\r\n        <iban>HU29117080012054779400000000</iban>\r\n        <bic>GENODEF1OGK</bic>\r\n    </bank-account>\r\n   <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/cancel</cancel-redirect-url>\r\n   <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/success</success-redirect-url>\r\n   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/error</fail-redirect-url>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{APM-PW}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{APM-User}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "507b30e8-1b11-4f91-b871-133726847da2",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "d35c72cf-34e2-4ff9-8622-6f6686b14666",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "!!Boleto",
+			"item": [
+				{
+					"name": "debit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a9084d4a-f0cd-4642-9c5b-ca8103b9eec7",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n    <merchant-account-id>8a940e2a-5d7e-468b-8b27-d16a50814a02</merchant-account-id>\r\n    <request-id>{{$guid}}</request-id>\r\n    <transaction-type>debit</transaction-type>\r\n    <payment-methods>\r\n        <payment-method name=\"boleto\" />\r\n    </payment-methods>\r\n    <requested-amount currency=\"BRL\">5.00</requested-amount>\r\n    <order-items>\r\n        <order-item>\r\n            <name>Series Box - Exterminate!</name>\r\n            <amount currency=\"BRL\">5.00</amount>\r\n            <quantity>1</quantity>\r\n        </order-item>\r\n    </order-items>\r\n    <account-holder>\r\n        <first-name>Jose</first-name>\r\n        <last-name>Silva</last-name>\r\n        <date-of-birth>1988-12-30</date-of-birth>\r\n        <social-security-number>05989318642</social-security-number>\r\n    </account-holder>\r\n    <shipping>\r\n        <first-name>Jose</first-name>\r\n        <last-name>Silva</last-name>\r\n        <email>josesilva@email.com</email>\r\n    </shipping>\r\n    <expiration-date>2028-04-21</expiration-date>\r\n    <custom-fields>\r\n        <custom-field field-name=\"instruction-lines.first\" field-value=\"Primeira linha se instruo\" />\r\n        <custom-field field-name=\"instruction-lines.second\" field-value=\"Segunda linha se instruo\" />\r\n        <custom-field field-name=\"instruction-lines.third\" field-value=\"Terceira linha se instruo\" />\r\n        <custom-field field-name=\"logo-uri\" field-value=\"http://meusite.com.br/logo.jpg\" />\r\n    </custom-fields>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "3!3013=D3fD8X7",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "16390-testing",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "3a3f01fb-9840-40f6-81cd-43694cff2044",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "52a9dc18-c079-48c0-94db-ca58391d6203",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "carrier billing",
+			"item": [
+				{
+					"name": "debit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "763e4844-f82d-4f26-b39d-bdee586a8f81",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "text/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n   <merchant-account-id>8b99e2dc-c8d0-43b8-9ebb-0a35fa808af7</merchant-account-id>\r\n   <requested-amount currency=\"EUR\">10</requested-amount>\r\n   <request-id>{{$guid}}</request-id>\r\n   <transaction-type>debit</transaction-type>\r\n   <payment-methods>\r\n      <payment-method name=\"carrier-billing\" />\r\n   </payment-methods>\r\n   <account-holder>\r\n      <!-- either set mandatoty element: payment/wallet/account-id or payment/account-holder/email -->\r\n      <email>john.doe@test.com</email>\r\n      <first-name>John</first-name>\r\n      <last-name>Doe</last-name>\r\n      <phone>SK00</phone>\r\n      <address>\r\n         <street1>Test Street 123</street1>\r\n         <city>Test City</city>\r\n         <country>SK</country>\r\n      </address>\r\n   </account-holder>\r\n   <consumer-id>Test Consumer</consumer-id>\r\n   <order-detail>Test Order</order-detail>\r\n   <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/cancel</cancel-redirect-url>\r\n   <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/success</success-redirect-url>\r\n   <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/error</fail-redirect-url>   \r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{APM-PW}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{APM-User}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a8da15f5-871c-49f1-ab85-0c81b0d274ed",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "75ba7885-9979-4ac8-97c6-4a91123f5543",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "eps",
+			"item": [
+				{
+					"name": "get-url",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3463d77e-23fd-4fdf-8f20-0d624d2e1285",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n    <merchant-account-id>1f629760-1a66-4f83-a6b4-6a35620b4a6d</merchant-account-id>\r\n    <request-id>{{$guid}}</request-id>\r\n    <transaction-type>get-url</transaction-type>\r\n    <requested-amount currency=\"EUR\">1.99</requested-amount>\r\n    <payment-methods>\r\n        <payment-method name=\"eps\" />\r\n    </payment-methods>\r\n    <ip-address>10.10.245.94</ip-address>  \r\n    <notifications>\r\n        <notification url=\"https://www.yourshop.at/notifications?REQUESTID=${unique for each request}\"/>\r\n    </notifications>\r\n    <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/cancel</cancel-redirect-url>\r\n\t <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/success</success-redirect-url>\r\n\t <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/error</fail-redirect-url>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{APM-PW}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{APM-User}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "b9277bec-8e00-4cfc-8caf-24f05465af81",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "dcbe176c-9ce6-45a4-83be-66881823a81c",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "giropay",
+			"item": [
+				{
+					"name": "get-url",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "954d59a7-bff2-435c-9303-cd82f4687d36",
+								"exec": [
+									"var jsonObject = xml2Json(responseBody);",
+									"pm.test(\"Authorization Transaction State Success\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+									"});",
+									"",
+									"pm.test(\"Authorization Transaction Code 201.0000\", function () {",
+									"    pm.expect(jsonObject[\"payment\"][\"statuses\"][\"status\"]['$']['code']).to.eql(\"201.0000\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n <payment-methods>\r\n  <payment-method name=\"giropay\" />\r\n </payment-methods>\r\n <merchant-account-id>9b4b0e5f-1bc8-422e-be42-d0bad2eadabc</merchant-account-id>\r\n <request-id>{{$guid}}</request-id>\r\n <transaction-type>get-url</transaction-type>\r\n <requested-amount currency=\"EUR\">1.0</requested-amount>\r\n <order-number>180605125236138</order-number>\r\n <order-detail>Test product 001</order-detail>\r\n <ip-address>127.0.0.1</ip-address>\r\n <locale>en</locale>\r\n <account-holder>\r\n  <first-name>John</first-name>\r\n  <last-name>Doe</last-name>\r\n  <email>john.doe@wirecard.com</email>\r\n </account-holder>\r\n <bank-account>\r\n  <bic>GENODETT488</bic>\r\n </bank-account>\r\n</payment>"
+						},
+						"url": {
+							"raw": "{{paymentmethod-endpoint}}",
+							"host": [
+								"{{paymentmethod-endpoint}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{APM-PW}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{APM-User}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "e11b5f5e-a61d-4ea6-9366-652803f34f70",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "200899f1-bc58-4cf5-8f8c-fb2df73f63b1",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "ratepay-elv",
+			"item": [
+				{
+					"name": "auth-void-auth",
+					"item": [
+						{
+							"name": "Ratepay - Authorization",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "4f9c2d15-6249-4445-ac52-56c2ad32f47a",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "c7666db9-d744-4c73-a560-c3266df3a11e",
+										"exec": [
+											"pm.test(\"Authorization Transaction State Success\", function () {",
+											"    var jsonObject = xml2Json(responseBody);",
+											"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+											"    postman.setEnvironmentVariable(\"parentID\", jsonObject[\"payment\"][\"transaction-id\"]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/xml",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>authorization</transaction-type>\r\n  <payment-methods>\r\n    <payment-method name=\"ratepay-invoice\" />\r\n  </payment-methods>\r\n  <requested-amount currency=\"EUR\">50</requested-amount>\r\n  <order-number>{{$guid}}</order-number>\r\n  <account-holder>\r\n    <first-name>Jack</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>John@doe.de</email>\r\n    <phone>03018425165</phone>\r\n    <date-of-birth>27-12-1983</date-of-birth>\r\n    <address>\r\n      <street1> Nicht versenden Weg 12</street1>\r\n      <city>Berlin</city>\r\n      <state>Berlin</state>\r\n      <country>DE</country>\r\n      <postal-code>13353</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <order-items>\r\n    <order-item>\r\n      <name>Levis 501 Blue</name>\r\n      <article-number>1</article-number>\r\n      <amount currency=\"EUR\">50</amount>\r\n      <tax-rate>19</tax-rate>\r\n      <quantity>1</quantity>\r\n    </order-item>\r\n  </order-items>\r\n  <locale>de</locale>\r\n</payment>"
+								},
+								"url": {
+									"raw": "{{paymentmethod-endpoint}}",
+									"host": [
+										"{{paymentmethod-endpoint}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ratepay - void-authorization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e0035432-17ac-4ac0-9098-16a73d221943",
+										"exec": [
+											"pm.test(\"Authorization Transaction State Success\", function () {",
+											"    var jsonObject = xml2Json(responseBody);",
+											"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+											"    postman.setEnvironmentVariable(\"captureID\", jsonObject[\"payment\"][\"transaction-id\"]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>void-authorization</transaction-type>\r\n  <payment-methods>\r\n    <payment-method name=\"ratepay-invoice\" />\r\n  </payment-methods>\r\n  <requested-amount currency=\"EUR\">50</requested-amount>\r\n  <parent-transaction-id>{{parentID}}</parent-transaction-id>\r\n  <order-items>\r\n        <order-item>\r\n            <name>Levis 501 Blue</name>\r\n            <article-number>1</article-number>\r\n            <amount currency=\"EUR\">50</amount>\r\n            <tax-rate>19</tax-rate>\r\n            <quantity>1</quantity>\r\n        </order-item>\r\n    </order-items>\r\n</payment>"
+								},
+								"url": {
+									"raw": "{{payments-endpoint}}",
+									"host": [
+										"{{payments-endpoint}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "auth-capture-refundcapture",
+					"item": [
+						{
+							"name": "Ratepay - Authorization",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "4f9c2d15-6249-4445-ac52-56c2ad32f47a",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "c7666db9-d744-4c73-a560-c3266df3a11e",
+										"exec": [
+											"pm.test(\"Authorization Transaction State Success\", function () {",
+											"    var jsonObject = xml2Json(responseBody);",
+											"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+											"    postman.setEnvironmentVariable(\"parentID\", jsonObject[\"payment\"][\"transaction-id\"]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/xml",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>authorization</transaction-type>\r\n  <payment-methods>\r\n    <payment-method name=\"ratepay-invoice\" />\r\n  </payment-methods>\r\n  <requested-amount currency=\"EUR\">50</requested-amount>\r\n  <order-number>{{$guid}}</order-number>\r\n  <account-holder>\r\n    <first-name>Jack</first-name>\r\n    <last-name>Doe</last-name>\r\n    <email>John@doe.de</email>\r\n    <phone>03018425165</phone>\r\n    <date-of-birth>27-12-1983</date-of-birth>\r\n    <address>\r\n      <street1> Nicht versenden Weg 12</street1>\r\n      <city>Berlin</city>\r\n      <state>Berlin</state>\r\n      <country>DE</country>\r\n      <postal-code>13353</postal-code>\r\n    </address>\r\n  </account-holder>\r\n  <order-items>\r\n    <order-item>\r\n      <name>Levis 501 Blue</name>\r\n      <article-number>1</article-number>\r\n      <amount currency=\"EUR\">50</amount>\r\n      <tax-rate>19</tax-rate>\r\n      <quantity>1</quantity>\r\n    </order-item>\r\n  </order-items>\r\n  <locale>de</locale>\r\n</payment>"
+								},
+								"url": {
+									"raw": "{{paymentmethod-endpoint}}",
+									"host": [
+										"{{paymentmethod-endpoint}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ratepay - capture-authorization",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e0035432-17ac-4ac0-9098-16a73d221943",
+										"exec": [
+											"pm.test(\"Authorization Transaction State Success\", function () {",
+											"    var jsonObject = xml2Json(responseBody);",
+											"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+											"    postman.setEnvironmentVariable(\"captureID\", jsonObject[\"payment\"][\"transaction-id\"]);",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>capture-authorization</transaction-type>\r\n  <payment-methods>\r\n    <payment-method name=\"ratepay-invoice\" />\r\n  </payment-methods>\r\n  <requested-amount currency=\"EUR\">50</requested-amount>\r\n  <parent-transaction-id>{{parentID}}</parent-transaction-id>\r\n  <order-items>\r\n        <order-item>\r\n            <name>Levis 501 Blue</name>\r\n            <article-number>1</article-number>\r\n            <amount currency=\"EUR\">50</amount>\r\n            <tax-rate>19</tax-rate>\r\n            <quantity>1</quantity>\r\n        </order-item>\r\n    </order-items>\r\n</payment>"
+								},
+								"url": {
+									"raw": "https://api-test.wirecard.com/engine/rest/payments",
+									"protocol": "https",
+									"host": [
+										"api-test",
+										"wirecard",
+										"com"
+									],
+									"path": [
+										"engine",
+										"rest",
+										"payments"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Ratepay - refund-capture",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "e0035432-17ac-4ac0-9098-16a73d221943",
+										"exec": [
+											"pm.test(\"Authorization Transaction State Success\", function () {",
+											"    var jsonObject = xml2Json(responseBody);",
+											"    pm.expect(jsonObject[\"payment\"][\"transaction-state\"]).to.eql(\"success\");",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/xml"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>\r\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\r\n  <merchant-account-id>7d7edecb-b008-4f05-9103-308c81cf2ea2</merchant-account-id>\r\n  <request-id>{{$guid}}</request-id>\r\n  <transaction-type>refund-capture</transaction-type>\r\n  <payment-methods>\r\n    <payment-method name=\"ratepay-invoice\" />\r\n  </payment-methods>\r\n  <requested-amount currency=\"EUR\">50</requested-amount>\r\n  <parent-transaction-id>{{captureID}}</parent-transaction-id>\r\n  <order-items>\r\n        <order-item>\r\n            <name>Levis 501 Blue</name>\r\n            <article-number>1</article-number>\r\n            <amount currency=\"EUR\">50</amount>\r\n            <tax-rate>19</tax-rate>\r\n            <quantity>1</quantity>\r\n        </order-item>\r\n    </order-items>\r\n</payment>"
+								},
+								"url": {
+									"raw": "{{payments-endpoint}}",
+									"host": [
+										"{{payments-endpoint}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			],
+			"auth": {
+				"type": "basic",
+				"basic": [
+					{
+						"key": "password",
+						"value": "{{APM-PW}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{APM-User}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "4b2a4ad7-b15f-4fe0-92fb-600c1554d472",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "7743bafc-6fd1-4456-a1c5-4e4e95efb195",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "5d8f8248-a94f-4ad3-b195-196cd67a91f2",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "510c422a-5591-459f-afb6-eb7f1df8b9f6",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "d63da8a9-ac04-4cb6-83e3-6d341683fa8a",
+			"key": "paymentmethod-endpoint",
+			"value": "https://api-test.wirecard.com/engine/rest/paymentmethods/",
+			"type": "string"
+		},
+		{
+			"id": "e42928dd-4703-400c-b2df-1cc598b2e775",
+			"key": "payments-endpoint",
+			"value": "https://api-test.wirecard.com/engine/rest/payments/",
+			"type": "string"
+		},
+		{
+			"id": "830a3d64-659f-469c-a4c3-68b4226b0263",
+			"key": "cc-number",
+			"value": "5413330300001006",
+			"type": "string"
+		},
+		{
+			"id": "16f77261-543e-434d-8b1d-a2fc420e6214",
+			"key": "3d-cvv",
+			"value": "006",
+			"type": "string"
+		},
+		{
+			"id": "b24496a2-c536-4b2f-9092-743402abe2be",
+			"key": "non-3d-cvv",
+			"value": "001",
+			"type": "string"
+		},
+		{
+			"id": "af8aa6d5-155b-4db8-a07d-14a859d1c499",
+			"key": "3d-maid",
+			"value": "33f6d473-3036-4ca5-acb5-8c64dac862d1",
+			"type": "string"
+		},
+		{
+			"id": "0f7fbf2a-44a8-4442-88cd-20521e047d6c",
+			"key": "non-3d-maid",
+			"value": "07edc10b-d3f9-4d12-901f-0db7f4c7e75c",
+			"type": "string"
+		},
+		{
+			"id": "1c44cff1-e76a-41b0-aa9a-d441841528de",
+			"key": "wpp-endpoint",
+			"value": "https://wpp-test.wirecard.com/api/payment/register",
+			"type": "string"
+		},
+		{
+			"id": "da60330c-b611-4f6b-9e47-74df7def69d7",
+			"key": "APM-User",
+			"value": "16390-testing",
+			"type": "string"
+		},
+		{
+			"id": "3e1c9d96-7137-4044-ad31-4606efa7d793",
+			"key": "APM-PW",
+			"value": "3!3013=D3fD8X7",
+			"type": "string"
+		}
+	]
+}
