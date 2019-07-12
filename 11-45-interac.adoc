@@ -56,7 +56,113 @@ transaction.
 | _get-url_ | A step in a group of transactions where the provider or
 bank's URL is retrieved for the Account Holder to be redirected to.
 
-| _debit_ | Moves funds from the Consumer Account to the Merchant Account.
+| _debit_ | Moves funds from the Consumer Account to the Merchant Account. <<Interac_Samples_RestApi_debit, Rest Api debit samples>>, <<Interac_Samples_PP_debit, Payment Page debit samples>>
 
 | _refund-debit_ |
 |===
+
+
+[#Interac_TestCredentials]
+==== Test Credentials
+
+[cols="30h,30,40"]
+|===
+.2+|URLs (Endpoints) | For transaction type _debit_ | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+                     | For transaction type _refund-debit_ | ``\https://api-test.wirecard.com/engine/rest/payments/``
+|Merchant Account ID (MAID) 2+| 92869f77-8a2c-49f6-8726-ef1b4d97ec9e
+|Username 2+| 16390-testing
+|Password 2+| 3!3013=D3fD8X7
+|Secret Key | adfce2f5-5659-4e91-bc19-9e6658b22a04
+|===
+
+[#Interac_Workflow]
+==== Workflow
+
+image::images/11-45-interac/Interac_workflow.png[InteracWorkflow]
+
+. Consumer adds items to his shopping chart.
+. The merchant displays all available payment methods.
+. Consumer selects _Interac_.
+. The merchant initiates a debit transaction to WPG.
+. WPG sends a redirection URL to the merchant.
+. The merchant redirects the consumer to the _Interac Financial Institution Selection Page_.
+. The consumer the financial institution and is redirected to the bank website.
+. The consumer enters his account data and confirms the payment.
+. _Interac_ processes the transaction.
+. WPG receives the transaction status.
+. WPG sends the transaction status to the merchant and redirects the
+consumer back to the merchant's website.
+. The merchant receives the transaction status and displays the
+outcome to the consumer.
+
+//-
+
+[#Interac_Fields]
+==== Fields
+
+The fields used for _Interac_ requests, responses and notifications are
+the same as the REST API Fields. Please refer to: <<RestApi_Fields, REST API Fields>>.
+
+[#Interac_Samples]
+==== Samples
+
+[#Interac_Samples_RestApi]
+===== REST API
+
+For XML we do not list any notification samples. Go to
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>, if you want to see corresponding notification samples.
+
+[#Interac_Samples_RestApi_debit]
+====== debit
+
+.XML debit Request (Successful)
+[source,xml]
+----
+include::samples/xml/InteracSamplesRestApiDebit_DebitRequestSuccessful.xml[]
+----
+
+.XML debit Response (Successful)
+[source,xml]
+----
+include::samples/xml/InteracSamplesRestApiDebit_DebitResponseSuccessful.xml[]
+----
+
+.XML debit Request (Failed)
+[source,xml]
+----
+include::samples/xml/InteracSamplesRestApiDebit_DebitRequestFailed.xml[]
+----
+
+.XML debit Response (Failed)
+[source,xml]
+----
+include::samples/xml/InteracSamplesRestApiDebit_DebitResponseFailed.xml[]
+----
+
+[#Interac_Samples_PP]
+===== Payment Page
+
+[#Interac_Samples_PP_debit]
+====== debit
+
+This request opens the Payment Page.
+
+.NVP debit Request (Successful)
+[source]
+----
+requested_amount=1.01&requested_amount_currency=CAD&locale=en&order_number=123456&order_detail=1+widget&form_url=https%3A%2F%2Fdev.thesolution.com%2Fengine%2Fhpp%2F&secret_key=c50a8e09-0648-4d2c-b638-2c14fc7606bc&request_id=8adfa0d8-c4bc-2e1e-6644-7c078563c09f&request_time_stamp=20190318183534&merchant_account_id=11d7c6dc-4dd0-4304-aaeb-07fa87af98e9&payment_method=interac&transaction_type=debit&redirect_url=https%3A%2F%2Fdev.thesolution.com%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&ip_address=127.0.0.1&request_signature=0a80202e3719415e18060fc403a4587c26f913adf4b1077888c414a43853c1b0&psp_name=demo&attempt_three_d=false&success_redirect_url=https%3A%2F%2Fdev.thesolution.com%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&fail_redirect_url=https%3A%2F%2Fdev.thesolution.com%2Fshop%2Fcomplete.jsp%3Fstate%3Dfailed%26&cancel_redirect_url=https%3A%2F%2Fdev.thesolution.com%2Fshop%2Fcomplete.jsp%3Fstate%3Dcancel%26&processing_redirect_url=https%3A%2F%2Fdev.thesolution.com%2Fshop%2Fcomplete.jsp%3Fstate%3Dprocessing%26&first_name=John&last_name=Doe&email=john.doe%40wirecard.com&phone=1+555+555+5555&street1=123+test&city=Toronto&state=ON&postal_code=M4P1E8&country=CA&field_name_1=elastic-api.ee.test.result&field_value_1=A
+----
+
+This response is sent back to merchant's page.
+
+.NVP debit Response (Successful)
+[source]
+----
+psp_name=demo&country=CA&custom_css_url=&merchant_account_resolver_category=&response_signature=6fa58158da8992c2be61f19a9d49d68830b2673532fe43e8933771536e2b753e&city=Toronto&group_transaction_id=&order_number=123456&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9MzYxYTNjY2UtMTQwMS00OGU3LTg4ZjgtNTI3NWQyMjA0ZTNlCmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTkwMzE4MTgzNjE5Cm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD0xMWQ3YzZkYy00ZGQwLTQzMDQtYWFlYi0wN2ZhODdhZjk4ZTkKdHJhbnNhY3Rpb25fc3RhdGU9c3VjY2VzcwppcF9hZGRyZXNzPTEyNy4wLjAuMQp0cmFuc2FjdGlvbl90eXBlPWRlYml0CnJlcXVlc3RfaWQ9OGFkZmEwZDgtYzRiYy0yZTFlLTY2NDQtN2MwNzg1NjNjMDlmCg%3D%3D.drzTptrEV8FzLV1rzKiExL2SHaip9GfYLi2dGmspr84%3D&locale=en&requested_amount=1.010000&completion_time_stamp=20190318183619&provider_status_description_1=&authorization_code=&merchant_account_id=11d7c6dc-4dd0-4304-aaeb-07fa87af98e9&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40wirecard.com&payment_method=interac&transaction_id=361a3cce-1401-48e7-88f8-5275d2204e3e&provider_transaction_id_1=1084dc093387b0d9&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=201.0000&field_name_1=elastic-api.ee.test.result&status_description_1=The+resource+was+successfully+created.&phone=1+555+555+5555&transaction_state=success&requested_amount_currency=CAD&postal_code=M4P1E8&request_id=8adfa0d8-c4bc-2e1e-6644-7c078563c09f&field_value_1=A
+----
+
+.NVP debit Notification (Successful)
+[source]
+----
+merchant_account_resolver_category=&response_signature=11b9a96e051a86fa5f62fa88165a2fcb4c05c1554c581034b3084517066fe2ac&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9YmE2ODVlZTUtNzljYS00YTEzLWI0NDUtZmJhYjE4OTNmMzM2CmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTkwMzE4MTkwMDAxCm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD1iMWNkOGY2MS1kMzFjLTRjOTQtOTcxYi1lM2NhMGU4NDA3ODQKdHJhbnNhY3Rpb25fc3RhdGU9c3VjY2VzcwppcF9hZGRyZXNzPTEyNy4wLjAuMQp0cmFuc2FjdGlvbl90eXBlPWRlYml0CnJlcXVlc3RfaWQ9NWE4ZDhiM2QtMmVkMC00YWIwLTgzYjEtMmE1MzA0YTJlODM5Cg%3D%3D.kmtN5ba7Nu5%2BeiMtrzwCPIVz9fvoj5D7J5pgl9Hljxw%3D&locale=&requested_amount=1.010000&completion_time_stamp=20190318190001&provider_status_description_1=&authorization_code=&merchant_account_id=b1cd8f61-d31c-4c94-971b-e3ca0e840784&provider_transaction_reference_id=&first_name=Test&email=tech.pdi-gw%40wirecard.com&payment_method=interac&transaction_id=ba685ee5-79ca-4a13-b445-fbab1893f336&provider_transaction_id_1=1084dc09bf7b53e5&status_severity_1=information&last_name=Wirecard&ip_address=127.0.0.1&transaction_type=debit&status_code_1=201.0000&field_name_1=elastic-api.ee.test.result&status_description_1=acquirer%3AThe+resource+was+successfully+created.&transaction_state=success&requested_amount_currency=CAD&request_id=5a8d8b3d-2ed0-4ab0-83b1-2a5304a2e839&field_value_1=A
+----
