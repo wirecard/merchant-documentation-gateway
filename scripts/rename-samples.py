@@ -112,8 +112,10 @@ def process_file_name(file_name, header_dict=None):
         # print(ET.dump(root))
         return None
 
-    return "{}_{}_{}.{}".format(payment_method, transaction_type,
-                                success_or_fail, file_name.split(".")[-1])
+    return "{}_{}_{}.{}".format(
+        "generic" if payment_method in [
+            "*" "${payment method}"] else payment_method,
+        transaction_type, success_or_fail, file_name.split(".")[-1])
 
 
 def main():
