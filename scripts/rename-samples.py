@@ -5,19 +5,28 @@ import argparse
 import json
 import os
 import tempfile
-from colors import color, error
+
+from colors import info, error
+from shutil import copyfile, move
+
+import pprint
 
 # NOTE: instead of root.getchildren() use list(root)
 # NOTE: print with ET.dump(<root>)
 
 SUPPORTED_FILETYPES = "xml json".split()
 OPERATION_KEYWORDS = "failure success".split()
+TYPE_KEYWORDS = "request response notification"
 REPORT_FILE_NAME = "report-rename.json"
+FORBIDDEN_WORDS = "android"
 ERROR_REPORT_FILE_NAME = "errors.json"
 ERRORS = {"errors": []}
 
 
 def remove_namespace(root):
+    """Take a root element and return the sanitized tree.
+    Sanitized meaning without namespaces.
+    """
     root.tag = root.tag[root.tag.find('}')+1:]
     for child in list(root):
         remove_namespace(child)
@@ -48,9 +57,15 @@ def process_file_name(file_name, header_dict=None):
         raise ValueError("Unsupported file extension: must be one of {}".format(
             ",".join(SUPPORTED_FILETYPES)))
 
-    # skip all responses and android xml
-    if any((keyword in file_name.lower()) for keyword in "response android".split()):
+    # skip all forbidden names
+    if any((keyword in file_name.lower()) for keyword in FORBIDDEN_WORDS.split()):
         return None
+
+    send_type = "unknown"
+    for keyword in TYPE_KEYWORDS:
+        if keyword in file_name.lower():
+            send_type = keyword
+            break
 
     # get whether the request is a success or failure example
     success_or_fail = ""
@@ -59,6 +74,8 @@ def process_file_name(file_name, header_dict=None):
             success_or_fail = keyword
             break
 
+    folder = "/".join(file_name.split("/")[:-1])
+
     try:
         tree = ET.parse(file_name)
     except ET.ParseError as e:
@@ -66,11 +83,10 @@ def process_file_name(file_name, header_dict=None):
             # handle mixed files (header and XML information)
             # split them
             raw_header, raw_xml = read_mixed_file(file_name)
-            folder = file_name.split("/")[0]
             if raw_xml is None:
-                print("[*] File has no XML: {}".format(file_name))
-                header_file_name = os.path.join(
-                    folder, ".".join(["header_%s" % ("file_name"), "txt"]))
+                info("[*] File has no XML: {}".format(file_name))
+                header_file_name = "/".join(
+                    [folder, ".".join(["header_%s" % ("file_name"), "txt"])])
                 with open(header_file_name, "w+", encoding="utf8") as header_f:
                     header_f.write(raw_header)
                 header_dict[file_name] = {"header": header_file_name}
@@ -79,9 +95,11 @@ def process_file_name(file_name, header_dict=None):
             with open(file_name, "w+", encoding="utf8") as xml_f:
                 xml_f.write(raw_xml)
             new_xml_file_name = process_file_name(file_name)
-            header_file_name = os.path.join(folder,
-                                            ".".join(["header_" + new_xml_file_name.split(".")[0],
-                                                      "txt"]))
+            # header_file_name = "/".join([folder,
+            #                              ".".join([new_xml_file_name.split(".")[0] + "_header",
+            #                                        "txt"])])
+            header_file_name = ".".join(
+                [new_xml_file_name.split(".")[0] + "_header", "txt"])
             with open(header_file_name, "w+", encoding="utf8") as header_f:
                 header_f.write(raw_header)
 
@@ -112,15 +130,17 @@ def process_file_name(file_name, header_dict=None):
         # print(ET.dump(root))
         return None
 
-    return "{}_{}_{}.{}".format(
+    new_file_name = "{}_{}_{}_{}.{}".format(
         "generic" if payment_method in [
             "*" "${payment method}"] else payment_method,
-        transaction_type, success_or_fail, file_name.split(".")[-1])
+        transaction_type, send_type, success_or_fail, file_name.split(".")[-1])
+    return "/".join([folder, new_file_name])
 
 
 def main():
     parser = argparse.ArgumentParser(description="""Systematically rename sample files
-    (e.g. xml or json). Supported file types: {}""".format(", ".join(SUPPORTED_FILETYPES)))
+    (e.g. xml or json). Errors are always reported and written to 'errors.json'.
+    Supported file types: {}""".format(", ".join(SUPPORTED_FILETYPES)))
     parser.add_argument("file", metavar="FILE", nargs="*",
                         help="Input file (needs to be supported)")
     parser.add_argument("-n", "--no-delete", action="store_true",
@@ -148,29 +168,38 @@ def main():
     processed_files = [process_file_name(
         file, header_dict=header_dict) for file in files]
 
-    report_dict = {"renames": [{"old": old, "new": new}
+    # pprint.pprint(header_dict, indent=2)
+
+    report_dict = {"renames": [{"old": old, "new": new.replace('\\', '/')}
                                for old, new in zip(files, processed_files)
                                if new is not None]}
+    ERRORS['renames'] = [{"old": old, "new": new}
+                         for old, new in zip(files, processed_files)
+                         if new is None]
+    for entry in report_dict['renames']:
+        if entry['new'] in header_dict.keys():
+            entry['header'] = header_dict[entry['new']]['header']
 
     if args.report:
         with open(REPORT_FILE_NAME, "w+", encoding="utf8") as report_f:
             report_f.write(json.dumps(report_dict, indent=2))
-    else:
+    elif not args.dry_run:
         print(json.dumps(report_dict, indent=2))
 
     with open(ERROR_REPORT_FILE_NAME, "w+", encoding="utf8") as error_f:
         error_f.write(json.dumps(ERRORS, indent=2))
 
     if args.dry_run:
+        if not args.dry_run:
+            for old, new in zip(files, processed_files):
+                print("{} -> {}".format(old, new))
         return
 
-    # TODO: perform creation of new files
-    # TODO: watch exception_dict, make sure to check it first
-
-    if args.no_delete:
-        return
-
-    # TODO: delete original files
+    for old, new in zip(files, processed_files):
+        if args.no_delete:
+            copyfile(old, new)
+        else:
+            move(old, new)
 
 
 if __name__ == "__main__":
