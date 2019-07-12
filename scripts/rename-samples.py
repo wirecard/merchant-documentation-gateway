@@ -207,7 +207,7 @@ def main():
         return
 
     for old, new in zip(files, processed_files):
-        if new is None:
+        if (new is None) or (old == new):
             continue
         if args.no_delete:
             copyfile(old, new)
