@@ -19,6 +19,7 @@ OPERATION_KEYWORDS = "failure success".split()
 TYPE_KEYWORDS = "request response notification".split()
 REPORT_FILE_NAME = "report-rename.json"
 FORBIDDEN_WORDS = "android".split()
+GENERIC_PAYMENT_METHODS = "*:${payment method}".split(":")
 ERROR_REPORT_FILE_NAME = "errors.json"
 ERRORS = {"errors": [], "noxml": []}
 
@@ -133,8 +134,7 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
         return None
 
     new_file_name = "{}_{}_{}_{}.{}".format(
-        "generic" if payment_method in [
-            "*" "${payment method}"] else payment_method,
+        "generic" if payment_method in GENERIC_PAYMENT_METHODS else payment_method,
         transaction_type, send_type, success_or_fail, file_name.split(".")[-1])
     return "/".join([folder, new_file_name])
 
