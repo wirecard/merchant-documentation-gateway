@@ -2,26 +2,29 @@ const newman = require('newman');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 const xmlparser = require('fast-xml-parser');
+const URLSearchParams = require('url').URLSearchParams;
 
 const NO_TRANSACTION_ID = 'none';
 const NO_PAYMENT_METHOD = 'none';
 const MIMETYPE_XML = 'application/xml';
 const MIMETYPE_JSON = 'application/json';
+const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8'
 const TRANSACTIONSTATE_SUCCESS = 'success';
 const TRANSACTIONCODE_SUCCESS = '201.0000';
 
 function writeAdoc(info) {
     const fileExtension = '.adoc';
     const path = 'samples/adoc/';
-    const contentTypeShort = info.request.content_type.replace(/.+\//, '');
-    const filename = info.payment_method + '-' + info.transaction_type + '-' + contentTypeShort;
-    const fileContent = `.Request ` + info.payment_method + `: ` + info.transaction_type + ` (` + contentTypeShort + `)
+    const paymentMethodBrandName = brandNameOfPaymentMethod(info.payment_method);
+    const contentTypeShort = PMUtil.getContentType(info.request.body_source, type='short');
+    const filename = info.payment_method + '_' + info.transaction_type + '_' + contentTypeShort;
+    const fileContent = `.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + contentTypeShort.toUpperCase() + `)
 [source,` + contentTypeShort + `]
 ----
-` + info.request.body + `
+` + info.request.body_source + `
 ----
 
-.Response ` + info.payment_method + `: ` + info.transaction_type + ` (` + contentTypeShort + `)
+.Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + contentTypeShort.toUpperCase() + `)
 [source,` + contentTypeShort + `]
 ----
 ` + info.response.body + `
@@ -35,10 +38,30 @@ function writeAdoc(info) {
     }
 }
 
+var brandNameOfPaymentMethod = function (pm) {
+    var BrandNamesMap = {
+        'alipay-xborder': 'Alipay Cross-border',
+        'bancontact': 'Bancontact',
+        'boleto': 'Boleto',
+        'carrier-billing': 'Carrier Billing',
+        'creditcard': 'Credit Card',
+        'eps': 'eps-Überweisung',
+        'giropay': 'giropay',
+        'sepacredit': 'SEPA Direct Debit'
+    };
+    if (typeof BrandNamesMap[pm] !== 'undefined') {
+        return BrandNamesMap[pm];
+    }
+    else {
+        return pm;
+    }
+}
+
 var PMUtil = {};
 PMUtil.RequestsIndex = {};
+
 // response is always XML
-PMUtil.getTransactionID = function (body) {
+PMUtil.readTransactionID = function (body) {
     var transactionID = NO_TRANSACTION_ID;
     var contentType = PMUtil.getContentType(body);
     switch (contentType) {
@@ -52,22 +75,51 @@ PMUtil.getTransactionID = function (body) {
             var obj = JSON.parse(body);
             transactionID = obj.payment['transaction-id']
             break;
+        case MIMETYPE_NVP:
+            transactionID = new URLSearchParams(body).get('transaction-id');
+            break;
         default:
-            //transactionID = body.replace(/(^|&)transaction_id=(?<tid>[\w-]+)($|&)/, '$<tid>')
-            console.log('unknown content-type ' + contentType);
+            console.log('in readTransactionID: unknown content type');
             break;
     }
     return transactionID;
 };
 
 PMUtil.getParentTransactionID = function (requestName) {
+
+    // TODO TODO TODO
+
+    /*
     if (typeof PMUtil.RequestsIndex[requestName] === 'undefined') {
         return NO_TRANSACTION_ID;
     }
     return PMUtil.RequestsIndex[requestName].parent_transaction_id;
+    */
 };
 
-PMUtil.getTransactionType = function (body) {
+PMUtil.readParentTransactionID = function (body) {
+    var parentTransactionID;
+    const contentType = PMUtil.getContentType(body);
+    switch (contentType) {
+        case MIMETYPE_XML:
+            var obj = xmlparser.parse(body, {});
+            parentTransactionID = obj.payment['parent-transaction-id'];
+            break;
+        case MIMETYPE_JSON:
+            var obj = JSON.parse(body);
+            parentTransactionID = obj.payment['parent-transaction-id']
+            break;
+        case MIMETYPE_NVP:
+            parentTransactionID = new URLSearchParams(body).get('parent-transaction-id');
+            break;
+        default:
+            console.log('in readParentTransactionID: unknown content type');
+            break;
+    }
+    return parentTransactionID;
+};
+
+PMUtil.readTransactionType = function (body) {
     var transactionType;
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
@@ -79,25 +131,32 @@ PMUtil.getTransactionType = function (body) {
             var obj = JSON.parse(body);
             transactionType = obj.payment['transaction-type']
             break;
+        case MIMETYPE_NVP:
+            transactionType = new URLSearchParams(body).get('transaction_type');
+            break;
         default:
-            //transactionType = body.replace(/(^|&)transaction_type=(?<tt>[\w-]+)($|&)/, '$<tt>')
-            console.log('unknown content-type ' + contentType);
+            console.log('readTransactionType: unknown content-type ' + contentType);
+            console.log(body);
             break;
     }
     return transactionType;
 };
 
-PMUtil.getParentPaymentMethod = function (requestName) {
-  const pid = PMUtil.getParentTransactionID(requestName);
-  for (request in PMUtil.RequestsIndex) {
-      if (PMUtil.RequestsIndex[request].transaction_id == pid) {
-          return PMUtil.RequestsIndex[request].payment_method;
-      }
-  }
-  return NO_PAYMENT_METHOD;
+PMUtil.getParentPaymentMethod = function (body) {
+    const pid = PMUtil.readParentTransactionID(body);
+    console.log('looking for pid: ' + pid);
+    for (paymentMethod in PMUtil.RequestsIndex) {
+        const pm = PMUtil.RequestsIndex[paymentMethod];
+        for (transactionType in pm) {
+            if (pm[transactionType].transaction_id === pid) {
+                return paymentMethod;
+            }
+        }
+    }
+    return undefined;
 }
 
-PMUtil.getPaymentMethod = function (body) {
+PMUtil.readPaymentMethod = function (body) {
     var paymentMethod;
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
@@ -107,19 +166,19 @@ PMUtil.getPaymentMethod = function (body) {
                 paymentMethod = obj.payment['payment-methods']['payment-method']['@_name'];
             }
             catch (err) {
-                const requestName = PMUtil.getName(body);
-                //console.log('pm not found. therefore "' + requestName + '" must have a parent id. looking for request in table');
-                paymentMethod = PMUtil.getParentPaymentMethod(requestName);
-                //console.log('pm is found: ' + paymentMethod);
+                paymentMethod = PMUtil.getParentPaymentMethod(body);
             }
             break;
         case MIMETYPE_JSON:
             var obj = JSON.parse(body);
             paymentMethod = obj.payment['payment-methods']['payment-method'][0]['name'];
             break;
+        case MIMETYPE_NVP:
+            paymentMethod = new URLSearchParams(body).get('payment_method');
+            break;
         default:
-            //paymentMethod = body.replace(/(^|&)payment_method=(?<pm>[\w-]+)($|&)/, '$<pm>')
-            console.log('unknown content-type ' + contentType);
+            console.log('readPaymentMethod: unknown content-type ' + contentType);
+            console.log(body);
             break;
     }
     return paymentMethod;
@@ -134,11 +193,11 @@ PMUtil.bodyHasElement = function (body, elementName) {
         case MIMETYPE_JSON:
             var obj = JSON.parse(body);
             break;
+        case MIMETYPE_NVP:
+            return (new URLSearchParams(body).get(elementName) !== null);
         default:
-            console.log('unknown content-type');
-            console.log('attempt NVP for body:');
+            console.log('bodyHasElement: unknown content-type');
             console.log(body);
-            var obj = new URLSearchParams(body);
             break;
     }
     return (typeof obj[elementName] !== 'undefined');
@@ -149,28 +208,54 @@ PMUtil.bodyInjectElementValue = function (requestBody, elementName, elementValue
 };
 
 PMUtil.getName = function (body) {
-    const paymentMethod = 'moo'; // do not use getPaymentMethod because recursion...
-    const transactionType = PMUtil.getTransactionType(body);
+    // TODO TODO TODO. is this still necessary? or use readTransactionType instead
+    // try: search&replace PMUtil.getName with PMUtil.readTransactionType
+    const paymentMethod = ''; // do not use getPaymentMethod because recursion...
+    const transactionType = PMUtil.readTransactionType(body);
     return paymentMethod + transactionType;
 };
 
-PMUtil.getContentType = function (body) {
-    var contentType;
-    var isJson = (body) => {
+
+PMUtil.getContentType = function (body, type='full') {
+
+    const ContentTypeShort = {
+        [MIMETYPE_XML]: 'xml',
+        [MIMETYPE_JSON]: 'json',
+        [MIMETYPE_NVP]: 'nvp'
+    };
+
+    var isJSON = (body) => {
         try { JSON.parse(body); } catch (e) { return false; }
         return true;
     };
-    switch (true) {
-        case xmlparser.validate(body):
-            contentType = MIMETYPE_XML;
-            break;
-        case isJson(body):
-            contentType = MIMETYPE_JSON;
-            break;
-        default:
-            break;
+    var isNVP = (body) => {
+        if (new URLSearchParams(body).get('request_id') !== null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    };
+
+    var isXML = (body) => {
+        return (xmlparser.validate(body) === true);
+    };
+
+    if (isXML(body) === true) {
+        contentType = MIMETYPE_XML;
     }
-    return contentType;
+    else if (isJSON(body) === true) {
+        contentType = MIMETYPE_JSON;
+    }
+    else if (isNVP(body) === true) {
+        contentType = MIMETYPE_NVP;
+    }
+
+    if(type == 'short') {
+        return ContentTypeShort[contentType];
+    } else {
+        return contentType;
+    }
 };
 
 PMUtil.getTransactionStatus = function (body) {
@@ -195,6 +280,28 @@ PMUtil.getTransactionStatus = function (body) {
 PMUtil.transactionHasFailed = function (body) {
     const TransactionStatus = PMUtil.getTransactionStatus(body);
     return (TransactionStatus['transaction-state'] !== TRANSACTIONCODE_SUCCESS)
+};
+
+// from https://gist.github.com/sente/1083506/d2834134cd070dbcc08bf42ee27dabb746a1c54d#gistcomment-2254622
+PMUtil.formatXML = function (xml) {
+    const PADDING = ' '.repeat(2); // set desired indent size here
+    const reg = /(>)(<)(\/*)/g;
+    let pad = 0;
+    xml = xml.replace(reg, '$1\r\n$2$3');
+    return xml.split('\r\n').map((node, index) => {
+        let indent = 0;
+        if (node.match(/.+<\/\w[^>]*>$/)) {
+            indent = 0;
+        } else if (node.match(/^<\/\w/) && pad > 0) {
+            pad -= 1;
+        } else if (node.match(/^<\w[^>]*[^\/]>.*$/)) {
+            indent = 1;
+        } else {
+            indent = 0;
+        }
+        pad += indent;
+        return PADDING.repeat(pad - indent) + node;
+    }).join('\r\n');
 };
 
 newman.run({
@@ -222,17 +329,22 @@ newman.run({
 }).on('request', function (err, args) {
     var item = args.item;
     var transactionMethod = item.request.method;
-    var requestBody = item.request.body.raw;
-    var responseBody = args.response.stream.toString();
+    var requestBodySource = item.request.body.raw; // body including {{variable}}
+    var requestBodyFinal = args.request.body.raw;  // body that's actually sent, with variables replaced
+    var responseBody = PMUtil.formatXML(args.response.stream.toString());
     var responseCode = args.response.code;
-    var contentType = PMUtil.getContentType(requestBody);
-    var transactionID = PMUtil.getTransactionID(responseBody);
-    var paymentMethod = PMUtil.getPaymentMethod(requestBody);
-    var requestName = PMUtil.getName(requestBody);
-    var parentTransactionID = PMUtil.getParentTransactionID(requestName);
+    var contentType = PMUtil.getContentType(requestBodyFinal);
+    var transactionID = PMUtil.readTransactionID(responseBody);
+    var paymentMethod = PMUtil.readPaymentMethod(requestBodyFinal);
+    var transactionType = PMUtil.readTransactionType(requestBodyFinal);
+    var parentTransactionID = PMUtil.readParentTransactionID(requestBodyFinal);
+    var requestName = PMUtil.getName(requestBodyFinal);
 
-    PMUtil.RequestsIndex[requestName] = {
-        payment_method: paymentMethod,
+    if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
+        PMUtil.RequestsIndex[paymentMethod] = [];
+    }
+
+    PMUtil.RequestsIndex[paymentMethod][transactionType] = {
         response_code: responseCode,
         transaction_id: transactionID,
         parent_transaction_id: parentTransactionID
@@ -241,10 +353,11 @@ newman.run({
     const info = {
         request_name: requestName,
         payment_method: paymentMethod,
-        transaction_type: PMUtil.getTransactionType(requestBody, contentType),
+        transaction_type: PMUtil.readTransactionType(requestBodyFinal, contentType),
         transaction_method: transactionMethod,
         request: {
-            body: requestBody,
+            body_source: requestBodySource,
+            body_final: requestBodyFinal,
             content_type: contentType
         },
         response: {
@@ -254,13 +367,11 @@ newman.run({
     }
 
     writeAdoc(info);
-    //console.log(info);
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
     }
     else {
         console.log('collection run completed.');
-        //console.log(summary);
     }
 });
