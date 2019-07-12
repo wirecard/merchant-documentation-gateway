@@ -14,13 +14,13 @@ import pprint
 # NOTE: instead of root.getchildren() use list(root)
 # NOTE: print with ET.dump(<root>)
 
-SUPPORTED_FILETYPES = "xml json".split()
+SUPPORTED_FILETYPES = "xml".split()
 OPERATION_KEYWORDS = "failure success".split()
-TYPE_KEYWORDS = "request response notification"
+TYPE_KEYWORDS = "request response notification".split()
 REPORT_FILE_NAME = "report-rename.json"
-FORBIDDEN_WORDS = "android"
+FORBIDDEN_WORDS = "android".split()
 ERROR_REPORT_FILE_NAME = "errors.json"
-ERRORS = {"errors": []}
+ERRORS = {"errors": [], "noxml": []}
 
 
 def remove_namespace(root):
@@ -33,6 +33,8 @@ def remove_namespace(root):
 
 
 def read_mixed_file(file_name):
+    """Takes a file with mixed content (e.g. plain text and xml).
+    Returns a tuple containing the split contents."""
     with open(file_name, "r", encoding="utf8") as f:
         found_beginning = False
         header = []
@@ -48,7 +50,7 @@ def read_mixed_file(file_name):
     return ("\n".join(header), "\n".join(xml) if xml else None)
 
 
-def process_file_name(file_name, header_dict=None):
+def process_file_name(file_name, header_dict=None, dry_run=False):
     """Take a file name and return the new adapted file name + possible header information.
 
     Return: (new_file_name, header_file_name)
@@ -58,7 +60,7 @@ def process_file_name(file_name, header_dict=None):
             ",".join(SUPPORTED_FILETYPES)))
 
     # skip all forbidden names
-    if any((keyword in file_name.lower()) for keyword in FORBIDDEN_WORDS.split()):
+    if any((keyword in file_name.lower()) for keyword in FORBIDDEN_WORDS):
         return None
 
     send_type = "unknown"
@@ -85,6 +87,7 @@ def process_file_name(file_name, header_dict=None):
             raw_header, raw_xml = read_mixed_file(file_name)
             if raw_xml is None:
                 info("[*] File has no XML: {}".format(file_name))
+                ERRORS['noxml'].append({"file": file_name})
                 header_file_name = "/".join(
                     [folder, ".".join(["header_%s" % ("file_name"), "txt"])])
                 with open(header_file_name, "w+", encoding="utf8") as header_f:
@@ -102,7 +105,6 @@ def process_file_name(file_name, header_dict=None):
                 [new_xml_file_name.split(".")[0] + "_header", "txt"])
             with open(header_file_name, "w+", encoding="utf8") as header_f:
                 header_f.write(raw_header)
-
             header_dict[new_xml_file_name] = {"header": header_file_name}
             return new_xml_file_name
 
@@ -166,20 +168,29 @@ def main():
     # exception dict is needed for splitting up files with header information
     header_dict = {}
     processed_files = [process_file_name(
-        file, header_dict=header_dict) for file in files]
+        file, header_dict=header_dict, dry_run=args.dry_run)
+        for file in files]
 
     # pprint.pprint(header_dict, indent=2)
 
+    ###########################################################################
+    # PROCESS RENAMES
+    ###########################################################################
     report_dict = {"renames": [{"old": old, "new": new.replace('\\', '/')}
                                for old, new in zip(files, processed_files)
                                if new is not None]}
+
     ERRORS['renames'] = [{"old": old, "new": new}
                          for old, new in zip(files, processed_files)
                          if new is None]
+
     for entry in report_dict['renames']:
         if entry['new'] in header_dict.keys():
             entry['header'] = header_dict[entry['new']]['header']
 
+    ###########################################################################
+    # WRITE REPORTS
+    ###########################################################################
     if args.report:
         with open(REPORT_FILE_NAME, "w+", encoding="utf8") as report_f:
             report_f.write(json.dumps(report_dict, indent=2))
