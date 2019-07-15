@@ -9,8 +9,8 @@ progressBar() {
 
 for i in *.adoc; do
     progressBar
-    sed -i "s/[”“]/\"/g;s/[‘’]/'/g" "$i"
-    sed -i 's/\xC2\xA0/ /g' "$i"
+    sed -i "s/[”“]/\"/g;s/[‘’]/'/g" "$i" # remove 'smart' quotes
+    sed -i 's/\xC2\xA0/ /g;s/\xef\xbb\xbf//g' "$i" # remove NoBreak Space and UTF-8 BOM
     (( count++ ))
 done
 
