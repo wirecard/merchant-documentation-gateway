@@ -198,7 +198,7 @@ function buildPartner() {
   scriptError "asciidoctor in line $(( LINENO - 1 ))"
   
   debugMsg "Post process svg files"
-  # sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' ./*.svg
+  sed -i 's/<foreignObject \(height|width\)/<foreignObject style="overflow: visible;" \1/g' ./*.svg
   cp ./*.svg mermaid/
   
   debugMsg "Copy Home.html to index.html"
