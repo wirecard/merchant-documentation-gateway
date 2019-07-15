@@ -93,6 +93,10 @@ function cloneWhitelabelRepository() {
   else
     GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
   fi
+
+  debugMsg "Create info files"
+  node buildscripts/util/create-info-files.js
+
   return $?
 }
 
@@ -126,7 +130,6 @@ function buildPartner() {
   debugMsg "::: Building ${PARTNER}"
   createPartnerFolder "${PARTNER}"
   cd "${BUILDFOLDER_PATH}/${PARTNER}"
-  
   
   debugMsg "Create mermaid config from CSS"
   bash buildscripts/asciidoc/create-mermaid-config.sh
@@ -195,7 +198,7 @@ function buildPartner() {
   scriptError "asciidoctor in line $(( LINENO - 1 ))"
   
   debugMsg "Post process svg files"
-  sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' ./*.svg
+  # sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' ./*.svg
   cp ./*.svg mermaid/
   
   debugMsg "Copy Home.html to index.html"
@@ -208,6 +211,8 @@ function buildPartner() {
   
   mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
   increaseErrorCount
+
+  cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
   
   cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
   increaseErrorCount
@@ -262,7 +267,7 @@ function main() {
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
     # workaround to get Travis to recognize the ENV vars
-    echo "${PARTNER}:${BUILDFOLDER_PATH}/${PARTNER}/html/" >> "${TRAVIS_ENVSET_FILE}"
+    echo "${PARTNER}:${BUILDFOLDER_PATH}/${PARTNER}/html/" >> "${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}"
     SUCCESSFUL_BUILDS+=("${PARTNER}") # add to list of successfully built partners
   else                              # if error occurred continue w next in list
     debugMsg "Failed! Could not build partner ${PARTNER}"

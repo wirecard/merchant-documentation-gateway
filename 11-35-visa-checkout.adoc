@@ -6,22 +6,22 @@
 
 _VISA Checkout_ (VCO) is a digital wallet for simpler, safer shopping,
 allowing customers to make purchases without having to spend much time
-filling forms on the merchant's website as VCO stores credit card and
+filling forms on the merchant's website as VCO stores credit card and
 shipping details.
 
-The VCO wallet can be integrated in three different ways:
+The VCO wallet can be integrated in three different ways:
 
 [%autowidth]
 |===
 |Integration Option               |Description
 
-|Hosted Payment Page integration a| . The customer is redirected to VCO
+|Hosted Payment Page integration a| . The customer is redirected to VCO
                                     website to login and selects the preferred credit card for payment.
                                     . Wirecard Payment Gateway receives the credit card information
-                                    from VCO and proceeds with payment authorization with the acquirer.
+                                    from VCO and proceeds with payment authorization with the acquirer.
                                     . Wirecard Payment Gateway manages all other interactions with VCO.
 |ReST API integration without a VISA Checkout call ID |This is a hybrid integration. The merchant hosts the payment page and checks with the
-                                                       customer on the preferred payment method. The _Wirecard Payment Gateway_
+                                                       customer on the preferred payment method. The _Wirecard Payment Gateway_
                                                        then handles all integration to VCO.
 
 |ReST API integration with a VISA Checkout call ID    |This is a pure server-to-server implementation.
@@ -33,9 +33,9 @@ The VCO wallet can be integrated in three different ways:
 [#VISACheckout_PaymentModeCountriesandCurrencies]
 ===== Payment Mode, Countries and Currencies
 
-This table illustrates which payment mode _VISA Checkout_ belongs to. It
+This table illustrates which payment mode _VISA Checkout_ belongs to. It
 also provides detailed information about the countries and currencies
-which are relevant for _VISA Checkout_.
+which are relevant for _VISA Checkout_.
 
 [%autowidth, cols="h,",]
 |===
@@ -47,7 +47,7 @@ which are relevant for _VISA Checkout_.
 [#VISACheckout_CommunicationFormats]
 ===== Communication Formats
 
-This table illustrates how _VISA Checkout_ notifications are encoded and
+This table illustrates how _VISA Checkout_ notifications are encoded and
 which formats and methods can be used for requests and responses.
 
 [%autowidth]
@@ -60,36 +60,36 @@ which formats and methods can be used for requests and responses.
 [#VISACheckout_TransactionTypes]
 ==== Transaction Types
 
-Every successful VCO payment request results in two distinct
+Every successful VCO payment request results in two distinct
 transactions in the database:
 
-. one for VCO wallet,
+. one for VCO wallet,
 . one for _Credit Card_.
 
 //-
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
-at <<AppendixB, Appendix B: Transaction Types>>.
+at <<AppendixB, Appendix B: Transaction Types>>.
 
 [%autowidth]
 |===
-|VISA Checkout          |     |Credit Card
+|VISA Checkout          |     |Credit Card
 
 |_debit_               | AND |_purchase_
 |_authorization_       | AND |_authorization_
 |_authorization-only_  | AND |_authorization-only_
 |===
 
-If the merchant does not receive a notification during the timeout period,
-they can <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>> or
+If the merchant does not receive a notification during the timeout period,
+they can <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>> or
 <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request ID>>.
 
 [#VISACheckout_TestCredentials]
 ==== Test Credentials
 
 .Test Merchant Account
-NOTE: There is no public merchant-account available. VCO can be enabled to a specific merchant, provided that they have
-registered with VCO and agreed on VCO's Merchant Services Agreement.
+NOTE: There is no public merchant-account available. VCO can be enabled to a specific merchant, provided that they have
+registered with VCO and agreed on VCO's Merchant Services Agreement.
 This will generate a VCO external client ID which has to be provided to
 _Wirecard Payment Gateway_. For merchants integrating directly to VCO to
 extract wallet data then to _Wirecard Payment Gateway_ for payments, the
@@ -120,9 +120,9 @@ flow.
 . Merchant redirects consumer to _Wirecard Payment Gateway_ for
 payment.
 . Consumer selects Payment Method _VCO_.
-. _Wirecard Payment Gateway_ redirects consumer to _VCO_.
-. Consumer enters his _VCO_ credentials and selects preferred card.
-. _Wirecard Payment Gateway_ receives the card information.
+. _Wirecard Payment Gateway_ redirects consumer to _VCO_.
+. Consumer enters his _VCO_ credentials and selects preferred card.
+. _Wirecard Payment Gateway_ receives the card information.
 . _Wirecard Payment Gateway_ processes the transaction with the
 merchant's acquirer.
 . _Wirecard Payment Gateway_ receives transaction status.
@@ -140,8 +140,8 @@ image::images/11-35-visa-checkout/VisaCheckout_workflow_restapi_with_callid.png[
 
 . Consumer adds items to shopping basket.
 . Consumer selects Payment Method _VCO_.
-. Merchant initiates the _VCO_ lightbox.
-. Consumer enters his _VCO_ credentials and selects preferred card.
+. Merchant initiates the _VCO_ lightbox.
+. Consumer enters his _VCO_ credentials and selects preferred card.
 . _Visa Checkout_ redirects the consumer to the merchant with the payload.
 . Merchant initiate payment request with call ID information.
 . _Wirecard Payment Gateway_ retrieves the card information from _VCO_.
@@ -165,9 +165,9 @@ payment options to the consumer and redirects the consumer to _Wirecard Payment 
 . Consumer adds items to shopping basket.
 . Consumer selects Payment Method _Visa Checkout_.
 . Merchant redirects consumer to _Wirecard Payment Gateway_.
-. _Wirecard Payment Gateway_ redirects consumer to _Visa Checkout_.
-. Consumer enters his Visa Checkout credentials and selects preferred card.
-. _Wirecard Payment Gateway_ receives the card information.
+. _Wirecard Payment Gateway_ redirects consumer to _Visa Checkout_.
+. Consumer enters his Visa Checkout credentials and selects preferred card.
+. _Wirecard Payment Gateway_ receives the card information.
 . _Wirecard Payment Gateway_ processes the transaction with the merchant's acquirer.
 . _Wirecard Payment Gateway_ receives transaction status.
 . _Wirecard Payment Gateway_ sends transaction status to merchant and redirects the consumer to the merchant.
@@ -183,14 +183,14 @@ payment options to the consumer and redirects the consumer to _Wirecard Payment 
 ===== REST Fields
 
 The following elements are elements with differing cardinality
-from the <<RestApi_Fields, REST API Fields>>.
+from the <<RestApi_Fields, REST API Fields>>.
 
 The following elements are either mandatory (M), optional (O) or
-conditional (C) in a transaction process. 
+conditional (C) in a transaction process.
 
 [%autowidth]
 |===
-|Field                  |Request |Response |Notification |Data Type |Size |Description
+|Field                  |Request |Response |Notification |Data Type |Size |Description
 
 |success-redirect-url   |M       |M        |M            |String    |2000 |The URL to which the customer will be re-directed after a successful
                                                                            process handling.
@@ -210,21 +210,21 @@ with call Id.
 
 [source,xml]
 ----
-include::samples/xml/VISACheckoutSamples_RESTAPI_WithoutCallID_DebitRequest.xml[]
+include::samples/xml/visacheckout_debit_request_.xml[]
 ----
 
 .debit Response
 
 [source,xml]
 ----
-include::samples/xml/VISACheckoutSamples_RESTAPI_WithoutCallID_DebitResponse.xml[]
+include::samples/xml/visacheckout_debit_response_.xml[]
 ----
 
 .debit Notification
 
 [source,xml]
 ----
-include::samples/xml/VISACheckoutSamples_RESTAPI_WithoutCallID_DebitNotification.xml[]
+include::samples/xml/visacheckout_debit_notification_.xml[]
 ----
 
 [#VISACheckout_Samples_RESTAPI_with_CallID]
@@ -234,19 +234,19 @@ include::samples/xml/VISACheckoutSamples_RESTAPI_WithoutCallID_DebitNotification
 
 [source,xml]
 ----
-include::samples/xml/VISACheckoutSamples_RESTAPI_WithCallID_DebitRequest.xml[]
+include::samples/xml/visacheckout_debit_request_.xml[]
 ----
 
 .debit Response
 
 [source,xml]
 ----
-include::samples/xml/VISACheckoutSamples_RESTAPI_WithCallID_DebitResponse.xml[]
+include::samples/xml/visacheckout_debit_response_.xml[]
 ----
 
 .debit Notification
 
 [source,xml]
 ----
-include::samples/xml/VISACheckoutSamples_RESTAPI_WithCallID_DebitNotification.xml[]
+include::samples/xml/visacheckout_debit_notification_.xml[]
 ----
