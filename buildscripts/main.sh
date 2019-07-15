@@ -139,26 +139,28 @@ function buildPartner() {
   # changes need to be created, moved there and committed.
   cp mermaid/*.svg .
   
-  # calculate the checksum for mermaid.css.
-  # mermaid.css is used for the creation of the mermaid diagrams,
-  # which are cached by the asciidoctor-diagram extension in .asciidoctor/diagram/.
-  # we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
-  checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
-  checksum_new="/tmp/mermaid-css-checksum.txt"
-  sha1sum --text css/mermaid.css > "${checksum_new}"
-  # show hashes
-  echo "Reference: $(cat ${checksum_ref})"
-  echo "Current:   $(cat ${checksum_new})"
-  if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
-    debugMsg "Delete all *.svg to force re-creation"
-    rm ./*.svg
-    debugMsg "Overwriting checksum file with new checksum"
-    cp "${checksum_new}" "${checksum_ref}"
-    NEW_MERMAID="true"
-  elif [[ -n $FORCE ]]; then
-    debugMsg "Delete all *.svg to force re-creation (due to --force flag)"
-    rm -f ./*.svg
-    NEW_MERMAID="true"
+  if [[ -n $MERMAID_UPDATE_CHECK ]]; then
+    # calculate the checksum for mermaid.css.
+    # mermaid.css is used for the creation of the mermaid diagrams,
+    # which are cached by the asciidoctor-diagram extension in .asciidoctor/diagram/.
+    # we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
+    checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
+    checksum_new="/tmp/mermaid-css-checksum.txt"
+    sha1sum --text css/mermaid.css > "${checksum_new}"
+    # show hashes
+    echo "Reference: $(cat ${checksum_ref})"
+    echo "Current:   $(cat ${checksum_new})"
+    if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
+      debugMsg "Delete all *.svg to force re-creation"
+      rm ./*.svg
+      debugMsg "Overwriting checksum file with new checksum"
+      cp "${checksum_new}" "${checksum_ref}"
+      NEW_MERMAID="true"
+    elif [[ -n $FORCE ]]; then
+      debugMsg "Delete all *.svg to force re-creation (due to --force flag)"
+      rm -f ./*.svg
+      NEW_MERMAID="true"
+    fi
   fi
   
   if [[ ${PARTNER} != 'WD' ]]; then
