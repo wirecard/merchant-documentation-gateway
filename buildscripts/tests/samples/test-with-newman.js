@@ -40,8 +40,9 @@ function writeAdoc(info) {
     const fileExtension = '.adoc';
     const path = 'samples/adoc/';
     const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(info.payment_method);
-    const contentTypeShort = PMUtil.getContentType(info.request.body_source, type = 'short');
-    const filename = info.payment_method + '_' + info.transaction_type + '_' + contentTypeShort;
+    const requestContentTypeShort = PMUtil.getContentType(info.request.body_source, type = 'short');
+    const responseContentTypeShort = PMUtil.getContentType(info.response.body, type = 'short');
+    const filename = info.payment_method + '_' + info.transaction_type + '_' + requestContentTypeShort;
     //const curlPayloadString = encodeURIComponent(info.request.body_source.replace('{{$guid}}', PMUtil.uuidv4()));
     //const curlString = "curl -u '" + info.request.username + ":" + info.request.password + "' -H \"" + info.request.content_type + '" -d "' + curlPayloadString + '" ' + info.request.endpoint;
     const fileContent = `
@@ -53,7 +54,10 @@ function writeAdoc(info) {
 
 | Method | ` + info.request.method + `
 | URI    | ` + '``\\' + info.request.endpoint + '``' + `
-| Content Type | \`` + info.request.content_type + `\`
+
+2+| Header
+| content-type | \`` + info.request.content_type + `\`
+| accept | \`` + info.request.accept + `\`
 
 2+h| Authentication
 | Type | _HTTP Basic Authentication_
@@ -61,14 +65,14 @@ function writeAdoc(info) {
 | Password | \`` + info.request.password + `\`
 |===
 
-.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + contentTypeShort.toUpperCase() + `)
-[source,` + contentTypeShort + `]
+.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + requestContentTypeShort.toUpperCase() + `)
+[source,` + requestContentTypeShort + `]
 ----
 ` + info.request.body_source + `
 ----
 
-.Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + contentTypeShort.toUpperCase() + `)
-[source,` + contentTypeShort + `]
+.Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + responseContentTypeShort.toUpperCase() + `)
+[source,` + responseContentTypeShort + `]
 ----
 ` + info.response.body + `
 ----
@@ -82,6 +86,13 @@ function writeAdoc(info) {
 }
 
 var PMUtil = {};
+
+PMUtil.getAcceptHeader = function (request) {
+    if (typeof request.headers.reference.accept !== 'undefined') {
+        return request.headers.reference.accept.value;
+    }
+    return MIMETYPE_XML;
+};
 
 /**
  * Gives the actual brand name for a payment-method id string.
@@ -111,10 +122,21 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
     else {
         return pm;
     }
-}
+};
+
+PMUtil.formatResponse = function (body) {
+    var contentType = PMUtil.getContentType(body);
+    if (contentType == MIMETYPE_XML) {
+        return PMUtil.formatXML(body);
+    }
+    if (contentType == MIMETYPE_JSON) {
+        return PMUtil.formatJSON(body);
+    }
+    return body;
+};
+
 
 PMUtil.RequestsIndex = {};
-
 /**
  * Reads the API engine response status code, description and severity from response body.
  *
@@ -125,13 +147,34 @@ PMUtil.RequestsIndex = {};
  * @return {string} Brand name of the Payment Method if available or pm input if not.
  */
 PMUtil.readEngineResponse = function (body) {
-    var obj = xmlparser.parse(body, { ignoreAttributes: false });
-    return {
-        code: obj.payment.statuses.status['@_code'],
-        description: obj.payment.statuses.status['@_description'],
-        severity: obj.payment.statuses.status['@_severity']
+    const contentType = PMUtil.getContentType(body);
+    switch (contentType) {
+        case MIMETYPE_XML:
+            var obj = xmlparser.parse(body, {});
+            Response = {
+                code: obj.payment.statuses.status['@_code'],
+                description: obj.payment.statuses.status['@_description'],
+                severity: obj.payment.statuses.status['@_severity']
+            }
+            break;
+        case MIMETYPE_JSON:
+            var obj = JSON.parse(body);
+            Response = {
+                code: obj.payment.statuses.status[0].code,
+                description: obj.payment.statuses.status[0].description,
+                severity: obj.payment.statuses.status[0].severity
+            };
+            break;
+        case MIMETYPE_NVP:
+            Response = new URLSearchParams(body).get('merchant-account-id');
+            break;
+        default:
+            console.log(body);
+            console.log('in readEngineResponse: unknown content type');
+            break;
     }
-}
+    return Response;
+};
 
 /**
 * Generates a RFC4122 version 4 compliant UUID
@@ -144,38 +187,6 @@ PMUtil.uuidv4 = function () {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
-}
-
-/**
- * Reads the transaction ID from XML body.
- * Other Content Types prepared but not used.
- *
- * @param {string} body Response body sent or received by Postman.
- * 
- * @return {string} Transaction ID field value found in XML body.
- */
-PMUtil.readMAID = function (body) {
-    var transactionID = NO_TRANSACTION_ID;
-    var contentType = PMUtil.getContentType(body);
-    switch (contentType) {
-        case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, {});
-            if (typeof obj.payment['merchant-account-id'] !== 'undefined') {
-                transactionID = obj.payment['merchant-account-id'];
-            }
-            break;
-        case MIMETYPE_JSON:
-            var obj = JSON.parse(body);
-            transactionID = obj.payment['merchant-account-id']
-            break;
-        case MIMETYPE_NVP:
-            transactionID = new URLSearchParams(body).get('merchant-account-id');
-            break;
-        default:
-            console.log('in readMAID: unknown content type');
-            break;
-    }
-    return transactionID;
 };
 
 // TODO needs to be adapted for NVP!
@@ -258,7 +269,7 @@ PMUtil.getParentPaymentMethod = function (body) {
         }
     }
     return undefined;
-}
+};
 
 /**
  * Reads the Payment Method of a given request or response body.
@@ -433,6 +444,10 @@ PMUtil.formatXML = function (xml) {
     }).join('\r\n');
 };
 
+PMUtil.formatJSON = function (jsonString) {
+    return JSON.stringify(JSON.parse(jsonString), null, 2);
+};
+
 var postmanCollectionFile = '00DOC.postman_collection.json';
 if (argv['file'] !== undefined) postmanCollectionFile = argv['file'];
 
@@ -463,10 +478,11 @@ newman.run({
     var requestMethod = item.request.method;
     var requestBodySource = item.request.body.raw; // body including unresolved {{variables}}
     var requestBodyFinal = args.request.body.raw;  // body that's actually sent with variables replaced
-    var responseBody = PMUtil.formatXML(args.response.stream.toString());
+    var responseBody = PMUtil.formatResponse(args.response.stream.toString());
     var responseCodeHTTP = args.response.code;
     var responseOfEngine = PMUtil.readEngineResponse(responseBody);
-    var contentType = PMUtil.getContentType(requestBodyFinal);
+    var requestContentType = PMUtil.getContentType(requestBodyFinal);
+    var responseContentType = PMUtil.getContentType(responseBody);
     var transactionID = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, responseBody);
     var paymentMethod = PMUtil.readPaymentMethod(requestBodyFinal);
     var transactionType = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, requestBodyFinal);
@@ -476,6 +492,7 @@ newman.run({
     var requestEndpoint = 'https://' + args.request.url.host.join('.') + '/' + args.request.url.path.join('/');
     var requestUsername = args.request.auth.basic.reference.username.value;
     var requestPassword = args.request.auth.basic.reference.password.value;
+    var acceptHeader = PMUtil.getAcceptHeader(item.request);
 
     if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
         PMUtil.RequestsIndex[paymentMethod] = [];
@@ -497,13 +514,15 @@ newman.run({
         request: {
             body_source: requestBodySource,
             body_final: requestBodyFinal,
-            content_type: contentType,
+            content_type: requestContentType,
             method: requestMethod,
             endpoint: requestEndpoint,
             username: requestUsername,
-            password: requestPassword
+            password: requestPassword,
+            accept: acceptHeader
         },
         response: {
+            content_type: responseContentType,
             body: responseBody,
             http_status_code: responseCodeHTTP,
             engine_status: responseOfEngine
