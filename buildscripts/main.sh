@@ -93,6 +93,10 @@ function cloneWhitelabelRepository() {
   else
     GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
   fi
+
+  debugMsg "Create info files"
+  node buildscripts/util/create-info-files.js
+
   return $?
 }
 
@@ -126,7 +130,6 @@ function buildPartner() {
   debugMsg "::: Building ${PARTNER}"
   createPartnerFolder "${PARTNER}"
   cd "${BUILDFOLDER_PATH}/${PARTNER}"
-  
   
   debugMsg "Create mermaid config from CSS"
   bash buildscripts/asciidoc/create-mermaid-config.sh
