@@ -1,6 +1,9 @@
 /*
 * Script given a postman collection creates asciidoc files with request, response
 * source blocks and a metadata table (to be hidden by default, opens onClick in frontend).
+*
+* Parameters
+* --file <postman-collection.json>       Optional. Uses hardcoded filename if unspecified.
 */
 
 const newman = require('newman');
@@ -422,13 +425,16 @@ PMUtil.formatXML = function (xml) {
     }).join('\r\n');
 };
 
+var postmanCollectionFile = '00DOC.postman_collection.json';
+if (argv['file'] !== undefined) postmanCollectionFile = argv['file'];
+
 newman.run({
-    collection: '00DOC.postman_collection.json',
+    collection: postmanCollectionFile,
     environment: {
-        "parent-transaction-id": "123-123-123-123"
+        "parent-transaction-id": "123-123-123-123" // remove..
     }
 }).on('start', function (err, args) { // on start of run, log to console
-    console.log('running a collection...');
+    console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
     /*
         var request = args.request;
@@ -447,8 +453,8 @@ newman.run({
 }).on('request', function (err, args) {
     var item = args.item;
     var requestMethod = item.request.method;
-    var requestBodySource = item.request.body.raw; // body including {{variable}}
-    var requestBodyFinal = args.request.body.raw;  // body that's actually sent, with variables replaced
+    var requestBodySource = item.request.body.raw; // body including unresolved {{variables}}
+    var requestBodyFinal = args.request.body.raw;  // body that's actually sent with variables replaced
     var responseBody = PMUtil.formatXML(args.response.stream.toString());
     var responseCodeHTTP = args.response.code;
     var responseOfEngine = PMUtil.readEngineResponse(responseBody);
@@ -494,7 +500,8 @@ newman.run({
             engine_status: responseOfEngine
         }
     }
-
+    // TODO TODO TODO: decide on status code wether to write samples or not.
+    // TODO TODO TODO: slack notifications...
     writeAdoc(info);
 }).on('done', function (err, summary) {
     if (err || summary.error) {
