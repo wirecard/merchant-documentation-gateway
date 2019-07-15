@@ -57,10 +57,10 @@ function writeAdoc(info) {
 
 2+| Header
 | content-type | \`` + info.request.content_type + `\`
-| accept | \`` + info.request.accept + `\`
+| accept       | \`` + info.request.accept + `\`
 
 2+h| Authentication
-| Type | _HTTP Basic Authentication_
+| Type     | _HTTP Basic Authentication_
 | Username | \`` + info.request.username + `\`
 | Password | \`` + info.request.password + `\`
 |===
@@ -87,6 +87,15 @@ function writeAdoc(info) {
 
 var PMUtil = {};
 
+/**
+ * Get Accept header from Postman Request item
+ *
+ * Defaults to XML which is the engine's default response header unless otherwise specified in Accept.
+ *
+ * @param {string} request Request item from the Postman Collection.
+ * 
+ * @return {string} Content Type that is being sent as Accept header
+ */
 PMUtil.getAcceptHeader = function (request) {
     if (typeof request.headers.reference.accept !== 'undefined') {
         return request.headers.reference.accept.value;
@@ -124,6 +133,13 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
     }
 };
 
+/**
+ * Prettifies XML and JSON bodies
+ *
+ * @param {string} body String that contains the body.
+ * 
+ * @return {string} Returns prettified body if JSON or XML, else returns body unmodified.
+ */
 PMUtil.formatResponse = function (body) {
     var contentType = PMUtil.getContentType(body);
     if (contentType == MIMETYPE_XML) {
@@ -219,26 +235,60 @@ PMUtil.ElementNamesMap = {
     }
 };
 
+/**
+ * Reads element value from XML or JSON body if found and mapped in ElementNamesMap.
+ *
+ * @param {string} elementName Name of element whose value is to be returned.
+ * @param {string} body Request body in which to look for the element.
+ * 
+ * @return {string} Value of the element or undefined if not found in ElementNamesMap.
+ */
 PMUtil.readElementFromBody = function (elementName, body) {
     var elementValue = undefined;
     var contentType = PMUtil.getContentType(body);
     var e = undefined;
     switch (contentType) {
         case MIMETYPE_XML:
-            e = PMUtil.ElementNamesMap[elementName].xml;
+            try {
+                e = PMUtil.ElementNamesMap[elementName].xml;
+            }
+            catch (err) {
+                console.log('XML element ' + elementName + ' not found in ElementNamesMap');
+                console.log(PMUtil.ElementNamesMap);
+                return elementValue;
+            }
             var obj = xmlparser.parse(body, {});
             if (typeof obj.payment[e] !== 'undefined') {
                 elementValue = obj.payment[e];
             }
             break;
         case MIMETYPE_JSON:
-            e = PMUtil.ElementNamesMap[elementName].json;
+            try {
+                e = PMUtil.ElementNamesMap[elementName].json;
+            }
+            catch (err) {
+                console.log('JSON element ' + elementName + ' not found in ElementNamesMap');
+                console.log(PMUtil.ElementNamesMap);
+                return elementValue;
+            }
             var obj = JSON.parse(body);
-            elementValue = obj.payment[e]
+            if (typeof obj.payment[e] !== 'undefined') {
+                elementValue = obj.payment[e];
+            }
             break;
         case MIMETYPE_NVP:
-            e = PMUtil.ElementNamesMap[elementName].nvp;
-            elementValue = new URLSearchParams(body).get(e);
+            try {
+                e = PMUtil.ElementNamesMap[elementName].nvp;
+            }
+            catch (err) {
+                console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
+                console.log(PMUtil.ElementNamesMap);
+                return elementValue;
+            }
+            var obj = new URLSearchParams(body);
+            if (obj.get(e) !== null) {
+                elementValue = obj.get(e);
+            }
             break;
         default:
             console.log('in readElement: ' + elementName + ' + unknown content type');
