@@ -208,6 +208,8 @@ function buildPartner() {
   
   mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
   increaseErrorCount
+
+  cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
   
   cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
   increaseErrorCount
@@ -262,7 +264,7 @@ function main() {
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
     # workaround to get Travis to recognize the ENV vars
-    echo "${PARTNER}:${BUILDFOLDER_PATH}/${PARTNER}/html/" >> "${TRAVIS_ENVSET_FILE}"
+    echo "${PARTNER}:${BUILDFOLDER_PATH}/${PARTNER}/html/" >> "${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}"
     SUCCESSFUL_BUILDS+=("${PARTNER}") # add to list of successfully built partners
   else                              # if error occurred continue w next in list
     debugMsg "Failed! Could not build partner ${PARTNER}"
