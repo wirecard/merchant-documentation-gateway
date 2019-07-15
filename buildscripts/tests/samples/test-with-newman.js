@@ -1,3 +1,8 @@
+/*
+* Script given a postman collection creates asciidoc files with request, response
+* source blocks and a metadata table (to be hidden by default, opens onClick in frontend).
+*/
+
 const newman = require('newman');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
@@ -321,6 +326,9 @@ PMUtil.getName = function (body) {
 /**
  * Determines the Content Type of a given request/response body.
  *
+ * Attempt to parse given body as XML, JSON
+ * Else attempt to identify NVP by looking for mandatory request_id parameter.
+ * 
  * @param {string} body The request/response body sent or received by Postman.
  * @param {string} type If specified as 'full' returns the complete mime type, e.g. "application/xml". Else the shorthand, e.g. "xml"
  * 
