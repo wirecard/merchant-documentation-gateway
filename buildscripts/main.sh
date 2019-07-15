@@ -154,6 +154,11 @@ function buildPartner() {
     rm ./*.svg
     debugMsg "Overwriting checksum file with new checksum"
     cp "${checksum_new}" "${checksum_ref}"
+    NEW_MERMAID="true"
+  elif [[ -n $FORCE ]]; then
+    debugMsg "Delete all *.svg to force re-creation (due to --force flag)"
+    rm -f ./*.svg
+    NEW_MERMAID="true"
   fi
   
   if [[ ${PARTNER} != 'WD' ]]; then
@@ -197,9 +202,11 @@ function buildPartner() {
   RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 -r ./buildscripts/asciidoc/multipage-html5-converter.rb || \
   scriptError "asciidoctor in line $(( LINENO - 1 ))"
   
-  debugMsg "Post process svg files"
-  sed -i 's/<foreignObject \(height|width\)/<foreignObject style="overflow: visible;" \1/g' ./*.svg
-  cp ./*.svg mermaid/
+  if [[ -n $NEW_MERMAID ]]; then
+    debugMsg "Post process svg files"
+    sed -r -i 's/<foreignObject (height|width)/<foreignObject style="overflow: visible;" \1/g' ./*.svg
+    cp ./*.svg mermaid/
+  fi
   
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
@@ -235,6 +242,14 @@ function main() {
     case "$1" in
       -s|--skip)
         SKIP="true"
+      ;;
+      -f|--force)
+        FORCE="true"
+      ;;
+      -h|--help)
+        echo "Options:"
+        echo "* [-s|--skip] skip basic tests, only build"
+        echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       ;;
       *)
       ;;
