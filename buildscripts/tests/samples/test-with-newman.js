@@ -12,13 +12,41 @@ const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8'
 const TRANSACTIONSTATE_SUCCESS = 'success';
 const TRANSACTIONCODE_SUCCESS = '201.0000';
 
+/**
+ * Writes .adoc file with table and code blocks for request, response and other info
+ *
+ * Creates table with general info on the request (is to be hidden by default in frontend)
+ * Creates two source blocks, request and response with titles according to Payment Method, Transaction Type and Content Type
+ * Request contains all Postman variables unsubstituted for integrators to copy&paste.
+ *
+ * @param {string} info Contains request and response body as well as metadata (status code, engine response, etc.)
+ * 
+ * @return Nothing.
+ */
 function writeAdoc(info) {
     const fileExtension = '.adoc';
     const path = 'samples/adoc/';
     const paymentMethodBrandName = brandNameOfPaymentMethod(info.payment_method);
     const contentTypeShort = PMUtil.getContentType(info.request.body_source, type='short');
     const filename = info.payment_method + '_' + info.transaction_type + '_' + contentTypeShort;
-    const fileContent = `.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + contentTypeShort.toUpperCase() + `)
+    const fileContent = `
+[.request-details]
+.Request Details
+[%autowidth, cols="1v,2", stripes="none"]
+|===
+2+| API Endpoint
+
+| Method | ` + info.request.method + `
+| URI    | ` + '``\\' + info.request.endpoint + '``' + `
+| Content Type | \`` + info.request.content_type + `\`
+
+2+h| Authentication
+| Type | _HTTP Basic Authentication_
+| Username | \`` + info.request.username + `\`
+| Password | \`` + info.request.password + `\`
+|===
+
+.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + contentTypeShort.toUpperCase() + `)
 [source,` + contentTypeShort + `]
 ----
 ` + info.request.body_source + `
@@ -38,6 +66,17 @@ function writeAdoc(info) {
     }
 }
 
+/**
+ * Gives the actual brand name for a payment-method id string.
+ *
+ * Creates table with general info on the request (is to be hidden by default in frontend)
+ * Creates two source blocks, request and response with titles according to Payment Method, Transaction Type and Content Type
+ * Request contains all Postman variables unsubstituted for integrators to copy&paste.
+ *
+ * @param {string} pm String that is found in the request or response body indicating the Payment Method.
+ * 
+ * @return {string} Brand name of the Payment Method if available or pm input if not.
+ */
 var brandNameOfPaymentMethod = function (pm) {
     var BrandNamesMap = {
         'alipay-xborder': 'Alipay Cross-border',
@@ -60,7 +99,32 @@ var brandNameOfPaymentMethod = function (pm) {
 var PMUtil = {};
 PMUtil.RequestsIndex = {};
 
-// response is always XML
+/**
+ * Reads the API engine response status code, description and severity from response body.
+ *
+ * Maps the parsed XML to an object and returns the object (to be used )
+ *
+ * @param {string} pm String that is found in the request or response body indicating the Payment Method.
+ * 
+ * @return {string} Brand name of the Payment Method if available or pm input if not.
+ */
+PMUtil.readEngineResponse = function(body) {
+    var obj = xmlparser.parse(body, { ignoreAttributes: false });
+    return {
+        code: obj.payment.statuses.status['@_code'],
+        description: obj.payment.statuses.status['@_description'],
+        severity: obj.payment.statuses.status['@_severity']
+    }
+}
+
+/**
+ * Reads the transaction ID from XML body.
+ * Other Content Types prepared but not used.
+ *
+ * @param {string} body Response body sent or received by Postman.
+ * 
+ * @return {string} Transaction ID field value found in XML body.
+ */
 PMUtil.readTransactionID = function (body) {
     var transactionID = NO_TRANSACTION_ID;
     var contentType = PMUtil.getContentType(body);
@@ -97,6 +161,13 @@ PMUtil.getParentTransactionID = function (requestName) {
     */
 };
 
+/**
+ * Reads the Parent Transaction ID from request/response body.
+ *
+ * @param {string} body If request: the actual request body sent by Postman with all variables replaced.
+ * 
+ * @return {string} Parent Transaction ID field value found in body.
+ */
 PMUtil.readParentTransactionID = function (body) {
     var parentTransactionID;
     const contentType = PMUtil.getContentType(body);
@@ -119,6 +190,13 @@ PMUtil.readParentTransactionID = function (body) {
     return parentTransactionID;
 };
 
+/**
+ * Reads the Transaction Type from request/response body.
+ *
+ * @param {string} body The request/response body sent or received by Postman.
+ * 
+ * @return {string} Transaction ID field value found in body.
+ */
 PMUtil.readTransactionType = function (body) {
     var transactionType;
     const contentType = PMUtil.getContentType(body);
@@ -142,6 +220,16 @@ PMUtil.readTransactionType = function (body) {
     return transactionType;
 };
 
+/**
+ * Get the Payment Method of a transaction's Parent Transaction.
+ *
+ * Some requests do not specify a Payment Method, only a Parent Transaction ID.
+ * This method looks up the Payment Method of the parent in table that holds all transactions.
+ * 
+ * @param {string} body The request/response body sent or received by Postman.
+ * 
+ * @return {string} The Payment Method of the parent of the request.
+ */
 PMUtil.getParentPaymentMethod = function (body) {
     const pid = PMUtil.readParentTransactionID(body);
     console.log('looking for pid: ' + pid);
@@ -156,6 +244,13 @@ PMUtil.getParentPaymentMethod = function (body) {
     return undefined;
 }
 
+/**
+ * Reads the Payment Method of a given request or response body.
+ *
+ * @param {string} body The request/response body sent or received by Postman.
+ * 
+ * @return {string} The Payment Method of the request/response sample.
+ */
 PMUtil.readPaymentMethod = function (body) {
     var paymentMethod;
     const contentType = PMUtil.getContentType(body);
@@ -184,6 +279,14 @@ PMUtil.readPaymentMethod = function (body) {
     return paymentMethod;
 };
 
+/**
+ * Checks if a request or response body contains a certaing element (on root level)
+ *
+ * @param {string} body The request/response body sent or received by Postman.
+ * @param {string} elementName Name of the element to look for.
+ * 
+ * @return {boolean} True if element exists, else false.
+ */
 PMUtil.bodyHasElement = function (body, elementName) {
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
@@ -215,9 +318,15 @@ PMUtil.getName = function (body) {
     return paymentMethod + transactionType;
 };
 
-
+/**
+ * Determines the Content Type of a given request/response body.
+ *
+ * @param {string} body The request/response body sent or received by Postman.
+ * @param {string} type If specified as 'full' returns the complete mime type, e.g. "application/xml". Else the shorthand, e.g. "xml"
+ * 
+ * @return {string} contentType
+ */
 PMUtil.getContentType = function (body, type='full') {
-
     const ContentTypeShort = {
         [MIMETYPE_XML]: 'xml',
         [MIMETYPE_JSON]: 'json',
@@ -258,6 +367,7 @@ PMUtil.getContentType = function (body, type='full') {
     }
 };
 
+// obsolete?
 PMUtil.getTransactionStatus = function (body) {
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
@@ -328,41 +438,52 @@ newman.run({
         */
 }).on('request', function (err, args) {
     var item = args.item;
-    var transactionMethod = item.request.method;
+    var requestMethod = item.request.method;
     var requestBodySource = item.request.body.raw; // body including {{variable}}
     var requestBodyFinal = args.request.body.raw;  // body that's actually sent, with variables replaced
     var responseBody = PMUtil.formatXML(args.response.stream.toString());
-    var responseCode = args.response.code;
+    var responseCodeHTTP = args.response.code;
+    var responseOfEngine = PMUtil.readEngineResponse(responseBody);
     var contentType = PMUtil.getContentType(requestBodyFinal);
     var transactionID = PMUtil.readTransactionID(responseBody);
     var paymentMethod = PMUtil.readPaymentMethod(requestBodyFinal);
     var transactionType = PMUtil.readTransactionType(requestBodyFinal);
     var parentTransactionID = PMUtil.readParentTransactionID(requestBodyFinal);
     var requestName = PMUtil.getName(requestBodyFinal);
+    var requestEndpoint = 'https://' + args.request.url.host.join('.') + '/' + args.request.url.path.join('/');
+    var requestUsername = args.request.auth.basic.reference.username.value;
+    var requestPassword = args.request.auth.basic.reference.password.value;
 
     if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
         PMUtil.RequestsIndex[paymentMethod] = [];
     }
 
     PMUtil.RequestsIndex[paymentMethod][transactionType] = {
-        response_code: responseCode,
+        response_code: responseCodeHTTP,
         transaction_id: transactionID,
         parent_transaction_id: parentTransactionID
     }
 
+    /*
+    * Contains all necessary information to create the .adoc table and blocks.
+    */
     const info = {
         request_name: requestName,
         payment_method: paymentMethod,
         transaction_type: PMUtil.readTransactionType(requestBodyFinal, contentType),
-        transaction_method: transactionMethod,
         request: {
             body_source: requestBodySource,
             body_final: requestBodyFinal,
-            content_type: contentType
+            content_type: contentType,
+            method: requestMethod,
+            endpoint: requestEndpoint,
+            username: requestUsername,
+            password: requestPassword
         },
         response: {
             body: responseBody,
-            code: responseCode
+            http_status_code: responseCodeHTTP,
+            engine_status: responseOfEngine
         }
     }
 
