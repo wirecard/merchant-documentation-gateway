@@ -66,11 +66,17 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
     if any((keyword in file_name.lower()) for keyword in FORBIDDEN_WORDS):
         return None
 
+    ###########################################################################
+    # CAUTION: Request can occur twice, or Request/Response is mixed
+    # (each occuring one time)
+    ###########################################################################
     send_type = "unknown"
     for keyword in TYPE_KEYWORDS:
         if keyword in file_name.lower():
             send_type = keyword
-            break
+            if keyword != "request":
+                break
+
 
     # get whether the request is a success or failure example
     success_or_fail = ""
@@ -149,12 +155,22 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
         "generic" if payment_method in GENERIC_PAYMENT_METHODS else payment_method,
         transaction_type, send_type, success_or_fail)
 
+    ###########################################################################
+    # IMPROVE NAMING WITH ADDITIONAL FIELDS
+    ###########################################################################
     locale = root.find('locale')
     country = root.find('country')
     if locale is not None:
         new_base_name += "_%s" % (locale.text)
     if country is not None:
         new_base_name += "_%s" % (country.text)
+
+    periodic_type = root.find('periodic/periodic-type')
+    sequence_type = root.find('periodic/sequence-type')
+    if periodic_type is not None:
+        new_base_name += "_%s" % (periodic_type.text)
+    if sequence_type is not None:
+        new_base_name += "_%s" % (sequence_type.text)
 
     return "/".join([folder, ".".join([new_base_name, extension])])
 
