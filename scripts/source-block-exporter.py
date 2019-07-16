@@ -5,6 +5,10 @@ typically called like:
 * python3 -u exporter.py -d src-files *.adoc
 or
 * PYTHONUNBUFFERED="1" python3 exporter.py -d src-files *.adoc
+
+This script goes hand in hand with the shell script 'update_includes.sh',
+which must be run after this script and uses the generated report to update references
+in the asciidoctor files.
 """
 
 import argparse
@@ -14,7 +18,7 @@ import os
 import re
 from shutil import copyfile
 from concurrent.futures import ThreadPoolExecutor
-from colors import *
+from colors import info, warning, error
 
 
 SRC_BLK_DELIM = "----"
@@ -24,15 +28,6 @@ NO_BLK_TITLE = "NoBlockTitle"
 def debug(msg):
     pass
     # print("# " + msg)
-
-
-def info(msg):
-    print(color.GREEN + "[*] " + msg + color.END)
-
-
-def warning(msg):
-    print(color.BOLD + color.RED + "[***] " + msg + color.END)
-
 
 def normalize_header(header):
     # info("normalize input:  {}".format(header))
@@ -71,8 +66,8 @@ parser.add_argument('adocs', metavar='FILE', type=str,
                     nargs='+', help='.adoc Files to process')
 parser.add_argument('-d', '--src-out-dir', default=".", type=str,
                     help='Output directory for extracted source files Default: . (current directory)', required=False)
-parser.add_argument('-t', '--type', dest='extensions', default="xml,json",
-                    help='Comma separated list of source code languages which shall be extracted. Default: "xml,json"', required=False)
+parser.add_argument('-t', '--type', dest='extensions', default="xml",
+                    help='Comma separated list of source code languages which shall be extracted. Default: "xml"', required=False)
 args = parser.parse_args()
 
 # all args are files to process
