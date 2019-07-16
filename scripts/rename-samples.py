@@ -6,7 +6,7 @@ import json
 import os
 import tempfile
 
-from colors import info, error
+from colors import info, error, warning
 from shutil import copyfile, move
 
 import pprint
@@ -56,9 +56,11 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
 
     Return: (new_file_name, header_file_name)
     """
+    extension = file_name.split(".")[-1]
+
     if not any(file_name.endswith(ext) for ext in SUPPORTED_FILETYPES):
         raise ValueError("Unsupported file extension: must be one of {}, but was {}".format(
-            ",".join(SUPPORTED_FILETYPES), file_name.split('.')[-1]))
+            ",".join(SUPPORTED_FILETYPES), extension))
 
     # skip all forbidden names
     if any((keyword in file_name.lower()) for keyword in FORBIDDEN_WORDS):
@@ -86,27 +88,35 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
             # handle mixed files (header and XML information)
             # split them
             raw_header, raw_xml = read_mixed_file(file_name)
+            header_file_name = ".".join(
+                [file_name.split(".")[0] + "_header", "txt"])
+
+            ###################################################################
+            # FILE DOES NOT CONTAIN ANY VALID XML
+            # thus, move to header file
+            ###################################################################
             if raw_xml is None:
                 info("[*] File has no XML: {}".format(file_name))
-                ERRORS['noxml'].append({"file": file_name})
-                header_file_name = "/".join(
-                    [folder, ".".join(["header_%s" % ("file_name"), "txt"])])
-                with open(header_file_name, "w+", encoding="utf8") as header_f:
-                    header_f.write(raw_header)
+                ERRORS['noxml'].append(
+                    {"file": file_name, "new-name": header_file_name})
+                move(file_name, header_file_name)
                 header_dict[file_name] = {"header": header_file_name}
                 return None
 
+            ###################################################################
+            # FILE CONTAINS HEADER AND VALID XML
+            # split file into XML and header
+            ###################################################################
             with open(file_name, "w+", encoding="utf8") as xml_f:
                 xml_f.write(raw_xml)
             new_xml_file_name = process_file_name(file_name)
             # header_file_name = "/".join([folder,
             #                              ".".join([new_xml_file_name.split(".")[0] + "_header",
             #                                        "txt"])])
-            header_file_name = ".".join(
-                [new_xml_file_name.split(".")[0] + "_header", "txt"])
             with open(header_file_name, "w+", encoding="utf8") as header_f:
                 header_f.write(raw_header)
             header_dict[new_xml_file_name] = {"header": header_file_name}
+            info("[*] Split into header and XML: %s" % (file_name))
             return new_xml_file_name
 
         else:
@@ -125,6 +135,8 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
             'payment-methods').find('payment-method').get('name')
         transaction_type = root.find('transaction-type').text
     except AttributeError as e:
+        warning("[?] No payment-method found for %s" % (file_name))
+        warning("... %s" % (e))
         # fails for response, since there is no payment method
         # skip for now!
         #
@@ -133,10 +145,18 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
         # print(ET.dump(root))
         return None
 
-    new_file_name = "{}_{}_{}_{}.{}".format(
+    new_base_name = "{}_{}_{}_{}".format(
         "generic" if payment_method in GENERIC_PAYMENT_METHODS else payment_method,
-        transaction_type, send_type, success_or_fail, file_name.split(".")[-1])
-    return "/".join([folder, new_file_name])
+        transaction_type, send_type, success_or_fail)
+
+    locale = root.find('locale')
+    country = root.find('country')
+    if locale is not None:
+        new_base_name += "_%s" % (locale.text)
+    if country is not None:
+        new_base_name += "_%s" % (country.text)
+
+    return "/".join([folder, ".".join([new_base_name, extension])])
 
 
 def main():
@@ -176,13 +196,12 @@ def main():
             if duplicates.get(new) == None or not isinstance(duplicates[new], list):
                 duplicates[new] = []
             duplicates[new].append(old)
-        duplicates = dict(filter(lambda e: e[0] is not None and len(e[1]) > 1, duplicates.items()))
+        duplicates = dict(
+            filter(lambda e: e[0] is not None and len(e[1]) > 1, duplicates.items()))
         with open("no-track/name_conflicts.json", "w+", encoding="utf8") as f:
             f.write(json.dumps(duplicates, indent=2))
-        # print(json.dumps(duplicates, indent=2))
+        error("[!] Found %d conflicting files" % (len(duplicates.keys())))
         raise ValueError("found duplicate filenames list of processed files")
-
-    # pprint.pprint(header_dict, indent=2)
 
     ###########################################################################
     # PROCESS RENAMES
@@ -217,6 +236,9 @@ def main():
                 print("{} -> {}".format(old, new))
         return
 
+    ###########################################################################
+    # APPLY CHANGES TO HDD
+    ###########################################################################
     for old, new in zip(files, processed_files):
         if (new is None) or (old == new):
             continue
