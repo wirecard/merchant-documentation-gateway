@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 import tempfile
+import hashlib
 
 from colors import info, error, warning
 from shutil import copyfile, move
@@ -22,6 +23,16 @@ FORBIDDEN_WORDS = "android".split()
 GENERIC_PAYMENT_METHODS = "*:${payment method}".split(":")
 ERROR_REPORT_FILE_NAME = "errors.json"
 ERRORS = {"errors": [], "noxml": []}
+
+def find_duplicates(new_files, old_files):
+    duplicates = {}
+    for new, old in zip(new_files, old_files):
+        if duplicates.get(new) == None or not isinstance(duplicates[new], list):
+            duplicates[new] = []
+        duplicates[new].append(old)
+    duplicates = dict(
+        filter(lambda e: e[0] is not None and len(e[1]) > 1, duplicates.items()))
+    return duplicates
 
 
 def remove_namespace(root):
@@ -76,7 +87,6 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
             send_type = keyword
             if keyword != "request":
                 break
-
 
     # get whether the request is a success or failure example
     success_or_fail = ""
@@ -172,6 +182,14 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
     if sequence_type is not None:
         new_base_name += "_%s" % (sequence_type.text)
 
+    request_type = root.find('request-type')
+    if request_type is not None:
+        new_base_name += "_%s" % (request_type.text)
+
+    parent_id = root.find('parent-transaction-id')
+    if parent_id is not None:
+        new_base_name += "_%s" % (parent_id.text.split("-")[0])
+
     return "/".join([folder, ".".join([new_base_name, extension])])
 
 
@@ -206,14 +224,30 @@ def main():
     processed_files = [process_file_name(
         file, header_dict=header_dict, dry_run=args.dry_run)
         for file in files]
+
+    ###########################################################################
+    # CHECK FOR DUPLICATES AND PERFORM MEASURES TO ELIMENATE THEM
+    ###########################################################################
     if len(processed_files) != len(set(processed_files)):
-        duplicates = {}
-        for old, new in zip(files, processed_files):
-            if duplicates.get(new) == None or not isinstance(duplicates[new], list):
-                duplicates[new] = []
-            duplicates[new].append(old)
-        duplicates = dict(
-            filter(lambda e: e[0] is not None and len(e[1]) > 1, duplicates.items()))
+        duplicates = find_duplicates(processed_files, files)
+        # if nothing helps, hash the files and append first 5 digits to filename
+        updated_processed_files = []
+        for new, old in zip(processed_files, files):
+            if new in duplicates.keys():
+                with open(old, "r", encoding="utf-8") as f:
+                    sha1hash = hashlib.sha1(f.read().encode()).hexdigest()
+                    (base_name, extension) = new.split(".")
+                    new_file_name = ".".join(["%s_%s" % (base_name, sha1hash[:6]), extension])
+                    updated_processed_files.append(new_file_name)
+            else:
+                updated_processed_files.append(new)
+
+        processed_files = updated_processed_files
+
+
+    if len(processed_files) != len(set(processed_files)):
+        duplicates = find_duplicates(processed_files, files)
+        # TODO: just replace on sample if we still have conflicts?
         with open("no-track/name_conflicts.json", "w+", encoding="utf8") as f:
             f.write(json.dumps(duplicates, indent=2))
         error("[!] Found %d conflicting files" % (len(duplicates.keys())))
