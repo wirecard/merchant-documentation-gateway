@@ -145,7 +145,7 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
  * @return {string} Returns prettified body if JSON or XML, else returns body unmodified.
  */
 PMUtil.formatResponse = function (body) {
-    var contentType = PMUtil.getContentType(body);
+    const contentType = PMUtil.getContentType(body);
     if (contentType == MIMETYPE_XML) {
         return PMUtil.formatXML(body);
     }
@@ -195,8 +195,8 @@ PMUtil.readEngineResponse = function (body) {
             try {
                 var obj = xmlparser.parse(body, { ignoreAttributes: false });
                 Response = {
-                    code: parseInt(obj.html.head.title.replace(/([0-9]+)\ .*/,'$1')),
-                    description: obj.html.head.title.replace(/([0-9]+)\ (.*)/,'$2'),
+                    code: parseInt(obj.html.head.title.replace(/([0-9]+)\ .*/, '$1')),
+                    description: obj.html.head.title.replace(/([0-9]+)\ (.*)/, '$2'),
                     severity: 'error'
                 };
                 console.log('content type html');
@@ -306,9 +306,58 @@ PMUtil.ElementNamesMap = {
  * 
  * @return {string} Value of the element or undefined if not found in ElementNamesMap.
  */
+
+/*
+
+
+create new elementNames Paths in   PMUtil.ElementNamesMap
+check if array. if string, convert to [string] array.
+*/
+
+PMUtil.readElementFromBody = function (elementName, body) {
+    const getElementByPath = function (e, obj, prefix='payment') {
+       e.unshift(prefix);
+       return e.reduce((x, i) => (x && x[i]) ? x[i] : undefined, obj);
+    }
+    var elementValue = undefined;
+    const contentType = PMUtil.getContentType(body);
+    switch (contentType) {
+        case MIMETYPE_XML:
+            var obj = xmlparser.parse(body, {});
+            var e = PMUtil.ElementNamesMap[elementName].xml;
+            e = Array.isArray(e) ? e : [e];
+            elementValue = getElementByPath(e, obj);
+            break;
+        case MIMETYPE_JSON:
+            var obj = JSON.parse(body);
+            var e = PMUtil.ElementNamesMap[elementName].json;
+            e = Array.isArray(e) ? e : [e];
+            elementValue = getElementByPath(e, obj);
+            break;
+        case MIMETYPE_NVP:
+            var obj = new URLSearchParams(body);
+            try {
+                var e = PMUtil.ElementNamesMap[elementName].nvp;
+            }
+            catch (err) {
+                console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
+                console.log(PMUtil.ElementNamesMap);
+                return elementValue;
+            }
+            if (obj.get(e) !== null) {
+                elementValue = obj.get(e);
+            }
+            break;
+        default:
+            console.log('in readElement: ' + elementName + ' + unknown content type');
+            break;
+    }
+    return elementValue;
+};
+/*
 PMUtil.readElementFromBody = function (elementName, body) {
     var elementValue = undefined;
-    var contentType = PMUtil.getContentType(body);
+    const contentType = PMUtil.getContentType(body);
     var e = undefined;
     switch (contentType) {
         case MIMETYPE_XML:
@@ -359,6 +408,9 @@ PMUtil.readElementFromBody = function (elementName, body) {
     }
     return elementValue;
 };
+*/
+
+
 
 /**
  * Get the Payment Method of a transaction's Parent Transaction.
@@ -545,9 +597,9 @@ PMUtil.getContentType = function (body, type = 'full') {
     };
 
     var isHTML = (body) => {
-        if( xmlparser.validate(body) === true ) {
-           var htmlObj = xmlparser.parse(body, { ignoreAttributes: false });
-           return ( htmlObj.html !== undefined );
+        if (xmlparser.validate(body) === true) {
+            var htmlObj = xmlparser.parse(body, { ignoreAttributes: false });
+            return (htmlObj.html !== undefined);
         }
         return false;
     };
@@ -592,6 +644,7 @@ PMUtil.getTransactionStatus = function (body) {
     };
 };
 
+// rewrite for 401 unauthorized html responses
 PMUtil.transactionHasFailed = function (body) {
     const TransactionStatus = PMUtil.getTransactionStatus(body);
     return (TransactionStatus['transaction-state'] !== TRANSACTIONCODE_SUCCESS)
@@ -636,20 +689,7 @@ newman.run({
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
-    /*
-        var request = args.request;
-        // inject transaction id of parent to parent-transaction id here before request is sent!
-        var item = args.item;
-        var requestBody = item.request.body.raw;
-        console.log('moooo');
-    
-        var requestName = PMUtil.getName(requestBody);
-    
-        if (PMUtil.bodyHasElement(requestBody, 'parent-transaction-id')) {
-            var parentTransactionID = PMUtil.getParentTransactionID(requestName);
-            requestBody = PMUtil.bodyInjectElementValue(requestBody, 'parent-transaction-id', parentTransactionID);
-        }
-        */
+    // placeholder. not necessary for now.
 }).on('request', function (err, args) {
     const item = args.item;
     const requestMethod = item.request.method;
@@ -672,7 +712,7 @@ newman.run({
 
     var responseContentType;
     var transactionID;
-    if( responseCodeHTTP < 400 ) { // else there is no response element parsing possible
+    if (responseCodeHTTP < 400) { // else there is no response element parsing possible
         responseContentType = PMUtil.getContentType(responseBody);
         transactionID = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, responseBody);
     }
@@ -735,7 +775,10 @@ newman.run({
                     body: responseBody,
                     http_status_code: responseCodeHTTP,
                     engine_status: responseOfEngine
-                }
+                },
+                transaction_id: transactionID,
+                parent_transaction_id: parentTransactionID,
+                success: true //TODO simple true/false for success. decide elsewhere which it is
             }
         }
     });
@@ -750,5 +793,6 @@ newman.run({
     else {
         console.log('collection run completed.');
         //console.log(JSON.stringify(RequestResponseIndex, null, 2));
+        //console.log(RequestResponseIndex);
     }
 });
