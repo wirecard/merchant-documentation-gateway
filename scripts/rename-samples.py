@@ -57,8 +57,8 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
     Return: (new_file_name, header_file_name)
     """
     if not any(file_name.endswith(ext) for ext in SUPPORTED_FILETYPES):
-        raise ValueError("Unsupported file extension: must be one of {}".format(
-            ",".join(SUPPORTED_FILETYPES)))
+        raise ValueError("Unsupported file extension: must be one of {}, but was {}".format(
+            ",".join(SUPPORTED_FILETYPES), file_name.split('.')[-1]))
 
     # skip all forbidden names
     if any((keyword in file_name.lower()) for keyword in FORBIDDEN_WORDS):
@@ -170,15 +170,26 @@ def main():
     processed_files = [process_file_name(
         file, header_dict=header_dict, dry_run=args.dry_run)
         for file in files]
+    if len(processed_files) != len(set(processed_files)):
+        duplicates = {}
+        for old, new in zip(files, processed_files):
+            if duplicates.get(new) == None or not isinstance(duplicates[new], list):
+                duplicates[new] = []
+            duplicates[new].append(old)
+        duplicates = dict(filter(lambda e: e[0] is not None and len(e[1]) > 1, duplicates.items()))
+        with open("no-track/name_conflicts.json", "w+", encoding="utf8") as f:
+            f.write(json.dumps(duplicates, indent=2))
+        # print(json.dumps(duplicates, indent=2))
+        raise ValueError("found duplicate filenames list of processed files")
 
     # pprint.pprint(header_dict, indent=2)
 
     ###########################################################################
     # PROCESS RENAMES
     ###########################################################################
-    report_dict = {"renames": [{"old": old, "new": new.replace('\\', '/')}
+    report_dict = {"renames": [{"old": old, "new": new}
                                for old, new in zip(files, processed_files)
-                               if new is not None]}
+                               if new is not None and new != old]}
 
     ERRORS['renames'] = [{"old": old, "new": new}
                          for old, new in zip(files, processed_files)

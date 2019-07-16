@@ -15,5 +15,8 @@ class color:
 def error(msg):
    print(color.RED + color.BOLD + msg + color.END, file=sys.stderr)
 
+def warning(msg):
+    print(color.YELLOW + color.BOLD + msg + color.END)
+
 def info(msg):
    print(color.BLUE + color.BOLD + msg + color.END)
