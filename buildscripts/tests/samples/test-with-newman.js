@@ -15,6 +15,7 @@ const URLSearchParams = require('url').URLSearchParams;
 const NO_TRANSACTION_ID = 'none';
 const NO_PAYMENT_METHOD = 'none';
 const MIMETYPE_XML = 'application/xml';
+const MIMETYPE_HTML = 'text/html';
 const MIMETYPE_JSON = 'application/json';
 const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8'
 const TRANSACTIONSTATE_SUCCESS = 'success';
@@ -22,6 +23,7 @@ const TRANSACTIONCODE_SUCCESS = '201.0000';
 
 const ELEMENT_TRANSACTION_TYPE = 'transaction_type';
 const ELEMENT_TRANSACTION_ID = 'transaction_id';
+const ELEMENT_CRYPTOGRAM_TYPE = 'cryptogram_type';
 const ELEMENT_PARENT_TRANSACTION_ID = 'parent_transaction_id';
 const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
 
@@ -117,12 +119,14 @@ PMUtil.getAcceptHeader = function (request) {
 PMUtil.brandNameOfPaymentMethod = function (pm) {
     var BrandNamesMap = {
         'alipay-xborder': 'Alipay Cross-border',
+        'apple-pay': 'Apple Pay',
         'bancontact': 'Bancontact',
         'boleto': 'Boleto',
         'carrier-billing': 'Carrier Billing',
         'creditcard': 'Credit Card',
         'eps': 'eps-Überweisung',
         'giropay': 'giropay',
+        'google-pay': 'Google Pay™',
         'sepacredit': 'SEPA Direct Debit'
     };
     if (typeof BrandNamesMap[pm] !== 'undefined') {
@@ -151,6 +155,27 @@ PMUtil.formatResponse = function (body) {
     return body;
 };
 
+/**
+ * Get username and password of basic authentication.
+ * 
+ * Returns Object with undefined members if not auth available instead of failing.
+ *
+ * @param {string} request Postman request item.
+ * 
+ * @return {Object} Returns Object with members 'username' and 'password'.
+ */
+PMUtil.getAuth = function (request) {
+    var Auth = {};
+    try {
+        Auth.username = request.auth.basic.reference.username.value;
+        Auth.password = request.auth.basic.reference.password.value;
+    }
+    catch (e) {
+        console.log('getAuth: no username and password found.');
+    }
+    return Auth;
+};
+
 
 PMUtil.RequestsIndex = {};
 /**
@@ -163,26 +188,59 @@ PMUtil.RequestsIndex = {};
  * @return {string} Brand name of the Payment Method if available or pm input if not.
  */
 PMUtil.readEngineResponse = function (body) {
+    var Response = {};
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
+        case MIMETYPE_HTML:
+            try {
+                var obj = xmlparser.parse(body, { ignoreAttributes: false });
+                Response = {
+                    code: parseInt(obj.html.head.title.replace(/([0-9]+)\ .*/,'$1')),
+                    description: obj.html.head.title.replace(/([0-9]+)\ (.*)/,'$2'),
+                    severity: 'error'
+                };
+                console.log('content type html');
+                console.log(Response);
+            }
+            catch (e) {
+                console.log(body)
+                console.log('readEngineResponse failed.')
+                console.log(obj);
+            }
+            break;
         case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, {});
-            Response = {
-                code: obj.payment.statuses.status['@_code'],
-                description: obj.payment.statuses.status['@_description'],
-                severity: obj.payment.statuses.status['@_severity']
+            try {
+                var obj = xmlparser.parse(body, { ignoreAttributes: false });
+                Response = {
+                    code: obj.payment.statuses.status['@_code'],
+                    description: obj.payment.statuses.status['@_description'],
+                    severity: obj.payment.statuses.status['@_severity']
+                };
+            }
+            catch (e) {
+                console.log(body)
+                console.log('readEngineResponse failed.')
+                console.log(obj);
             }
             break;
         case MIMETYPE_JSON:
-            var obj = JSON.parse(body);
-            Response = {
-                code: obj.payment.statuses.status[0].code,
-                description: obj.payment.statuses.status[0].description,
-                severity: obj.payment.statuses.status[0].severity
-            };
+            try {
+                var obj = JSON.parse(body);
+                Response = {
+                    code: obj.payment.statuses.status[0].code,
+                    description: obj.payment.statuses.status[0].description,
+                    severity: obj.payment.statuses.status[0].severity
+                };
+            }
+            catch (e) {
+                console.log(body)
+                console.log('readEngineResponse failed.')
+                console.log(obj);
+            }
             break;
         case MIMETYPE_NVP:
-            Response = new URLSearchParams(body).get('merchant-account-id');
+            // no NVP response from engine
+            //Response = new URLSearchParams(body).get('merchant-account-id');
             break;
         default:
             console.log(body);
@@ -208,6 +266,11 @@ PMUtil.uuidv4 = function () {
 // TODO needs to be adapted for NVP!
 // then replace the obsolete readTransactionType, etc.
 PMUtil.ElementNamesMap = {
+    cryptogram_type: {
+        xml: 'cryptogram-type',
+        json: 'cryptogram-type',
+        nvp: 'cryptogram_type'
+    },
     transaction_id: {
         xml: 'transaction-id',
         json: 'transaction-id',
@@ -322,13 +385,63 @@ PMUtil.getParentPaymentMethod = function (body) {
 };
 
 /**
- * Reads the Payment Method of a given request or response body.
+ * Reads the Secondary Payment Method of a given request or response body.
+ * 
+ * Some have "creditcard" as payment method but are e.g. Google Pay.
+ * For these cases the cryptogram value is returned.
  *
+ * @param {string} body The request/response body sent or received by Postman.
+ * 
+ * @return {string} cryptogram-type, e.g. 'google-pay' or undefined
+ */
+PMUtil.readSecondaryPaymentMethod = function (body) {
+    var secondaryPaymentMethod = undefined;
+    const contentType = PMUtil.getContentType(body);
+    switch (contentType) {
+        case MIMETYPE_XML:
+            try {
+                var obj = xmlparser.parse(body, { ignoreAttributes: false });
+                secondaryPaymentMethod = obj.payment['cryptogram'][PMUtil.ElementNamesMap[ELEMENT_CRYPTOGRAM_TYPE].xml];
+            }
+            catch (e) { }
+            break;
+        case MIMETYPE_JSON:
+            try {
+                var obj = JSON.parse(body);
+                secondaryPaymentMethod = obj.payment['cryptogram'][PMUtil.ElementNamesMap[ELEMENT_CRYPTOGRAM_TYPE].json];
+            }
+            catch (e) { }
+            break;
+        case MIMETYPE_NVP:
+            secondaryPaymentMethod = new URLSearchParams(body).get(PMUtil.ElementNamesMap[ELEMENT_CRYPTOGRAM_TYPE].nvp);
+            // get returns null if not found. we want undefined.
+            secondaryPaymentMethod = (secondaryPaymentMethod == null) ? undefined : secondaryPaymentMethod;
+            break;
+        default:
+            console.log('readSecondaryPaymentMethod: unknown content-type ' + contentType);
+            console.log(body);
+            break;
+    }
+    if (secondaryPaymentMethod !== undefined) {
+        console.log(body);
+        console.log('cryptogram-type found: ' + secondaryPaymentMethod);
+    }
+    return secondaryPaymentMethod;
+};
+
+/**
+ * Reads the Payment Method of a given request or response body.
+ * 
  * @param {string} body The request/response body sent or received by Postman.
  * 
  * @return {string} The Payment Method of the request/response sample.
  */
 PMUtil.readPaymentMethod = function (body) {
+    var secondaryPaymentMethod = PMUtil.readSecondaryPaymentMethod(body);
+    if (secondaryPaymentMethod !== undefined) {
+        // returns 'google-pay', we can skip and return the found 2ndary pm
+        return secondaryPaymentMethod;
+    }
     var paymentMethod;
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
@@ -402,7 +515,7 @@ PMUtil.getName = function (body) {
  * Else attempt to identify NVP by looking for mandatory request_id parameter.
  * 
  * @param {string} body The request/response body sent or received by Postman.
- * @param {string} type If specified as 'full' returns the complete mime type, e.g. "application/xml". Else the shorthand, e.g. "xml"
+ * @param {string} type Default 'full' returns the complete mime type, e.g. "application/xml". 'short' returns, e.g. "xml"
  * 
  * @return {string} contentType
  */
@@ -410,7 +523,8 @@ PMUtil.getContentType = function (body, type = 'full') {
     const ContentTypeShort = {
         [MIMETYPE_XML]: 'xml',
         [MIMETYPE_JSON]: 'json',
-        [MIMETYPE_NVP]: 'nvp'
+        [MIMETYPE_NVP]: 'nvp',
+        [MIMETYPE_HTML]: 'html'
     };
 
     var isJSON = (body) => {
@@ -430,8 +544,19 @@ PMUtil.getContentType = function (body, type = 'full') {
         return (xmlparser.validate(body) === true);
     };
 
+    var isHTML = (body) => {
+        if( xmlparser.validate(body) === true ) {
+           var htmlObj = xmlparser.parse(body, { ignoreAttributes: false });
+           return ( htmlObj.html !== undefined );
+        }
+        return false;
+    };
+
     if (isXML(body) === true) {
         contentType = MIMETYPE_XML;
+    }
+    if (isHTML(body) === true) {
+        contentType = MIMETYPE_HTML;
     }
     else if (isJSON(body) === true) {
         contentType = MIMETYPE_JSON;
@@ -501,6 +626,8 @@ PMUtil.formatJSON = function (jsonString) {
 var postmanCollectionFile = '00DOC.postman_collection.json';
 if (argv['file'] !== undefined) postmanCollectionFile = argv['file'];
 
+var RequestResponseIndex = {};
+
 newman.run({
     collection: postmanCollectionFile,
     environment: {
@@ -524,25 +651,31 @@ newman.run({
         }
         */
 }).on('request', function (err, args) {
-    var item = args.item;
-    var requestMethod = item.request.method;
-    var requestBodySource = item.request.body.raw; // body including unresolved {{variables}}
-    var requestBodyFinal = args.request.body.raw;  // body that's actually sent with variables replaced
-    var responseBody = PMUtil.formatResponse(args.response.stream.toString());
-    var responseCodeHTTP = args.response.code;
-    var responseOfEngine = PMUtil.readEngineResponse(responseBody);
-    var requestContentType = PMUtil.getContentType(requestBodyFinal);
-    var responseContentType = PMUtil.getContentType(responseBody);
-    var transactionID = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, responseBody);
-    var paymentMethod = PMUtil.readPaymentMethod(requestBodyFinal);
-    var transactionType = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, requestBodyFinal);
-    var parentTransactionID = PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, requestBodyFinal);
-    var merchantAccountID = PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, requestBodyFinal);
-    var requestName = PMUtil.getName(requestBodyFinal);
-    var requestEndpoint = 'https://' + args.request.url.host.join('.') + '/' + args.request.url.path.join('/');
-    var requestUsername = args.request.auth.basic.reference.username.value;
-    var requestPassword = args.request.auth.basic.reference.password.value;
-    var acceptHeader = PMUtil.getAcceptHeader(item.request);
+    const item = args.item;
+    const requestMethod = item.request.method;
+    const requestBodySource = item.request.body.raw; // body including unresolved {{variables}}
+    const requestBodyFinal = args.request.body.raw;  // body that's actually sent with variables replaced
+    const responseBody = PMUtil.formatResponse(args.response.stream.toString());
+    const responseCodeHTTP = args.response.code;
+    const responseOfEngine = PMUtil.readEngineResponse(responseBody);
+    const requestContentType = PMUtil.getContentType(requestBodyFinal);
+    const requestContentTypeShort = PMUtil.getContentType(requestBodyFinal, 'short');
+    const paymentMethod = PMUtil.readPaymentMethod(requestBodyFinal);
+    const transactionType = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, requestBodyFinal);
+    const parentTransactionID = PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, requestBodyFinal);
+    const merchantAccountID = PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, requestBodyFinal);
+    const requestName = PMUtil.getName(requestBodyFinal);
+    const requestEndpoint = 'https://' + args.request.url.host.join('.') + '/' + args.request.url.path.join('/');
+    const requestUsername = PMUtil.getAuth(args.request).username;
+    const requestPassword = PMUtil.getAuth(args.request).password;
+    const acceptHeader = PMUtil.getAcceptHeader(item.request);
+
+    var responseContentType;
+    var transactionID;
+    if( responseCodeHTTP < 400 ) { // else there is no response element parsing possible
+        responseContentType = PMUtil.getContentType(responseBody);
+        transactionID = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, responseBody);
+    }
 
     if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
         PMUtil.RequestsIndex[paymentMethod] = [];
@@ -560,7 +693,7 @@ newman.run({
     const info = {
         request_name: requestName,
         payment_method: paymentMethod,
-        transaction_type: PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, requestBodyFinal),
+        transaction_type: transactionType,
         request: {
             body_source: requestBodySource,
             body_final: requestBodyFinal,
@@ -578,6 +711,35 @@ newman.run({
             engine_status: responseOfEngine
         }
     }
+
+    //this global thing will replace local const info. remove const info later.
+    if (typeof RequestResponseIndex[paymentMethod] === 'undefined') {
+        RequestResponseIndex[paymentMethod] = []; // array for sort order
+    }
+    // RequestResponseIndex['paypal']['debit']['xml']
+    RequestResponseIndex[paymentMethod].push({
+        [transactionType]: {
+            [requestContentTypeShort]: {
+                request: {
+                    content_type: requestContentType,
+                    body_source: requestBodySource,
+                    body_final: requestBodyFinal,
+                    method: requestMethod,
+                    endpoint: requestEndpoint,
+                    username: requestUsername,
+                    password: requestPassword,
+                    accept: acceptHeader
+                },
+                response: {
+                    content_type: responseContentType,
+                    body: responseBody,
+                    http_status_code: responseCodeHTTP,
+                    engine_status: responseOfEngine
+                }
+            }
+        }
+    });
+
     // TODO TODO TODO: decide on status code wether to write samples or not.
     // TODO TODO TODO: slack notifications...
     writeAdoc(info);
@@ -587,5 +749,6 @@ newman.run({
     }
     else {
         console.log('collection run completed.');
+        //console.log(JSON.stringify(RequestResponseIndex, null, 2));
     }
 });
