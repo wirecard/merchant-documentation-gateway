@@ -12,8 +12,6 @@ const fs = require('fs');
 const xmlparser = require('fast-xml-parser');
 const URLSearchParams = require('url').URLSearchParams;
 
-const NO_TRANSACTION_ID = 'none';
-const NO_PAYMENT_METHOD = 'none';
 const MIMETYPE_XML = 'application/xml';
 const MIMETYPE_HTML = 'text/html';
 const MIMETYPE_JSON = 'application/json';
@@ -22,10 +20,118 @@ const TRANSACTIONSTATE_SUCCESS = 'success';
 const TRANSACTIONCODE_SUCCESS = '201.0000';
 
 const ELEMENT_TRANSACTION_TYPE = 'transaction_type';
+const ELEMENT_PAYMENT_METHOD = 'payment_method';
 const ELEMENT_TRANSACTION_ID = 'transaction_id';
 const ELEMENT_CRYPTOGRAM_TYPE = 'cryptogram_type';
 const ELEMENT_PARENT_TRANSACTION_ID = 'parent_transaction_id';
 const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
+
+const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
+
+var PMUtil = {};
+
+PMUtil.RequestsIndex = {};
+PMUtil.RequestResponseIndex = {};
+/**
+* These are wrappers for readElementFromBody() to make code more writable/readable.
+* Use the wrappers instead of PMUtil.readElementFromBody() wherever feasible.
+*
+* @param {string} body The request/response body sent or received by Postman.
+* 
+* @return {string} The element value.
+*/
+PMUtil.getTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, body);
+PMUtil.getTransactionType = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body);
+PMUtil.getParentTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
+PMUtil.getPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body);
+PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
+/**
+ * Reads the Secondary Payment Method of a given request or response body.
+ * 
+ * Some have "creditcard" as payment method but are e.g. Google Pay.
+ * For these cases the cryptogram-type value is returned.
+ *
+ * @param {string} body The request/response body sent or received by Postman.
+ * 
+ * @return {string} cryptogram-type, e.g. 'google-pay' or undefined
+ */
+PMUtil.getSecondaryPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_CRYPTOGRAM_TYPE, body);
+
+/*
+* ElementNamesMap contains map where to find an element in request/response body / per content type
+* May be string or path as array.
+*/
+PMUtil.ElementNamesMap = {
+    cryptogram_type: {
+        xml: ['payment', 'cryptogram', 'cryptogram-type'],
+        json: ['payment', 'cryptogram', 'cryptogram-type'],
+        nvp: 'cryptogram_type'
+    },
+    payment_method: {
+        xml: ['payment', 'payment-methods', 'payment-method', '@_name'],
+        json: ['payment', 'payment-methods', 'payment-method', 0, 'name'],
+        nvp: 'payment_method'
+    },
+    transaction_id: {
+        xml: ['payment', 'transaction-id'],
+        json: ['payment', 'transaction-id'],
+        nvp: 'transaction_id'
+    },
+    parent_transaction_id: {
+        xml: ['payment', 'parent-transaction-id'],
+        json: ['payment', 'parent-transaction-id'],
+        nvp: 'parent_transaction_id'
+    },
+    transaction_type: {
+        xml: ['payment', 'transaction-type'],
+        json: ['payment', 'transaction-type'],
+        nvp: 'transaction_type'
+    },
+    merchant_account_id: {
+        xml: ['payment', 'merchant-account-id'],
+        json: ['payment', 'merchant-account-id'],
+        nvp: 'merchant_account_id'
+    }
+};
+
+PMUtil.ContentTypeShort = {
+    [MIMETYPE_XML]: 'xml',
+    [MIMETYPE_JSON]: 'json',
+    [MIMETYPE_NVP]: 'nvp',
+    [MIMETYPE_HTML]: 'html'
+};
+
+/**
+ * Gives the actual brand name for a payment-method id string.
+ *
+ * Creates table with general info on the request (is to be hidden by default in frontend)
+ * Creates two source blocks, request and response with titles according to Payment Method, Transaction Type and Content Type
+ * Request contains all Postman variables unsubstituted for integrators to copy&paste.
+ *
+ * @param {string} pm String that is found in the request or response body indicating the Payment Method.
+ * 
+ * @return {string} Brand name of the Payment Method if available or pm input if not.
+ */
+PMUtil.brandNameOfPaymentMethod = function (pm) {
+    const BrandNamesMap = {
+        'alipay-xborder': 'Alipay Cross-border',
+        'apple-pay': 'Apple Pay',
+        'bancontact': 'Bancontact',
+        'boleto': 'Boleto',
+        'carrier-billing': 'Carrier Billing',
+        'creditcard': 'Credit Card',
+        'eps': 'eps-Überweisung',
+        'giropay': 'giropay',
+        'google-pay': 'Google Pay™',
+        'sepacredit': 'SEPA Direct Debit'
+    };
+    if (typeof BrandNamesMap[pm] !== 'undefined') {
+        return BrandNamesMap[pm];
+    }
+    else {
+        return pm;
+    }
+};
 
 /**
  * Writes .adoc file with table and code blocks for request, response and other info
@@ -38,7 +144,7 @@ const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
  * 
  * @return Nothing.
  */
-function writeAdoc(info) {
+PMUtil.writeAdoc = function (info) {
     const fileExtension = '.adoc';
     const path = 'samples/adoc/';
     const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(info.payment_method);
@@ -87,8 +193,6 @@ function writeAdoc(info) {
     }
 }
 
-var PMUtil = {};
-
 /**
  * Get Accept header from Postman Request item
  *
@@ -99,42 +203,8 @@ var PMUtil = {};
  * @return {string} Content Type that is being sent as Accept header
  */
 PMUtil.getAcceptHeader = function (request) {
-    if (typeof request.headers.reference.accept !== 'undefined') {
-        return request.headers.reference.accept.value;
-    }
-    return MIMETYPE_XML;
-};
-
-/**
- * Gives the actual brand name for a payment-method id string.
- *
- * Creates table with general info on the request (is to be hidden by default in frontend)
- * Creates two source blocks, request and response with titles according to Payment Method, Transaction Type and Content Type
- * Request contains all Postman variables unsubstituted for integrators to copy&paste.
- *
- * @param {string} pm String that is found in the request or response body indicating the Payment Method.
- * 
- * @return {string} Brand name of the Payment Method if available or pm input if not.
- */
-PMUtil.brandNameOfPaymentMethod = function (pm) {
-    var BrandNamesMap = {
-        'alipay-xborder': 'Alipay Cross-border',
-        'apple-pay': 'Apple Pay',
-        'bancontact': 'Bancontact',
-        'boleto': 'Boleto',
-        'carrier-billing': 'Carrier Billing',
-        'creditcard': 'Credit Card',
-        'eps': 'eps-Überweisung',
-        'giropay': 'giropay',
-        'google-pay': 'Google Pay™',
-        'sepacredit': 'SEPA Direct Debit'
-    };
-    if (typeof BrandNamesMap[pm] !== 'undefined') {
-        return BrandNamesMap[pm];
-    }
-    else {
-        return pm;
-    }
+    // XML by default as it is default response content type if no accept header specified
+    return (request.headers.reference.accept !== undefined) ? request.headers.reference.accept.value : MIMETYPE_XML;
 };
 
 /**
@@ -170,14 +240,10 @@ PMUtil.getAuth = function (request) {
         Auth.username = request.auth.basic.reference.username.value;
         Auth.password = request.auth.basic.reference.password.value;
     }
-    catch (e) {
-        console.log('getAuth: no username and password found.');
-    }
+    catch (e) { }
     return Auth;
 };
 
-
-PMUtil.RequestsIndex = {};
 /**
  * Reads the API engine response status code, description and severity from response body.
  *
@@ -193,19 +259,19 @@ PMUtil.readEngineResponse = function (body) {
     switch (contentType) {
         case MIMETYPE_HTML:
             try {
-                var obj = xmlparser.parse(body, { ignoreAttributes: false });
+                var obj = xmlparser.parse(body, {});
                 Response = {
                     code: parseInt(obj.html.head.title.replace(/([0-9]+)\ .*/, '$1')),
                     description: obj.html.head.title.replace(/([0-9]+)\ (.*)/, '$2'),
                     severity: 'error'
                 };
-                console.log('content type html');
-                console.log(Response);
             }
             catch (e) {
                 console.log(body)
                 console.log('readEngineResponse failed.')
+                console.log(e);
                 console.log(obj);
+                console.log(Response);
             }
             break;
         case MIMETYPE_XML:
@@ -218,6 +284,7 @@ PMUtil.readEngineResponse = function (body) {
                 };
             }
             catch (e) {
+                console.log('isXML');
                 console.log(body)
                 console.log('readEngineResponse failed.')
                 console.log(obj);
@@ -263,67 +330,23 @@ PMUtil.uuidv4 = function () {
     });
 };
 
-// TODO needs to be adapted for NVP!
-// then replace the obsolete readTransactionType, etc.
-PMUtil.ElementNamesMap = {
-    cryptogram_type: {
-        xml: 'cryptogram-type',
-        json: 'cryptogram-type',
-        nvp: 'cryptogram_type'
-    },
-    transaction_id: {
-        xml: 'transaction-id',
-        json: 'transaction-id',
-        nvp: 'transaction_id'
-    },
-    parent_transaction_id: {
-        xml: 'parent-transaction-id',
-        json: 'parent-transaction-id',
-        nvp: 'parent_transaction_id'
-    },
-    parent_transaction_id: {
-        xml: 'parent-transaction-id',
-        json: 'parent-transaction-id',
-        nvp: 'parent_transaction_id'
-    },
-    transaction_type: {
-        xml: 'transaction-type',
-        json: 'transaction-type',
-        nvp: 'transaction_type'
-    },
-    merchant_account_id: {
-        xml: 'merchant-account-id',
-        json: 'merchant-account-id',
-        nvp: 'merchant_account_id'
-    }
-};
-
 /**
  * Reads element value from XML or JSON body if found and mapped in ElementNamesMap.
  *
- * @param {string} elementName Name of element whose value is to be returned.
+ * @param {string} elementName Name or path of element whose value is to be returned.
  * @param {string} body Request body in which to look for the element.
  * 
  * @return {string} Value of the element or undefined if not found in ElementNamesMap.
  */
-
-/*
-
-
-create new elementNames Paths in   PMUtil.ElementNamesMap
-check if array. if string, convert to [string] array.
-*/
-
 PMUtil.readElementFromBody = function (elementName, body) {
-    const getElementByPath = function (e, obj, prefix='payment') {
-       e.unshift(prefix);
-       return e.reduce((x, i) => (x && x[i]) ? x[i] : undefined, obj);
+    const getElementByPath = function (e, obj) {
+        return e.reduce((x, i) => (x && x[i]) ? x[i] : undefined, obj);
     }
     var elementValue = undefined;
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
         case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, {});
+            var obj = xmlparser.parse(body, { ignoreAttributes: false });
             var e = PMUtil.ElementNamesMap[elementName].xml;
             e = Array.isArray(e) ? e : [e];
             elementValue = getElementByPath(e, obj);
@@ -354,63 +377,6 @@ PMUtil.readElementFromBody = function (elementName, body) {
     }
     return elementValue;
 };
-/*
-PMUtil.readElementFromBody = function (elementName, body) {
-    var elementValue = undefined;
-    const contentType = PMUtil.getContentType(body);
-    var e = undefined;
-    switch (contentType) {
-        case MIMETYPE_XML:
-            try {
-                e = PMUtil.ElementNamesMap[elementName].xml;
-            }
-            catch (err) {
-                console.log('XML element ' + elementName + ' not found in ElementNamesMap');
-                console.log(PMUtil.ElementNamesMap);
-                return elementValue;
-            }
-            var obj = xmlparser.parse(body, {});
-            if (typeof obj.payment[e] !== 'undefined') {
-                elementValue = obj.payment[e];
-            }
-            break;
-        case MIMETYPE_JSON:
-            try {
-                e = PMUtil.ElementNamesMap[elementName].json;
-            }
-            catch (err) {
-                console.log('JSON element ' + elementName + ' not found in ElementNamesMap');
-                console.log(PMUtil.ElementNamesMap);
-                return elementValue;
-            }
-            var obj = JSON.parse(body);
-            if (typeof obj.payment[e] !== 'undefined') {
-                elementValue = obj.payment[e];
-            }
-            break;
-        case MIMETYPE_NVP:
-            try {
-                e = PMUtil.ElementNamesMap[elementName].nvp;
-            }
-            catch (err) {
-                console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
-                console.log(PMUtil.ElementNamesMap);
-                return elementValue;
-            }
-            var obj = new URLSearchParams(body);
-            if (obj.get(e) !== null) {
-                elementValue = obj.get(e);
-            }
-            break;
-        default:
-            console.log('in readElement: ' + elementName + ' + unknown content type');
-            break;
-    }
-    return elementValue;
-};
-*/
-
-
 
 /**
  * Get the Payment Method of a transaction's Parent Transaction.
@@ -423,12 +389,13 @@ PMUtil.readElementFromBody = function (elementName, body) {
  * @return {string} The Payment Method of the parent of the request.
  */
 PMUtil.getParentPaymentMethod = function (body) {
-    const pid = PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
-    console.log('looking for pid: ' + pid);
+    const pid = PMUtil.getParentTransactionID(body);
+    console.log('looking for pid: ' + pid + ' in RequestsIndex');
     for (paymentMethod in PMUtil.RequestsIndex) {
         const pm = PMUtil.RequestsIndex[paymentMethod];
         for (transactionType in pm) {
             if (pm[transactionType].transaction_id === pid) {
+                console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
                 return paymentMethod;
             }
         }
@@ -437,86 +404,23 @@ PMUtil.getParentPaymentMethod = function (body) {
 };
 
 /**
- * Reads the Secondary Payment Method of a given request or response body.
- * 
- * Some have "creditcard" as payment method but are e.g. Google Pay.
- * For these cases the cryptogram value is returned.
- *
- * @param {string} body The request/response body sent or received by Postman.
- * 
- * @return {string} cryptogram-type, e.g. 'google-pay' or undefined
- */
-PMUtil.readSecondaryPaymentMethod = function (body) {
-    var secondaryPaymentMethod = undefined;
-    const contentType = PMUtil.getContentType(body);
-    switch (contentType) {
-        case MIMETYPE_XML:
-            try {
-                var obj = xmlparser.parse(body, { ignoreAttributes: false });
-                secondaryPaymentMethod = obj.payment['cryptogram'][PMUtil.ElementNamesMap[ELEMENT_CRYPTOGRAM_TYPE].xml];
-            }
-            catch (e) { }
-            break;
-        case MIMETYPE_JSON:
-            try {
-                var obj = JSON.parse(body);
-                secondaryPaymentMethod = obj.payment['cryptogram'][PMUtil.ElementNamesMap[ELEMENT_CRYPTOGRAM_TYPE].json];
-            }
-            catch (e) { }
-            break;
-        case MIMETYPE_NVP:
-            secondaryPaymentMethod = new URLSearchParams(body).get(PMUtil.ElementNamesMap[ELEMENT_CRYPTOGRAM_TYPE].nvp);
-            // get returns null if not found. we want undefined.
-            secondaryPaymentMethod = (secondaryPaymentMethod == null) ? undefined : secondaryPaymentMethod;
-            break;
-        default:
-            console.log('readSecondaryPaymentMethod: unknown content-type ' + contentType);
-            console.log(body);
-            break;
-    }
-    if (secondaryPaymentMethod !== undefined) {
-        console.log(body);
-        console.log('cryptogram-type found: ' + secondaryPaymentMethod);
-    }
-    return secondaryPaymentMethod;
-};
-
-/**
  * Reads the Payment Method of a given request or response body.
+ * 
+ * KEEP THIS! needed because of getSecondaryPaymentMethod inside it
  * 
  * @param {string} body The request/response body sent or received by Postman.
  * 
  * @return {string} The Payment Method of the request/response sample.
  */
 PMUtil.readPaymentMethod = function (body) {
-    var secondaryPaymentMethod = PMUtil.readSecondaryPaymentMethod(body);
+    const secondaryPaymentMethod = PMUtil.getSecondaryPaymentMethod(body);
     if (secondaryPaymentMethod !== undefined) {
         // returns 'google-pay', we can skip and return the found 2ndary pm
         return secondaryPaymentMethod;
     }
-    var paymentMethod;
-    const contentType = PMUtil.getContentType(body);
-    switch (contentType) {
-        case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, { ignoreAttributes: false });
-            try {
-                paymentMethod = obj.payment['payment-methods']['payment-method']['@_name'];
-            }
-            catch (err) {
-                paymentMethod = PMUtil.getParentPaymentMethod(body);
-            }
-            break;
-        case MIMETYPE_JSON:
-            var obj = JSON.parse(body);
-            paymentMethod = obj.payment['payment-methods']['payment-method'][0]['name'];
-            break;
-        case MIMETYPE_NVP:
-            paymentMethod = new URLSearchParams(body).get('payment_method');
-            break;
-        default:
-            console.log('readPaymentMethod: unknown content-type ' + contentType);
-            console.log(body);
-            break;
+    paymentMethod = PMUtil.getPaymentMethod(body);
+    if (paymentMethod === undefined) {
+        paymentMethod = PMUtil.getParentPaymentMethod(body);
     }
     return paymentMethod;
 };
@@ -552,14 +456,6 @@ PMUtil.bodyInjectElementValue = function (requestBody, elementName, elementValue
     return body;
 };
 
-PMUtil.getName = function (body) {
-    // TODO TODO TODO. is this still necessary? or use readTransactionType instead
-    // try: search&replace PMUtil.getName with PMUtil.readTransactionType
-    const paymentMethod = ''; // do not use getPaymentMethod because recursion...
-    const transactionType = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body);
-    return paymentMethod + transactionType;
-};
-
 /**
  * Determines the Content Type of a given request/response body.
  *
@@ -572,31 +468,19 @@ PMUtil.getName = function (body) {
  * @return {string} contentType
  */
 PMUtil.getContentType = function (body, type = 'full') {
-    const ContentTypeShort = {
-        [MIMETYPE_XML]: 'xml',
-        [MIMETYPE_JSON]: 'json',
-        [MIMETYPE_NVP]: 'nvp',
-        [MIMETYPE_HTML]: 'html'
-    };
-
-    var isJSON = (body) => {
+    const isJSON = (body) => {
         try { JSON.parse(body); } catch (e) { return false; }
         return true;
     };
-    var isNVP = (body) => {
-        if (new URLSearchParams(body).get('request_id') !== null) {
-            return true;
-        }
-        else {
-            return false;
-        }
+    const isNVP = (body) => {
+        return (new URLSearchParams(body).get('request_id') !== null) ? true : false;
     };
 
-    var isXML = (body) => {
+    const isXML = (body) => {
         return (xmlparser.validate(body) === true);
     };
 
-    var isHTML = (body) => {
+    const isHTML = (body) => {
         if (xmlparser.validate(body) === true) {
             var htmlObj = xmlparser.parse(body, { ignoreAttributes: false });
             return (htmlObj.html !== undefined);
@@ -604,11 +488,12 @@ PMUtil.getContentType = function (body, type = 'full') {
         return false;
     };
 
-    if (isXML(body) === true) {
-        contentType = MIMETYPE_XML;
-    }
+    // check HTML first, because HTML can be parsed as XML
     if (isHTML(body) === true) {
         contentType = MIMETYPE_HTML;
+    }
+    else if (isXML(body) === true) {
+        contentType = MIMETYPE_XML;
     }
     else if (isJSON(body) === true) {
         contentType = MIMETYPE_JSON;
@@ -618,36 +503,14 @@ PMUtil.getContentType = function (body, type = 'full') {
     }
 
     if (type == 'short') {
-        return ContentTypeShort[contentType];
+        return PMUtil.ContentTypeShort[contentType];
     } else {
         return contentType;
     }
 };
 
-// obsolete?
-PMUtil.getTransactionStatus = function (body) {
-    const contentType = PMUtil.getContentType(body);
-    switch (contentType) {
-        case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, { ignoreAttributes: false });
-            break;
-        case MIMETYPE_JSON:
-            var obj = JSON.parse(body);
-            break;
-        default:
-            var obj = new URLSearchParams(body);
-            break;
-    }
-    return {
-        status_codes: obj['statuses'],
-        state: obj['transaction-state']
-    };
-};
-
-// rewrite for 401 unauthorized html responses
 PMUtil.transactionHasFailed = function (body) {
-    const TransactionStatus = PMUtil.getTransactionStatus(body);
-    return (TransactionStatus['transaction-state'] !== TRANSACTIONCODE_SUCCESS)
+    // write anew. not in use yet.
 };
 
 // from https://gist.github.com/sente/1083506/d2834134cd070dbcc08bf42ee27dabb746a1c54d#gistcomment-2254622
@@ -676,11 +539,6 @@ PMUtil.formatJSON = function (jsonString) {
     return JSON.stringify(JSON.parse(jsonString), null, 2);
 };
 
-var postmanCollectionFile = '00DOC.postman_collection.json';
-if (argv['file'] !== undefined) postmanCollectionFile = argv['file'];
-
-var RequestResponseIndex = {};
-
 newman.run({
     collection: postmanCollectionFile,
     environment: {
@@ -692,29 +550,30 @@ newman.run({
     // placeholder. not necessary for now.
 }).on('request', function (err, args) {
     const item = args.item;
-    const requestMethod = item.request.method;
-    const requestBodySource = item.request.body.raw; // body including unresolved {{variables}}
-    const requestBodyFinal = args.request.body.raw;  // body that's actually sent with variables replaced
+    const requestSource = item.request;
+    const requestSent = args.request;
+    const requestMethod = requestSource.method;
+    const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
+    const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
     const responseBody = PMUtil.formatResponse(args.response.stream.toString());
     const responseCodeHTTP = args.response.code;
     const responseOfEngine = PMUtil.readEngineResponse(responseBody);
-    const requestContentType = PMUtil.getContentType(requestBodyFinal);
-    const requestContentTypeShort = PMUtil.getContentType(requestBodyFinal, 'short');
-    const paymentMethod = PMUtil.readPaymentMethod(requestBodyFinal);
-    const transactionType = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, requestBodyFinal);
-    const parentTransactionID = PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, requestBodyFinal);
-    const merchantAccountID = PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, requestBodyFinal);
-    const requestName = PMUtil.getName(requestBodyFinal);
-    const requestEndpoint = 'https://' + args.request.url.host.join('.') + '/' + args.request.url.path.join('/');
-    const requestUsername = PMUtil.getAuth(args.request).username;
-    const requestPassword = PMUtil.getAuth(args.request).password;
-    const acceptHeader = PMUtil.getAcceptHeader(item.request);
+    const requestContentType = PMUtil.getContentType(requestBodySent);
+    const requestContentTypeShort = PMUtil.getContentType(requestBodySent, 'short');
+    const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
+    const transactionType = PMUtil.getTransactionType(requestBodySent);
+    const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
+    const merchantAccountID = PMUtil.getMerchantAccountID(requestBodySent);
+    const requestEndpoint = 'https://' + requestSent.url.host.join('.') + '/' + requestSent.url.path.join('/');
+    const requestUsername = PMUtil.getAuth(requestSent).username;
+    const requestPassword = PMUtil.getAuth(requestSent).password;
+    const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
     var responseContentType;
     var transactionID;
     if (responseCodeHTTP < 400) { // else there is no response element parsing possible
         responseContentType = PMUtil.getContentType(responseBody);
-        transactionID = PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, responseBody);
+        transactionID = PMUtil.getTransactionID(responseBody);
     }
 
     if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
@@ -731,12 +590,12 @@ newman.run({
     * Contains all necessary information to create the .adoc table and blocks.
     */
     const info = {
-        request_name: requestName,
         payment_method: paymentMethod,
         transaction_type: transactionType,
+        merchant_account_id: merchantAccountID,
         request: {
             body_source: requestBodySource,
-            body_final: requestBodyFinal,
+            body_final: requestBodySent,
             content_type: requestContentType,
             method: requestMethod,
             endpoint: requestEndpoint,
@@ -753,17 +612,16 @@ newman.run({
     }
 
     //this global thing will replace local const info. remove const info later.
-    if (typeof RequestResponseIndex[paymentMethod] === 'undefined') {
-        RequestResponseIndex[paymentMethod] = []; // array for sort order
+    if (typeof PMUtil.RequestResponseIndex[paymentMethod] === 'undefined') {
+        PMUtil.RequestResponseIndex[paymentMethod] = []; // array for sort order
     }
-    // RequestResponseIndex['paypal']['debit']['xml']
-    RequestResponseIndex[paymentMethod].push({
+    PMUtil.RequestResponseIndex[paymentMethod].push({
         [transactionType]: {
             [requestContentTypeShort]: {
                 request: {
                     content_type: requestContentType,
                     body_source: requestBodySource,
-                    body_final: requestBodyFinal,
+                    body_final: requestBodySent,
                     method: requestMethod,
                     endpoint: requestEndpoint,
                     username: requestUsername,
@@ -785,14 +643,14 @@ newman.run({
 
     // TODO TODO TODO: decide on status code wether to write samples or not.
     // TODO TODO TODO: slack notifications...
-    writeAdoc(info);
+    PMUtil.writeAdoc(info);
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
     }
     else {
         console.log('collection run completed.');
-        //console.log(JSON.stringify(RequestResponseIndex, null, 2));
-        //console.log(RequestResponseIndex);
+        //console.log(JSON.stringify(PMUtil.RequestResponseIndex, null, 2));
+        //console.log(PMUtil.RequestResponseIndex);
     }
 });
