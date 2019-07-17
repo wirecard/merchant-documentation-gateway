@@ -83,11 +83,182 @@ An _authorization_ transaction performs a creditworthiness check at the moment
 when the consumer makes an order. All order items must be listed for the shopping
 basket. The authorization amount must match the value of the items in the basket.
 
-////
 For a successful _authorization_ transaction:
 
-. Create a payment session (initial request).
+. Create an authorization session (initial authorization request).
 . Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
 
-////
+//-
+
+<<PPv2_GuaranteedDirectDebit_TestCredentials, Endpoint>> for
+_Guaranteed Direct Debit_ payments.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+_Guaranteed Direct Debit_ payment form.
+
+.Request Headers
+
+[cols="20,80"]
+|===
+h| Authorization
+| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+h| Content-Type
+| application/json
+|===
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json]
+----
+include::samples/json/PPv2_GuaranteedDirectDebit_TransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="5e,5,5,5,5,45"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned
+to every merchant account (by Wirecard).
+2+| request-id | String | Required | 64 a| A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
+
+Allowed characters:  [a-z0-9-_]
+
+2+| transaction-type | String | Required | n/a a| The requested transaction type, i.e.
+``authorization``.
+
+Available transaction types for _Guaranteed Direct Debit_:
+
+- ``authorization``
+
+//-
+
+.2+| requested-amount  e| value | Numeric | Required | 9.2 a| The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+| currency | String | Required | 3 a| The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+| account-holder e| address.street1 | String | Required | 128 | The first line of the
+street address of the account holder.
+
+| address.state | String | Required | 32 | The state or province of the address of the account holder.
+
+| address.country | Token | Required | 3 | The Country Id of the address of the account holder.
+
+| address.city | String | Required | 32 | The city of the address of the account holder.
+
+| address.postal-code | String | Required | 16 | The postal code or ZIP of the address of the account holder.
+
+| payment-method e| name | String | required | 256 | The name of the payment method
+used for the transaction, i.e. ``Guaranteed Direct Debit_``.
+
+2+|notification-url |String |Optional ||The URL to which Wirecard Payment Gateway
+sends the transaction outcome.
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after a successful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+redirected after a failed payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after having canceled a payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
+|===
+
+
+.2. Redirect the Consumer to the Payment Page (Sample Response URL)
+
+The response to this initial _authorization_ request is the
+``payment-redirect-url``.
+
+.3. Parse and Process the _authorization_ Response (Decoded Payment Response)
+
+[source,json]
+----
+include::samples/json/PPv2_GuaranteedDirectDebit_TransactionTypeAuthorization_DPR.json[]
+----
+
+[cols="10e,10,10,70"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by Wirecard). You receive a unique merchant account ID for
+each payment method.
+2+|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
+of your online shop, e.g. from your CRM system. The parameter must not be a human
+readable email address. However, if an email address is used, you have to hash it
+beforehand.
+2+|transaction-type |String |The requested transaction type, i.e. ``authorization``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent (e.g. the transaction ID of a previous internal get-url).
+|payment-method e|name |String |The name of the payment method
+used for the transaction; in this case, ``Guaranteed Direct Debit``.
+2+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+2+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later. +
+The transaction ID of an authorization is the parent transaction ID of the following
+capture-authorization request.
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
+date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
+.2+|requested-amount  e|value |Numeric |The full amount that was
+requested/contested in the transaction.
+|currency |String a|The currency of the requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+.3+|status e|description |String a|The description of the
+transaction status message.
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String a|Status code of the status message. +
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
+after a successful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+after having cancelled a payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
+after an unsuccessful payment,
+e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
+|===
