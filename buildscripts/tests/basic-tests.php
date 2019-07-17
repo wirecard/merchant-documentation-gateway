@@ -613,7 +613,25 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
     return true;
   }
 
-  $result = exec( "python3 buildscripts/util/post-to-slack.py '".$messageString."'" );
+  $descriptorspec = array(
+      0 => array('pipe', 'r'),  // stdin
+      1 => array('pipe', 'w'),  // stdout
+      2 => array('file', '/tmp/error-output.txt', 'a') // stderr
+  );
+
+  $cwd = exec('pwd');
+  $env = array('SLACK_TOKEN' => getenv( 'SLACK_TOKEN' ));
+  
+  $process = proc_open('python3 buildscripts/util/post-to-slack.py', $descriptorspec, $pipes, $cwd, $env);
+  
+  if (is_resource($process)) {
+      fwrite($pipes[0], $messageString);
+      fclose($pipes[0]);
+  
+      $result = stream_get_contents($pipes[1]);
+      fclose($pipes[1]);
+      $return_value = proc_close($process);
+  }
   return $result;
 }
 
