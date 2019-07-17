@@ -21,7 +21,7 @@ OPERATION_KEYWORDS = "failure success".split()
 TYPE_KEYWORDS = "request response notification".split()
 REPORT_FILE_NAME = "report-rename.json"
 FORBIDDEN_WORDS = "android".split()
-GENERIC_PAYMENT_METHODS = "*:${payment method}".split(":")
+GENERIC_PAYMENT_METHODS = "*:${payment method}:${payment-method}".split(":")
 ERROR_REPORT_FILE_NAME = "errors.json"
 ERRORS = {"errors": [], "noxml": []}
 
