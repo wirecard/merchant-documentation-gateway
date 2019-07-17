@@ -112,7 +112,10 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
     try:
         tree = ET.parse(file_name)
     except ET.ParseError as e:
-        if str(e).startswith("syntax error: line 1, column 0"):
+        content = ""
+        with open(file_name, "r", encoding="utf8") as f:
+            content = f.read()
+        if str(e).startswith("syntax error: line 1, column 0") and not content.startswith("<"):
             # handle mixed files (header and XML information)
             # split them
             raw_header, raw_xml = read_mixed_file(file_name)
@@ -154,25 +157,25 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
             error("    {}".format(e))
             ERRORS["errors"].append({"filename": file_name, "error": str(e)})
             return None
+    except:
+        error("[E] File: {}".format(file_name))
+        error("    {}".format(e))
+        raise
+
 
     root = tree.getroot()
     remove_namespace(root)
 
     payment_method = "generic"
     transaction_type = "unknown"
+    step = ""
     try:
-        payment_method = root.find(
-            'payment-methods').find('payment-method').get('name')
+        step = "payment method"
+        payment_method = root.find('payment-methods/payment-method').get('name')
+        step = "transaction type"
         transaction_type = root.find('transaction-type').text
     except AttributeError as e:
-        warning("[?] No payment-method found for %s" % (file_name))
-        # warning("... %s" % (e))
-        # fails for response, since there is no payment method
-        # skip for now!
-        #
-        # error("[E] File: {}".format(file_name))
-        # error("    no element found: {}".format(e))
-        # print(ET.dump(root))
+        warning("[?] No %s found for %s" % (step, file_name))
         return None
 
     new_base_name = "{}_{}_{}_{}".format(
@@ -182,6 +185,10 @@ def process_file_name(file_name, header_dict=None, dry_run=False):
     ###########################################################################
     # IMPROVE NAMING WITH ADDITIONAL FIELDS
     ###########################################################################
+    cryptogram_type = root.find('cryptogram/cryptogram-type')
+    if cryptogram_type is not None:
+        new_base_name = "%s_%s" % (cryptogram_type.text, new_base_name)
+
     locale = root.find('locale')
     country = root.find('country')
     if locale is not None:
