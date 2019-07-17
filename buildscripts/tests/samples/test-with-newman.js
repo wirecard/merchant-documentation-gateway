@@ -94,7 +94,7 @@ PMUtil.ElementNamesMap = {
     }
 };
 
-PMUtil.ContentTypeShort = {
+PMUtil.ContentTypeAbbr = {
     [MIMETYPE_XML]: 'xml',
     [MIMETYPE_JSON]: 'json',
     [MIMETYPE_NVP]: 'nvp',
@@ -144,13 +144,13 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
  * 
  * @return Nothing.
  */
-PMUtil.writeAdoc = function (info) {
+/*PMUtil.writeAdoc = function (info) {
     const fileExtension = '.adoc';
     const path = 'samples/adoc/';
     const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(info.payment_method);
-    const requestContentTypeShort = PMUtil.getContentType(info.request.body_source, type = 'short');
-    const responseContentTypeShort = PMUtil.getContentType(info.response.body, type = 'short');
-    const filename = info.payment_method + '_' + info.transaction_type + '_' + requestContentTypeShort;
+    const requestContentTypeAbbr = PMUtil.getContentType(info.request.body_source, type = 'short');
+    const responseContentTypeAbbr = PMUtil.getContentType(info.response.body, type = 'short');
+    const filename = info.payment_method + '_' + info.transaction_type + '_' + requestContentTypeAbbr;
     //const curlPayloadString = encodeURIComponent(info.request.body_source.replace('{{$guid}}', PMUtil.uuidv4()));
     //const curlString = "curl -u '" + info.request.username + ":" + info.request.password + "' -H \"" + info.request.content_type + '" -d "' + curlPayloadString + '" ' + info.request.endpoint;
     var statusesAdocTableCells = '';
@@ -167,26 +167,27 @@ PMUtil.writeAdoc = function (info) {
 |===
 2+| API Endpoint
 
-| Method | ` + info.request.method + `
-| URI    | ` + '``\\' + info.request.endpoint + '``' + `
+e| Method | ` + info.request.method + `
+e| URI    | ` + '``\\' + info.request.endpoint + '``' + `
 
 2+h| Header
-| content-type | \`` + info.request.content_type + `\`
-| accept       | \`` + info.request.accept + `\`
+e| Content-type | \`` + info.request.content_type + `\`
+e| Accept       | \`` + info.request.accept + `\`
 
 2+h| Authentication
-| Type     | _HTTP Basic Authentication_
-| Username | \`` + info.request.username + `\`
-| Password | \`` + info.request.password + `\`
+e| Type     | _HTTP Basic Authentication_
+e| Username | \`` + info.request.username + `\`
+e| Password | \`` + info.request.password + `\`
 |===
 
-.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + requestContentTypeShort.toUpperCase() + `)
-[source,` + requestContentTypeShort + `]
+.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + requestContentTypeAbbr.toUpperCase() + `)
+[source,` + requestContentTypeAbbr + `]
 ----
-` + info.request.body_source + `
+` + info.request.body_sent + `
 ----
 
-.Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + responseContentTypeShort.toUpperCase() + `)
+---
+
 [%autowidth, cols="1v,2", stripes="none"]
 |===
 2+| Transaction Results
@@ -194,8 +195,8 @@ PMUtil.writeAdoc = function (info) {
 ` + statusesAdocTableCells + `
 |===
 
-.Response Body
-[source,` + responseContentTypeShort + `]
+.Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + responseContentTypeAbbr.toUpperCase() + `)
+[source,` + responseContentTypeAbbr + `]
 ----
 ` + info.response.body + `
 ----
@@ -207,6 +208,91 @@ PMUtil.writeAdoc = function (info) {
         throw err;
     }
 }
+*/
+
+PMUtil.writeAdocSummary = function (RequestResponseIndex) {
+    const fileExtension = '.adoc';
+    const path = 'samples/adoc/';
+
+    for (var r in RequestResponseIndex) {
+        const paymentMethods = RequestResponseIndex[r];
+        const paymentMethod = r;
+        const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
+        for (var t in paymentMethods) {
+            const transactionTypes = paymentMethods[t];
+            const transactionType = t;
+            const filename = paymentMethod + '_' + transactionType + fileExtension;
+            var fileContent = `
+[.sample-tabs]
+
+== ` + paymentMethodBrandName + `: ` + transactionType;
+
+            for (var c in transactionTypes) {
+                const transaction = transactionTypes[c];
+                var statusesAdocTableCells = '';
+                transaction.response.engine_status.forEach(s => {
+                    statusesAdocTableCells += `| Code        | ` + '``' + s.code + '``' + `
+| Severity    | ` + '``' + s.severity + '``' + `
+| Description | ` + '``' + s.description + '``' + `
+`;
+                });
+                fileContent += `
+[.tab-` + transaction.request.content_type_abbr + `]
+=== ` + transaction.request.content_type_abbr.toUpperCase() + `
+
+[.request-details]
+.Request Details
+[%autowidth, cols="1v,2", stripes="none"]
+|===
+2+| API Endpoint
+
+e| Method | ` + transaction.request.method + `
+e| URI    | ` + '``\\' + transaction.request.endpoint + '``' + `
+
+2+h| Headers
+e| Content-Type | \`` + transaction.request.content_type + `\`
+e| Accept       | \`` + transaction.request.accept + `\`
+
+2+h| Authentication
+e| Type     | HTTP Basic Authentication
+e| Username | \`` + transaction.request.username + `\`
+e| Password | \`` + transaction.request.password + `\`
+|===
+
+.Request ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
+[source,` + transaction.request.content_type_abbr + `]
+----
+` + transaction.request.body_source + `
+----
+
+---
+
+[%autowidth, cols="1v,2", stripes="none"]
+|===
+2+| Transaction Results
+
+` + statusesAdocTableCells + `
+|===
+
+.Response ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.response.content_type_abbr.toUpperCase() + `)
+[source,` + transaction.response.content_type_abbr + `]
+----
+` + transaction.response.body + `
+----
+`;
+
+            }
+            fileContent += "\n";
+            try {
+                fs.writeFileSync(path + filename, fileContent);
+            }
+            catch (err) {
+                throw err;
+            }
+        }
+    }
+}
+
 
 /**
  * Get Accept header from Postman Request item
@@ -523,7 +609,7 @@ PMUtil.getContentType = function (body, type = 'full') {
     }
 
     if (type == 'short') {
-        return PMUtil.ContentTypeShort[contentType];
+        return PMUtil.ContentTypeAbbr[contentType];
     } else {
         return contentType;
     }
@@ -579,7 +665,7 @@ newman.run({
     const responseCodeHTTP = args.response.code;
     const responseOfEngine = PMUtil.readEngineResponse(responseBody);
     const requestContentType = PMUtil.getContentType(requestBodySent);
-    const requestContentTypeShort = PMUtil.getContentType(requestBodySent, 'short');
+    const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, 'short');
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
     const transactionType = PMUtil.getTransactionType(requestBodySent);
     const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
@@ -593,6 +679,7 @@ newman.run({
     var transactionID;
     if (responseCodeHTTP < 400) { // else there is no response element parsing possible
         responseContentType = PMUtil.getContentType(responseBody);
+        responseContentTypeAbbr = PMUtil.getContentType(responseBody, 'short');
         transactionID = PMUtil.getTransactionID(responseBody);
     }
 
@@ -615,7 +702,7 @@ newman.run({
         merchant_account_id: merchantAccountID,
         request: {
             body_source: requestBodySource,
-            body_final: requestBodySent,
+            body_sent: requestBodySent,
             content_type: requestContentType,
             method: requestMethod,
             endpoint: requestEndpoint,
@@ -633,37 +720,41 @@ newman.run({
 
     //this global thing will replace local const info. remove const info later.
     if (typeof PMUtil.RequestResponseIndex[paymentMethod] === 'undefined') {
-        PMUtil.RequestResponseIndex[paymentMethod] = []; // array for sort order
+        PMUtil.RequestResponseIndex[paymentMethod] = {}; // array for sort order
     }
-    PMUtil.RequestResponseIndex[paymentMethod].push({
-        [transactionType]: {
-            [requestContentTypeShort]: {
-                request: {
-                    content_type: requestContentType,
-                    body_source: requestBodySource,
-                    body_final: requestBodySent,
-                    method: requestMethod,
-                    endpoint: requestEndpoint,
-                    username: requestUsername,
-                    password: requestPassword,
-                    accept: acceptHeader
-                },
-                response: {
-                    content_type: responseContentType,
-                    body: responseBody,
-                    http_status_code: responseCodeHTTP,
-                    engine_status: responseOfEngine
-                },
-                transaction_id: transactionID,
-                parent_transaction_id: parentTransactionID,
-                success: true //TODO simple true/false for success. decide elsewhere which it is
-            }
+    if (typeof PMUtil.RequestResponseIndex[paymentMethod][transactionType] === 'undefined') {
+        PMUtil.RequestResponseIndex[paymentMethod][transactionType] = {};
+    }
+    Object.assign(PMUtil.RequestResponseIndex[paymentMethod][transactionType], {
+        [requestContentTypeAbbr]: {
+            request: {
+                content_type: requestContentType,
+                content_type_abbr: requestContentTypeAbbr,
+                body_source: requestBodySource,
+                body_sent: requestBodySent,
+                method: requestMethod,
+                endpoint: requestEndpoint,
+                username: requestUsername,
+                password: requestPassword,
+                accept: acceptHeader
+            },
+            response: {
+                content_type: responseContentType,
+                content_type_abbr: responseContentTypeAbbr,
+                body: responseBody,
+                http_status_code: responseCodeHTTP,
+                engine_status: responseOfEngine
+            },
+            transaction_id: transactionID,
+            parent_transaction_id: parentTransactionID,
+            success: true //TODO simple true/false for success. decide elsewhere which it is
         }
+
     });
 
     // TODO TODO TODO: decide on status code wether to write samples or not.
     // TODO TODO TODO: slack notifications...
-    PMUtil.writeAdoc(info);
+    //PMUtil.writeAdoc(info);
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
@@ -673,4 +764,7 @@ newman.run({
         //console.log(JSON.stringify(PMUtil.RequestResponseIndex, null, 2));
         //console.log(PMUtil.RequestResponseIndex);
     }
+    console.log('writing adoc file');
+    //console.log(PMUtil.RequestResponseIndex['creditcard']);
+    PMUtil.writeAdocSummary(PMUtil.RequestResponseIndex);
 });
