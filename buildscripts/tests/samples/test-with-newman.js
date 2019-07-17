@@ -153,6 +153,13 @@ PMUtil.writeAdoc = function (info) {
     const filename = info.payment_method + '_' + info.transaction_type + '_' + requestContentTypeShort;
     //const curlPayloadString = encodeURIComponent(info.request.body_source.replace('{{$guid}}', PMUtil.uuidv4()));
     //const curlString = "curl -u '" + info.request.username + ":" + info.request.password + "' -H \"" + info.request.content_type + '" -d "' + curlPayloadString + '" ' + info.request.endpoint;
+    var statusesAdocTableCells = '';
+    info.response.engine_status.forEach(s => {
+        statusesAdocTableCells += `| Code        | ` + '``' + s.code + '``' + `
+| Severity    | ` + '``' + s.severity + '``' + `
+| Description | ` + '``' + s.description + '``' + `
+`;
+    });
     const fileContent = `
 [.request-details]
 .Request Details
@@ -163,7 +170,7 @@ PMUtil.writeAdoc = function (info) {
 | Method | ` + info.request.method + `
 | URI    | ` + '``\\' + info.request.endpoint + '``' + `
 
-2+| Header
+2+h| Header
 | content-type | \`` + info.request.content_type + `\`
 | accept       | \`` + info.request.accept + `\`
 
@@ -180,6 +187,14 @@ PMUtil.writeAdoc = function (info) {
 ----
 
 .Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + responseContentTypeShort.toUpperCase() + `)
+[%autowidth, cols="1v,2", stripes="none"]
+|===
+2+| Transaction Results
+
+` + statusesAdocTableCells + `
+|===
+
+.Response Body
 [source,` + responseContentTypeShort + `]
 ----
 ` + info.response.body + `
@@ -226,7 +241,7 @@ PMUtil.formatResponse = function (body) {
 };
 
 /**
- * Get username and password of basic authentication.
+ * Gets username and password of basic authentication headers.
  * 
  * Returns Object with undefined members if not auth available instead of failing.
  *
@@ -247,57 +262,62 @@ PMUtil.getAuth = function (request) {
 /**
  * Reads the API engine response status code, description and severity from response body.
  *
- * Maps the parsed XML to an object and returns the object (to be used )
- *
- * @param {string} pm String that is found in the request or response body indicating the Payment Method.
+ * @param {string} body Response body received from the API.
  * 
- * @return {string} Brand name of the Payment Method if available or pm input if not.
+ * @return {Array} Array of Objects containing each status code, severity and description.
  */
 PMUtil.readEngineResponse = function (body) {
-    var Response = {};
+    var statusResponse = [];
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
         case MIMETYPE_HTML:
             try {
                 var obj = xmlparser.parse(body, {});
-                Response = {
+                statusResponse = [{
                     code: parseInt(obj.html.head.title.replace(/([0-9]+)\ .*/, '$1')),
                     description: obj.html.head.title.replace(/([0-9]+)\ (.*)/, '$2'),
                     severity: 'error'
-                };
+                }];
             }
             catch (e) {
                 console.log(body)
                 console.log('readEngineResponse failed.')
                 console.log(e);
                 console.log(obj);
-                console.log(Response);
+                console.log(statusResponse);
             }
             break;
         case MIMETYPE_XML:
             try {
                 var obj = xmlparser.parse(body, { ignoreAttributes: false });
-                Response = {
-                    code: obj.payment.statuses.status['@_code'],
-                    description: obj.payment.statuses.status['@_description'],
-                    severity: obj.payment.statuses.status['@_severity']
-                };
+                statusResponse = [];
+                var statuses = obj.payment.statuses.status;
+                statuses = Array.isArray(statuses) ? statuses : [statuses];
+                statuses.forEach(status => {
+                    statusResponse.push({
+                        code: status['@_code'],
+                        description: status['@_description'],
+                        severity: status['@_severity']
+                    });
+                });
             }
             catch (e) {
                 console.log('isXML');
-                console.log(body)
+                //console.log(body)
                 console.log('readEngineResponse failed.')
-                console.log(obj);
+                console.log(obj.payment.statuses);
             }
             break;
         case MIMETYPE_JSON:
             try {
                 var obj = JSON.parse(body);
-                Response = {
-                    code: obj.payment.statuses.status[0].code,
-                    description: obj.payment.statuses.status[0].description,
-                    severity: obj.payment.statuses.status[0].severity
-                };
+                obj.payment.statuses.status.forEach(status => {
+                    statusResponse.push({
+                        code: status.code,
+                        description: status.description,
+                        severity: status.severity
+                    });
+                });
             }
             catch (e) {
                 console.log(body)
@@ -314,7 +334,7 @@ PMUtil.readEngineResponse = function (body) {
             console.log('in readEngineResponse: unknown content type');
             break;
     }
-    return Response;
+    return statusResponse;
 };
 
 /**
