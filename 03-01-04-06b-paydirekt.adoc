@@ -12,24 +12,48 @@ include::include/ppv2-general-information.adoc[]
 
 image::images/03-01-04-06b-paydirekt/paydirekt-logo.png[paydirekt logo, 200]
 
-_paydirekt_ is a payment method offered by Germany’s private banks and
-local cooperative banks. The online payment system is an initiative of
-several major banks in Germany. _paydirekt_ is integrated into the
+_paydirekt_ is a payment method offered by Germany’s private banks and
+local cooperative banks. _paydirekt_ is integrated into the
 systems of the participating banks and follows the strict requirements
-from the German banking industry. A major benefit for the merchants is
-that the payment solution is made in Germany. Consumers may be more
-receptive towards a local payment method rather than a foreign player.
-It offers an immediate payment guarantee, a simple interface, easy
-connection via payment service providers and standard plugins as well as
-a high transaction security, age verification, and consumer
-authentication.
+of the German banking industry. 
+It offers an immediate payment guarantee, a simple interface, as well as
+high transaction security.
 
-[#PPv2_paydirekt_PaymentModeCountriesandCurrencies]
-===== Payment Mode, Countries and Currencies 
+[#PPv2_paydirekt_TestCredentials]
+====== Test Credentials
 
-This table illustrates which payment mode _paydirekt_ belongs to. It
-also provides detailed information about the countries and currencies
-which are relevant for _paydirekt._
+[cols="35h,65"]
+|===
+| URLs (Endpoints) 
+| ``\https://{pp-test-endpoint}``
+
+| Merchant Account ID (MAID) 
+| c7f465c6-7982-4a58-a878-66265e75db50
+
+| Username                   
+| 16390-testing
+
+| Password                   
+| 3!3013=D3fD8X7
+
+| Secret Key                 
+| 30520cf9-8f5b-4b0b-9430-58a1223b79dc
+|===
+
+[#paydirekt_AdditionalTestCredentials]
+.Test Credentials for the _paydirekt_ Environment
+
+[%autowidth,cols="h,"]
+|===
+| login    | WirecardPDExpress2
+| password | WirecardPDExpress22$
+|===
+
+[#PPv2_paydirekt_Countries]
+===== Countries and Currencies 
+
+This table show the  _paydirekt_ payment mode, and the countries and currencies
+which are relevant for _paydirekt._
 
 [cols="h,"]
 |===
@@ -38,68 +62,44 @@ which are relevant for _paydirekt._
 | Currencies   | Euro
 |===
 
-[#PPv2_paydirekt_CommunicationFormats]
-===== Communication Formats
-
-This table illustrates how _paydirekt_ notifications are encoded and
-which formats and methods can be used for requests and responses.
-
-[%autowidth]
-|===
-.2+h| Requests/Responses | Format   | JSON
-                         | Methods  | POST
-|===
-
-[#PPv2_paydirekt_TestCredentials]
-====== Test Credentials
-
-|===
-h| URLs (Endpoints) | ``\https://wpp-test.wirecard.com/api/payment/register``
-h| Merchant Account ID (MAID) | c7f465c6-7982-4a58-a878-66265e75db50
-h| Username                   | 16390-testing
-h| Password                   | 3!3013=D3fD8X7
-h| Secret Key                 | 30520cf9-8f5b-4b0b-9430-58a1223b79dc
-|===
-
-[#paydirekt_AdditionalTestCredentials]
-.On _paydirekt_ Environment
-
-[%autowidth,cols="h,"]
-|===
-| login    | WirecardPDExpress2
-| password | WirecardPDExpress22$
-|===
-
 [#PPv2_paydirekt_TransactionTypes]
 ===== Transaction Types
 
-With _paydirect_ you can send <<PPv2_paydirekt_TransactionType_authorization, _authorization_>> and <<PPv2_paydirekt_TransactionType_debit, _debit_>>.
+With _paydirect_ you can select <<PPv2_paydirekt_TransactionType_debitauth, _authorization_>> and <<PPv2_paydirekt_TransactionType_debit, _debit_>>.
 
-[#PPv2_paydirekt_TransactionType_authorization]
-====== Transaction Type _authorization_
+A _debit_ charges the specified amount from the account holder’s bank account and marks it for immediate transfer.
 
-An _authorization_ transaction reserves funds from the cardholder’s account. Typically, the limit ranges from three to thirty days to conduct a follow up transaction (e.g. _capture-authorization_), depending on the acquirer.
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer.
 
-////
+For a successful transaction:
 
-The description of transaction types is also a good example for an "include" file. We must find a description that fits all the APMs and save it in the "include" folder.
-Then we can refer to it from every APM.
+. Create a payment session (initial request).
 
-////
+. Redirect the consumer to the payment page (initial response URL).
 
-For a successful _authorization_ transaction:
+. Highly recommended: Parse and process the payment response.
 
-include::include/ppv2-intro-test-payment.adoc[]
+[#PPv2_paydirekt_Samples]
+====== Sample Workflow
 
-.Optional fields
+We provide JSON examples for each step of this process. You can find them below.
 
-For a full list of optional fields you can use, see the REST API
-<<paydirekt, _paydirekt_ specification>>.
+.Request Headers
+[cols="20h,80"]
+|===
+|Authorization
+|"Authorization"="Basic" + base64 (“username:password”). Use username and password as given in your Wirecard contract to base64-encode the authorization.
+|Content-Type
+|application/json
+|===
 
-For a full structure of a request (optional fields included), see the
-<<PPv2_paydirekt_JSON_NVPFields, JSON/NVP Field Reference>> section at the bottom.
+[#PPv2_paydirekt_Samples_debitauth]
+====== _authorization_ and _debit_ Sample
 
+[#PPv2_paydirekt_Samples_debitauth_Create]
 .1. Create a Payment Session (Initial Request)
+
+You can use the following sample for either transaction type. Please enter the desired value (``debit`` or ``authorization``) for ``transaction-type``.
 
 [source,json]
 ----
@@ -114,16 +114,16 @@ For a full structure of a request (optional fields included), see the
             "currency": "EUR"
         },
         "account-holder": {
-            "first-name": "John",
-            "last-name": "Doe"
+            "first-name": "Paul",
+            "last-name": "Peterson"
         },
         "order-number": "180606120514730",
-        "transaction-type": "authorization",
+        "transaction-type": "authorization", //or "debit"
         "shipping": {
-            "first-name": "John",
-            "last-name": "Doe",
+            "first-name": "Paul",
+            "last-name": "Peterson",
             "address": {
-                "street1": "Mullerstraße 16",
+                "street1": "Muellerstraße 16",
                 "city": "Berlin",
                 "country": "DE",
                 "postal-code": "00010"
@@ -143,42 +143,126 @@ For a full structure of a request (optional fields included), see the
 }
 ----
 
-[cols="15e,5,5,10,10,5,50"]
+[cols="15,5,5,10,10,5,50"]
 |===
 3+| Field (JSON) | Data Type | Required/Optional | Size | Description
 
-2+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned to every merchant account (by Wirecard).
-3+| request-id                | String | Required | 36 | A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing it later. ``{{$guid}}`` serves as a
-placeholder for a random ``request-id``.
+2+|merchant-account-id 
+|value 
+|String 
+|Required 
+|36 
+|A unique identifier assigned to every merchant account (by Wirecard).
 
-Allowed characters:  [a-z0-9-_]
-2.2+| requested-amount e| value | Decimal | Required | 7,2 | The full amount that is requested/contested in a transaction. The amount of the decimal place is dependent of the currency. Minimum is 0.01. Maximum is 50000.
+3+|request-id                
+|String 
+|Required 
+|36 
+|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random ``request-id``. +
+Allowed characters: `[a-z0-9-_ ]`
 
-Use . (decimal point) as the separator.
+2.2+| requested-amount 
+|value
+|Decimal 
+|Required 
+|7,2 
+|The full amount that is requested/contested in a transaction. The amount of the decimal place is dependent of the currency. Minimum is ``0.01``. Maximum is ``50000``. Use ``.`` (decimal point) as the separator.
 
-                       | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For _paydirekt_
-                         payments, the currency must be set to ``EUR``.
-
+|currency 
+|String 
+|Required 
+|3 
+|The currency of the requested/contested transaction amount. For _paydirekt_ payments, the currency must be set to ``EUR``.
 Format: 3-character abbreviation according to ISO 4217.
-2.2+|account-holder e|first-name |String | Optional | 32 |The first name of the account holder.
-| last-name |String | Required | 32 |The last name of the account holder.
-3+| order-number | String | Required | 20 | The order number provided by the merchant.
-3+| transaction-type | String | Required | 22 | The requested transaction type. For _paydirekt_ payments, the
-transaction-type must be set to ``authorization``.
-.6+| shipping 2+| first-name | String | Required | 32 | The first name of the shipping address.
-2+| last-name | String | Required  | 32 | The last name of the shipping address.
-.4+| address| street 1| String | Required  | 70 | The first line of the shipping address.
-| city | String | Required  | 32 | The city of the shipping address.
-| country |String | Required  | 3 | The ``country-id `` of the shipping address.
-| postal-code | String | Required | 16 | The postal code or ZIP of the shipping address.
-| payment-methods | payment-method      e| name     | String | Required | 9 | The name of the payment method used. Set this value to ``paydirekt``.
-3+| success-redirect-url         | String | Required | 2000 a| The URL to which the consumer is redirected after a successful payment,
-e.g. ``\https://{pp-redirect-url-success}``
-3+| cancel-redirect-url          | String | Required | 2000 a| The URL to which the consumer is redirected after having canceled a payment,
-e.g. ``\https://{pp-redirect-url-cancel}``
-3+| fail-redirect-url            | String | Required | 2000 a| The URL to which the consumer is redirected after a failed payment,
-e.g. ``\https://{pp-redirect-url-error}``
+
+2.2+|account-holder 
+|first-name 
+|String 
+|Optional 
+|32 
+|The first name of the account holder.
+
+|last-name 
+|String 
+|Required 
+|32 
+|The last name of the account holder.
+
+3+|order-number 
+|String 
+|Required 
+|20 
+|The order number provided by the merchant.
+
+3+|transaction-type 
+|String 
+|Required 
+|22 
+|The requested transaction type. For _paydirekt_ payments, the transaction-type is either ``authorization`` and ``debit``.
+
+.6+|shipping 
+2+|first-name 
+|String 
+|Required 
+|32 
+|The first name of the shipping address.
+
+2+|last-name 
+|String 
+|Required  
+|32 
+|The last name of the shipping address.
+
+.4+|address
+|street 1
+|String 
+|Required  
+|70 
+|The first line of the shipping address.
+
+|city 
+|String 
+|Required  
+|32 
+|The city of the shipping address.
+
+|country 
+|String 
+|Required  
+|3 
+|The ``country-id `` of the shipping address.
+
+|postal-code 
+|String 
+|Required 
+|16 
+|The postal code or ZIP of the shipping address.
+
+|payment-methods 
+|payment-method      
+|name     
+|String 
+|Required 
+|9 
+|The name of the payment method used. Set this value to ``paydirekt``.
+
+3+| success-redirect-url         
+|String 
+|Required 
+|2000 
+|The URL to which the consumer is redirected after a successful payment, e.g. ``\https://{pp-redirect-url-success}``
+
+3+|cancel-redirect-url          
+|String 
+|Required 
+|2000 
+| The URL to which the consumer is redirected after having canceled a payment, e.g. ``\https://{pp-redirect-url-cancel}``
+
+3+|fail-redirect-url            
+|String 
+|Required 
+|2000 
+|The URL to which the consumer is redirected after a failed payment, e.g. ``\https://{pp-redirect-url-error}``
 |===
 
 .2. Redirect the Consumer to the Payment Page (Initial Response URL)
@@ -193,10 +277,11 @@ https://wpp-test.wirecard.com/processing?wPaymentToken=5H6lRQ4Us94_JHe6lmHMCUHIt
 
 [cols="15e,10,75"]
 |===
-| Field (JSON) | Data Type | Description
+|Field (JSON) |Data Type | Description
 
-| payment-redirect-url | String | The URL which redirects to the payment
-form. Sent as a response to the initial request.
+|payment-redirect-url 
+|String 
+|The URL which redirects to the payment form. Sent as a response to the initial request.
 |===
 
 include::include/ppv2-redirect-instructions.adoc[]
@@ -206,69 +291,84 @@ include::include/ppv2-redirect-instructions.adoc[]
 [source,json]
 ----
 {
-  "payment" : {
-    "order-number" : "180606120514730",
-    "transaction-id" : "d3a74b61-e27d-4617-87db-fc555aeb006f",
-    "request-id" : "b8e047fb-8172-4027-b097-da4b3989fd67",
-    "transaction-type" : "authorization",
-    "transaction-state" : "success",
-    "completion-time-stamp" : "2019-07-05T10:51:13",
-    "requested-amount" : {
-      "currency" : "EUR",
-      "value" : 1.010000
-    },
-    "statuses" : {
-      "status" : [ {
-        "description" : "The resource was successfully created.",
-        "severity" : "information",
-        "code" : "201.0000"
-      } ]
-    },
-    "parent-transaction-id" : "c6d4ba4b-057f-47a6-8ec0-bdedea86a639",
-    "success-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/success",
-    "merchant-account-id" : {
-      "value" : "c7f465c6-7982-4a58-a878-66265e75db50"
-    },
-    "cancel-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/cancel",
-    "fail-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/fail",
-    "account-holder" : {
-      "account-info" : { },
-      "last-name" : "Dao",
-      "first-name" : "John"
-    },
-    "payment-methods" : {
-      "payment-method" : [ {
-        "payload" : { },
-        "name" : "paydirekt"
-      } ]
-    },
-    "shipping" : {
-      "last-name" : "Doe",
-      "first-name" : "John",
-      "address" : {
-        "country" : "DE",
-        "street1" : "Mullerstraße 16",
-        "city" : "Berlin",
-        "postal-code" : "00010"
-      }
-    },
-    "api-id" : "wpp"
-  }
+    "payment": {
+        "order-number": "180606120514730",
+        "transaction-id": "d3a74b61-e27d-4617-87db-fc555aeb006f",
+        "request-id": "b8e047fb-8172-4027-b097-da4b3989fd67",
+        "transaction-type": "authorization",
+        "transaction-state": "success",
+        "completion-time-stamp": "2019-07-05T10:51:13",
+        "requested-amount": {
+            "currency": "EUR",
+            "value": 1.01
+        },
+        "statuses": {
+            "status": [
+                {
+                    "description": "The resource was successfully created.",
+                    "severity": "information",
+                    "code": "201.0000"
+                }
+            ]
+        },
+        "parent-transaction-id": "c6d4ba4b-057f-47a6-8ec0-bdedea86a639",
+        "success-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/success",
+        "merchant-account-id": {
+            "value": "c7f465c6-7982-4a58-a878-66265e75db50"
+        },
+        "cancel-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/cancel",
+        "fail-redirect-url": "https://demoshop-test.wirecard.com/demoshop/#/fail",
+        "account-holder": {
+            "account-info": {},
+            "last-name": "Peterson",
+            "first-name": "Paul"
+        },
+        "payment-methods": {
+            "payment-method": [
+                {
+                    "payload": {},
+                    "name": "paydirekt"
+                }
+            ]
+        },
+        "shipping": {
+            "last-name": "Peterson",
+            "first-name": "Paul",
+            "address": {
+                "country": "DE",
+                "street1": "Mullerstraße 16",
+                "city": "Berlin",
+                "postal-code": "00010"
+            }
+        },
+        "api-id": "wpp"
+    }
 }
 ----
 
-[cols="15e,10,10,10,55"]
+[cols="15,10,10,10,55"]
 |===
 3+| Field (JSON) | Data Type | Description
 
-3+| order-number| String | Sequence, provided by the Merchant to store the ``order-number`` for the transaction.
-3+| transaction-id | String | A unique identifier assigned to every transaction (by Wirecard). Used
-when searching for or referencing to it later.
-3+| request-id | String | A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing it later.
-3+| transaction-type | String | The requested transaction type. For _paydirekt_ payments, the transaction-type must be set to ``authorization``.
-3+| transaction-state | String a| The current transaction state.
+3+|order-number
+|String 
+|The order number provided by the merchant.
 
+3+|transaction-id 
+|String 
+|A unique identifier assigned for every transaction. This information is returned in the response only.
+
+3+|request-id 
+|String 
+|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
+
+3+|transaction-type 
+|String 
+|The requested transaction type. For _paydirekt_ payments, the transaction-type is either ``authorization`` or ``debit``.
+
+3+|transaction-state 
+|String 
+a| The current transaction state.
 Possible values:
 
 - ``in-progress``
@@ -278,19 +378,35 @@ Possible values:
 //-
 
 Typically, a transaction starts with state _in-progress_ and finishes with state either _success_ or _failed_. This information is returned in the response only.
-3+| completion-time-stamp | YYYY-MM-DD-Thh:mm:ss | The UTC/ISO time-stamp documents the time and date when the transaction
+
+3+|completion-time-stamp 
+|YYYY-MM-DD-Thh:mm:ss 
+|The UTC/ISO time-stamp documents the time and date when the transaction
 was executed. +
+Format: YYYY-MM-DDThh:mm:ss (ISO).
 
-Format: YYYY-MM-DDThh:mm:ss (ISO).
-2.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount. For _paydirekt_ payments, the currency must be set to ``EUR``.
+2.2+|requested-amount 
+|currency 
+|String 
+|The currency of the requested/contested transaction amount. For _paydirekt_ payments, the currency must be set to ``EUR``.
+Format: 3-character abbreviation according to ISO 4217.
 
-Format: 3-character abbreviation according to ISO 4217.
-| value    | Numeric | The full amount that is requested/contested in a transaction.
-2.3+| status e| code | String | Status code of the status message.
-| description | String | The description of the transaction status message.
-| severity    | String a| The definition of the status message.
+|value    
+|Numeric 
+|The full amount that is requested/contested in a transaction.
 
-Possible values:
+2.3+|status 
+| code 
+|String 
+|Status code of the status message.
+
+|description 
+|String 
+|The description of the transaction status message.
+
+|severity    
+|String 
+a| The definition of the status message. Possible values:
 
 - ``information``
 - ``warning``
@@ -298,277 +414,92 @@ Possible values:
 
 //-
 
-3+| parent-transaction-id | String | The ID of the transaction being referenced as a parent.
-2+| merchant-account-id | value | String | A unique identifier assigned to every merchant account (by Wirecard).
-2.2+| account-holder e| first-name | String | The first name of the account holder.
-| last-name  | String | The last name of the account holder.
-2.2+| payment-method e| payload | String | This field is used in the response only. The merchant cannot set a value.
-| name | String | The name of the payment method used.
-.6+| shipping 2+| first-name | String | The first name of the shipping address.
-2+| last-name | String | The last name of the shipping address.
-.4+| address| street 1  | String | The first line of the shipping address.
-| city | String | The city of the shipping address.
-| country | String | The Country Id of the shipping address.
-| postal-code | String | The postal code or ZIP of the shipping address.
-3+| api-id | String | Identifier of the currently used API.
-3+| success-redirect-url | String | The URL to which the consumer is redirected after a successful
-payment, e.g. ``\https://{pp-redirect-url-success}``
-3+| cancel-redirect-url | String | The URL to which the consumer is redirected after having canceled a
-payment, e.g. ``\https://{pp-redirect-url-cancel}``
-3+| fail-redirect-url | String | The URL to which the consumer is redirected after a failed payment,
-e.g. ``\https://{pp-redirect-url-error}``
+3+|parent-transaction-id 
+|String 
+|The ID of the transaction being referenced as a parent.
 
+2+|merchant-account-id 
+|value 
+|String 
+|A unique identifier assigned to every merchant account (by {payment-provider}).
+
+2.2+|account-holder 
+|first-name 
+|String 
+|The first name of the account holder.
+
+|last-name  
+|String 
+|The last name of the account holder.
+
+2.2+|payment-method 
+|payload 
+|String 
+|This field is used for certain payment methods and occurs in the response only. Irrelevant for _paydirekt_.
+
+|name 
+|String 
+|The name of the payment method used.
+
+.6+|shipping 
+2+|first-name 
+|String 
+|The first name of the shipping address.
+
+2+|last-name 
+|String 
+|The last name of the shipping address.
+
+.4+|address
+|street 1  
+|String 
+|The first line of the shipping address.
+
+|city 
+|String 
+|The city of the shipping address.
+
+|country 
+|String 
+|The Country Id of the shipping address.
+
+|postal-code 
+|String 
+|The postal code or ZIP of the shipping address.
+
+3+|api-id 
+|String 
+|Identifier of the currently used API.
+
+3+|success-redirect-url 
+| String 
+|The URL to which the consumer is redirected after a successful payment, e.g. ``\https://{pp-redirect-url-success}``
+
+3+|cancel-redirect-url 
+|String 
+|The URL to which the consumer is redirected after having canceled a
+payment, e.g. ``\https://{pp-redirect-url-cancel}``
+
+3+|fail-redirect-url 
+|String 
+|The URL to which the consumer is redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
 |===
 
-[#PPv2_paydirekt_TransactionType_debit]
-====== Transaction Type _debit_
-
-A _debit_ transaction charges the specified amount from the account
-holder's bank account and marks it for immediate transfer.
-
-For a successful _debit_ transaction:
-
-include::include/ppv2-intro-test-payment.adoc[]
 
 .Optional fields
 
 For a full list of optional fields you can use, see the REST API
 <<paydirekt, _paydirekt_ specification>>.
 
-For a full structure of a request (optional fields included), see the
-<<PPv2_paydirekt_JSON_NVPFields, JSON/NVP Field Reference>> section at the bottom.
 
-.1. Create a Payment Session (Initial Request)
-
-[source,json]
-----
-{
-    "payment": {
-        "merchant-account-id": {
-            "value": "c7f465c6-7982-4a58-a878-66265e75db50"
-        },
-        "request-id": "{{$guid}}",
-        "requested-amount": {
-            "value": "1.01",
-            "currency": "EUR"
-        },
-        "account-holder": {
-            "first-name": "John",
-            "last-name": "Dao"
-        },
-        "order-number": "180606120514730",
-        "transaction-type": "debit",
-        "shipping": {
-            "first-name": "John",
-            "last-name": "Doe",
-            "address": {
-                "street1": "Mullerstraße 16",
-                "city": "Berlin",
-                "country": "DE",
-                "postal-code": "00010"
-            }
-        },
-        "payment-methods": {
-            "payment-method": [
-                {
-                "name": "paydirekt"
-                }
-            ]
-        },
-        "success-redirect-url":"https://{pp-redirect-url-success}",
-        "cancel-redirect-url": "https://{pp-redirect-url-cancel}",
-		"fail-redirect-url": "https://{pp-redirect-url-fail}"
-    }
-}
-----
-
-[cols="15e,5,5,10,10,5,50"]
-|===
-3+| Field (JSON) | Data Type | Required/Optional | Size | Description
-
-2+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned to every merchant account (by Wirecard).
-3+| request-id                | String | Required | 36 | A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing it later. ``{{$guid}}`` serves as a
-placeholder for a random ``request-id``.
-
-Allowed characters:  [a-z0-9-_]
-2.2+| requested-amount e| value | Decimal | Required | 7,2 | The full amount that is requested/contested in a transaction. The amount of the decimal place is dependent of the currency. Minimum is 0.01. Maximum is 50000.
-
-Use . (decimal point) as the separator.
-
-                       | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For _paydirekt_
-                         payments, the currency must be set to ``EUR``.
-
-Format: 3-character abbreviation according to ISO 4217.
-2.2+|account-holder e|first-name |String | Optional | 32 |The first name of the account holder.
-| last-name |String | Required | 32 |The last name of the account holder.
-3+| order-number | String | Required | 20 | The order number provided by the merchant.
-3+| transaction-type | String | Required | 22 | The requested transaction type. For _paydirekt_ payments, the
-transaction-type must be set to ``authorization``.
-.6+| shipping 2+| first-name | String | Required | 32 | The first name of the shipping address.
-2+| last-name | String | Required  | 32 | The last name of the shipping address.
-.4+| address| street 1| String | Required  | 70 | The first line of the shipping address.
-| city | String | Required  | 32 | The city of the shipping address.
-| country |String | Required  | 3 | The ``country-id `` of the shipping address.
-| postal-code | String | Required | 16 | The postal code or ZIP of the shipping address.
-| payment-methods | payment-method      e| name     | String | Required | 9 | The name of the payment method used. Set this value to ``paydirekt``.
-3+| success-redirect-url         | String | Required | 2000 a| The URL to which the consumer is redirected after a successful payment,
-e.g. ``\https://{pp-redirect-url-success}``
-3+| cancel-redirect-url          | String | Required | 2000 a| The URL to which the consumer is redirected after having canceled a payment,
-e.g. ``\https://{pp-redirect-url-cancel}``
-3+| fail-redirect-url            | String | Required | 2000 a| The URL to which the consumer is redirected after a failed payment,
-e.g. ``\https://{pp-redirect-url-error}``
-|===
-
-.2. Redirect the Consumer to the Payment Page (Initial Response URL)
-
-[source,json]
-----
-{
-https://wpp-test.wirecard.com/processing?wPaymentToken=mexhnEWDdOCia2uDEZwtXIegYDwPqrssuCI8cuVQApU
-}
-----
-
-
-[cols="15e,10,75"]
-|===
-| Field (JSON) | Data Type | Description
-
-| payment-redirect-url | String | The URL which redirects to the payment
-form. Sent as a response to the initial request.
-|===
-
-include::include/ppv2-redirect-instructions.adoc[]
-
-.3. Parse and Process the Payment Response (Decoded Payment Response)
-
-[source,json]
-----
-{
-  "payment" : {
-    "order-number" : "180606120514730",
-    "transaction-id" : "e0b37c1c-2c75-4a67-a110-aee14766ae57",
-    "request-id" : "a718052e-82eb-40d6-9328-545fe14aef6f",
-    "transaction-type" : "debit",
-    "transaction-state" : "success",
-    "completion-time-stamp" : "2019-07-05T12:13:51",
-    "requested-amount" : {
-      "currency" : "EUR",
-      "value" : 1.010000
-    },
-    "statuses" : {
-      "status" : [ {
-        "description" : "The resource was successfully created.",
-        "severity" : "information",
-        "code" : "201.0000"
-      } ]
-    },
-    "parent-transaction-id" : "1417a779-b95d-4d0e-84b4-c005c16626c4",
-    "success-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/success",
-    "merchant-account-id" : {
-      "value" : "c7f465c6-7982-4a58-a878-66265e75db50"
-    },
-    "cancel-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/cancel",
-    "fail-redirect-url" : "https://demoshop-test.wirecard.com/demoshop/#/fail",
-    "account-holder" : {
-      "account-info" : { },
-      "last-name" : "Dao",
-      "first-name" : "John"
-    },
-    "payment-methods" : {
-      "payment-method" : [ {
-        "payload" : { },
-        "name" : "paydirekt"
-      } ]
-    },
-    "shipping" : {
-      "last-name" : "Doe",
-      "first-name" : "John",
-      "address" : {
-        "country" : "DE",
-        "street1" : "Mullerstraße 16",
-        "city" : "Berlin",
-        "postal-code" : "00010"
-      }
-    },
-    "api-id" : "wpp"
-  }
-}
-----
-
-[cols="15e,10,10,10,55"]
-|===
-3+| Field (JSON) | Data Type | Description
-
-3+| order-number| String | Sequence, provided by the Merchant to store the ``order-number`` for the transaction.
-3+| transaction-id | String | A unique identifier assigned to every transaction (by Wirecard). Used
-when searching for or referencing to it later.
-3+| request-id | String | A unique identifier assigned to every request (by merchant). Used when
-searching for or referencing it later.
-3+| transaction-type | String | The requested transaction type. For _paydirekt_ payments, the transaction-type must be set to ``debit``.
-3+| transaction-state | String a| The current transaction state.
-
-Possible values:
-
-- ``in-progress``
-- ``success``
-- ``failed``
-
-//-
-
-Typically, a transaction starts with state _in-progress_ and finishes with state either _success_ or _failed_. This information is returned in the response only.
-3+| completion-time-stamp | YYYY-MM-DD-Thh:mm:ss | The UTC/ISO time-stamp documents the time and date when the transaction
-was executed. +
-
-Format: YYYY-MM-DDThh:mm:ss (ISO).
-2.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount. For _paydirekt_ payments, the currency must be set to ``EUR``.
-
-Format: 3-character abbreviation according to ISO 4217.
-| value    | Numeric | The full amount that is requested/contested in a transaction.
-2.3+| status e| code | String | Status code of the status message.
-| description | String | The description of the transaction status message.
-| severity    | String a| The definition of the status message.
-
-Possible values:
-
-- ``information``
-- ``warning``
-- ``error``
-
-//-
-
-3+| parent-transaction-id | String | The ID of the transaction being referenced as a parent.
-2+| merchant-account-id | value | String | A unique identifier assigned to every merchant account (by Wirecard).
-2.2+| account-holder e| first-name | String | The first name of the account holder.
-| last-name  | String | The last name of the account holder.
-2.2+| payment-method e| payload | String | This field is used in the response only. The merchant cannot set a value.
-| name | String | The name of the payment method used.
-.6+| shipping 2+| first-name | String | The first name of the shipping address.
-2+| last-name | String | The last name of the shipping address.
-.4+| address| street 1  | String | The first line of the shipping address.
-| city | String | The city of the shipping address.
-| country | String | The Country Id of the shipping address.
-| postal-code | String | The postal code or ZIP of the shipping address.
-3+| api-id | String | Identifier of the currently used API.
-3+| success-redirect-url | String | The URL to which the consumer is redirected after a successful
-payment, e.g. ``\https://{pp-redirect-url-success}``
-3+| cancel-redirect-url | String | The URL to which the consumer is redirected after having canceled a
-payment, e.g. ``\https://{pp-redirect-url-cancel}``
-3+| fail-redirect-url | String | The URL to which the consumer is redirected after a failed payment,
-e.g. ``\https://{pp-redirect-url-error}``
-
-|===
 
 [#PPv2_paydirekt_TransactionTypes_postprocess]
 ====== Transaction Types _capture-authorization_, _refund-debit_ and _refund-capture_
 
-Basically, _paydirekt_ with {payment-page-abbr} supports _authorization_ and _debit_ only. You can integrate post process operations for _paydirekt_ via our <<REST API, paydirekt_TransactionTypes>>.
+WPP is best used to deal with one-off payments (e.g. regular, independent _debit_ transactions) or the initial transaction in a chain of them (e.g. a first _authorization_ in a chain of recurring transactions). However, when it comes to referencing a transaction for any kind of post-processing operation - such as a refund of one of your _debit_ transactions - use our <<RestApi, REST API>> directly.
 
-You must provide the necessary data:
-
-``parent-transaction-id``: This is the ``transaction-id`` of the transaction (e.g. _authorization_) you want to refer to. You find it in a successful (e.g. _authorization_) response.
-
-``requested-amount`` (can be either the total amount for refunding the full amount, or a partial amount for a partial refund).
+WARNING: Check the <<paydirekt_TransactionTypes, REST API paydirekt specification>> for details on _paydirekt_-specific post-processing operations.
 
 include::include/ppv2-json-nvp-reference.adoc[]
 
