@@ -9,6 +9,7 @@ Use multithreading with thread pool to speed up the process.
 */
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
+const testNoErrorPath = true;
 
 function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   if ( error_reporting() == 0 ) {
@@ -158,6 +159,7 @@ class GitInfo {
     $this->gitInfoArray = array(
       'commit_author' => $gitInfo['commit_author'],
       'branch' => $gitInfo['branch'],
+      'commit_hash' => $gitInfo['commit_hash'],
       'files' => $gitInfo['files']
     );
   }
@@ -174,6 +176,9 @@ class GitInfo {
   }
   public function getBranch() {
     return $this->gitInfoArray['branch'];
+  }
+  public function getCommitHash() {
+      return $this->gitInfoArray['commit_hash'];
   }
   public function getLastEditedByOfFile($file) {
     if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file])) {
@@ -267,7 +272,8 @@ function getBranchOfFile( $filename, $pattern='PSPDOC-[0-9]\+' ) {
   //DISABLED. Not in use.
   return '';
 
-  $cmd_origin = 'git --no-pager log --decorate=short --pretty=oneline --follow -- "' . $filename . '" | sed -n "s/.*(origin\/\(' . $pattern . '\)).*/\1/p" | head -n 1';
+  $cmd_origin = 'git --no-pager log --decorate=short --pretty=oneline --follow -- "' . $filename
+                . '" | sed -n "s/.*(origin\/\(' . $pattern . '\)).*/\1/p" | head -n 1';
   $cmd_current = 'git rev-parse --abbrev-ref HEAD';
 
   return exec( $cmd_origin ) ?: exec ( $cmd_current );
@@ -509,121 +515,138 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
+  // Gather information
   if( empty(getenv( 'SLACK_TOKEN' )) ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console";
   }  
   $partner = getenv( 'PARTNER' );
   $currentBranch = GitInfo::getInstance()->getBranch();
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
+  $commitHash = GitInfo::getInstance()->getCommitHash();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
-  if( sizeof( $results ) > 0 ) {
+
+  // Slack message
+  $headerText = "*Branch:* ".$currentBranch." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|Github Link)>PHP_EOL"
+  ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|Github Link)>PHP_EOL"
+  ."*Commit from:* ".$commitAuthor."PHP_EOL"
+  ."*Partner:* ".$partner."PHP_EOL";
+  $msgOpening = array(array("type" => "divider"),
+                      array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
+                      array("type" => "divider"),
+                      );
+  $msgContent = null;
+  if( testNoErrorPath && sizeof( $results ) > 0 ) {
+    $msgContent = array("type" => "section",
+                        "fields" => array());
     foreach( $results as $filename => $result ) {
-      $slackMessage = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor );
-      if( $slackMessage !== false )
-        $status = postToSlack( $slackWebhookUrl, $slackMessage );
+      $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
     }
   }
   else {
     // empty error array creates "success" msg in createSlackMessageFromErrors
-    $slackMessage = createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor );
-    if( $slackMessage !== false )
-      $status = postToSlack( $slackWebhookUrl, $slackMessage );
+    $msgContent = createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor, $commitHash );
   }
+
+  $msgClosing = array(array("type" => "divider"),
+                      array("type" => "context",
+                            "elements" => array(array("type" => "mrkdwn",
+                                                      "text" => "I'm C.I. Travis, and I approve this message. "
+                                                      ."<https://travis-ci.com/wirecard/merchant-documentation-gateway/builds|Vote for me!>")))
+                      );
+
+
+  $slackMessage = $msgOpening;
+  array_push($slackMessage, $msgContent);
+  foreach($msgClosing as $closingItem)
+    array_push($slackMessage, $closingItem);
+  $status = postToSlack( $slackWebhookUrl, $slackMessage );
   return true;
 }
 
 // creates a single error message
-function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor ) {
+function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
 
   $numErrors = 0;
-  if( sizeof( $result ) > 0 ){
+  if( testNoErrorPath && sizeof( $result ) > 0 ){
     $filename = $result['filename'];
     $branch = $result['branch'];
-    $author = $result['author'];
+    $lastEditedAuthor = $result['author'];
     if( $branch == PULL_REQUEST_BRANCH ) {
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
     }
     else {
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
     }
-    $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => '*'.$filename.'* (<'.$githubLink.'|Github Link>)PHP_EOL'
-                             .'*Partner Build: * '.$partner.'PHP_EOL'
-                             .'*Last edited by: * '.$author.'PHP_EOL'
-                             .'*Branch: * '.$currentBranch.'PHP_EOL'
-                             .'*Commit from: * '.$commitAuthor.'PHP_EOL',
-                             'mrkdwn_in'   => [ 'text', 'pretext' ]
-                              ))
-                          );
+
+    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." <".$githubLink."|Github Link>"."PHP_EOL"
+                      ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
     if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
-      $slackItem = array( 'title' => 'Anchors', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      $content['text'] .= "• *Anchors*"."PHP_EOL";
       foreach( $result['tests']['anchors'] as $key => $test ) {
         if( $test['errorType'] == 'format')
-          $slackItem['text'] .= $test['errorMessage'].': `'.$test['anchorID'].'`PHP_EOL';
+          $content['text'] .= "```".$test['errorMessage'].": ".$test['anchorID']."```PHP_EOL";
         else
-          $slackItem['text'] .= $test['errorMessage'].': `'.$test['anchorText'].'`PHP_EOL';
+          $content['text'] .= "```".$test['errorMessage'].": ".$test['anchorText']."```PHP_EOL";
       }
       $numErrors += sizeof( $result['tests']['anchors'] );
-      $slackMessage['attachments'][] = $slackItem;
     }
 
     if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0 ){
-      $slackItem = array( 'title' => 'Patterns', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      $content['text'] .= "• *Patterns*"."PHP_EOL";
       foreach( $result['tests']['patterns'] as $key => $test ) {
-        $slackItem['text'] .= 'Line '.$test['lineNumber'].': '.$test['type'].': "'.$test['match'].'"PHP_EOL';
+        $content['text'] .= "```Line ".$test['lineNumber'].": ".$test['type'].": \"".$test['match']."\"```PHP_EOL";
       }
       $numErrors += sizeof( $result['tests']['patterns'] );
-      $slackMessage['attachments'][] = $slackItem;
     }
 
     if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 ){
-      $slackItem = array( 'title' => 'Links', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      $content['text'] .= "• *Links*"."PHP_EOL";
       foreach( $result['tests']['links'] as $key => $test ) {
-        $slackItem['text'] .= $test['httpErrorMessage'].' (`'.$test['httpStatusCode'].'`) for `'.$test['url'].'`PHP_EOL';
+        $content['text'] .= "```".$test['httpErrorMessage']." (".$test['httpStatusCode'].") for ".$test['url']."```PHP_EOL";
       }
       $numErrors += sizeof( $result['tests']['links'] );
-      $slackMessage['attachments'][] = $slackItem;
     }
 
     if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0 ){
-      $slackItem = array( 'title' => 'Asciidoctor Diagnosis', 'text' => '', 'mrkdwn_in' => [ 'text', 'pretext' ] );
+      $content['text'] .= "• *Asciidoctor Diagnosis*"."PHP_EOL";
       foreach( $result['tests']['asciidoctor'] as $key => $test ) {
         $testMessage = ucfirst( preg_replace( '/(.*:\ )(.*)$/', '$1`$2`', $test['message'] ) );
-        $slackItem['text'] .= 'Line '.$test['lineNumber'].': '.$testMessage.'PHP_EOL';
+        $content['text'] .= "```Line ".$test['lineNumber'].": ".$testMessage."```PHP_EOL";
       }
       $numErrors += sizeof( $result['tests']['asciidoctor'] );
-      $slackMessage['attachments'][] = $slackItem;
     }
   } else {
-    $slackMessage = array( 'attachments' => array(array(
-                             'pretext'     => 'Branch: * '.$currentBranch.'* (<https://github.com/wirecard/merchant-documentation-gateway/tree/'.$currentBranch.'|Github Link>)PHP_EOLCommit from: *'.$commitAuthor.'*',
-                             'mrkdwn_in'   => [ 'text', 'pretext' ]
-                              ))
-                          );
-    $slackItem = array( 'title' => 'Success!', 'text' => 'No errors found in '.$currentBranch.'. 😊', 'mrkdwn_in' => [ 'text', 'pretext' ] );
-    $slackMessage['attachments'][] = $slackItem;
+    $content = array("type" => "section",
+                    "text" => array("type" => "plain_text",
+                                    "text" => "No errors found! Well done, ".$commitAuthor."! :smile:",
+                                    "emoji" => true));
   }
-  return $slackMessage;
+  return $content;
 }
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
-  if( empty(getenv( 'SLACK_TOKEN' )) ) {
-    echo $messageString;
+  if( empty(getenv( 'SLACK_TOKEN' )) || !empty(getenv('SKIP_SLACK_MESSAGE')) ) {
+    echo $messageString."\n";
     return true;
   }
 
   $descriptorspec = array(
       0 => array('pipe', 'r'),  // stdin
       1 => array('pipe', 'w'),  // stdout
-      2 => array('file', '/tmp/error-output.txt', 'a') // stderr
+      2 => array('file', tempnam(sys_get_temp_dir(), "post-to-slack-error"), 'a')   // stderr
   );
 
-  $cwd = exec('pwd');
-  $env = array('SLACK_TOKEN' => getenv( 'SLACK_TOKEN' ));
+  $cwd = getcwd();
+  $env = array('SLACK_TOKEN' => getenv('SLACK_TOKEN'), 'PATH' => getenv('PATH'));
+  if(PHP_OS_FAMILY === 'Windows') {
+    $env['PYTHONIOENCODING'] = 'UTF-8';
+  }
+  $command = ((PHP_OS_FAMILY === 'Windows') ? 'python' : 'python3') . ' buildscripts/util/post-to-slack.py';
   
-  $process = proc_open('python3 buildscripts/util/post-to-slack.py', $descriptorspec, $pipes, $cwd, $env);
+  $process = proc_open($command, $descriptorspec, $pipes, $cwd, $env);
   
+  $result = "result not available";
   if (is_resource($process)) {
       fwrite($pipes[0], $messageString);
       fclose($pipes[0]);

@@ -18,11 +18,11 @@ def post_to_slack(message):
         print(message)
         sys.exit(0)
 
-    print(URL + SLACK_TOKEN)
-    r = requests.post(URL + SLACK_TOKEN, data=message,
+    r = requests.post(URL + SLACK_TOKEN, data=message.encode(),
                       headers={'Content-Type': 'application/json'})
 
     if r.status_code == 200:
+        print("Message sent!")
         sys.exit(0)
     else:
         print("* Error sending message (status_code: {})".format(r.status_code))
@@ -33,6 +33,7 @@ def post_to_slack(message):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("message", type=str, nargs='?', help="Message to send to Slack channel")
+    parser.add_argument("-d", "--debug", action='store_true', default=False, help="Print message to stdout as well")
     args = parser.parse_args()
 
     message = ""
@@ -40,6 +41,10 @@ def main():
         message = "".join(sys.stdin.readlines())
     else:
         message = args.message
+
+    if args.debug:
+        print(message)
+        print()
 
     post_to_slack(message)
 
