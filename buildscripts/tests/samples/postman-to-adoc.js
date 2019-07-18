@@ -230,11 +230,14 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             for (var c in transactionTypes) {
                 const transaction = transactionTypes[c];
                 var statusesAdocTableCells = '';
-                transaction.response.engine_status.forEach(s => {
+                transaction.response.engine_status.forEach(function (s, i) {
                     statusesAdocTableCells += `| Code        | ` + '``' + s.code + '``' + `
 | Severity    | ` + '``' + s.severity + '``' + `
 | Description | ` + '``' + s.description + '``' + `
-`;
+`;                  // add divider between different status messages in response
+                    if (transaction.response.engine_status.length > 1 && i < (transaction.response.engine_status.length - 1)) {
+                        statusesAdocTableCells += '2+|' + "\n";
+                    }
                 });
                 fileContent += `
 [.tab-` + transaction.request.content_type_abbr + `]
@@ -273,6 +276,7 @@ e| Password | \`` + transaction.request.password + `\`
 |===
 2+| Transaction Results
 
+| Content Type | \`` + transaction.response.content_type + `\`
 ` + statusesAdocTableCells + `
 |===
 
