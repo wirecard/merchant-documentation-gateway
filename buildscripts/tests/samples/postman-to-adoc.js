@@ -1,6 +1,6 @@
 /*
 * Script given a postman collection creates asciidoc files with request, response
-* source blocks and a metadata table (to be hidden by default, opens onClick in frontend).
+* source blocks and a metadata table.
 *
 * Parameters
 * --file <postman-collection.json>       Optional. Uses hardcoded filename if unspecified.
@@ -676,6 +676,7 @@ newman.run({
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
     var responseContentType;
+    var responseContentTypeAbbr;
     var transactionID;
     if (responseCodeHTTP < 400) { // else there is no response element parsing possible
         responseContentType = PMUtil.getContentType(responseBody);
