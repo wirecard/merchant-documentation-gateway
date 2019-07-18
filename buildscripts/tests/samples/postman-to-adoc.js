@@ -240,7 +240,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 [.tab-` + transaction.request.content_type_abbr + `]
 === ` + transaction.request.content_type_abbr.toUpperCase() + `
 
-[.request-details]
+[.r-details]
 .Request Details
 [%autowidth, cols="1v,2", stripes="none"]
 |===
@@ -267,6 +267,8 @@ e| Password | \`` + transaction.request.password + `\`
 
 ---
 
+[.r-details]
+.Response Details
 [%autowidth, cols="1v,2", stripes="none"]
 |===
 2+| Transaction Results
