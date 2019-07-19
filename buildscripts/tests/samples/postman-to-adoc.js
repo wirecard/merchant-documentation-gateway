@@ -240,12 +240,12 @@ e| Description | ` + '``' + s.description + '``' + `
                     }
                 });
                 fileContent += `
-[.tab-` + transaction.request.content_type_abbr + `]
+[.tab-content.tab-` + transaction.request.content_type_abbr + `]
 === ` + transaction.request.content_type_abbr.toUpperCase() + `
 
 [.r-details]
 .Request Details
-[%autowidth, cols="1v,2", stripes="none"]
+[cols="1v,2"]
 |===
 2+| API Endpoint
 
@@ -272,7 +272,7 @@ e| Password | \`` + transaction.request.password + `\`
 
 [.r-details]
 .Response Details
-[%autowidth, cols="1v,2", stripes="none"]
+[cols="1v,2"]
 |===
 2+| Transaction Results
 
