@@ -654,14 +654,16 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
   
       $result = stream_get_contents($pipes[1]);
       $errors = stream_get_contents($pipes[2]);
-      if($errors !== '') {
-        print("####################################");
-        print($errors);
-        print("####################################");
-      }
+      echo("######### POST-TO-SLACK ############");
+      echo($result);
+      echo("############# ERRORS ###############");
+      echo($errors);
+      echo("####################################");
       fclose($pipes[1]);
       fclose($pipes[2]);
       $return_value = proc_close($process);
+  } else {
+    echo("[!] failed to create process for post-to-slack");
   }
   return $result;
 }
