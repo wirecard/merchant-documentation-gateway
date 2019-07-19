@@ -291,6 +291,7 @@ function main() {
     FAILED_BUILDS+=("${PARTNER}")     # and add partner to list of failed builds
     return 1
   fi
+  cat /tmp/pos*.tmp
   echo
   return 0
 }
