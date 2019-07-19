@@ -210,6 +210,43 @@ e| Password | \`` + info.request.password + `\`
 }
 */
 
+PMUtil.writeAdocSummarySeparated = function (RequestResponseIndex) {
+    const fileExtension = '.adoc';
+    const path = 'samples/adoc/';
+
+    for (var r in RequestResponseIndex) {
+        const paymentMethods = RequestResponseIndex[r];
+        const paymentMethod = r;
+        const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
+        for (var t in paymentMethods) {
+            const transactionTypes = paymentMethods[t];
+            const transactionType = t;
+            const filename = paymentMethod + '_' + transactionType + fileExtension;
+            var fileContent = ``;
+            // c == e.g. "xml"
+            for (var c in transactionTypes) {
+                const transaction = transactionTypes[c];
+                const samplesAdoc = `
+[.tab-source.tab-` + transaction.request.content_type_abbr + `]
+[source,` + transaction.request.content_type_abbr + `]
+----
+` + transaction.request.body_source + `
+----
+`;
+                fileContent += samplesAdoc;
+
+            }
+            fileContent += "\n";
+            try {
+                fs.writeFileSync(path + filename, fileContent);
+            }
+            catch (err) {
+                throw err;
+            }
+        }
+    }
+}
+
 PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     const fileExtension = '.adoc';
     const path = 'samples/adoc/';
@@ -231,7 +268,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
                 const transaction = transactionTypes[c];
                 var statusesAdocTableCells = '';
                 transaction.response.engine_status.forEach(function (s, i) {
-                    statusesAdocTableCells += `| Code        | ` + '``' + s.code + '``' + `
+                    statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
 e| Severity    | ` + '``' + s.severity + '``' + `
 e| Description | ` + '``' + s.description + '``' + `
 `;                  // add divider between different status messages in response
@@ -268,15 +305,14 @@ e| Password | \`` + transaction.request.password + `\`
 ` + transaction.request.body_source + `
 ----
 
----
-
 [.r-details]
 .Response Details
 [cols="1v,2"]
 |===
-2+| Transaction Results
+2+h| Headers
 
 e| Content-Type | \`` + transaction.response.content_type + `\`
+2+h| Status
 ` + statusesAdocTableCells + `
 |===
 
@@ -298,7 +334,6 @@ e| Content-Type | \`` + transaction.response.content_type + `\`
         }
     }
 }
-
 
 /**
  * Get Accept header from Postman Request item
