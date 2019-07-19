@@ -526,8 +526,8 @@ function sendNotifications ( $results ) {
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  $headerText = "*Branch:* ".$currentBranch." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|Github Link)>PHP_EOL"
-  ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|Github Link)>PHP_EOL"
+  $headerText = "*Branch:* ".$currentBranch." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github)>PHP_EOL"
+  ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
@@ -578,7 +578,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
     }
 
-    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." <".$githubLink."|Github Link>"."PHP_EOL"
+    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|On Github>)"."PHP_EOL"
                       ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
     if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
       $content['text'] .= "• *Anchors*"."PHP_EOL";
