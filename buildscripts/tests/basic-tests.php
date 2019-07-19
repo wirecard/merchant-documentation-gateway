@@ -559,7 +559,7 @@ function sendNotifications ( $results ) {
   array_push($slackMessage, $msgContent);
   foreach($msgClosing as $closingItem)
     array_push($slackMessage, $closingItem);
-  $status = postToSlack( $slackWebhookUrl, $slackMessage );
+  $status = postToSlack( $slackWebhookUrl, array("blocks" => $slackMessage) );
   return true;
 }
 
@@ -654,11 +654,16 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
   
       $result = stream_get_contents($pipes[1]);
       $errors = stream_get_contents($pipes[2]);
-      echo("######### POST-TO-SLACK ############");
-      echo($result);
-      echo("############# ERRORS ###############");
-      echo($errors);
-      echo("####################################");
+      if ($result !== '') {
+        echo("######### POST-TO-SLACK ############\n");
+        echo($result."\n");
+        echo("####################################\n");
+      }
+      if ($errors !== '') {
+        echo("############# ERRORS ###############\n");
+        echo($errors."\n");
+        echo("####################################\n");
+      }
       fclose($pipes[1]);
       fclose($pipes[2]);
       $return_value = proc_close($process);
