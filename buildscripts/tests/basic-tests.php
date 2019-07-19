@@ -530,8 +530,7 @@ function sendNotifications ( $results ) {
   ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|Github Link)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
-  $msgOpening = array(array("type" => "divider"),
-                      array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
+  $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
                       array("type" => "divider"),
                       );
   $msgContent = null;
@@ -551,7 +550,8 @@ function sendNotifications ( $results ) {
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
                                                       "text" => "I'm C.I. Travis, and I approve this message. "
-                                                      ."<https://travis-ci.com/wirecard/merchant-documentation-gateway/builds|Vote for me!>")))
+                                                      ."<https://travis-ci.com/wirecard/merchant-documentation-gateway/builds|Vote for me!>"))),
+                      array("type" => "divider")
                       );
 
 
