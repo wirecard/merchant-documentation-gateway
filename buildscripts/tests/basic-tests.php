@@ -634,7 +634,8 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $descriptorspec = array(
       0 => array('pipe', 'r'),  // stdin
       1 => array('pipe', 'w'),  // stdout
-      2 => array('file', tempnam(sys_get_temp_dir(), "post-to-slack-error"), 'a')   // stderr
+      2 => array('pipe', 'w')   // stderr
+      // 2 => array('file', tempnam(sys_get_temp_dir(), "post-to-slack-error"), 'a')   // stderr
   );
 
   $cwd = getcwd();
@@ -652,7 +653,14 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
       fclose($pipes[0]);
   
       $result = stream_get_contents($pipes[1]);
+      $errors = stream_get_contents($pipes[2]);
+      if($errors !== '') {
+        print("####################################");
+        print($errors);
+        print("####################################");
+      }
       fclose($pipes[1]);
+      fclose($pipes[2]);
       $return_value = proc_close($process);
   }
   return $result;
