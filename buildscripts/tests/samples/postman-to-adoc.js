@@ -232,8 +232,8 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
                 var statusesAdocTableCells = '';
                 transaction.response.engine_status.forEach(function (s, i) {
                     statusesAdocTableCells += `| Code        | ` + '``' + s.code + '``' + `
-| Severity    | ` + '``' + s.severity + '``' + `
-| Description | ` + '``' + s.description + '``' + `
+e| Severity    | ` + '``' + s.severity + '``' + `
+e| Description | ` + '``' + s.description + '``' + `
 `;                  // add divider between different status messages in response
                     if (transaction.response.engine_status.length > 1 && i < (transaction.response.engine_status.length - 1)) {
                         statusesAdocTableCells += '2+|' + "\n";
@@ -262,7 +262,7 @@ e| Username | \`` + transaction.request.username + `\`
 e| Password | \`` + transaction.request.password + `\`
 |===
 
-.Request ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
+//.Request ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.request.content_type_abbr + `]
 ----
 ` + transaction.request.body_source + `
@@ -276,11 +276,11 @@ e| Password | \`` + transaction.request.password + `\`
 |===
 2+| Transaction Results
 
-| Content Type | \`` + transaction.response.content_type + `\`
+e| Content-Type | \`` + transaction.response.content_type + `\`
 ` + statusesAdocTableCells + `
 |===
 
-.Response ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.response.content_type_abbr.toUpperCase() + `)
+//.Response ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.response.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.response.content_type_abbr + `]
 ----
 ` + transaction.response.body + `
