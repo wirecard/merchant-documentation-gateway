@@ -7,14 +7,8 @@
 --
 [.right]
 image::images/11-45-interac/Interac_logo.png[Interac Logo, width=200]
-
-Interac is a Canadian interbank network that links financial institutions and other
-enterprises for the purpose of exchanging electronic financial transactions. It
-serves as the Canadian debit card system. There are over 59,000 automated teller
-machines that can be accessed through the Interac network in Canada, and over 450,000
-merchant locations accepting Interac debit payments.
-The integration is offered via PSiGate where we have already integrated credit
-card processing.
+--
+//Insert description here.
 
 [#Interac_GeneralInformation]
 ==== General Information
@@ -22,65 +16,89 @@ card processing.
 [#Interac_CountriesandCurrencies]
 ===== Payment Mode, Countries and Currencies
 
-This table illustrates which payment mode _Interac_ belongs to. It also
+This table illustrates which payment mode _Interac_ belongs to. It also
 provides detailed information about the countries and currencies which
-are relevant for _Interac_.
+are relevant for _Interac_.
 
 .Payment Mode, Countries and Currencies
 [cols="h,"]
 |===
-| Payment Mode | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
-| Countries    | CA
-| Currencies   | CAD
+|Payment Mode 
+| <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
+
+|Countries   
+|CA
+
+|Currencies   
+|CAD
 |===
 
 [#Interac_CommunicationFormats]
 ===== Communication Formats
 
-This table illustrates how _Interac_ notifications are encoded and which
+This table illustrates how _Interac_ notifications are encoded and which
 formats and methods can be used for requests and responses.
 
-[%autowidth]
+[%autowidth, cols=",,"]
 |===
-.2+h| *Requests/Responses* | Format  | XML, NVP
-                           | Methods | POST, GET
+.2+h| Requests/Responses 
+|Format  
+|XML, NVP
 
-h| *IPN Encodement*      2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|Methods 
+|POST, GET
+
+h|IPN Encodement      
+2+|Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
 [#Interac_TransactionTypes]
 ==== Transaction Types
 
-For <<Glossary_TransactionType, transaction type>> details which are not given here look
-at <<AppendixB, Appendix B: Transaction Types>>.  
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB, Appendix B: Transaction Types>>.  
 
 [cols="25,85"]
 |===
-| Transaction Type | Description
+|Transaction Type |Description
 
-| _check-signature_ | Validates digital signature for a _Payment Page_
-transaction.
+|_check-signature_ 
+|Validates digital signature for a _{payment-page-v1}_ transaction.
 
-| _get-url_ | A step in a group of transactions where the provider or
-bank's URL is retrieved for the Account Holder to be redirected to.
+|_get-url_ 
+|A step in a group of transactions where the provider or bank's URL is retrieved for the consumer to be redirected to.
 
-| _debit_ | Moves funds from the Consumer Account to the Merchant Account. <<Interac_Samples_RestApi_debit, Rest Api debit samples>>, <<Interac_Samples_PP_debit, Payment Page debit samples>>
+|_debit_ 
+|Moves funds from the consumer's account to the merchant account. <<Interac_Samples_RestApi_debit, REST API debit samples>>, <<Interac_Samples_PP_debit, {payment-page-v1} debit samples>>
 
-| _refund-debit_ |
+| _refund-debit_ 
+|
 |===
 
 
 [#Interac_TestCredentials]
 ==== Test Credentials
 
-[cols="30h,30,40"]
+[cols="30,30,40"]
 |===
-.2+|URLs (Endpoints) | For transaction type _debit_ | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
-                     | For transaction type _refund-debit_ | ``\https://api-test.wirecard.com/engine/rest/payments/``
-|Merchant Account ID (MAID) 2+| 92869f77-8a2c-49f6-8726-ef1b4d97ec9e
-|Username 2+| 16390-testing
-|Password 2+| 3!3013=D3fD8X7
-|Secret Key | adfce2f5-5659-4e91-bc19-9e6658b22a04
+.2+h|URLs (Endpoints) 
+|For transaction type _debit_ 
+|``{rest-api-test-endpoint}/engine/rest/paymentmethods/``
+
+|For transaction type _refund-debit_ 
+|``{rest-api-test-endpoint}/engine/rest/payments``
+
+h|Merchant Account ID (MAID) 
+2+|92869f77-8a2c-49f6-8726-ef1b4d97ec9e
+
+h|Username 
+2+|16390-testing
+
+h|Password 
+2+|3!3013=D3fD8X7
+
+h|Secret Key 
+|adfce2f5-5659-4e91-bc19-9e6658b22a04
 |===
 
 [#Interac_Workflow]
@@ -88,17 +106,17 @@ bank's URL is retrieved for the Account Holder to be redirected to.
 
 image::images/11-45-interac/Interac_workflow.png[InteracWorkflow]
 
-. Consumer adds items to his shopping chart.
+. Consumer adds items to the shopping cart.
 . The merchant displays all available payment methods.
 . Consumer selects _Interac_.
-. The merchant initiates a debit transaction to WPG.
-. WPG sends a redirection URL to the merchant.
+. The merchant initiates a debit transaction to {payment-gateway-abbr}.
+. {payment-gateway-abbr} sends a redirection URL to the merchant.
 . The merchant redirects the consumer to the _Interac Financial Institution Selection Page_.
-. The consumer the financial institution and is redirected to the bank website.
-. The consumer enters his account data and confirms the payment.
+. The consumer selects the financial institution and is redirected to the bank website.
+. The consumer enters their account data and confirms the payment.
 . _Interac_ processes the transaction.
-. WPG receives the transaction status.
-. WPG sends the transaction status to the merchant and redirects the
+. {payment-gateway-abbr} receives the transaction status.
+. {payment-gateway-abbr} sends the transaction status to the merchant and redirects the
 consumer back to the merchant's website.
 . The merchant receives the transaction status and displays the
 outcome to the consumer.
@@ -109,7 +127,27 @@ outcome to the consumer.
 ==== Fields
 
 The fields used for _Interac_ requests, responses and notifications are
-the same as the REST API Fields. Please refer to: <<RestApi_Fields, REST API Fields>>.
+the same as the <<RestApi_Fields, REST API Fields>>.
+
+[IMPORTANT]
+====
+To test debit transactions, you need to include the custom field ``elastic-api.ee.test.result`` in the request.
+====
+
+[%autowidth]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|elastic-api.ee.test.result
+|O
+|
+|1
+|For test debit transactions only. Possible field values: +
+``A``: simulate an approved payment response +
+``D``: simulate a declined payment response +
+``R``: simulate a random payment response (approved or decilned) +
+``F``: simulate a fraud payment repsonse.
+|===
 
 [#Interac_Samples]
 ==== Samples
@@ -148,12 +186,12 @@ include::samples/xml/InteracSamplesRestApiDebit_DebitResponseFailed.xml[]
 ----
 
 [#Interac_Samples_PP]
-===== Payment Page
+===== {payment-page-v1}
 
 [#Interac_Samples_PP_debit]
 ====== debit
 
-This request opens the Payment Page.
+This request opens the {payment-page-v1}.
 
 .NVP debit Request (Successful)
 [source]
