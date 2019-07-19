@@ -506,6 +506,124 @@ WPP is best used to deal with one-off payments (e.g. regular, independent _debit
 
 WARNING: Check the <<paydirekt_TransactionTypes, REST API paydirekt specification>> for details on _paydirekt_-specific post-processing operations.
 
-include::include/ppv2-json-nvp-reference.adoc[]
+[#PPv2_paydirekt_JSON_NVPFields]
+====== JSON/NVP Field Reference
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+.JSON Structure for _paydirekt_ Requests
+
+[source,json]
+----
+{ 
+    "payment": {
+        "merchant-account-id": {
+            "value": "String"
+        },
+        "request-id": "String",
+        "requested-amount": {
+            "value": "Decimal",
+            "currency": "String"
+        },
+        "account-holder": {
+            "first-name": "String",
+            "last-name": "String"
+        },
+        "order-number": "String",
+        "transaction-type": "String"
+        "shipping": {
+            "first-name": "String",
+            "last-name": "String",
+            "address": {
+                "street1": "String",
+                "city": "String",
+                "country": "String",
+                "postal-code": "String"
+            }
+        },
+        "payment-methods": {
+            "payment-method": [
+                {
+                "name": "String"
+                }
+            ]
+        },
+        "success-redirect-url":"String",
+        "cancel-redirect-url": "String",
+        "fail-redirect-url": "String"
+    }
+}
+----
+
+[#PPv2_paydirekt_JSON_NVPFields_Request]
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|requested_amount |value |requested-amount ({ })
+|requested_amount |currency |requested-amount ({ })
+|account-holder |first-name |account-holder ({ })
+|account-holder |last-name |account-holder ({ })
+|order-number | |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+| |first-name |shipping ({ }) 
+| |last-name |shipping ({ })
+|street1||shipping/address ({ })
+|city||shipping/address ({ })
+|country||shipping/address ({ })
+|postal-code||shipping/address ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|===
+
+
+.Response-Only Fields
+
+[source,json]
+----
+{
+    "payment": {
+        "transaction-id": "String",
+        "request-id": "String",
+        "transaction-state": String",
+        "completion-time-stamp": "YYYY-MM-DD-Thh:mm:ss",
+        },
+        "statuses": {
+            "status": [
+                {
+                    "description": "String",
+                    "severity": "String",
+                    "code": "String"
+                }
+            ]
+        },
+        "api-id": "String"
+}
+----
+
+
+[#PPv2_paydirekt_JSON_NVPFields_Response]
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+|transaction_id |transaction-id |payment ({ })
+|request-id||
+|transaction_state |transaction-state |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
+|api_id |api-id |payment ({ })
+|===
 
 //-
