@@ -17,10 +17,12 @@ FONT_TYPES = {'ttf': 'truetype',
 
 
 def create_argparser():
-    parser = argparse.ArgumentParser(description='Embed base64 font to CSS file')
-    parser.add_argument('-f', '--font', action='append', dest='fonts', 
-                        default=[],
-                        help='Font file. You can add as many as you want.')
+    parser = argparse.ArgumentParser(description="""Embed base64 font to CSS file. Typical call:
+    python scripts/fonts/embed-font-to-css.py -f fonts/DINWebPro.ttf -b fonts/DINWebPro-Bold.ttf
+    -o css/wirecard-font-base64.css""")
+    parser.add_argument('-f', '--font', dest='font', help='Font file')
+    parser.add_argument('-b', '--bold', dest='bold', help='Font file for bold')
+    parser.add_argument('-i', '--italic', dest='italic', help='Font file for italic')
     parser.add_argument('-o', '--output', action='store', dest='out_path',
                         default='',
                         help='The resulting CSS file path. Overwritten if exist.')
@@ -51,10 +53,12 @@ def get_ext(filepath):
 class FontFace(object):
     """CSS font-face object"""
 
-    def __init__(self, filepath, fonttype=None, name=None):
+    def __init__(self, filepath, fonttype=None, name=None, weight=None, style=None):
         self.filepath = filepath
         self.ftype = fonttype
         self.given_name = name
+        self.weight = weight
+        self.style = style
 
     @classmethod
     def from_file(cls, filepath):
@@ -86,6 +90,10 @@ class FontFace(object):
     def css_text(self):
         css_text  = u"@font-face{\n"
         css_text += u"font-family: " + self.name + ";\n"
+        if self.weight is not None:
+            css_text += u"font-weight: " + self.weight + ";\n"
+        if self.style is not None:
+            css_text += u"font-style: " + self.style + ";\n"
         css_text += u"src: url(data:font/" + self.ext + ";"
         css_text += u"base64," + self.base64 + ") "
         css_text += u"format('" + self.fonttype + "');\n}\n"
@@ -100,12 +108,16 @@ class FontFaceGroup(object):
 
     @property
     def css_text(self):
+        css_text = ""
         for ff in self.fontfaces:
             css_text += ff.css_text
         return css_text
 
     def append(self, font_face):
         self.fontfaces.append(font_face)
+    
+    def get(self, index):
+        return self.fontfaces[index]
 
 
 if __name__ == '__main__':
@@ -121,7 +133,9 @@ if __name__ == '__main__':
         parser.error(str(exc.message))
         exit(-1)
 
-    fonts = args.fonts
+    font = args.font
+    bold = args.bold
+    italic = args.italic
     out_path = args.out_path
 
     #check where to write the stuff
@@ -133,20 +147,24 @@ if __name__ == '__main__':
         stdout = True
 
     #check if user gave any font
-    if not fonts:
+    if not font:
         log.error('No fonts given.')
         exit(-1)
 
     #build the stuff to write
     fontfaces = FontFaceGroup()
-    for font_path in fonts:
-        fontfaces.append(FontFace(font_path))
+    fontfaces.append(FontFace(font))
+    font_name = fontfaces.get(0).name
+    if bold:
+        fontfaces.append(FontFace(bold, name=font_name, weight="bold"))
+    if italic:
+        fontfaces.append(FontFace(italic, name=font_name, style="italic"))
 
     #write the stuff
-    if raw_write and not stdout:
-        with open(out_path, 'w+', encoding="utf-8") as f:
-            f.write(fontfaces.css_text)
+    if stdout:
+        print(fontfaces.css_text)
         exit(0)
     else:
-        print(fontfaces.css_text)
+        with open(out_path, 'w+', encoding="utf-8") as f:
+            f.write(fontfaces.css_text)
         exit(0)
