@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # Fork of 'embed-font-to-svg.py, adapted for CSS only
+# https://gist.github.com/alexsavio/dace6ca43ed73c04c641
 #
 
 import os
@@ -18,13 +19,13 @@ FONT_TYPES = {'ttf': 'truetype',
 
 def create_argparser():
     parser = argparse.ArgumentParser(description="""Embed base64 font to CSS file. Typical call:
-    python scripts/fonts/embed-font-to-css.py -f fonts/DINWebPro.ttf -b fonts/DINWebPro-Bold.ttf
-    -o css/wirecard-font-base64.css""")
+    python scripts/fonts/embed-font-to-css.py --name ff-din-web -f fonts/DINWebPro.ttf
+    -b fonts/DINWebPro-Bold.ttf -o css/wirecard-font-base64.css""")
     parser.add_argument('-f', '--font', dest='font', help='Font file')
     parser.add_argument('-b', '--bold', dest='bold', help='Font file for bold')
     parser.add_argument('-i', '--italic', dest='italic', help='Font file for italic')
-    parser.add_argument('-o', '--output', action='store', dest='out_path',
-                        default='',
+    parser.add_argument("--name", dest="name", help='Overwrite name for font')
+    parser.add_argument('-o', '--output', action='store', dest='out_path', default='',
                         help='The resulting CSS file path. Overwritten if exist.')
     return parser
 
@@ -136,6 +137,7 @@ if __name__ == '__main__':
     font = args.font
     bold = args.bold
     italic = args.italic
+    name = args.name
     out_path = args.out_path
 
     #check where to write the stuff
@@ -153,7 +155,10 @@ if __name__ == '__main__':
 
     #build the stuff to write
     fontfaces = FontFaceGroup()
-    fontfaces.append(FontFace(font))
+    if name is not None:
+        fontfaces.append(FontFace(font, name=name))
+    else:
+        fontfaces.append(FontFace(font))
     font_name = fontfaces.get(0).name
     if bold:
         fontfaces.append(FontFace(bold, name=font_name, weight="bold"))
