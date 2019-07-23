@@ -156,11 +156,13 @@ function buildPartner() {
       debugMsg "Overwriting checksum file with new checksum"
       cp "${checksum_new}" "${checksum_ref}"
       NEW_MERMAID="true"
-    elif [[ -n $FORCE ]]; then
-      debugMsg "Delete all *.svg to force re-creation (due to --force flag)"
-      rm -f ./*.svg
-      NEW_MERMAID="true"
     fi
+  fi
+
+  if [[ -n $FORCE ]]; then
+    debugMsg "Delete all *.svg to force re-creation (due to --force flag)"
+    rm -f ./*.svg
+    NEW_MERMAID="true"
   fi
   
   if [[ ${PARTNER} != 'WD' ]]; then
