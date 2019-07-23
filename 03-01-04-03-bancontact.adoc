@@ -1,30 +1,32 @@
-[#WPP_Bancontact]
+// include::shortcuts.adoc[]
+
+[#PPv2_Bancontact]
 ===== Bancontact
 
-[#WPP_Bancontact_General]
+[#PPv2_Bancontact_General]
 ====== General Information
 
 This is a reference page for _Bancontact._ Here you find all the
 information necessary for integrating this payment method in
 your Hosted and Embedded Payment Page.
 
-.Are you unfamiliar with Wirecard Payment Page (WPP)?
+.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
 
 NOTE: Visit one of the integration guides
 (<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
 <<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
 a step-by-step guide before continuing.
 
-All <<PPv2, WPP>> integrations share a
-<<PPSolutions_WPP_Workflow, common process flow>> for creating payments.
+All <<PPv2, {payment-page-v2-abbr}>> integrations share a
+<<PPSolutions_PPv2_Workflow, common process flow>>﻿ for creating payments.
 
 Below, you find an example request for the available transaction type
-<<WPP_Bancontact_TransactionType_debit, _debit_>>,
+<<PPv2_Bancontact_TransactionType_debit, _debit_>>,
 including field lists with short descriptions.
 
 NOTE: You need to complete these requests with your production credentials.
-You receive your credentials with your Wirecard contract. If you
-need your production credentials, contact <<ContactUs, merchant support>>.
+You receive your credentials with your {payment-provider-name} contract. If you
+need your production credentials, contact <<ContactUs, merchant support>>.
 
 |===
 |Testing _Bancontact_
@@ -33,14 +35,14 @@ _Bancontact_ does not offer a payment testing sandbox.
 You need to test transactions with your production credentials.
 |===
 
-For more details on the ``redirect-url``, see the
-<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
 section.
 
 For response verification examples, see
-the <<PPSolutions_WPP_WPPSecurity, WPP Security>> section.
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
 
-[#WPP_Bancontact_About]
+[#PPv2_Bancontact_About]
 ====== About _Bancontact_
 
 image::images/03-01-04-03-bancontact/bancontact_logo.png[Bancontact logo, 200]
@@ -57,21 +59,21 @@ without the hassle of a card reader.
 
 //-
 
-[#WPP_Bancontact_Countries]
+[#PPv2_Bancontact_Countries]
 ====== Countries and Currencies
 
 _Bancontact_ can be used by consumers with a bank account in Belgium.
 The available payment currency for consumers is EUR.
 
-[#WPP_Bancontact_TestCredentials]
+[#PPv2_Bancontact_TestCredentials]
 ====== Test Credentials
 
-Test Credentials for Transaction Type
-<<WPP_Bancontact_TransactionType_debit, _debit_>>.
+Test Credentials for Transaction Type
+<<PPv2_Bancontact_TransactionType_debit, _debit_>>.
 
 [cols="35h,65"]
 |===
-| URL (Endpoint)           | ``\https://wpp-test.wirecard.com/api/payment/register``
+| URL (Endpoint)           | ``\https://{test-instance-hostname}/api/payment/register``
 | Merchant Account ID (MAID) | 86f03c98-6691-421d-94c8-232c3d5c2573
 | Username                   | 16390-testing
 | Password                   | 3!3013=D3fD8X7
@@ -79,7 +81,7 @@ Test Credentials for Transaction Type
 |===
 
 
-[#WPP_Bancontact_TransactionType_debit]
+[#PPv2_Bancontact_TransactionType_debit]
 ====== Transaction Type _debit_
 
 A _debit_ transaction charges the specified amount from the account
@@ -96,7 +98,7 @@ For a successful _debit_ transaction:
 We provide ready-made JSON examples for each step of this process. You can find
 them below.
 
-<<WPP_Bancontact_TestCredentials, Endpoint>> for _Bancontact_ transactions.
+<<PPv2_Bancontact_TestCredentials, Endpoint>> for _Bancontact_ transactions.
 
 .Initial Request
 
@@ -118,7 +120,7 @@ For a full list of optional fields you can use, see the REST API
 
 .1. Create a Payment Session (Initial Request)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/WPP_BancontactTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
 ----
@@ -129,7 +131,7 @@ include::samples/json/WPP_BancontactTransactionTypeDebit_1CreateAPaymentSessionI
 3+|Field (JSON) |Data Type |Cardinality |Size |Description
 
 2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
-to every merchant account (by Wirecard).
+to every merchant account (by {payment-provider-name}).
 3+|request-id |String |Required |64 a|A unique identifier assigned to every request
 (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
@@ -152,16 +154,16 @@ payment method used. Set this value to ``bancontact``.
 .2+|account-holder 2+e|first-name |String |Optional |32 |The first name of the account holder.
 2+|last-name |String |Requested |32 |The last name of the account holder.
 3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after a successful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
+e.g. ``\https://{pp-redirect-url-success}``
 3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after a failed payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
+e.g. ``\https://{pp-redirect-url-error}``
 3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after having canceled a payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
+e.g. ``\https://{pp-redirect-url-cancel}``
 |===
 
 .2. Redirect the consumer to the Payment Page (Initial Response URL)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/WPP_BancontactTransactionTypeDebit_2RtcttPPIRU.json[]
 ----
@@ -197,7 +199,7 @@ payments are returned as _failed_, but the
 In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
 is sent to the configured redirection URL. See
-<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>﻿﻿
 for more details on redirection targets after payment & transaction status
 notifications.
 
@@ -205,7 +207,7 @@ You can find a decoded payment response example below.
 
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/WPP_BancontactTransactionTypeDebit_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
 ----
@@ -215,7 +217,7 @@ include::samples/json/WPP_BancontactTransactionTypeDebit_3ParseAndProcessThePaym
 3+|Field (JSON) |Data Type |Description
 
 2+|merchant-account-id e|value |String |A unique identifier assigned to every
-merchant account (by Wirecard).
+merchant account (by {payment-provider-name}).
 3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
 3+|transaction-type |String |The requested transaction type. For _Bancontact_
 payments, the ``transaction-type`` must be set to ``debit``.
@@ -232,7 +234,7 @@ Possible values:
 Typically, a transaction starts with state _in-progress_ and finishes with
 state either _success_ or _failed_. This information is returned in the response
 only.
-3+|transaction-id |String |A unique identifier assigned to every transaction (by Wirecard). Used when searching for or referencing to it later.
+3+|transaction-id |String |A unique identifier assigned to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later.
 3+|completion-time-stamp | YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
 
 Format: YYYY-MM-DDThh:mm:ss (ISO).
@@ -255,9 +257,9 @@ Possible values:
 |code |String |Status code of the status message.
 3+|api-id |String |Identifier of the currently used API.
 3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/success``
+e.g. ``\https://{pp-redirect-url-success}``
 3+|cancel-redirect-url |String |The URL to which the consumer is redirected after having canceled a payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/cancel``
+e.g. ``\https://{pp-redirect-url-cancel}``
 3+|fail-redirect-url |String |The URL to which the consumer is redirected after a failed payment,
-e.g. ``\https://demoshop-test.wirecard.com/demoshop/#/error``
+e.g. ``\https://{pp-redirect-url-error}``
 |===
