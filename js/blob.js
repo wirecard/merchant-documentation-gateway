@@ -1,3 +1,53 @@
+const paceOptions = {
+  initialRate: .15
+}
+var mobileLayoutCutoffWidth = 1213;
+var globalTOC = [];
+var preloadQueue = [];
+var serverResponseTime = 0;
+var searchIndexStatus = 'empty';
+var isInternetExplorer = !!window.MSInputMethodContext && !!document.documentMode;
+var isEdgeBrowser = /Edge/.test( navigator.userAgent );
+
+function getUrlHash() {
+  var urlHash = document.URL.substr(document.URL.indexOf('#')+1);
+  if(urlHash != document.URL) return urlHash; // IE9 safe
+  return false;
+}
+
+function redirDocCenter() {
+  try {
+    const primaryDomain = window.location.hostname.match(new RegExp( '(\w{2,}\.\w{2}\.\w{2,3}|\w{2,}\.\w{2,})$') )[0];
+  }
+  catch(e) {
+    return;
+  }
+  if( window.location.hostname.match( new RegExp( "document-center." + primaryDomain ) )) {
+    !isInternetExplorer && window.stop();
+    window.location.replace( 'https://doc.' + primaryDomain );
+  }
+}
+redirDocCenter();
+
+function redirectToFirstItem() {
+  var homePageID = 'Home';
+  if(window.location.pathname.match( new RegExp( ".*\/Home.html" ) ) || window.location.pathname.match( new RegExp( ".*\/index.html" ) )) {
+    !isInternetExplorer && window.stop();
+    window.location.replace( '/' + encodeURIComponent( location.search + location.hash ) );
+  }
+}
+redirectToFirstItem();
+
+var tocData;
+function replaceTOCstub(){
+  $('#toc > ul.sectlevel1').remove();
+  $('#toc').append('<div id="generated-toc"></div>');
+  $('#toc').addClass('sidenav');
+  if(location.hash == '') {
+    $('#generated-toc ul ul').hide();
+  }
+}
+
 // requestIdleCallback() Fallback
 
 window.requestIdleCallback = window.requestIdleCallback || function(handler) {
