@@ -137,6 +137,7 @@ function documentReady() {
       });
     });
   }, { timeout: 15000 });
+  $('#spinner-container').fadeOut();
 }
 
 $(document).ready(function () {
