@@ -25,6 +25,7 @@ class INFO:
     """
     MMD_REGEX = re.compile(r"\[mermaid, ?([A-Za-z0-9_]+), ?(svg|png)\]")
     MMD_DELIM = "----"
+    MMD_CONFIG = "config/mermaid-default-theme.json"
 
 
 def main():
@@ -84,13 +85,19 @@ def main():
     # generate png files from mermaid temp files
     ###########################################################################
     os.makedirs(args.out_dir, exist_ok=True)
-    commands = ["mmdc -i {in_mmd} -o {out} -w 2000".format(in_mmd=mmd,
-                                                           out=os.path.join(args.out_dir,
-                                                                            os.path.basename(mmd).split(".")[0] + ".png"))
-                for mmd in mmd_files]
+    png_files = [os.path.join(args.out_dir,
+                              os.path.basename(mmd) .split(".")[0] + ".png")
+                 for mmd in mmd_files]
+    commands = ["mmdc -i {in_mmd} -o {out} -c {config} -w 2000"
+                .format(in_mmd=mmd,
+                        out=png,
+                        config=INFO.MMD_CONFIG)
+                for mmd, png in zip(mmd_files, png_files)]
 
+    subprocess.Popen(
+        "bash buildscripts/asciidoc/create-mermaid-config.sh", shell=True).wait()
     for i, cmd in enumerate(commands):
-        print("[*] %s" % (mmd_files[i]))
+        print("[*] %s" % (png_files[i].split(os.sep)[-1]))
         returncode = subprocess.call(cmd, shell=True)
         if returncode != 0:
             raise RuntimeError(
