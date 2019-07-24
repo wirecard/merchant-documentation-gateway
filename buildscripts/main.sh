@@ -223,6 +223,9 @@ function buildPartner() {
   mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
   increaseErrorCount
 
+  # fallback png's for IE
+  cp mermaid/*.png "${BUILDFOLDER_PATH}/${PARTNER}/html/"
+
   cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
   
   cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
