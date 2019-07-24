@@ -1,3 +1,12 @@
+$('header').prepend($('.closebtn'));
+function openNav() {
+  document.getElementById("toc").style.width = '0';
+}
+
+function closeNav() {
+  document.getElementById("toc").style.width = "20px";
+}
+
 $('#toctitle').click(function () {
   removeHash();
   window.scrollTo(0, 0);
