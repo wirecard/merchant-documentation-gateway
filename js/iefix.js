@@ -4,9 +4,9 @@ function isIE() {
 }
 
 function swapSVGandPNG() {
-    $('img').each(function () {
-        var svg_name = this.src;
-        var png_name = svg_name.split('.').slice(0, -1).join('.') + '.png';
-        this.src = png_name;
+    $('img').each(function (i, img) {
+        requestIdleCallback(function () {
+            img.src = img.src.split('.').slice(0, -1).join('.') + '.png';
+        });
     });
 }
