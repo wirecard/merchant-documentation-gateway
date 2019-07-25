@@ -18,8 +18,9 @@ CONVERT_VALUE_KEYWORDS = "amount".split()
 
 def try_float(number):
     """
-    Take a string and try to convert it to float,
-    return either the original string or the new float.
+    Take a string and try to convert it to float.
+
+    Return either the original string or the new float.
     """
     try:
         return float(number)
@@ -28,7 +29,7 @@ def try_float(number):
 
 
 def format_key(key):
-    """Takes an old key and returns the new, generic key"""
+    """Take an old key and returns the new, generic key."""
     if key.startswith("@"):
         return key[1:]
     elif key == "#text":

@@ -72,25 +72,25 @@ need additional merchant accounts for those.
 |===
 |Transaction Type |Link to the sample
 
-|pending-authorization | 
+|pending-authorization |
 |authorization |<<MoipPagamentos_XMLSamples_RestApi_paymentmethods_authorization, _authorization_ samples>>
-|pending-purchase | 
+|pending-purchase |
 |purchase |<<MoipPagamentos_XMLSamples_RestApi_paymentmethods_purchase, _purchase_ samples>>
-|capture-authorization  | 
-|void-authorization | 
-|refund-purchase | 
+|capture-authorization  |
+|void-authorization |
+|refund-purchase |
 |refund-capture |<<MoipPagamentos_XMLSamples_RestApi_paymentmethods_refund, _refund-capture_ samples>>
 |===
 
-For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Appendix B: Transaction Types>>.
+For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Appendix B: Transaction Types>>.
 
 
 [#MoipPagamentos_Transactions_ProcessingTransaction]
 ===== Processing a Transaction
 
 After your account is configured for _moip_, you only need to send a
-regular payment request to _Wirecard Payment Gateway_ and the rest of
-the transaction is processed automatically by _Wirecard Payment Gateway_.
+regular payment request to _{payment-gateway}_ and the rest of
+the transaction is processed automatically by _{payment-gateway}_.
 
 Due to security requirements, all payments are registered as pending. It
 can take up to 48 hours before the pending status is processed and
@@ -102,18 +102,25 @@ cleared.
 [%autowidth]
 [cols="1,2,3"]
 |===
-.2+s|URLs (Endpoints) s|REST API |``\https://api-test.wirecard.com/engine/rest/payments/``
-                    s|Hosted Payment Page |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
-s|Merchant Account ID (MAID) 2+|0c9a0604-b997-49f8-b34e-864dd9886e30 
-s|Username 2+|70000-APITEST-AP 
-s|Password 2+|qD2wzQ_hrc!8 
+.2+s|URLs (Endpoints) s|REST API |``\https://{test-instance-hostname}/engine/rest/payments/``
+                    s|Hosted Payment Page |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+s|Merchant Account ID (MAID) 2+|0c9a0604-b997-49f8-b34e-864dd9886e30
+s|Username 2+|70000-APITEST-AP
+s|Password 2+|qD2wzQ_hrc!8
 s|Merchant Account name 2+|MOIP Wirecard Test Account
+
+////
+
+Do we need the Merchant Account Name? NO would make white labeling easier!
+
+////
+
 s|Secret Key 2+|e3c51303-3255-4520-8f41-17f1c2c1e9b3
-s|Visible in Wirecard Enterprise Portal? 2+|yes (under '_Search Card Transactions (EE)_')
+s|Visible in _{enterprise-portal-name}_? 2+|yes (under '_Search Card Transactions (EE)_')
 s|Test Credit Card Number 2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
 |===
 
-NOTE: _moip_ gateway supports the following card brands: VISA, MasterCard,
+NOTE: _moip_ gateway supports the following card brands: VISA, MasterCard,
 Diners Club, Discover, AMEX, Hipercard, ELO, Hiper
 
 [#MoipPagamentos_TestCredentials_TestCards]
@@ -138,7 +145,7 @@ characters except AMEX that contains 4 characters.
 [#MoipPagamentos_TestCredentials_CreateAccount]
 ===== Create a Classical _moip_ Account
 
-NOTE: This is currently done by the _moip_ team. 
+NOTE: This is currently done by the _moip_ team.
 
 Having a Classical _moip_ Account means that the owner of that account
 can manage its sales in the _moip_ environment. _moip_ offers two types
@@ -158,17 +165,17 @@ and Classical _moip_ Account.
 |===
 
 The *token* and *keys* will be provided afterwards to the merchant support
-team to proceed with _Wirecard Payment Gateway_ merchant setup.
+team to proceed with _{payment-gateway}_ merchant setup.
 
 [#MoipPagamentos_TestCredentials_CreateAccount_MerchantDataRequired]
 ====== Merchant Data Required by _moip_
 
-- Email Address 
+- Email Address
 - Name
 - Last Name
 - Tax Document (CPF) - This is the Brazilian equivalent of a Social
 Security Number. That's the only personal document we currently accept
-in the account creation.
+in the account creation.
 - Identity Document
 - Birth Date
 - Phone Number
@@ -185,10 +192,10 @@ in the account creation.
 image::images/11-40-moip-pagamentos/moipPagamentos_Workflow.png[moip Pagamentos Workflow]
 
 . Consumer adds products to cart and proceeds to checkout.
-. Merchant sends _purchase_ request to _WPG_.
-. _WPG_ returns _pending-purchase_ back to merchant.
-. _moip_ acknowledges the payment to _WPG_ within 48 hours.
-. _WPG_ sends a final notification to merchant.
+. Merchant sends _purchase_ request to _{payment-gateway-abbr}_.
+. _{payment-gateway-abbr}_ returns _pending-purchase_ back to merchant.
+. _moip_ acknowledges the payment to _{payment-gateway-abbr}_ within 48 hours.
+. _{payment-gateway-abbr}_ sends a final notification to merchant.
 . The payment is done.
 
 //-
@@ -210,7 +217,7 @@ h|Request h|Response h|Notification h|Request h|Response h|Notification
 |merchant-account-resolver-category |C |C |C |C |O |C |String |36 |The category used to resolve the merchant account based on rules on
 input. It is mandatory only, if _Merchant Resolving_ is activated.
 |transaction-id | |M |M | |M |M |String |36 |This is the unique identifier for a transaction. It is generated by
-_Wirecard Payment Gateway_.
+_{payment-gateway}_.
 |request-id |M |M |M |M |M |M |String |150 |This is the identification number of the request. It has to be unique
 for each request.
 |requested-amount@currency |M |M |M |M |M |M |String |3 |This is the amount of the transaction and its currency. The amount of
@@ -219,7 +226,7 @@ It is optional for _capture_ and _void_ requests (only the full amount can
 be captured or voided). +
 It is optional for _refund_ requests.
 |transaction-type |M |M |M |M |M |M |String |30 |This is the type for a transaction.
-|transaction-state | |M |M |  |M |M |String |12 |This is the status of a transaction.
+|transaction-state | |M |M |  |M |M |String |12 |This is the status of a transaction.
 |completion-time-stamp | |M |M | |M |M |Timestamp | |This is the time stamp of completion of request.
 |avs-code | |O |O | | | |String |36 |This is the result of address' validation.
 |csc-code | |O |O | | | |String |36 |This is the result of CVC validation.
@@ -232,11 +239,11 @@ It is optional for _refund_ requests.
 .2+h|Field 3+h|Transaction Process (REST API) 3+h|Transaction Process (HPP) .2+h|Datatype .2+h|Size .2+h|Description
 h|Request h|Response h|Notification h|Request h|Response h|Notification
 |statuses.status | |O |O | |M |M |String |12 |This is the status of a transaction.
-|status@code | |M |M | |M |M |String |12 |This is the code of the status of a transaction.
+|status@code | |M |M | |M |M |String |12 |This is the code of the status of a transaction.
 |status@description | |M |M | |M |M |String |256 |This is the description to the status code of a transaction.
-|status@severity | |M |M | |M |M |String |20 |This field gives information if a status is a warning, an error or
-an information.
-|parent-transaction-id |C |C |C |C |O |O |String |36 |This is the unique identifier of the referenced transaction. This might
+|status@severity | |M |M | |M |M |String |20 |This field gives information if a status is a warning, an error or
+an information.
+|parent-transaction-id |C |C |C |C |O |O |String |36 |This is the unique identifier of the referenced transaction. This might
 be mandatory if ``merchant-account-id`` or
 ``merchant-account-resolver-category`` is not used or this is a follow-up
 payment after an _authorization_ or _purchase_.
@@ -249,7 +256,7 @@ payment after an _authorization_ or _purchase_.
 .2+h| Field 3+h|Transaction Process (REST API) 3+h|Transaction Process (HPP) .2+h|Datatype .2+h|Size .2+h|Description
 h|Request h|Response h|Notification h|Request h|Response h|Notification
 |payment-method@name |M |M |  |M |M |M |String | |Name of payment method.
-|payment-method@url |O |O | | |M | |String | |A redirect link to Wirecard Payment Page to collect consumer's payment
+|payment-method@url |O |O | | |M | |String | |A redirect link to _{payment-provider-name} Payment Page_ to collect consumer's payment
 data and submit payment.
 |===
 
@@ -314,16 +321,16 @@ h|Request h|Response h|Notification h|Request h|Response h|Notification
 h|Request h|Response h|Notification h|Request h|Response h|Notification
 |account-number |M | | | | | |String |36 |This is the card account number of the consumer. It is mandatory if
 ``card-token`` is not used.
-|expiration-month |M |O | | | | |Numeric |2 |This is the card's expiration month of the consumer. If this field
+|expiration-month |M |O | | | | |Numeric |2 |This is the card's expiration month of the consumer. If this field
 is configured, it will be sent in the response. +
-ONLY transaction type _detokenize_ returns card elements in response.
+ONLY transaction type _detokenize_ returns card elements in response.
 All the other transaction types return ``card``/``card-token`` in response.
-|expiration-year |M |O | | | | |Numeric |4 |This is the card's expiration year of the consumer. If this field is
+|expiration-year |M |O | | | | |Numeric |4 |This is the card's expiration year of the consumer. If this field is
 configured, it will be sent in the response. +
-ONLY transaction type _detokenize_ returns card elements in response.
+ONLY transaction type _detokenize_ returns card elements in response.
 All the other transaction types return ``card``/``card-token`` in response.
 |card-security-code |M | | | | | |String |4 |This is the card's security code of the consumer.
-|card-type |M |O | | | | |String |15 |This is the card's type of the consumer. If this field is configured,
+|card-type |M |O | | | | |String |15 |This is the card's type of the consumer. If this field is configured,
 it will be sent in the response.
 |===
 
@@ -335,7 +342,7 @@ it will be sent in the response.
 h|Request h|Response h|Notification h|Request h|Response h|Notification
 |token-id | |M |M | | |M |String |36 |This is the token corresponding to ``card.account-number`` of the
 consumer. It is mandatory if ``card.account-number`` is not specified.
-It is unique on instance of the _Wirecard Payment Gateway_. 
+It is unique on instance of the _{payment-gateway}_. 
 |masked-account-number | |M |M | |M |M |String |36 |This is the masked version of ``card.account-number`` of the
 consumer. E.g. 440804******7893. +
 For REST API's request value see section
@@ -348,7 +355,7 @@ For REST API's request value see section
 |===
 .2+h| Field 3+h|Transaction Process (REST API) 3+h|Transaction Process (HPP) .2+h|Datatype .2+h|Size .2+h|Description
 h|Request h|Response h|Notification h|Request h|Response h|Notification
-|descriptor | |M |M | | |M |String |27 |Description on the settlement of the account holder's account about a
+|descriptor | |M |M | | |M |String |27 |Description on the settlement of the account holder's account about a
 transaction. The following characters are allowed: umlaut, -
 '0-9','a-z','A-Z',' ' , '+',',','-','.'
 |===
@@ -391,23 +398,23 @@ This _purchase_ sample set can also be used with the transaction type
 _authorization_. *Contains mandatory fields only*.
 
 .XML _purchase_ Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentsPurchase_PurchaseRequestSuccessful.xml[]
+include::samples/xml/creditcard_purchase_request_success_a51636.xml[]
 ----
 
 .XML _pending-purchase_ Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentsPurchase_PendingPurchaseResponseSuccessful.xml[]
+include::samples/xml/creditcard_pending-purchase_response_success.xml[]
 ----
 
 The notification is sent after the pending payment is cleared.
 
 .XML _purchase_ Notification (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentsPurchase_PurchaseNotificationSuccessful.xml[]
+include::samples/xml/creditcard_purchase_notification_success.xml[]
 ----
 
 [#MoipPagamentos_XMLSamples_RestApi_paymentmethods]
@@ -425,69 +432,69 @@ This _purchase_ request can also be used with the transaction type
 _authorization_. *Contains mandatory fields only*.
 
 .XML _purchase_ Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsPurchase_PurchaseRequestSuccessful.xml[]
+include::samples/xml/creditcard_purchase_request_success_74ddf4.xml[]
 ----
 
 This _purchase_ sample set can also be used with the transaction type
 _authorization_. *Contains optional fields also*.
 
 .XML _purchase_ Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsPurchase_PurchaseRequestSuccessful_8.xml[]
+include::samples/xml/creditcard_purchase_request_success_ad6d80.xml[]
 ----
 
 .XML _purchase_ Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsPurchase_PurchaseResponseSuccessful.xml[]
+include::samples/xml/creditcard_purchase_response_success_2e2a6b.xml[]
 ----
 
 [#MoipPagamentos_XMLSamples_RestApi_paymentmethods_authorization]
 ====== _authorization_
 
 .XML _capture-authorization_ Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsAuthorization_CaptureAuthorizationRequestSuccessful.xml[]
+include::samples/xml/creditcard_capture-authorization_request_success_2ba623d0.xml[]
 ----
 
 .XML _capture-authorization_ Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsAuthorization_CaptureAuthorizationResponseSuccessful.xml[]
+include::samples/xml/creditcard_capture-authorization_response_success_2ba623d0.xml[]
 ----
 
 .XML _void-authorization_ Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsAuthorization_VoidAuthorizationRequestSuccessful.xml[]
+include::samples/xml/creditcard_void-authorization_request_success_adbd1fdc.xml[]
 ----
 
 .XML _void-authorization_ Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsAuthorization_VoidAuthorizationResponseSuccessful.xml[]
+include::samples/xml/creditcard_void-authorization_response_success_adbd1fdc.xml[]
 ----
 
 [#MoipPagamentos_XMLSamples_RestApi_paymentmethods_refund]
 ====== _refund_
 
 .XML _refund_ Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsRefund_RefundResponseSuccessful.xml[]
+include::samples/xml/creditcard_refund-capture_response_success_3f7d5d69.xml[]
 ----
 
 _refund_ requests can be done using the transaction type
 _refund-purchase_. Partial refunds are also possible.
 
 .XML _refund-capture_ Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/MoipPagamentosXMLSamplesRestApiPaymentmethodsRefund_RefundCaptureRequestSuccessful.xml[]
+include::samples/xml/creditcard_refund-capture_request_success_3f7d5d69.xml[]
 ----
 
 [#MoipPagamentos_NVPSample]
@@ -506,26 +513,26 @@ For HPP front-end integration, follow integration journey as described
 [source]
 ----
 {
-                "merchant_account_id": "c6b58c82-9035-4ddc-9447-6738797610e5",
-                "request_id": "d7c79b5d-be22-4520-aaf3-58255508a7c6",
-                "transaction_type": "purchase",
-                "requested_amount_currency": "BRL",
-                "requested_amount": "23.00",
-                "payment_method": "creditcard",
-                “orderItems[0].name”: "Series Box - Exterminate!"
-                "orderItems[0].amount.value”: “23.00”
-                "orderItems[0].amount.currency”: "BRL"
-                "orderItems[0].quantity”: "1"
-                "date_of_birth": "30-12-1988",
-                "social_security_number": "22222222222"
-                "shipping_first_name": "Jose"
-                "shipping_last_name": "Silva"
-                "shipping_email": "josesilva@email.com"
-                /* You need to calculate a proper signature on your server to demonstrate the authenticity
-                   of every request. Please consult the merchant documentation for the details.
-                   NEVER SHARE YOUR SECRET IN THE BROWSER! */
-                “request_signature”: “09c7c7b92114c01f9495e4a61af82375335deeb2ffa7157a1d384449214d7d3e”
-                ”request_signature_v2”: "WAUTH SFMyNTYKY3VzdG9tX2Nzc191cmw9CnJlcXVlc3RfdGltZV9zdGFtcD0yMDE4LTAxLTI0VDEzOjE0OjAzWgptZXJjaGFudF9hY2NvdW50X2lkPTA1ZmQ3YjEwLTJjY2MtNGU5NS1hNzkwLWNhOTQ1MjE1M2UzNwpyZXF1ZXN0ZWRfYW1vdW50X2N1cnJlbmN5PUVVUgppcF9hZGRyZXNzPTEyNy4wLjAuMQp0cmFuc2FjdGlvbl90eXBlPWF1dG8tc2FsZQpyZXF1ZXN0X2lkPTVmZmRkZGZiLTA1YjAtNzczNy0xNWUwLTFhZDkzNDU2NzAxNQpyZXF1ZXN0ZWRfYW1vdW50PTIyNApyZWRpcmVjdF91cmw9Cg==.q85AgZTwpva9AwBGs5W50u7UPkWd7dXWjPViwUKnQDk="
-               /* use either “request_signature” OR “request_signature_v2”, not both at the same time */
-            }
+  "merchant_account_id": "c6b58c82-9035-4ddc-9447-6738797610e5",
+  "request_id": "d7c79b5d-be22-4520-aaf3-58255508a7c6",
+  "transaction_type": "purchase",
+  "requested_amount_currency": "BRL",
+  "requested_amount": "23.00",
+  "payment_method": "creditcard",
+  "orderItems[0].name": "Series Box - Exterminate!"
+  "orderItems[0].amount.value": "23.00"
+  "orderItems[0].amount.currency": "BRL"
+  "orderItems[0].quantity": "1"
+  "date_of_birth": "30-12-1988",
+  "social_security_number": "22222222222"
+  "shipping_first_name": "Jose"
+  "shipping_last_name": "Silva"
+  "shipping_email": "josesilva@email.com"
+  /* You need to calculate a proper signature on your server to demonstrate the authenticity
+     of every request. Please consult the merchant documentation for the details.
+     NEVER SHARE YOUR SECRET IN THE BROWSER! */
+  "request_signature": "09c7c7b92114c01f9495e4a61af82375335deeb2ffa7157a1d384449214d7d3e"
+  "request_signature_v2": "WAUTH SFMyNTYKY3VzdG9tX2Nzc191cmw9CnJlcXVlc3RfdGltZV9zdGFtcD0yMDE4LTAxLTI0VDEzOjE0OjAzWgptZXJjaGFudF9hY2NvdW50X2lkPTA1ZmQ3YjEwLTJjY2MtNGU5NS1hNzkwLWNhOTQ1MjE1M2UzNwpyZXF1ZXN0ZWRfYW1vdW50X2N1cnJlbmN5PUVVUgppcF9hZGRyZXNzPTEyNy4wLjAuMQp0cmFuc2FjdGlvbl90eXBlPWF1dG8tc2FsZQpyZXF1ZXN0X2lkPTVmZmRkZGZiLTA1YjAtNzczNy0xNWUwLTFhZDkzNDU2NzAxNQpyZXF1ZXN0ZWRfYW1vdW50PTIyNApyZWRpcmVjdF91cmw9Cg==.q85AgZTwpva9AwBGs5W50u7UPkWd7dXWjPViwUKnQDk="
+ /* use either "request_signature" OR "request_signature_v2", not both at the same time */
+}
 ----

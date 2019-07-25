@@ -4,34 +4,36 @@
 [#MobilePaymentSDK_iOS_ApplePay]
 ==== Apple Pay(R)
 
-NOTE: Before you start you should have access to your testing environment at this point.
+NOTE: Apple Pay is fully PSD2 compliant. +
+{payment-provider-name} ensures that our merchants will stay PSD2 compliant without any additional change in the implementation process.
 
-Since Apple Pay® is a proprietary service, the setup process requires a
+IMPORTANT: Before you start you should have access to your testing environment at this point.
+
+Since Apple Pay® is a proprietary service, the setup process requires a
 different approach.
 
 To set it up, you need to:
 
-. Contact our merchant support to create a test _Wirecard Payment Gateway Apple Pay_ merchant account and set up its _Apple Merchant ID_.
+. Contact our merchant support to create a test _{payment-gateway} Apple Pay_ merchant account and set up its _Apple Merchant ID_.
 . Depending on whether you have an existing _Apple Merchant ID_, you
 will need to:
 .. upload the CSR file you've received in the previous step,
 +
 or
 +
-.. register with the _Apple Merchant ID_ provided by Wirecard and
-upload the CSR file.
+.. register with the _Apple Merchant ID_ provided by Wirecard and upload the CSR file.
 +
 Additional information can be found
-in link:https://developer.apple.com/library/content/ApplePay_Guide/Configuration.html[Apple's documentation].
+in link:https://developer.apple.com/library/content/ApplePay_Guide/Configuration.html[Apple's documentation].
 
 //-
 
 After you've set up your accounts:
 
-. You can link:https://developer.apple.com/support/apple-pay-sandbox/[add a test card] to the Wallet app.
+. You can link:https://developer.apple.com/support/apple-pay-sandbox/[add a test card] to the Wallet app.
 . Integrate _paymentSDK_ into your application
 . Conduct testing
-. Add a live card to the Wallet app and switch the _Wirecard Payment Gateway_ to production mode (do not forget to
+. Add a live card to the Wallet app and switch the _{payment-gateway}_ to production mode (do not forget to
 use *production* credentials - _MAID/SK/AppleMerchantID/csr_)
 
 //-
@@ -41,11 +43,11 @@ use *production* credentials - _MAID/SK/AppleMerchantID/csr_)
 
 There are two approaches, depending on your requirements:
 
-. You need full control over _PKPaymentRequest_ (dynamic shipping
-methods and pricing); use ``WDApplePayPayment``
+. You need full control over _PKPaymentRequest_ (dynamic shipping
+methods and pricing); use ``WDApplePayPayment``
 . If you only execute simple transactions with a fixed shipping price,
-use ``WDApplePayManagedPayment``, and _paymentSDK_ will handle
-the _PKPaymentRequest_ by itself.
+use ``WDApplePayManagedPayment``, and _paymentSDK_ will handle
+the _PKPaymentRequest_ by itself.
 
 //-
 
@@ -55,7 +57,7 @@ respective subsections.
 [#MobilePaymentSDK_iOS_WDApplePayPayment]
 ====== Integrating with WDApplePayPayment
 
-. Initialize ``WDClient``:
+. Initialize ``WDClient``:
 +
 [source,swift]
 ----
@@ -67,7 +69,7 @@ respective subsections.
     WDClient *client = [[WDClient alloc] initWithEnvironment:WDEnvironmentTEST];
 ----
 +
-. Initialize ``WDApplePayPayment``
+. Initialize ``WDApplePayPayment``
 +
 [source,swift]
 ----
@@ -76,9 +78,9 @@ WDApplePayPayment *applePayPayment = [[WDApplePayPayment alloc] initWithPayment:
                                                                         currency:currency];
 ----
 +
-. Generate ``requestID``, ``requestTimestamp``,
-and ``requestSignature`` on your server and assign them
-to ``WDApplePayPayment``:
+. Generate ``requestID``, ``requestTimestamp``,
+and ``requestSignature`` on your server and assign them
+to ``WDApplePayPayment``:
 +
 [source,swift]
 ----
@@ -88,8 +90,8 @@ to ``WDApplePayPayment``:
  applePayPayment.requestSignature = signature;            // generated on server
 ----
 +
-. Create a ``completionBlock`` to handle the response, then
-call ``PKPaymentAuthorizationViewController`` completion block to handle
+. Create a ``completionBlock`` to handle the response, then
+call ``PKPaymentAuthorizationViewController`` completion block to handle
 response:
 +
 [source,swift]
@@ -119,9 +121,9 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
 //-
 
 [#MobilePaymentSDK_iOS_WDApplePayManagedPayment]
-====== Integrating with WDApplePayManagedPayment
+====== Integrating with WDApplePayManagedPayment
 
-. Initialize ``WDClient``:
+. Initialize ``WDClient``:
 +
 [source,swift]
 ----
@@ -131,7 +133,7 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
      WDClient *client = [[WDClient alloc] initWithEnvironment:WDEnvironmentTEST];
 ----
 +
-. Initialize ``WDApplePayPayment``:
+. Initialize ``WDApplePayPayment``:
 +
 [source,swift]
 ----
@@ -141,9 +143,9 @@ applePayPayment.amount = [NSDecimalNumber decimalNumberWithMantissa:1275 exponen
 applePayPayment.amountCurrency = WDCurrencyGBP;
 ----
 +
-. Generate ``requestID``, ``requestTimestamp``,
-and ``requestSignature`` on your server and assign them
-to ``WDApplePayManagedPayment``:
+. Generate ``requestID``, ``requestTimestamp``,
+and ``requestSignature`` on your server and assign them
+to ``WDApplePayManagedPayment``:
 +
 [source,swift]
 ----
@@ -153,7 +155,7 @@ applePayPayment.requestTimestamp = [NSDate date];        // generated on server;
 applePayPayment.requestSignature = signature;            // generated on server
 ----
 +
-. Create a ``WDCompletionBlock`` to handle the response:
+. Create a ``WDCompletionBlock`` to handle the response:
 +
 [source,swift]
 ----
@@ -183,7 +185,7 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
 [#MobilePaymentSDK_iOS_CreditCard_SimpleTransactions]
 ==== Simple Transactions
 
-. Initialize ``WDClient``:
+. Initialize ``WDClient``:
 +
 [source,swift]
 ----
@@ -193,7 +195,7 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
      WDClient *client = [[WDClient alloc] initWithEnvironment:WDEnvironmentTEST];
 ----
 +
-. Initialize ``WDCardPayment``:
+. Initialize ``WDCardPayment``:
 +
 [source,swift]
 ----
@@ -202,8 +204,8 @@ WDCardPayment *payment = [[WDCardPayment alloc] initWithAmount:[NSDecimalNumber 
                                                  transactionType:WDTransactionTypePurchase];
 ----
 +
-. Generate ``requestID``, ``requestTimestamp``,
-and``requestSignature`` on your server and assign them to ``WDCardPayment``:
+. Generate ``requestID``, ``requestTimestamp``,
+and``requestSignature`` on your server and assign them to ``WDCardPayment``:
 +
 [source,swift]
 ----
@@ -213,7 +215,7 @@ and``requestSignature`` on your server and assign them to ``WDCardPayment``:
  payment.requestSignature = signature;            // generated on server
 ----
 +
-. Create a ``WDCompletionBlock`` to handle the response:
+. Create a ``WDCompletionBlock`` to handle the response:
 +
 [source,swift]
 ----
@@ -243,12 +245,12 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
 [#MobilePaymentSDK_iOS_WDCardFieldAlternative]
 ==== WDCardField Alternative
 
-``WDCardField`` is a specialized field for collecting card data, with
-properties similar to ``UITextField``. It is designed to fit in a single
-line and can be used where an ``UITextField`` would be appropriate:
+``WDCardField`` is a specialized field for collecting card data, with
+properties similar to ``UITextField``. It is designed to fit in a single
+line and can be used where an ``UITextField`` would be appropriate:
 
-. Create a ``WDCardField`` (programmatically, or in XIB/Storyboard) and
-keep the instance reference in your ``UIViewController``:
+. Create a ``WDCardField`` (programmatically, or in XIB/Storyboard) and
+keep the instance reference in your ``UIViewController``:
 +
 [source,swift]
 ----
@@ -261,7 +263,7 @@ keep the instance reference in your ``UIViewController``:
 @end
 ----
 +
-. Initialize it using ``WDCardPayment``:
+. Initialize it using ``WDCardPayment``:
 +
 .Initializing WDCardField
 [source,swift]
@@ -294,8 +296,8 @@ keep the instance reference in your ``UIViewController``:
  }
 ----
 +
-. Implement the ``WDCardFieldDelegate`` protocol to handle user
-actions listed in ``WDCardFieldState``:
+. Implement the ``WDCardFieldDelegate`` protocol to handle user
+actions listed in ``WDCardFieldState``:
 +
 [source,swift]
 ----
@@ -370,7 +372,7 @@ initialize ``WDClient``:
      self.client = [[WDClient alloc] initWithEnvironment:WDEnvironmentTEST];
 ----
 +
-. Initialize ``WDPBBAPayment``:
+. Initialize ``WDPBBAPayment``:
 +
 [source,swift]
 ----
@@ -391,7 +393,7 @@ payment.pbbaTransactionType = pbbaTransactionType;// possible values zapp.in.TxT
 - The only supported currency is ``GBP``.
 - ``IPAddress`` is mandatory for this payment method.
 - ``pbbaTransactionType`` is one of following options: ``BILLPT``, ``PAYMT``,
-``INVOICE``, ``DONATIONS ``.
+``INVOICE``, ``DONATIONS ``.
 - ``pbbaDeliveryType`` is one of following options: ``COLLST``, ``DELTAD``, ``DIGDEL``,
 ``SERVICE``, ``F2F``, ``NONE``.
 - ``pbbaReturnAppScheme`` is the URL scheme used in the bank application to
@@ -399,7 +401,7 @@ redirect the consumer back to your application. +
 More information for PBBA specific parameters can be found in <<API_PaybyBankapp, PBBA REST API>>.
 ====
 +
-. Generate ``requestID``, ``requestTimestamp``, and ``requestSignature`` on your server and assign them to the
+. Generate ``requestID``, ``requestTimestamp``, and ``requestSignature`` on your server and assign them to the
 ``WDPBBAPayment``:
 +
 [source,swift]
@@ -410,7 +412,7 @@ payment.requestTimestamp = [NSDate date];        // generated on server
 payment.requestSignature = signature;            // generated on server
 ----
 +
-. Create a ``WDCompletionBlock`` to handle the response:
+. Create a ``WDCompletionBlock`` to handle the response:
 +
 [source,swift]
 ----
@@ -435,8 +437,8 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
 }
 ----
 +
-. You need to use the ``PBBAButton`` to call the ``makePBBAPayment`` method.
-. Next, either the _PBBA_ dialog is shown or the banking application is opened. 
+. You need to use the ``PBBAButton`` to call the ``makePBBAPayment`` method.
+. Next, either the _PBBA_ dialog is shown or the banking application is opened.
 . Consumer makes the payment in the banking application and is
 redirected back to your application. The application returns success or
 timeout depending on the response.
@@ -446,7 +448,7 @@ timeout depending on the response.
 [#MobilePaymentSDK_iOS_PayPal]
 ==== PayPal
 
-. Initialize ``WDClient``:
+. Initialize ``WDClient``:
 +
 [source,swift]
 ----
@@ -456,7 +458,7 @@ timeout depending on the response.
      WDClient *client = [[WDClient alloc] initWithEnvironment:WDEnvironmentTEST];
 ----
 +
-. Initialize ``WDPayPalPayment``:
+. Initialize ``WDPayPalPayment``:
 +
 [source,swift]
 ----
@@ -465,9 +467,9 @@ WDPayPalPayment *payment = [[WDPayPalPayment alloc] initWithAmount:[NSDecimalNum
 payment.transactionType = WDTransactionTypeDebit;
 ----
 +
-. Generate ``requestID``, ``requestTimestamp``,
-and ``requestSignature`` on your server and assign them to
-the ``WDPayPalPayment``:
+. Generate ``requestID``, ``requestTimestamp``,
+and ``requestSignature`` on your server and assign them to
+the ``WDPayPalPayment``:
 +
 [source,swift]
 ----
@@ -477,7 +479,7 @@ payment.requestTimestamp = [NSDate date];        // generated on server
 payment.requestSignature = signature;            // generated on server
 ----
 +
-. Create a ``WDCompletionBlock`` to handle the response:
+. Create a ``WDCompletionBlock`` to handle the response:
 +
 [source,swift]
 ----
@@ -507,7 +509,7 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
 [#MobilePaymentSDK_iOS_SepaDD]
 ==== SEPA Direct Debit
 
-. Initialize ``WDClient``:
+. Initialize ``WDClient``:
 +
 [source,swift]
 ----
@@ -517,7 +519,7 @@ WDCompletionBlock completionBlock = ^(WDPaymentResponse *_Nullable response, NSE
      WDClient *client = [[WDClient alloc] initWithEnvironment:WDEnvironmentTEST];
 ----
 +
-. Initialize ``WDSEPAPayment``:
+. Initialize ``WDSEPAPayment``:
 +
 [source,swift]
 ----
@@ -528,9 +530,9 @@ payment.amount          = [NSDecimalNumber decimalNumberWithMantissa:1275 expone
 payment.amountCurrency  = WDCurrencyEUR;
 ----
 +
-. Generate ``requestID``, ``requestTimestamp``,
-and ``requestSignature`` on your server and assign them
-to ``WDSEPAPayment``:
+. Generate ``requestID``, ``requestTimestamp``,
+and ``requestSignature`` on your server and assign them
+to ``WDSEPAPayment``:
 +
 [source,swift]
 ----
@@ -540,7 +542,7 @@ payment.requestTimestamp = [NSDate date];        // generated on server
 payment.requestSignature = signature;            // generated on server
 ----
 +
-. Create a ``WDCompletionBlock`` to handle the response:
+. Create a ``WDCompletionBlock`` to handle the response:
 +
 [source,swift]
 ----
