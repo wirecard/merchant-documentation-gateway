@@ -9,7 +9,7 @@
 #   a list of child sections.
 # - Generates leaf (content level) pages with the actual content.
 # - Allows the chunking depth to be configured with the `multipage-level`
-#   document attribute (the default is 1—split into chapters).
+#   document attribute (the default is 1─split into chapters).
 # - Supports variable chunking depth between sections in the document (by
 #   setting the `multipage-level` attribute on individual sections).
 # - Uses section IDs to name each page (eg. "introduction.html").
