@@ -24,7 +24,7 @@ designed for this brave new world and offers the flexibility needed to
 adapt to an ever-changing e-commerce landscape.
 
 [#CreditCard_3DS2_Advantages]
-===== 3D Secure 2 – The Advantages
+===== 3D Secure 2 - The Advantages
 
 - *No more static passwords:* The days of rummaging through your drawers
 to find your 3DS password are over. Consumers will no longer have to
@@ -153,6 +153,24 @@ level of security.
 |===
 |XML |Request |Datatype |Size |Description
 
+|card.account-type
+|C
+|String
+|2
+a|The type of account, e.g. for a multi-account card product. +
+Possible values: ``01``, ``02``, ``03`` +
+``01`` = Not Applicable. +
+``02`` = Credit. +
+``03``= Debit. +
+The cardinality depends on the use case. The field is required: 
+
+- If the merchant asks the consumer to select the account type they are using.
+- For certain markets, e.g. Brazil.
+
+//-
+Otherwise, the field is optional. +
+
+
 |account-holder.account-info.authentication-method
 |O
 |String
@@ -178,19 +196,20 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |2
-|Indicates whether a challenge is requested for this transaction. +
+a|Indicates whether a challenge is requested for this transaction. +
  Possible values: ``01``, ``02``, ``03``, ``04`` +
  ``01`` = No preference. +
  ``02`` = No challenge requested. +
  ``03`` = Challenge requested: Merchant Preference. +
  ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
- (e.g. for one-click checkout).
+ (e.g. for one-click checkout). +
+ NOTE: If the element is not provided, the ACS will interpret this as ``01`` = No preference.
 
 |account-holder.account-info.creation-date
 |O
-|DateTime
-|19
-|Registration date (UTC) of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``.
+|Date
+|10
+|Registration date (UTC) of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
  For guest checkout, do not send this field.
 
 |account-holder.account-info.update-date
@@ -265,51 +284,51 @@ account-holder.account-info.challenge-indicator
  Requests that contain payment information from the same consumer in the same shop must contain the same string.
 
 |account-holder.address.city
-|C
+|M
 |String
 |50
 |City of the consumer's billing address.
 
 
 |account-holder.address.country
-|C
+|M
 |String
-|50
-|Country of the consumer's billing address.
+|2
+|Country of the consumer's billing address. Format: ISO 3166-1 alpha-2 country code.
 
 |account-holder.address.street1
-|C
+|m
 |String
 |50
 |Line 1 of the street address of the consumer's billing address.
 
 |account-holder.address.street2
-|C
+|O
 |String
 |50
 |Line 2 of the street address of the consumer's billing address.
 
 
 |account-holder.address.street3
-|C
+|O
 |String
 |50
 |Line 3 of the street address of the consumer's billing address.
 
 |account-holder.address.postal-code
-|C
+|M
 |String
 |16
 |ZIP/postal code of the consumer's billing address.
 
 |account-holder.address.state
-|C
+|O
 |String
 |3
 |State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard.
 
 |account-holder.address.email
-|C
+|M
 |String
 |256
 |The consumer's email address as given in the merchant's shop.
@@ -441,6 +460,26 @@ a|The shipping method chosen by the consumer.
 |Date
 |10
 |Expected shipping date for pre-ordered goods. Accepted format: ``YYYY-MM-DD``.
+
+|risk-info.gift-cards.gift-card@id
+|C
+|Numeric
+|2
+|//KKS: Description provided in ticket is not sufficient.
+
+|risk-info.gift-cards.gift-card.amount
+|O
+|Numeric
+|18,2
+|For prepaid or gift card purchase. 
+//KKS: Description provided in ticket is not sufficient. 
+
+|risk-info.gift-cards.gift-card@currency
+|C
+|String
+|3
+|For prepaid or gift card purchase. ISO 4217 three-digit currency code of the gift card. 
+//KKS: Description provided in ticket is not sufficient.
 
 |periodic.recurring-expire-date
 |C
