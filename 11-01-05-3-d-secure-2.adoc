@@ -170,7 +170,6 @@ The cardinality depends on the use case. The field is required:
 //-
 Otherwise, the field is optional. +
 
-
 |account-holder.account-info.authentication-method
 |O
 |String
@@ -196,7 +195,7 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |2
-a|Indicates whether a challenge is requested for this transaction. +
+|Indicates whether a challenge is requested for this transaction. +
  Possible values: ``01``, ``02``, ``03``, ``04`` +
  ``01`` = No preference. +
  ``02`` = No challenge requested. +
@@ -297,7 +296,7 @@ a|Indicates whether a challenge is requested for this transaction. +
 |Country of the consumer's billing address. Format: ISO 3166-1 alpha-2 country code.
 
 |account-holder.address.street1
-|m
+|M
 |String
 |50
 |Line 1 of the street address of the consumer's billing address.
@@ -334,71 +333,79 @@ a|Indicates whether a challenge is requested for this transaction. +
 |The consumer's email address as given in the merchant's shop.
 
 |account-holder.home-phone
-|C
+|O
 |String
 |18
 |Home phone number provided by the consumer. +
  This field is required if available.
 
 |account-holder.mobile-phone
-|C
+|O
 |String
 |18
 |Mobile phone number provided by the consumer. +
  This field is required if available.
 
 |account-holder.work-phone
-|C
+|O
 |String
 |18
 |Work phone number provided by the consumer. +
  This field is required if available.
 
+|account-holder.first-name
+|M
+|String
+|32
+|The last name provided by the consumer as part of the credit card details.
+
 |account-holder.last-name
 |C
 |String
-|50
+|32
 |The last name provided by the consumer as part of the credit card details.
 
 |shipping.address.city
-|C
+|O
 |String
 |50
 |City of the consumer's shipping address. Must be sent even if billing city is identical.
 
 |shipping.address.country
-|C
+|O
 |String
-|50
+|2
 |Country of the consumer's shipping address.
  Must be sent even if billing country is identical.
+ //KKS: So it's not optional. FFS.
+ Format: ISO 3166-1 alpha-2 country code.
 
 |shipping.address.street1
-|C
+|O
 |String
 |50
 |Line 1 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
 
 |shipping.address.street2
-|C
+|O
 |String
 |50
 |Line 2 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
 
 |shipping.address.street3
-|C
+|O
 |String
 |50
 |Line 3 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
 
 |shipping.address.postal-code
-|C
+|O
 |String
 |16
 |ZIP/postal code of the consumer's shipping address. Must be sent even if billing address is identical.
 
 |shipping.address.state
-|C
+|O
 |String
 |3
 |State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
@@ -407,7 +414,7 @@ a|Indicates whether a challenge is requested for this transaction. +
 |shipping.shipping-method
 |O
 |String
-|2
+|restriction-based enumeration value
 a|The shipping method chosen by the consumer.
  Merchants must use the shipping indicator value that applies most accurately to the shipping method. +
  Accepted values are:
@@ -465,7 +472,8 @@ a|The shipping method chosen by the consumer.
 |C
 |Numeric
 |2
-|//KKS: Description provided in ticket is not sufficient.
+|
+//KKS: Description provided in ticket is not sufficient.
 
 |risk-info.gift-cards.gift-card.amount
 |O
@@ -474,7 +482,7 @@ a|The shipping method chosen by the consumer.
 |For prepaid or gift card purchase. 
 //KKS: Description provided in ticket is not sufficient. 
 
-|risk-info.gift-cards.gift-card@currency
+|risk-info.gift-cards.gift-card.amount@currency
 |C
 |String
 |3
@@ -493,6 +501,13 @@ a|The shipping method chosen by the consumer.
 |4
 |For recurring payments. The minimum number of days between individual payments.
 
+|periodic.number-of-installments
+|O
+|Numeric
+|3
+|For installment payments only. Indicates the maximum number of authorizations permitted for installment payments.
+//KKS: Contradictory description in table.
+
 |iso-transaction-type
 |O
 |String
@@ -504,6 +519,19 @@ a|The shipping method chosen by the consumer.
  ``10`` = Account Funding +
  ``11`` = Quasi-Cash Transaction +
  ``28`` = Prepaid Activation and Load
+
+|browser.accept
+|O
+|String
+|2048
+|This is the HTTP Accept Header as retrieved from the consumer’s browser in the HTTP request. If is longer than 2048 it must be truncated. It is strongly recommended to provide this field to prevent rejection from the ACS server.
+//KKS: longer than 2048 what?
+
+|browser.user-agent
+|O
+|String
+|256
+|This is the User Agent as retrieved from the consumer’s browser in the HTTP request. If it is longer than 256 bytes it must be truncated. It is strongly recommended to provide this field to prevent rejection from the ACS server.
 
 |browser.java-enabled
 |O
@@ -525,6 +553,12 @@ a|The shipping method chosen by the consumer.
 |2
 |Value representing the bit depth of the color palette for displaying images, in bits per pixel. Obtained
  from cardholder browser using the ``screen.colorDepth`` property. The field is limited to 1-2 characters.
+
+|browser.screen-resolution
+|O
+|String
+|12
+|Total height and width of the consumer's screen in pixels. Value is returned from the ``screen.height`` and ``screen.width`` properties.
 
 |browser.challenge-window-size
 |O
@@ -559,7 +593,7 @@ Uses default value ``1.0`` if the version is not provided in the request.
 |String
 |36
 |Universally unique transaction identifier assigned by the Directory Server to identify a single transaction.
-Required for external 3D Secure servers not provided by {payment-provider-name}.
+Required for external 3D Secure servers not provided by {payment-provider-name}. Format: see IETF RFC 4122.
 
 |three-d.riid
 |O
@@ -572,4 +606,5 @@ Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
 ``03`` = Add card +
 ``04`` = Maintain card information +
 ``05`` = Account
+//KKS: Supposedly required for 3DS2.2 only. Does that mean it's mandatory for 3DS2.2, or that it's available for 2.2?
 |===
