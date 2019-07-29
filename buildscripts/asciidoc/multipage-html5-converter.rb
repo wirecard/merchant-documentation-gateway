@@ -258,18 +258,18 @@ class MultipageHtml5Converter < Asciidoctor::Converter::Html5Converter
         home_page = doc
         # NOTE, there are some non-breaking spaces (U+00A0) below.
         if previous_page != parent_page
-          links << %(← <<#{previous_page.id}>>)
+          links << %(← <<#{previous_page.id}>>)
         end
-        #links << %(↑ <<#{parent_page.id}>>)
-        #links << %(⌂ <<#{home_page.id}>>) if home_page != parent_page
+        #links << %(↑ <<#{parent_page.id}>>)
+        #links << %(⌂ <<#{home_page.id}>>) if home_page != parent_page
       end
       if page_index != pages.length-1
         next_page = pages[page_index+1]
-        links << %( <<#{next_page.id}>> →)
+        links << %( <<#{next_page.id}>> →)
       end
       block = Asciidoctor::Block.new(parent = doc,
                                      context = :paragraph,
-                                     opts = {:source => links.join(' | '),
+                                     opts = {:source => links.join(' | '),
                                              :subs => :default})
       page.nav_links = block.content
     end
@@ -494,7 +494,7 @@ class MultipageHtml5Converter < Asciidoctor::Converter::Html5Converter
             chapter.convert
             text = %(<<#{chapter.id},#{chapter.captioned_title}>>)
             # NOTE, there is a non-breaking space (Unicode U+00A0) below.
-            if desc = block.attr('desc') then text << %( – #{desc}) end
+            if desc = block.attr('desc') then text << %( – #{desc}) end
             chapters_list << Asciidoctor::ListItem.new(chapters_list, text)
             true
           end

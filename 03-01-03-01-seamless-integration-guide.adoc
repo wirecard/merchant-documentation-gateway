@@ -26,7 +26,7 @@ the background color to transparent in Payment Page Designer.
 Then use a backend-to-backend JSON <<PPSolutions_PPv2_Workflow, workflow>>
 for the payment process.
 
-. *Create a payment session:* You send an initial POST request with
+. *Create a payment session:* You send an initial POST request with
 details of the transaction to the {payment-page-v2} ({payment-page-v2-abbr}). This POST
 request is secured by basic access authentication.
 
@@ -34,7 +34,7 @@ request is secured by basic access authentication.
 +
 ====
 - *If the initial POST request is correct,* use this response URL and the
-``WPP.seamlessRender`` library call to render the payment form in a
+``{payment-page-function-short}.seamlessRender`` library call to render the payment form in a
 seamless iframe. *Continue with step 3.*
 
 - *If the initial POST request is faulty,* {payment-page-v2-abbr} returns an error code with
@@ -42,7 +42,7 @@ a description of the problem in the response. *Return to step 1.*
 ====
 +
 . *Submit the payment:* The consumer fills in the payment form. Use
-the ``WPP.seamlessSubmit`` function to submit the payment. Ensure that
+the ``{payment-page-function-short}.seamlessSubmit`` function to submit the payment. Ensure that
 the function is bound to an interactive UI element, such as a button, in
 your HTML code.
 - *3D Secure credit card payment* automatically redirects the consumer
@@ -156,7 +156,7 @@ set up your testing tool:
 
 
 [#PPv2_Seamless_Integration_Example_InitialRequest]
-.1. Create a Payment Session 
+.1. Create a Payment Session 
 To create a payment session, send a *POST request* to the ``/api/payment/register`` endpoint,
 e.g. ``\https://{test-instance-hostname}/api/payment/register``.
 
@@ -250,12 +250,12 @@ The response to the initial authorization request contains the
 include::samples/json/WPP_SeamlessIntegrationExampleRender_ResponseToAuthorizationRequest.json[]
 ----
 
-Use the *``WPP.seamlessRender``* function to render the payment form in a seamless iframe.
+Use the *``{payment-page-function-short}.seamlessRender``* function to render the payment form in a seamless iframe.
 Include the ``payment-redirect-url`` here:
 
 [source]
 ----
-WPP.seamlessRender({
+{payment-page-function-short}.seamlessRender({
     url: paymentredirecturl, // this is the payment link returned in response to your initial request
     wrappingDivId: "seamless-form-target",
     onSuccess: function (response) { // called when seamless form is successfully rendered
@@ -294,7 +294,7 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
           var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request (Step 1) must match the domain you are using to test this
-          WPP.seamlessRender({
+          {payment-page-function-short}.seamlessRender({
                url: paymentredirecturl,
                wrappingDivId: "seamless-form-target",
                onSuccess: function (response) {
@@ -317,11 +317,11 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
 Now the payment form has been rendered and consumers can enter their
 payment information.
 
-To submit that data, use the *``WPP.seamlessSubmit``* function:
+To submit that data, use the *``{payment-page-function-short}.seamlessSubmit``* function:
 
 [source]
 ----
-WPP.seamlessSubmit({
+{payment-page-function-short}.seamlessSubmit({
     onSuccess: function (response) { // called when seamless form data is successfully submitted
     },
     onError: function (response) { //called when data submission fails
@@ -354,7 +354,7 @@ payment.
           var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request must match the domain you are using to test this
-          WPP.seamlessRender({
+          {payment-page-function-short}.seamlessRender({
                url: paymentredirecturl,
                wrappingDivId: "seamless-form-target",
                onSuccess: function (response) {
@@ -367,10 +367,10 @@ payment.
     </script>
 
     <!-- this code will generate the "Pay Now" button and enable the submission of the form -->
-    <input id="wirecard_pay_btn" type="button" onclick="pay()" value="Pay Now"/>
+    <input id="{pay-button-name}_pay_btn" type="button" onclick="pay()" value="Pay Now"/>
     <script type="text/javascript">
         function pay() {
-            WPP.seamlessSubmit({
+            {payment-page-function-short}.seamlessSubmit({
                 onSuccess: function (response) {
                 // called when seamless form data is successfully submitted with non-3D Secure credit card
                 // see section 4 (Parse and Process the Payment Response) on how to deal with this data
@@ -415,7 +415,7 @@ URLs for successful, failed, and canceled transactions can also be set
 during the initial merchant configuration and saved in the database. If
 you would like to change these default values, please contact <<ContactUs, Merchant Support>>.
 
-More information on ``success-/fail-/cancel-redirect-url`` configuration
+More information on ``success-/fail-/cancel-redirect-url`` configuration
 can be found in <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>.
 ====
 
@@ -529,8 +529,8 @@ Typically, a transaction starts with state _in-progress_ and finishes with state
 [#PPv2_Seamless_Integration_Example_Parse_NON3DS]
 *Non 3D Secure Credit Card Payment*
 
-The {payment-page-v2-abbr} sends the final response containing the payment data *as part of the ``onSuccess/onError`` function.* Use the response to redirect the
+The {payment-page-v2-abbr} sends the final response containing the payment data *as part of the ``onSuccess/onError`` function.* Use the response to redirect the
 consumer to a success-/fail-/cancel-redirect-url of your own choice and design to inform the consumer about the transaction status.
 
 To parse and process the payment response of Non 3D Secure credit card
-payment, please consult *<<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> for details.*
+payment, please consult *<<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> for details.*
