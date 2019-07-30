@@ -35,7 +35,7 @@ request is secured by basic access authentication.
 +
 ====
 - *If the initial POST request is correct,* use this response URL and the
-``WPP.seamlessRender`` library call to render the payment form in a
+``PaymentPage.seamlessRender`` library call to render the payment form in a
 seamless iframe. *Continue with step 3.*
 
 - *If the initial POST request is faulty,* {payment-page-v2-abbr} returns an error code with
@@ -43,7 +43,7 @@ a description of the problem in the response. *Return to step 1.*
 ====
 +
 . *Submit the payment:* The consumer fills in the payment form. Use
-the ``WPP.seamlessSubmit`` function to submit the payment. Ensure that
+the ``PaymentPage.seamlessSubmit`` function to submit the payment. Ensure that
 the function is bound to an interactive UI element, such as a button, in
 your HTML code.
 - *3D Secure credit card payment* automatically redirects the consumer
@@ -251,12 +251,12 @@ The response to the initial authorization request contains the
 include::samples/json/WPP_SeamlessIntegrationExampleRender_ResponseToAuthorizationRequest.json[]
 ----
 
-Use the *``WPP.seamlessRender``* function to render the payment form in a seamless iframe.
+Use the *``PaymentPage.seamlessRender``* function to render the payment form in a seamless iframe.
 Include the ``payment-redirect-url`` here:
 
 [source]
 ----
-WPP.seamlessRender({
+PaymentPage.seamlessRender({
     url: paymentredirecturl, // this is the payment link returned in response to your initial request
     wrappingDivId: "seamless-form-target",
     onSuccess: function (response) { // called when seamless form is successfully rendered
@@ -295,7 +295,7 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
           var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request (Step 1) must match the domain you are using to test this
-          WPP.seamlessRender({
+          PaymentPage.seamlessRender({
                url: paymentredirecturl,
                wrappingDivId: "seamless-form-target",
                onSuccess: function (response) {
@@ -318,11 +318,11 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
 Now the payment form has been rendered and consumers can enter their
 payment information.
 
-To submit that data, use the *``WPP.seamlessSubmit``* function:
+To submit that data, use the *``PaymentPage.seamlessSubmit``* function:
 
 [source]
 ----
-WPP.seamlessSubmit({
+PaymentPage.seamlessSubmit({
     onSuccess: function (response) { // called when seamless form data is successfully submitted
     },
     onError: function (response) { //called when data submission fails
@@ -355,7 +355,7 @@ payment.
           var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request must match the domain you are using to test this
-          WPP.seamlessRender({
+          PaymentPage.seamlessRender({
                url: paymentredirecturl,
                wrappingDivId: "seamless-form-target",
                onSuccess: function (response) {
@@ -371,7 +371,7 @@ payment.
     <input id="{payment-provider-name}_pay_btn" type="button" onclick="pay()" value="Pay Now"/>
     <script type="text/javascript">
         function pay() {
-            WPP.seamlessSubmit({
+            PaymentPage.seamlessSubmit({
                 onSuccess: function (response) {
                 // called when seamless form data is successfully submitted with non-3D Secure credit card
                 // see section 4 (Parse and Process the Payment Response) on how to deal with this data
