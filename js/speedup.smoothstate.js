@@ -854,13 +854,6 @@ var smoothState = $('#content').smoothState({
       // what you want
     }
   },
-  onStart: {
-    duration: 0,
-    render: function ($container) {
-      $('#spinner-container').show();
-      // fadeOut is done in tocgen after creation of the TOC
-    }
-  },
   onAfter: function () {
     documentReady();
     initPagePreloading();
