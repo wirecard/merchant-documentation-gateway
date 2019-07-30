@@ -370,8 +370,8 @@ WARNING: Before storing credentials on file, consumers must be clearly informed 
 
 .Independent of purchase (standard scenario)
 
-. *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 
 //-
 
@@ -379,18 +379,20 @@ NOTE: Zero-amount processing is not supported by all acquirers. If you experienc
 
 .Independent of purchase (alternative scenario)
 
-. *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 . *Void-authorization* (_authorization_ amount): Send a third request with transaction type ``void-authorization``. The agreement has been signed by means of the ``authorization`` transaction. Void the amount provided in the _authorization_ request to conclude the workflow.
 
 .During purchase
 
-. *Check-enrollment* (payment amount): This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Check-enrollment* (payment amount): This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
 +
 NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
 +
 
-. *Authorization* (payment amount): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Authorization* (payment amount): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 . *Capture* (payment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+WARNING: For subsequent transactions that use stored card details, use ``<sequence-type>recurring</sequence-type>``
 
 //-
