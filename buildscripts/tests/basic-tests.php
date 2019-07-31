@@ -559,7 +559,7 @@ function sendNotifications ( $results ) {
   array_push($slackMessage, $msgContent);
   foreach($msgClosing as $closingItem)
     array_push($slackMessage, $closingItem);
-    
+
   //$status = postToSlack( $slackWebhookUrl, array("blocks" => $slackMessage) );
 
   // send messages separately
@@ -571,7 +571,7 @@ function sendNotifications ( $results ) {
         }
     }
     else {
-      $_msg = json_encode(array($block), JSON_PRETTY_PRINT);
+      $_msg = array($block);
       postToSlack( $slackWebhookUrl, $_msg );
     }
   }
