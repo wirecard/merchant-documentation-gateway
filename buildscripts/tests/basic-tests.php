@@ -559,7 +559,23 @@ function sendNotifications ( $results ) {
   array_push($slackMessage, $msgContent);
   foreach($msgClosing as $closingItem)
     array_push($slackMessage, $closingItem);
-  $status = postToSlack( $slackWebhookUrl, array("blocks" => $slackMessage) );
+    
+  //$status = postToSlack( $slackWebhookUrl, array("blocks" => $slackMessage) );
+
+  // send messages separately
+  foreach ($slackMessage['blocks'] as $key => $block) {
+    if($block['type'] == 'section' && isset($block['fields'])) {
+      foreach ($block['fields'] as $key => $field) {
+        $_msg = array($block);
+        postToSlack( $slackWebhookUrl, $_msg );
+        }
+    }
+    else {
+      $_msg = json_encode(array($block), JSON_PRETTY_PRINT);
+      postToSlack( $slackWebhookUrl, $_msg );
+    }
+  }
+
   return true;
 }
 
