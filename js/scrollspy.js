@@ -137,12 +137,6 @@ function documentReady() {
       });
     });
   }, { timeout: 15000 });
-  $('#spinner-container').fadeOut();
-  // IE fixes
-  // if(isInternetExplorer || isEdgeBrowser) { }
-  if(isInternetExplorer) {
-    swapSVGandPNG();
-  }
 }
 
 $(document).ready(function () {
