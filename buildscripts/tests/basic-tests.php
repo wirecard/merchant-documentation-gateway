@@ -563,7 +563,7 @@ function sendNotifications ( $results ) {
   //$status = postToSlack( $slackWebhookUrl, array("blocks" => $slackMessage) );
 
   // send messages separately
-  foreach ($slackMessage['blocks'] as $key => $block) {
+  foreach ($slackMessage as $key => $block) {
     if($block['type'] == 'section' && isset($block['fields'])) {
       foreach ($block['fields'] as $key => $field) {
         $_msg = array($block);
