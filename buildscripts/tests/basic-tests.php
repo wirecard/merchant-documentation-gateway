@@ -627,7 +627,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
   if( empty(getenv( 'SLACK_TOKEN' )) || !empty(getenv('SKIP_SLACK_MESSAGE')) ) {
-    echo $messageString."\n";
+    echo PHP_EOL.$messageString.PHP_EOL;
     return true;
   }
 
@@ -658,6 +658,7 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
         echo("######### POST-TO-SLACK ############\n");
         echo($result."\n");
         echo("####################################\n");
+        echo $messageString."\n";
       }
       if ($errors !== '') {
         echo("############# ERRORS ###############\n");
