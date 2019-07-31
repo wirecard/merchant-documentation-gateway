@@ -11,20 +11,20 @@ image::images/11-14-masterpass/masterpass_logo.png[Masterpass Logo, width=200]
 _MasterPass_ is a digital wallet for faster, safer shopping, allowing
 consumers to make purchases without entering shipping and credit card
 information on the merchant's website, as _MasterPass_ stores the credit
-card and shipping details on behalf of the consumer. The consumer
+card and shipping details on behalf of the consumer. The consumer
 selects _MasterPass_ as the payment method, and is redirected to
 _MasterPass_ to select the credit card and shipping (optional)
 information.
 --
 
-_MasterPass_ supports 2 modes of requests:
+_MasterPass_ supports 2 modes of requests:
 
-- *_MasterPass_ Standard Checkout* allows the merchant to redirect the
+- *_MasterPass_ Standard Checkout* allows the merchant to redirect the
 consumer to the _MasterPass_ site to select the preferred card and
-shipping details to complete the checkout.
-- *_MasterPass_ Express Checkout* allows the merchant to pair (link) the
-merchant account to the consumer account so that the merchant can
-initiate subsequent payments to _MasterPass_ without requiring the
+shipping details to complete the checkout.
+- *_MasterPass_ Express Checkout* allows the merchant to pair (link) the
+merchant account to the consumer account so that the merchant can
+initiate subsequent payments to _MasterPass_ without requiring the
 consumer to login to _MasterPass_. The consumer only has to login to
 _MasterPass_ once and approve the pairing.
 
@@ -37,12 +37,12 @@ The _MasterPass_ wallet can be integrated in three different ways:
 |Integration Option |Description
 
 |Hosted Payment Page integration a| . The customer is redirected
-to MasterPass website to login and select the preferred credit card for
+to MasterPass website to login and select the preferred credit card for
 payment. +
-                                    . The Wirecard Payment Gateway will receive the credit card information
+                                    . The _{payment-gateway}_ will receive the credit card information
 from _MasterPass_ and proceed with payment authorization with the
 acquirer. +
-                                    . The Wirecard Payment Gateway manages all interactions with
+                                    . The _{payment-gateway}_ manages all interactions with
 _MasterPass_.
 |REST API integration for Standard Checkout |The merchant handles the
 integration into _MasterPass_ based on the _MasterPass_ information provided
@@ -58,7 +58,7 @@ by the gateway for both the initial and subsequent requests.
 [#API_MasterPass_General_PaymentMode]
 ===== Payment Mode, Countries, and Currencies
 
-This table illustrates which payment mode _MasterPass_ belongs to. It
+This table illustrates which payment mode _MasterPass_ belongs to. It
 also provides detailed information about the countries and currencies
 which are relevant for _MasterPass_.
 
@@ -72,7 +72,7 @@ which are relevant for _MasterPass_.
 [#API_MasterPass_General_Communication]
 ===== Communication Formats
 
-This table illustrates how _MasterPass_ notifications are encoded and
+This table illustrates how _MasterPass_ notifications are encoded and
 which formats and methods can be used for requests and responses.
 
 [%autowidth]
@@ -85,7 +85,7 @@ h|IPN Encodement      2+| Base64
 [#API_MasterPass_TransactionTypes]
 ==== Transaction Types
 
-Every successful MasterPass payment request ends up with two distinct
+Every successful MasterPass payment request ends up with two distinct
 transactions in the database, one for the _MasterPass_ wallet and one for
 the credit card.
 
@@ -94,7 +94,7 @@ here, look at <<AppendixB, Appendix B: Transaction Types>>.
 
 [%autowidth]
 |===
-|_MasterPass_ |  |_Credit Card_
+|_MasterPass_ |  |_Credit Card_
 
 |_debit_ |AND |_purchase_
 |_authorization_ |AND |_authorization_
@@ -102,12 +102,12 @@ here, look at <<AppendixB, Appendix B: Transaction Types>>.
 |===
 
 [#API_MasterPass_TestCredentials]
-==== Test Credentials 
+==== Test Credentials
 
 [%autowidth]
 |===
-.2+h|URL(s) Endpoints          |Hosted Payment Page |``\https://api-test.wirecard.com/engine/hpp/``
-                               |REST API |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+.2+h|URL(s) Endpoints          |Hosted Payment Page |``\https://{test-instance-hostname}/engine/hpp/``
+                               |REST API |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
 h|Merchant Account ID (MAID) 2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
 h|Username                   2+|70000-APITEST-AP
 h|Password                   2+|qD2wzQ_hrc!8
@@ -126,18 +126,18 @@ flow.
 image::images/11-14-masterpass/pp_standardcheckout.png[Workflow PP Standard Checkout]
 
 . Consumers add items to shopping basket.
-. Merchants redirect consumers to _Wirecard Payment Gateway_ for
+. Merchants redirect consumers to _{payment-gateway}_ for
 payment.
-. Consumers select payment method _MasterPass_.
-. _Wirecard Payment Gateway_ redirects consumers to _MasterPass_.
+. Consumers select payment method _MasterPass_.
+. _{payment-gateway}_ redirects consumers to _MasterPass_.
 . Consumers enter their _MasterPass_ credentials and select preferred
 card and shipping address (optional).
-. _Wirecard Payment Gateway_ receives the card and shipping
-address (optional) information.
-. _Wirecard Payment Gateway_ processes the transaction with the
+. _{payment-gateway}_ receives the card and shipping
+address (optional) information.
+. _{payment-gateway}_ processes the transaction with the
 merchants' acquirer.
-. _Wirecard Payment Gateway_ receives transaction status.
-. _Wirecard Payment Gateway_ sends transaction status to merchants
+. _{payment-gateway}_ receives transaction status.
+. _{payment-gateway}_ sends transaction status to merchants
 and redirects the consumers to the merchant.
 . Merchants receive the transaction's status and display the
 completion of the payment process to the consumer.
@@ -150,18 +150,18 @@ completion of the payment process to the consumer.
 image::images/11-14-masterpass/api_standardcheckout.png[Workflow REST Standard Checkout]
 
 . Consumers add items to shopping basket.
-. Consumers select payment method _MasterPass_.
+. Consumers select payment method _MasterPass_.
 . Merchants initiate a _debit_ transaction.
-. _Wirecard Payment Gateway_ responds with a redirect-URL to the
+. _{payment-gateway}_ responds with a redirect-URL to the
 merchant.
 . Consumers enter their _MasterPass_ credentials and select preferred
 card and shipping address (optional).
-. _Wirecard Payment Gateway_ receives the card and shipping
-address (optional) information.
-. _Wirecard Payment Gateway_ processes the transaction with the
+. _{payment-gateway}_ receives the card and shipping
+address (optional) information.
+. _{payment-gateway}_ processes the transaction with the
 merchants' acquirer.
-. _Wirecard Payment Gateway_ receives transaction status.
-. _Wirecard Payment Gateway_ sends transaction status to merchants
+. _{payment-gateway}_ receives transaction status.
+. _{payment-gateway}_ sends transaction status to merchants
 and redirects the consumers to the merchants.
 . Merchants receive the transaction's status and display the
 completion of the payment process to the consumers.
@@ -169,10 +169,10 @@ completion of the payment process to the consumers.
 //-
 
 [#API_MasterPass_Workflows_API_Express]
-===== REST API: Express Checkout
+===== REST API: Express Checkout
 
-For Express Checkout, merchants can choose to do the pairing (request
-for consumer's account to be linked to merchant's account) to be handled
+For Express Checkout, merchants can choose to do the pairing (request
+for consumer's account to be linked to merchant's account) to be handled
 with or without a checkout.
 
 [#API_MasterPass_Workflows_API_Express_Initial_PairingCheckout]
@@ -181,27 +181,27 @@ with or without a checkout.
 image::images/11-14-masterpass/api_initial_pairingcheckout.png[Workflow REST Express Checkout - Pairing and Checkout]
 
 . Consumers add items to shopping basket.
-. Consumers select payment method _MasterPass_.
+. Consumers select payment method _MasterPass_.
 . Merchants initiate a _request-checkout_ transaction with
 request-type pairing-and-checkout.
-. _Wirecard Payment Gateway_ responds with a redirect-URL to the
+. _{payment-gateway}_ responds with a redirect-URL to the
 merchants.
-. Merchants initiate _MasterPass_ lightbox.
+. Merchants initiate _MasterPass_ lightbox.
 . Consumers enter their _MasterPass_ credentials and select preferred
 card and shipping address (optional).
 . Consumers approve pairing request
 from merchants.
-. _Wirecard Payment Gateway_ receives the card and shipping address
+. _{payment-gateway}_ receives the card and shipping address
 (optional) information.
-. _Wirecard Payment Gateway_ returns pairing status, token and
+. _{payment-gateway}_ returns pairing status, token and
 shipping address (optional) information to merchants.
 . Merchants re-calculate shipping amount (optional) and final charges
 and display masked card information for consumers' confirmation.
 . Merchants initiate payment request.
-. _Wirecard Payment Gateway_ processes the transaction with the
+. _{payment-gateway}_ processes the transaction with the
 merchants' acquirer.
-. _Wirecard Payment Gateway_ receives transaction status.
-. _Wirecard Payment Gateway_ sends transaction status to merchants.
+. _{payment-gateway}_ receives transaction status.
+. _{payment-gateway}_ sends transaction status to merchants.
 . Merchants receive the transaction's status and display the
 completion of the payment process to the consumers.
 
@@ -213,50 +213,50 @@ completion of the payment process to the consumers.
 image::images/11-14-masterpass/api_initial_pairingonly.png[Workflow REST Express Checkout - Pairing]
 
 . Consumers add items to shopping basket.
-. Consumers select payment method _MasterPass_.
+. Consumers select payment method _MasterPass_.
 . Merchants initiate a _request-checkout_ transaction with
 request-type pairing.
-. _Wirecard Payment Gateway_ responds with a redirect-URL to the
+. _{payment-gateway}_ responds with a redirect-URL to the
 merchants.
-. Merchants initiate _MasterPass_ lightbox.
+. Merchants initiate _MasterPass_ lightbox.
 . Consumers enter their _MasterPass_ credentials and select preferred
 card and shipping address (optional).
 . Consumers approve pairing request from merchants.
-. _Wirecard Payment Gateway_ receives the card and shipping address
+. _{payment-gateway}_ receives the card and shipping address
 (optional) information.
-. _Wirecard Payment Gateway_ returns the token and shipping address
+. _{payment-gateway}_ returns the token and shipping address
 (optional) information to merchants.
 . Merchants receive the transaction status and display pairing status
-to consumers. 
+to consumers.
 
 //-
 
 [#API_MasterPass_Workflows_API_Express_Subsequent_Express]
-.Subsequent - Express Checkout
+.Subsequent - Express Checkout
 
 image::images/11-14-masterpass/api_subsequent_expresscheckout.png[Workflow REST Express Checkout - Express]
 
 . Merchants initiate a _precheckout_ transaction with request-type
 precheckout.
-. _Wirecard Payment Gateway_ requests consumers' preferred card and
-shipping address (optional) from _MasterPass_.
-. _Wirecard Payment Gateway_ returns _precheckout_ information to
+. _{payment-gateway}_ requests consumers' preferred card and
+shipping address (optional) from _MasterPass_.
+. _{payment-gateway}_ returns _precheckout_ information to
 merchants.
 . Merchants display _precheckout_ information for consumers to select
 and confirm.
 . Consumers select and confirm preferred card.
 . Merchants submit a _request-checkout_ transaction with request-type
 express-checkout.
-. _Wirecard Payment Gateway_ requests for full card information
-from _MasterPass_.
-. _Wirecard Payment Gateway_ returns the token and shipping address
+. _{payment-gateway}_ requests for full card information
+from _MasterPass_.
+. _{payment-gateway}_ returns the token and shipping address
 (optional) information to merchants.
-. Merchants receive the transaction status. 
+. Merchants receive the transaction status.
 . Merchants initiate payment request.
-. _Wirecard Payment Gateway_ processes the transaction with the
+. _{payment-gateway}_ processes the transaction with the
 merchants' acquirer.
-. _Wirecard Payment Gateway_ receives transaction status.
-. _Wirecard Payment Gateway_ sends transaction status to merchants.
+. _{payment-gateway}_ receives transaction status.
+. _{payment-gateway}_ sends transaction status to merchants.
 . Merchants receive the transaction's status and display the
 completion of the payment process to the consumers.
 
@@ -275,7 +275,7 @@ Fields can be mandatory (M), optional (O) or conditional (C).
 ===== _request-checkout_
 
 The following elements are elements with differing cardinality
-from the <<RestApi_Fields, REST API Fields>>.
+from the <<RestApi_Fields, REST API Fields>>.
 
 [%autowidth]
 |===
@@ -283,7 +283,7 @@ from the <<RestApi_Fields, REST API Fields>>.
 
 |custom-fields/custom-field/@field-name   |M  |M  |M  |String |36 |Default as "elastic-api.merchant-origin".
 |custom-fields/custom-field/@field-value  |M  |M  |M  |String |36 |The Transaction ID is
-                                                                   the unique identifier for a transaction. It is generated by Wirecard.
+                                                                   the unique identifier for a transaction. It is generated automatically.
 |customer-id                              |M  |M  |M  |String |40 |Unique identifier in merchant's system that
                                                                    identifies the customer.
 |payment-methods/payment-method/url       |   |M  |M  |String |   |Contains callback, acceptable_cards fields to be used to initiate _MasterPass_ Lightbox. This field
@@ -308,7 +308,7 @@ from the <<RestApi_Fields, REST API Fields>>.
 ===== _precheckout_
 
 The following elements are elements with differing cardinality
-from the <<RestApi_Fields, REST API Fields>>.
+from the <<RestApi_Fields, REST API Fields>>.
 
 [%autowidth]
 |===
@@ -332,7 +332,7 @@ from the <<RestApi_Fields, REST API Fields>>.
 ===== _debit_
 
 The following elements are elements with differing cardinality
-from the <<RestApi_Fields, REST API Fields>>.
+from the <<RestApi_Fields, REST API Fields>>.
 
 [%autowidth]
 |===
@@ -354,23 +354,23 @@ from the <<RestApi_Fields, REST API Fields>>.
 
 ._request-checkout_ Pairing and Checkout Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesInitialPairingCheckout_RequestCheckoutPairingAndCheckoutRequestSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_request_success_pairing-and-checkout.xml[]
 ----
 
 ._request-checkout_ Pairing and Checkout Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesInitialPairingCheckout_RequestCheckoutPairingAndCheckoutResponseSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_response_success_pairing-and-checkout.xml[]
 ----
 
 ._request-checkout_ Pairing and Checkout Notification (Successful)
 
 [source]
 ----
-MasterPass.client.checkout({ "requestToken": "699f3012198d2dc958d688a4d21a0c909ae0698f", "callbackUrl":"https://sandbox-engine.thesolution.com/engine/notification/masterpass?payment.transaction-id=f21b063d-ac12-4580-ad7d-549a783ee5ef&payment.transaction-type=request-checkout&payment.request-type=pairing-and-checkout&payment.customer-id=unique-testid-003", "merchantCheckoutId":"a4a6w4waeskkkhudnya4w1hveovoyzec5i", "allowedCardTypes":["visa,master"], "suppressShippingAddressEnable":"true", "pairingRequestToken":"c334d6e3a4fe3e078606206b1331172d11a70b09", "requestPairing":true, "requestedDataTypes":["ADDRESS","PROFILE","CARD"], "requestExpressCheckout":true, "version":"v6" });
+MasterPass.client.checkout({ "requestToken": "699f3012198d2dc958d688a4d21a0c909ae0698f", "callbackUrl":"https://sandbox-engine.thesolution.com/engine/notification/masterpass?payment.transaction-id=f21b063d-ac12-4580-ad7d-549a783ee5ef&payment.transaction-type=request-checkout&payment.request-type=pairing-and-checkout&payment.customer-id=unique-testid-003", "merchantCheckoutId":"a4a6w4waeskkkhudnya4w1hveovoyzec5i", "allowedCardTypes":["visa,master"], "suppressShippingAddressEnable":"true", "pairingRequestToken":"c334d6e3a4fe3e078606206b1331172d11a70b09", "requestPairing":true, "requestedDataTypes":["ADDRESS","PROFILE","CARD"], "requestExpressCheckout":true, "version":"v6" });
 ----
 
 [#API_MasterPass_Samples_Initial_Pairing]
@@ -378,23 +378,23 @@ MasterPass.client.checkout({ "requestToken": "699f3012198d2dc958d688a4d21a0c90
 
 ._request-checkout_ Pairing only Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesInitialPairing_RequestCheckoutPairingOnlyRequestSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_request_success_pairing.xml[]
 ----
 
 ._request-checkout_ Pairing only Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesInitialPairing_RequestCheckoutPairingOnlyResponseSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_response_success_pairing.xml[]
 ----
 
 ._request-checkout_ Pairing only Notification (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesInitialPairing_RequestCheckoutPairingOnlyNotificationSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_notification_success_null.xml[]
 ----
 
 Initialize _MasterPass_ lightbox with the following script in the
@@ -404,38 +404,38 @@ merchant's origin_url page
 
 [source,javascript]
 ----
-MasterPass.client.connect({ "pairingRequestToken":"7575d7fecaa79454a9615b1e78e1090db8f2e38c", "callbackUrl":"https://sandbox-engine.thesolution.com/engine/notification/masterpass?payment.transaction-id=1d0ca01d-f81d-4228-a287-27f3fbd048ee&payment.transaction-type=request-checkout&payment.request-type=pairing&payment.customer-id=unique-testid-005", "merchantCheckoutId":"a4a6w4waeskkkhudnya4w1hveovoyzec5i", "requestedDataTypes":["ADDRESS","PROFILE","CARD"], "requestPairing":true, "requestExpressCheckout":true });
+MasterPass.client.connect({ "pairingRequestToken":"7575d7fecaa79454a9615b1e78e1090db8f2e38c", "callbackUrl":"https://sandbox-engine.thesolution.com/engine/notification/masterpass?payment.transaction-id=1d0ca01d-f81d-4228-a287-27f3fbd048ee&payment.transaction-type=request-checkout&payment.request-type=pairing&payment.customer-id=unique-testid-005", "merchantCheckoutId":"a4a6w4waeskkkhudnya4w1hveovoyzec5i", "requestedDataTypes":["ADDRESS","PROFILE","CARD"], "requestPairing":true, "requestExpressCheckout":true });
 ----
 
 [#API_MasterPass_Samples_Subsequent_Express]
-===== Subsequent - Express Checkout
+===== Subsequent - Express Checkout
 
 ._precheckout_ Express Checkout Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesSubsequentExpress_PrecheckoutExpressCheckoutRequestSuccessful.xml[]
+include::samples/xml/masterpass_precheckout_request_success.xml[]
 ----
 
 ._precheckout_ Express Checkout Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesSubsequentExpress_PrecheckoutExpressCheckoutResponseSuccessful.xml[]
+include::samples/xml/masterpass_precheckout_response_success.xml[]
 ----
 
 ._request-checkout_ Express Checkout Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesSubsequentExpress_RequestCheckoutExpressCheckoutRequestSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_request_success_express-checkout_37b24b99.xml[]
 ----
 
 ._request-checkout_ Express Checkout Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesSubsequentExpress_RequestCheckoutExpressCheckoutResponseSuccessful.xml[]
+include::samples/xml/masterpass_request-checkout_response_success_express-checkout_37b24b99.xml[]
 ----
 
 [#API_MasterPass_Samples_debit]
@@ -443,16 +443,16 @@ include::samples/xml/API_MasterPassSamplesSubsequentExpress_RequestCheckoutExpre
 
 ._debit_ Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesDebit_DebitRequestSuccessful.xml[]
+include::samples/xml/masterpass_debit_request_success_05e44225.xml[]
 ----
 
 ._debit_ Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/API_MasterPassSamplesDebit_DebitResponseSuccessful.xml[]
+include::samples/xml/masterpass_debit_response_success_05e44225.xml[]
 ----
 
 //-

@@ -5,6 +5,10 @@ typically called like:
 * python3 -u exporter.py -d src-files *.adoc
 or
 * PYTHONUNBUFFERED="1" python3 exporter.py -d src-files *.adoc
+
+This script goes hand in hand with the shell script 'update_includes.sh',
+which must be run after this script and uses the generated report to update references
+in the asciidoctor files.
 """
 
 import argparse
@@ -14,37 +18,16 @@ import os
 import re
 from shutil import copyfile
 from concurrent.futures import ThreadPoolExecutor
+from colors import info, warning, error
 
 
 SRC_BLK_DELIM = "----"
 NO_BLK_TITLE = "NoBlockTitle"
 
 
-class color:
-   PURPLE = '\033[95m'
-   CYAN = '\033[96m'
-   DARKCYAN = '\033[36m'
-   BLUE = '\033[94m'
-   GREEN = '\033[92m'
-   YELLOW = '\033[93m'
-   RED = '\033[91m'
-   BOLD = '\033[1m'
-   UNDERLINE = '\033[4m'
-   END = '\033[0m'
-
-
 def debug(msg):
     pass
     # print("# " + msg)
-
-
-def info(msg):
-    print(color.GREEN + "[*] " + msg + color.END)
-
-
-def warning(msg):
-    print(color.BOLD + color.RED + "[***] " + msg + color.END)
-
 
 def normalize_header(header):
     # info("normalize input:  {}".format(header))
@@ -77,13 +60,14 @@ def dir_try_or_create(name):
 ###############################################################################
 # BEGIN SCRIPT                                                                #
 ###############################################################################
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="""Export script for asciidoctor source blocks in the form '[source, ext, key=value]',
+where ext is the file extension (or programming language) and 'key=value' are additional attributes.""")
 parser.add_argument('adocs', metavar='FILE', type=str,
                     nargs='+', help='.adoc Files to process')
-parser.add_argument('-d', '--src-out-dir', default="", type=str,
-                    help='Output directory for extracted source files', required=False)
-parser.add_argument('-t', '--type', dest='extensions', default="xml,json",
-                    help='Comma separated list of source code languages which shall be extracted. Default: "xml,json"', required=False)
+parser.add_argument('-d', '--src-out-dir', default=".", type=str,
+                    help='Output directory for extracted source files Default: . (current directory)', required=False)
+parser.add_argument('-t', '--type', dest='extensions', default="xml",
+                    help='Comma separated list of source code languages which shall be extracted. Default: "xml"', required=False)
 args = parser.parse_args()
 
 # all args are files to process
@@ -100,22 +84,18 @@ dir_try_or_create(temp_folder)
 found_source_block = False
 inside_source = False
 extension = None
-# https://regex101.com/r/q9Puez/1
-adoc_src_blk_regex = re.compile(r"\[source, ?(\w+)\]")
 last_header = None
-# https://regex101.com/r/Fcun13/1
-adoc_header_regex = re.compile(r"^\[#([a-zA-Z0-9_]+)\]$")
-# https://regex101.com/r/BuiDJ9/1
 block_title = None
-adoc_block_title_regex = re.compile(
-    r"^\.((\d+\.)?[-a-zA-Z0-9_ ()<>,=\.\"–/'#]+):?$")
 temp_file = None
 
 
 class ADOC_REGEX:
-    SOURCE_BLOCK = adoc_src_blk_regex
-    HEADER = adoc_header_regex
-    BLOCK_TITLE = adoc_block_title_regex
+   # https://regex101.com/r/q9Puez/1
+    SOURCE_BLOCK = re.compile(r"\[source, ?(\w+)(, ?([a-zA-Z0-9=_\+\"]+))?\]")
+    # https://regex101.com/r/Fcun13/1
+    HEADER = re.compile(r"^\[#([a-zA-Z0-9_]+)\]$")
+    # https://regex101.com/r/BuiDJ9/1
+    BLOCK_TITLE = re.compile(r"^\.((\d+\.)?[-a-zA-Z0-9_ ()<>,=\.\"–/'#]+):?$")
 
 
 fname_id = 1
@@ -151,10 +131,14 @@ for (file_in, file_out) in zip(files, temp_files):
         with open(file_out, "w+", encoding='utf8') as f_output:
             line_count = 0
             for line in f_input.readlines():
+                # if we find an include, just leave it and continue
                 if inside_source and "include" in line:
                     include_found = True
                     line_count += 1
                     f_output.write(line)
+                    # don't forget to remember the used filename to avoid collisions
+                    file_name = line.replace("include::", "").replace("[]", "")
+                    used_file_names.add(file_name)
                     continue
 
                 # set last_header if this line is a header

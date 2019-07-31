@@ -2,27 +2,27 @@
 ===== Decoupling Card Data Collection from Payment
 
 When the merchant decides to display a recap order page between the
-payment data collection page and actually submitting the payment,
-the merchant may use the payment form to perform a:
+payment data collection page and actually submitting the payment,
+the merchant may use the payment form to perform a:
 
-- Zero authorization transaction that may later be referenced by a
-regular authorization or purchase. The advantage for credit card
-payments is that a zero authorization transaction is confirmed by an
-issuer and the CVC is verified.
-- Tokenization-only transaction. A token (non-sensitive data) is
-returned to the merchant that can be used for a real authorization or
+- Zero authorization transaction that may later be referenced by a
+regular authorization or purchase. The advantage for credit card
+payments is that a zero authorization transaction is confirmed by an
+issuer and the CVC is verified.
+- Tokenization-only transaction. A token (non-sensitive data) is
+returned to the merchant that can be used for a real authorization or
 purchase later.
 
 //-
 
-In either case, sensitive payment data will not touch any of the
+In either case, sensitive payment data will not touch any of the
 merchant's systems.
 
 The difference to the previous scenario is that an ``authorization-only``
-transaction type with a zero amount is used instead of a ``purchase``
-transaction type (``tokenization`` transaction type may be used for a
+transaction type with a zero amount is used instead of a ``purchase``
+transaction type (``tokenization`` transaction type may be used for a
 similar effect), and the real fund booking only comes in the third
-(additional) step. The payment form is displayed directly on the merchant’s
+(additional) step. The payment form is displayed directly on the merchant's
 checkout page.
 
 [#Seamless_DecouplingCardData_RenderForm]
@@ -32,7 +32,8 @@ The merchant renders the form into an element on their checkout page. The
 transaction details are specified in ``requestData``. The element is
 identified by ``wrappingDivId`` parameter.
 
-[source,js]
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
 ----
 var requestData = {
   "request_id" : "217c3832-8575-c1d5-0e3a-2fa08003b0fd",
@@ -45,18 +46,19 @@ var requestData = {
   "request_signature" : "43fd8c261a8fdad693024c7cc009239ad344f1e5716de0c3163237b5392d5700",
   "payment_method" : "creditcard"
 };
-WirecardPaymentPage.seamlessRenderForm({
+{payment-page-function}.seamlessRenderForm({
   requestData : requestData,
   wrappingDivId : "seamless-target",
   onSuccess : processSucceededResult,
   onError : processErrorResult
 });
 ----
+endif::[]
 
 NOTE: Use a unique Request ID for each request.
 
 .Transaction Data Received from onSuccess Callback of seamlessRenderForm()
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/SeamlessDecouplingCardDataRenderForm_TransactionDataReceivedFromonSuccessCallbackOfseamlessRenderForm.json[]
 ----
@@ -69,16 +71,18 @@ checkout page. ``requestData`` are optional when submitting the form. They will
 be merged with data from the first step. Form input is validated before
 the submit.
 
-[source,js]
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
 ----
-WirecardPaymentPage.seamlessSubmitForm({
+{payment-page-function}.seamlessSubmitForm({
   onSuccess : processSucceededResult,
   onError : processErrorResult
 });
 ----
+endif::[]
 
 .Transaction Data Received from onSuccess Callback of seamlessSubmitForm()
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/SeamlessDecouplingCardDataSubmitForm_TransactionDataReceivedFromonSuccessCallbackOfseamlessSubmitForm.json[]
 ----
@@ -87,11 +91,12 @@ include::samples/json/SeamlessDecouplingCardDataSubmitForm_TransactionDataReceiv
 ====== Actual Payment
 
 The merchant can now reference an existing authorization-only transaction to
-do a payment without further consumer involvement. The merchant may also
-do this using the function from Wirecard's JavaScript library from the
+do a payment without further consumer involvement. The merchant may also
+do this using the function from {payment-provider-name}'s JavaScript library from the
 browser.
 
-[source,js]
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
 ----
 var requestData = {
   "request_id" : "679047dc-8a4d-657b-91dc-df6d80cd6a10",
@@ -105,17 +110,18 @@ var requestData = {
   "payment_method" : "creditcard",
   "parent_transaction_id" : "26c14051-8213-11e5-a96e-0050b667eb91"
 };
-WirecardPaymentPage.seamlessPay({
+{payment-page-function}.seamlessPay({
   requestData : requestData,
   onSuccess : processSucceededResult,
   onError : processErrorResult
 });
 ----
+endif::[]
 
 NOTE: Use a unique Request ID for each request.
 
 .Transaction Data Received from onSuccess Callback of seamlessPay()
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/SeamlessDecouplingCardDataActualPayment_TransactionDataReceivedFromonSuccessCallbackOfseamlessPay.json[]
 ----
