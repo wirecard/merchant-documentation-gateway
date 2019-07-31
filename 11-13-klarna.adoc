@@ -132,7 +132,7 @@ additional fees optionally.
 ==== Acceptance Checks
 
 Every shop integration needs to pass a special set of acceptance checks
-on the test environment before going live. <<ContactUs, Merchant Support>> provides the description of the tests to be executed to the
+on the Wirecard test environment before going live. <<ContactUs, Merchant Support>> provides the description of the tests to be executed to the
 merchant by email. Once the test results are verified and confirmed that
 they are passed successfully the merchant will receive access
 credentials for the production environment and can proceed with the
@@ -283,12 +283,12 @@ order to trigger specific behavior.
 image::images/11-13-klarna/Klarna_Workflow_Authorization.png[Klarna Workflow authorization,height=250]
 
 - Merchant starts with an _authorization_ of the payment by sending a
-transaction of the type _authorization_ to _{payment-gateway-abbr}_
+transaction of the type _authorization_ to _{payment-gateway}_
 containing the order data like amount, order number and order items
 along with information about the consumer which includes name, billing
 and shipment address, client IP address and optionally some additional
 information based on the merchant category.
-- _{payment-gateway-abbr}_ performs a risk check for the payment using Klarna service
+- Wirecard performs a risk check for the payment using Klarna service
 call _reserve_amount_.
 - If Klarna authorizes the payment, it is guaranteed for the merchant
 once captured.
@@ -305,10 +305,10 @@ the _authorization_ response to the merchant.
 image::images/11-13-klarna/Klarna_Workflow_PendingAuthorization.png[Klarna Workflow pending-authorization,height=250]
 
 - In case no immediate decision can be made and a manual check of the
-payment must be performed by Klarna. In this case _{payment-gateway-abbr}_ creates a transaction of the type _pending-authorization_
+payment must be performed by Klarna. In this case the _{payment-gateway}_ creates a transaction of the type _pending-authorization_
 instead and returns it in the response. It means the _authorization_ is
 pending and cannot be immediately activated.
-- _{payment-gateway-abbr}_ takes care of the requesting the actual status of a pending
+- Wirecard takes care of the requesting the actual status of a pending
 _authorization_ and will notify the merchant system about the status
 change using the standard
 <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> (IPN) mechanism.
@@ -332,7 +332,7 @@ the request ID used for the _authorization_ as described here
 In case a manual decision has been made, the
 new _authorization_ transaction is returned with the response. If not,
 the HTTP code 404 is returned.
-- Please contact <<ContactUs, Merchant Support>> if a pending-authorization
+- Please contact Wirecard Customer Support if a pending-authorization
 transaction still has no corresponding _authorization_ transaction after
 26 hours.
 
@@ -369,7 +369,7 @@ still valid and can be updated or captured.
 - Multiple updates are possible.
 - Merchant sends an _adjust-authorization_ transaction with parent
 transaction ID referencing the previous _authorization_ or
-_adjust-authorization_ transaction. _{payment-gateway-abbr}_ is using Klarna call
+_adjust-authorization_ transaction. Wirecard is using Klarna call
 _update._
  The following data can be updated: order number, the order items and
 thus the amount, the consumer's name, billing and shipment address.
@@ -397,7 +397,7 @@ or the consumer would like to cancel his order.
 further payments of a particular consumer or even other consumers.
 - Merchant sends a _void-authorization_ transaction with parent
 transaction ID referencing the _authorization_/_adjust-authorization_
-transaction to be cancelled. _{payment-gateway-abbr}_ is using Klarna call
+transaction to be cancelled. Wirecard is using Klarna call
 _cancel_reservation_.
 - A pending-authorization can be cancelled as well.
 - The cancellation can be approved or rejected which is reported by the
@@ -419,7 +419,7 @@ the payment instructions.
 
 - Merchant must capture an _authorization_ when the goods or services
 are ready to be delivered.
-- This call will inform _{payment-gateway-abbr}_ and Klarna using _activate_ call that
+- This call will inform Wirecard and Klarna using _activate_ call that
 the order is being shipped.
 - Depending on the merchant configuration Klarna will then send an
 invoice or payment instructions to the consumer according to the
@@ -455,7 +455,7 @@ image::images/11-13-klarna/Klarna_Workflow_RefundCapture.png[Klarna Workflow ref
 - If a consumer returns all or some items, the merchant needs to issue a
 refund by sending a _refund-capture_ transaction with parent transaction
 ID referencing the _capture-authorization_ transaction to be refunded.
-_{payment-gateway-abbr}_ is using the Klarna call _credit_part_.
+Wirecard is using the Klarna call _credit_part_.
 - For every separate captured payment (invoice) made by a
 _capture-authorization_ transaction a separate refund must be issued by
 a _refund-capture_ transaction.
@@ -599,7 +599,7 @@ refund amount.
 lead to a negative invoice amount.
 - A refund of a voucher may not lead to an increased total invoice
 amount. This would be a special case which needs additional contractual
-agreements and general approving for a merchant by _{payment-gateway-abbr}_ and Klarna
+agreements and general approving for a merchant by Wirecard and Klarna
 Business Underwriting beforehand, otherwise the call would be rejected.
 - In case of a partial refund, the merchant might want to reduce a given
 voucher. In this case the voucher can either be refunded completely and
@@ -830,7 +830,7 @@ content and format of this field please see
 <<Klarna_AdditionalMerchantData, Extra Merchant Data>> chapter. |
 
 |transaction-id |  |M |Alphanumeric |36 |Transaction ID is the unique
-identifier for a transaction. It is generated automatically. |
+identifier for a transaction. It is generated by Wirecard. |
 
 |request-id |M |M |Alphanumeric |150 |Identification number of the
 request generated by merchant. It has to be unique for each request. |
@@ -1255,7 +1255,7 @@ article.
 |Alphanumeric
 |36
 |Transaction ID is the unique identifier for a transaction. It is
-generated automatically.
+generated by Wirecard.
 |
 
 |transaction-state
@@ -1810,7 +1810,7 @@ address via merchants own delivery service.
 |Alphanumeric
 |36
 |Transaction ID is the unique identifier for a transaction.
-|It is generated automatically.
+|It is generated by Wirecard.
 
 |transaction-state
 |
@@ -2038,9 +2038,9 @@ currency).
 |
 a|
 .Order item types
-- shipment_fee, handling_fee ─ marks the item as a new additional
+- shipment_fee, handling_fee – marks the item as a new additional
 fee decreasing the total refund amount
-- discount ─ marks the item as a voucher (good-will refund)
+- discount – marks the item as a voucher (good-will refund)
 increasing the total refund amount.
 
 //-
@@ -2053,7 +2053,7 @@ increasing the total refund amount.
 |Alphanumeric
 |36
 |Transaction ID is the unique identifier for a transaction. It is
-generated automatically.
+generated by Wirecard.
 |
 
 |transaction-state
@@ -2815,7 +2815,7 @@ Remove number's leading zero when using country code.
 ===== Additional Merchant Data
 
 Extra Merchant Data (EMD) is additional data variables that a merchant
-can send in to _{payment-gateway-abbr}_ in the API call in excess of the goods list. The
+can send in to Wirecard in the API call in excess of the goods list. The
 added value from the merchant's perspective is that Klarna will to a
 higher extent have the possibility of scoring the merchant's consumers,
 which in turn will result in an improved likelihood of higher acceptance
@@ -2824,7 +2824,8 @@ where it otherwise would be hard for Klarna to operate in (for example
 business concepts such as travel, digital goods, marketplaces etc.).
 
 The content of this field is a JSON alphanumeric presenting the
-hierarchical additional merchant data for Klarna. Please contact your Sales Account Manager in order to clarify what packages are
+hierarchical additional merchant data for Klarna. Please contact your
+Wirecard sales account manager in order to clarify what packages are
 required for your integration.
 
 [#Klarna_FrontendIntegrationRequirements]
@@ -2849,7 +2850,7 @@ the following Klarna online developer portal pages:
 |===
 
 NOTE: The merchant requires the Klarna _Merchant ID_ in order to be able to
-use some of the solutions. Please contact your Sales Account Manager
+use some of the solutions. Please contact your Wirecard account manager
 in order to get the Klarna _Merchant ID_.
 
 [#Klarna_getAddress]
@@ -2861,7 +2862,7 @@ For the Swedish private persons Klarna requires exact match of the
 address data in the ``authorization``/``adjust-authorization`` requests. In case
 of some deviations, the internal risk check might fail and the
 transaction gets rejected. In order to avoid the address mismatches
-_{payment-gateway-abbr}_ and Klarna offer a special online service which retrieves the
+Wirecard and Klarna offer a special online service which retrieves the
 official address(es) of the consumer by his social security number. The
 found address(es) need to be displayed on the checkout page to the
 consumer where he needs to choose and confirm one. The confirmed address

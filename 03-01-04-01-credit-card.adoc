@@ -47,7 +47,19 @@ the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
 [#PPv2_CC_TestCredentials]
 ====== Test Credentials
 
-[cols="35h,65"]
+ifdef::env-po[]
+[%autowidth, cols="h,"]
+|===
+| URL(s) Endpoints           |``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID) | cafdc4c6-3eec-424c-9c74-80c31b77cd38
+| Username                   | 51126-PAYDOO
+| Password                   | ic1-781Tp14715
+| Secret Key (used for response verification) | d64e9579-73bc-47cf-b05d-19d6f39610db
+|===
+endif::[]
+
+ifdef::env-wirecard[]
+[%autowidth, cols="h,"]
 |===
 | URL(s) Endpoints           | ``\https://{pp-test-instance-hostname}/api/payment/register``
 | Merchant Account ID (MAID) | 7a6dd74f-06ab-4f3f-a864-adc52687270a
@@ -55,16 +67,27 @@ the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
 | Password                   | ohysS0-dvfMx
 | Secret Key (used for response verification) | a8c3fce6-8df7-4fd6-a1fd-62fa229c5e55
 |===
+endif::[]
 
 [#PPv2_CC_TestCredentials_Additional]
 .Test Card Information for _Credit Card_
-
+ifdef::env-wirecard[]
 [cols="35h,65"]
 |===
 | Card number      | 4200000000000018
 | CVV              | 018
 | Expiration date  | 01/23
 |===
+endif::[]
+
+ifdef::env-po[]
+[cols="35h,65"]
+|===
+| Card number      | 4012000300001003
+| CVV              | 003
+| Expiration date  | 01/23
+|===
+endif::[]
 
 ifdef::env-wirecard[]
 image:images/03-01-04-01-credit-card/cc_entercarddata.jpg[Credit Card Payment Form,width=642,height=427]
@@ -97,10 +120,19 @@ payment form.
 
 .Request Headers
 [cols="20h,80"]
+ifdef::env-wirecard[]
 |===
 | Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
 | Content-Type  | application/json
 |===
+endif::[]
+
+ifdef::env-po[]
+|===
+| Authorization | Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+| Content-Type  | application/json
+|===
+endif::[]
 
 .Optional fields
 
@@ -112,10 +144,19 @@ For a full structure of a request (optional fields included), see the
 
 .1. Create a Payment Session (Initial Request)
 
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypePurchase_1CreateAPaymentSessionInitialRequest.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_TransactionTypePurchase_1CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
 
 [cols="20,10,10,10,5,45"]
 |===
@@ -127,7 +168,7 @@ assigned to every merchant account (by {payment-provider-name}).
 request (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
 
-Allowed characters: [a-z0-9-_]
+Allowed characters: [a-z0-9-_ ]
 2+e|transaction-type |String |Required |36 |The requested transaction type.
 .2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
 requested/contested in a transaction. 2 decimal places allowed.
@@ -142,7 +183,6 @@ used. Set this value to ``creditcard``.
 |===
 
 .2. Redirect the Consumer to the Payment Page (Initial Response URL)
-
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypePurchase_2RtCttPPIRU.json[]
@@ -187,10 +227,19 @@ You can find a decoded payment response example below.
 
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypePurchase_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_TransactionTypePurchase_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+endif::[]
 
 [cols="20,10,5,65"]
 |===
@@ -276,16 +325,25 @@ can find them below.
 
 .Initial Request
 
-The initial request creates the payment session. If it's
+The initial request creates the payment session. If it is
 successful, you receive a URL as a response which redirects to the
 payment form.
 
 .Request Headers
 [cols="20h,80"]
+ifdef::env-wirecard[]
 |===
 | Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
 | Content-Type  | application/json
 |===
+endif::[]
+
+ifdef::env-po[]
+|===
+| Authorization | Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+| Content-Type  | application/json
+|===
+endif::[]
 
 .Optional fields
 
@@ -296,11 +354,19 @@ For a full structure of a request (optional fields included), see the
 <<PPv2_CC_JSONNVPField, JSON/NVP Field Reference>> section.
 
 .1. Create a Payment Session (Initial Request)
-
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_TransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
 
 [cols="20,10,10,10,5,45"]
 |===
@@ -312,7 +378,7 @@ assigned to every merchant account (by {payment-provider-name}).
 request (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
 
-Allowed characters: [a-z0-9-_]
+Allowed characters: [a-z 0-9 - _ ]
 2+e|transaction-type |String |Required |36 |The requested transaction type.
 .2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
 requested/contested in a transaction. 2 decimal places allowed.
@@ -327,7 +393,6 @@ used. Set this value to ``creditcard``.
 |===
 
 .2. Redirect the Consumer to the Payment Page (Initial Response URL)
-
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypeAuthorization_2RtCttPPIRU.json[]
@@ -364,18 +429,26 @@ payments are returned as _failed_, but the
 In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
 is sent to the configured redirection URL. See
-<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>﻿﻿
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
 for more details on redirection targets after payment & transaction status
 notifications.
 
 You can find a decoded payment response example below.
 
 ._authorization_ (Response)
-
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypeAuthorization_AuthorizationResponse.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_TransactionTypeAuthorization_AuthorizationResponse.json[]
+----
+endif::[]
 
 [cols="20,10,5,65"]
 |===
@@ -469,10 +542,19 @@ payment form.
 
 .Request Headers
 [cols="20h,80"]
+ifdef::env-wirecard[]
 |===
 | Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
 | Content-Type  | application/json
 |===
+endif::[]
+
+ifdef::env-po[]
+|===
+| Authorization | Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+| Content-Type  | application/json
+|===
+endif::[]
 
 .Optional fields
 
@@ -483,11 +565,19 @@ For a full structure of a request (optional fields included), see the
 <<PPv2_CC_JSONNVPField, JSON/NVP Field Reference>> section.
 
 .1. Create a Payment Session (Initial Request)
-
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypeAuthorizationonly_1CreateAPaymentSessionInitialRequest.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_TransactionTypeAuthorizationonly_1CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
 
 [cols="20,10,10,10,5,45"]
 |===
@@ -515,7 +605,6 @@ used. Set this value to ``creditcard``.
 |===
 
 .2. Redirect the Consumer to the Payment Page (Initial Response URL)
-
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_TransactionTypeAuthorizationonly_2RtCttPPIRU.json[]
@@ -552,7 +641,7 @@ payments are returned as _failed_, but the
 In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
 is sent to the configured redirection URL. See
-<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>﻿﻿
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
 for more details on redirection targets after payment & transaction status
 notifications.
 
@@ -561,9 +650,17 @@ You can find a decoded payment response example below.
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
 [source,json,subs=attributes+]
+ifdef::env-wirecard[]
 ----
 include::samples/json/WPP_CC_TransactionTypeAuthorizationonly_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+----
+include::samples/json/PaydooPPv2_CC_TransactionTypeAuthorizationonly_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+endif::[]
 
 [cols="20,10,5,65"]
 |===
@@ -657,7 +754,19 @@ payment form.
 [#PPv2_CC_3DSecure_TestCredentials]
 ====== Test Credentials
 
-[cols="35h,65"]
+ifdef::env-po[]
+[%autowidth, cols="h,"]
+|===
+| URL(s) Endpoints           |``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID) | a9203585-53ed-4e09-9dda-9d963bc99a0b
+| Username                   | 51126-PAYDOO
+| Password                   | ic1-781Tp14715
+| Secret Key (used for response verification) | dd333a07-6535-41e8-9324-e78110cea672
+|===
+endif::[]
+
+ifdef::env-wirecard[]
+[%autowidth, cols="h,"]
 |===
 | URL(s) Endpoints           |``\https://{pp-test-instance-hostname}/api/payment/register``
 | Merchant Account ID (MAID) | cad16b4a-abf2-450d-bcb8-1725a4cef443
@@ -665,6 +774,7 @@ payment form.
 | Password                   | 8mhwavKVb91T
 | Secret Key (used for response verification) | b3b131ad-ea7e-48bc-9e71-78d0c6ea579d
 |===
+endif::[]
 
 [#PPv2_CC_3DSecure_TestCredentials_Additional]
 .Test Card Information for _Credit Card_ with 3D Secure
@@ -679,10 +789,19 @@ payment form.
 
 .Request Headers
 [cols="20h,80"]
+ifdef::env-wirecard[]
 |===
-| Authorization | Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+| Authorization | Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
 | Content-Type  | application/json
 |===
+endif::[]
+
+ifdef::env-po[]
+|===
+| Authorization | Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+| Content-Type  | application/json
+|===
+endif::[]
 
 .Optional fields
 
@@ -694,10 +813,19 @@ For a full structure of a request (optional fields included), see the
 
 .1. Create a Payment Session (Initial Request)
 
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_3DSecureTestCredentialsAdditional_1CreateAPaymentSessionInitialRequest.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_3DSecureTestCredentialsAdditional_1CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
 
 [cols="20,10,10,10,5,45"]
 |===
@@ -709,7 +837,7 @@ assigned to every merchant account (by {payment-provider-name}).
 request (by merchant). Used when searching for or referencing it later.
 ``{{$guid}}`` serves as a placeholder for a random ``request-id``.
 
-Allowed characters: [a-z0-9-_]
+Allowed characters: [a-z 0-9 - _ ]
 2+e|transaction-type |String |Required |36 |The requested transaction type.
 .2+e|requested-amount |value |Numeric |Required |18 a|The full amount that is
 requested/contested in a transaction. 2 decimal places allowed.
@@ -727,7 +855,6 @@ transaction.
 |===
 
 .2. Redirect the Consumer to the Payment Page (Initial Response URL)
-
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_3DSecureTestCredentialsAdditional_2RtCttPPIRU.json[]
@@ -764,18 +891,26 @@ payments are returned as _failed_, but the
 In any case (unless the consumer cancels the transaction on a 3rd party
 provider page), a base64 encoded response containing payment information
 is sent to the configured redirection URL. See
-<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>﻿﻿
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
 for more details on redirection targets after payment & transaction status
 notifications.
 
 You can find a decoded payment response example below.
 
 .3. Parse and Process the Payment Response (Decoded Payment Response)
-
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/WPP_CC_3DSecureTestCredentialsAdditional_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaydooPPv2_CC_3DSecureTestCredentialsAdditional_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+endif::[]
 
 .Possible results for ECI field
 
