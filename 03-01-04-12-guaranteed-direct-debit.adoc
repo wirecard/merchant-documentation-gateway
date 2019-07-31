@@ -17,7 +17,7 @@ a step-by-step guide before continuing.
 All <<PPv2, {payment-page-v2-abbr}>> integrations share a
 <<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
 
-Below, you find example requests for the available transaction type <<PPv2_GuaranteedDirectDebit_TransactionType_authorization,_authorization_>>, including field lists with short descriptions.
+Below, you can find example requests for the available transaction type <<PPv2_GuaranteedDirectDebit_TransactionType_authorization,_authorization_>>, including field lists with short descriptions.
 
 These requests are designed for the testing environment and do not
 use real information.
@@ -36,7 +36,8 @@ the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
 [#PPv2_GuaranteedDirectDebit_About]
 ====== About _Guaranteed Direct Debit_
 
-Guaranteed Direct Debit is a payment method which authorizes a transaction before it transfers money from the consumer account to the merchant.
+Guaranteed Direct Debit is a payment method through which money is transferred securely from the consumer account to the merchant. For this purpose,  the transaction is authorized before the money is debited. Guaranteed Direct Debit makes processing simple and reduces the rate of canceled purchases.
+
 
 [#PPv2_GuaranteedDirectDebit_TestCredentials]
 ====== Test Credentials
@@ -327,6 +328,31 @@ m|signed-date
 
 The response to this initial _authorization_ request is the
 ``payment-redirect-url``.
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_WPP_ConfigureRedirects, Configuring Redirects and IPNs for WPP>>
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
 
 .3. Parse and Process the _authorization_ Response (Decoded Payment Response)
 
