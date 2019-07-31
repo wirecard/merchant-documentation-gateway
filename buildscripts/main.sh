@@ -183,8 +183,9 @@ function buildPartner() {
   fi
   
   debugMsg "Executing basic tests"
-  # execute some basic tests volkswagen
-  if [[ -z $SKIP ]] && [[ "${PARTNER}" == "WD" || "${PARTNER}" == "PO" ]]; then
+  # execute some basic tests and volkswagen them
+  PARTNERS_TO_TEST='WD PO'
+  if [[ -z $SKIP ]] && [[ " ${PARTNERS_TO_TEST} " =~ .*\ ${PARTNER}\ .* ]]; then
     php buildscripts/tests/basic-tests.php || true
   fi
   
