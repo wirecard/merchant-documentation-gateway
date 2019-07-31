@@ -35,7 +35,7 @@ request is secured by basic access authentication.
 +
 ====
 - *If the initial POST request is correct,* use this response URL and the
-``PaymentPage.seamlessRender`` library call to render the payment form in a
+``{payment-page-function-short}.seamlessRender`` library call to render the payment form in a
 seamless iframe. *Continue with step 3.*
 
 - *If the initial POST request is faulty,* {payment-page-v2-abbr} returns an error code with
@@ -43,7 +43,7 @@ a description of the problem in the response. *Return to step 1.*
 ====
 +
 . *Submit the payment:* The consumer fills in the payment form. Use
-the ``PaymentPage.seamlessSubmit`` function to submit the payment. Ensure that
+the ``{payment-page-function-short}.seamlessSubmit`` function to submit the payment. Ensure that
 the function is bound to an interactive UI element, such as a button, in
 your HTML code.
 - *3D Secure credit card payment* automatically redirects the consumer
@@ -73,7 +73,7 @@ Add the ``paymentPage.js`` library to your checkout page HTML code:
 
 [source,html,subs=attributes+]
 ----
-<script src="https://{checkout-page-html-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+<script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
 ----
 
 This library lets you render the payment form as an iframe in your checkout page.
@@ -143,7 +143,7 @@ set up your testing tool:
 .Test Credentials
 [%autowidth, cols="h,",]
 |===
-|URI (Endpoint)   |``\https://{test-instance-hostname}/api/payment/register``
+|URI (Endpoint)   |``\https://{pp-test-instance-hostname}/api/payment/register``
 |Username         |70000-APILUHN-CARD
 |Password         |8mhwavKVb91T
 |MAID             |cad16b4a-abf2-450d-bcb8-1725a4cef443
@@ -157,9 +157,9 @@ set up your testing tool:
 
 
 [#PPv2_Seamless_Integration_Example_InitialRequest]
-.1. Create a Payment Session 
+.1. Create a Payment Session
 To create a payment session, send a *POST request* to the ``/api/payment/register`` endpoint,
-e.g. ``\https://{test-instance-hostname}/api/payment/register``.
+e.g. ``\https://{pp-test-instance-hostname}/api/payment/register``.
 
 This is an HTTP request with two headers:
 
@@ -251,12 +251,12 @@ The response to the initial authorization request contains the
 include::samples/json/WPP_SeamlessIntegrationExampleRender_ResponseToAuthorizationRequest.json[]
 ----
 
-Use the *``PaymentPage.seamlessRender``* function to render the payment form in a seamless iframe.
+Use the *``{payment-page-function-short}.seamlessRender``* function to render the payment form in a seamless iframe.
 Include the ``payment-redirect-url`` here:
 
-[source]
+[source,subs=attributes+]
 ----
-PaymentPage.seamlessRender({
+{payment-page-function-short}.seamlessRender({
     url: paymentredirecturl, // this is the payment link returned in response to your initial request
     wrappingDivId: "seamless-form-target",
     onSuccess: function (response) { // called when seamless form is successfully rendered
@@ -281,7 +281,7 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
 <html>
 <head>
     <!-- ... -->
-    <script src="https://{checkout-page-html-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+    <script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
     <!-- ... -->
 </head>
 <body>
@@ -292,10 +292,10 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
     <!-- the following javascript will render the form; make sure to set paymentredirecturl -->
     <script type="text/javascript">
           // change the next line to include YOUR TOKEN
-          var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
+          var paymentredirecturl = "https://{pp-test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request (Step 1) must match the domain you are using to test this
-          PaymentPage.seamlessRender({
+          {payment-page-function-short}.seamlessRender({
                url: paymentredirecturl,
                wrappingDivId: "seamless-form-target",
                onSuccess: function (response) {
@@ -318,11 +318,11 @@ image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamles
 Now the payment form has been rendered and consumers can enter their
 payment information.
 
-To submit that data, use the *``PaymentPage.seamlessSubmit``* function:
+To submit that data, use the *``{payment-page-function-short}.seamlessSubmit``* function:
 
-[source]
+[source,subs=attributes+]
 ----
-PaymentPage.seamlessSubmit({
+{payment-page-function-short}.seamlessSubmit({
     onSuccess: function (response) { // called when seamless form data is successfully submitted
     },
     onError: function (response) { //called when data submission fails
@@ -341,7 +341,7 @@ payment.
 <html>
 <head>
     <!-- ... -->
-    <script src="https://{checkout-page-html-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+    <script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
     <!-- ... -->
 </head>
 <body>
@@ -352,10 +352,10 @@ payment.
     <!-- the following javascript will render the form; make sure to set paymentredirecturl -->
     <script type="text/javascript">
           // change the next line to include YOUR TOKEN
-          var paymentredirecturl = "https://{test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
+          var paymentredirecturl = "https://{pp-test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
 
           // frame-ancestor in the initial request must match the domain you are using to test this
-          PaymentPage.seamlessRender({
+          {payment-page-function-short}.seamlessRender({
                url: paymentredirecturl,
                wrappingDivId: "seamless-form-target",
                onSuccess: function (response) {
@@ -368,10 +368,10 @@ payment.
     </script>
 
     <!-- this code will generate the "Pay Now" button and enable the submission of the form -->
-    <input id="{payment-provider-name}_pay_btn" type="button" onclick="pay()" value="Pay Now"/>
+    <input id="{pay-button-name}_pay_btn" type="button" onclick="pay()" value="Pay Now"/>
     <script type="text/javascript">
         function pay() {
-            PaymentPage.seamlessSubmit({
+            {payment-page-function-short}.seamlessSubmit({
                 onSuccess: function (response) {
                 // called when seamless form data is successfully submitted with non-3D Secure credit card
                 // see section 4 (Parse and Process the Payment Response) on how to deal with this data
