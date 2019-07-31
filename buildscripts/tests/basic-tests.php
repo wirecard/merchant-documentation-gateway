@@ -566,13 +566,10 @@ function sendNotifications ( $results ) {
   foreach ($slackMessage as $key => $block) {
     if($block['type'] == 'section' && isset($block['fields'])) {
       foreach ($block['fields'] as $key => $field) {
-        $_msg = array($block);
-        postToSlack( $slackWebhookUrl, $_msg );
+          $_msg = $msgOpening;
+          $_msg[] = $block;
+          postToSlack( $slackWebhookUrl, $_msg );
         }
-    }
-    else {
-      $_msg = array($block);
-      postToSlack( $slackWebhookUrl, $_msg );
     }
   }
 
