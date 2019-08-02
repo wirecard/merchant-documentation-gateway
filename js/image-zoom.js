@@ -12,6 +12,10 @@ function zoomImage(e) {
 function addZoomToLargeImages() {
     const contentWrapperWidth = $('div#content').width();
     $('img').each(function (i, img) {
+        if( $(img).attr('data-processed') == 'true' ) {
+            return true;
+        }
+        $(img).attr('data-processed', 'true');
         const originalWidth = img.width;
         const originalHeight = img.height;
         // svg naturalWidth === 0, therefore do not use < for comparison
@@ -20,12 +24,13 @@ function addZoomToLargeImages() {
                 img.width = contentWrapperWidth;
             }
             // do not give zoom to "one liner images"
-            if (img.width / img.height < 10 && (img.width > contentWrapperWidth*0.99)) {
+            if (img.width / img.height < 10 && (img.width > contentWrapperWidth*0.95)) {
                 // add attribute for click zoom functionality from zoom-vanilla.js
                 $(img).attr('data-action', 'zoom');
                 $(img).wrap('<figure class="zoom" onmousemove="zoomImage(event)" style="background-image: url(' + img.src + ')"></figure>');
             }
         });
+        return true;
     });
 }
 
