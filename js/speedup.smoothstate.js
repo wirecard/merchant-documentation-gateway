@@ -876,6 +876,31 @@ var smoothState = $('#content').smoothState({
     // trigger Matomo on instant page switch
     _paq.push(['setCustomUrl', window.location.href]);
     _paq.push(['trackPageView']);
+  },
+  /** Handles the popstate event, like when the user hits 'back' */
+  onPopState = function (e) {
+    if (e.state !== null || typeof e.state !== undefined) {
+      var url = window.location.href;
+      var $page = $('#' + e.state.id);
+      var page = $page.data('smoothState');
+
+      if (typeof (page.cache[page.href]) !== 'undefined') {
+        var diffUrl = (page.href !== url && !utility.isHash(url, page.href));
+        var diffState = (e.state !== page.cache[page.href].state);
+
+        if (diffUrl || diffState) {
+          if (diffState) {
+            page.clear(page.href);
+          }
+          page.load(url, false);
+        }
+      }
+      else {
+        //reload the page if page.cache[page.href] is undefined
+        location.reload();
+      }
+
+    }
   }
 }).data('smoothState');
 
