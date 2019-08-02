@@ -1,47 +1,21 @@
 [#PPv2_GuaranteedDirectDebit]
 ===== Guaranteed Direct Debit by Wirecard
 
-[#PPv2_GuaranteedDirectDebit_General]
-====== General Information
-
-This is a reference page for _Guaranteed Direct Debit_. Here you find all the information
-necessary for integrating this payment method into your Hosted and Embedded Payment Page.
-
-.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
-
-NOTE: Visit one of the integration guides
-(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
-<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
-a step-by-step guide before continuing.
-
-All <<PPv2, {payment-page-v2-abbr}>> integrations share a
-<<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
-
-Below, you can find example requests for the available transaction type <<PPv2_GuaranteedDirectDebit_TransactionType_authorization,_authorization_>>, including field lists with short descriptions.
-
-These requests are designed for the testing environment and do not
-use real information.
-
-NOTE: For production, you need to use production credentials. For details
-contact <<ContactUs, merchant support>>.
-
-All given requests return successful responses.
-
-For more details on the ``redirect-url``, see the <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> section.
-
-For response verification examples, see
-the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
-
-
 [#PPv2_GuaranteedDirectDebit_About]
 ====== About _Guaranteed Direct Debit_
 
 Guaranteed Direct Debit is a payment method through which money is transferred securely from the consumer account to the merchant. For this purpose,  the transaction is authorized before the money is debited. Guaranteed Direct Debit makes processing simple and reduces the rate of canceled purchases.
 
+include::include/ppv2-general-information.adoc[]
+
+<<PPv2_GuaranteedDirectDebit_TransactionType_authorization, Below>>, you can find example requests for the transaction type _authorization_, including a field lists with short descriptions.
+
+include::include/ppv2-general-information-2.adoc[]
 
 [#PPv2_GuaranteedDirectDebit_TestCredentials]
 ====== Test Credentials
-Test credentials for the transaction type <<PPv2_GuaranteedDirectDebit_TransactionType_authorization,_authorization_>>.
+
+For transaction type <<PPv2_GuaranteedDirectDebit_TransactionType_authorization, _authorization_>>
 
 [cols="35h,65"]
 |===
@@ -52,14 +26,26 @@ Test credentials for the transaction type <<PPv2_GuaranteedDirectDebit_Transacti
 | Secret Key (used for response verification) | cf0b29fc-a6ab-474d-b6be-92e9596e9107
 |===
 
-[#PPv2_GuaranteedDirectDebit_TestCredentials_RequestValues]
-.Guaranteed Direct Debit - Specific Request Values
+[#PPv2_GuaranteedDirectDebit_TestCredentials_Additional]
+.Test Credentials for the Guaranteed Direct Debit Environment
 
 [cols="35h,65"]
 |===
 | IBAN         | DE42512308000000060004
 | BIC          | WIREDEMMXXX
 | Bank         | Test Bank
+|===
+
+[#PPv2_GuaranteedDirectDebit_Countries]
+====== Countries and Currencies
+
+[cols="20h,80"]
+|===
+|Countries
+|
+
+|Currencies
+|
 |===
 
 [#PPv2_GuaranteedDirectDebit_TransactionType_authorization]
@@ -77,6 +63,13 @@ For a successful _authorization_ transaction:
 
 //-
 
+[#PPv2_{payment-method-name}_Samples]
+====== Sample Workflow
+
+We provide JSON examples for each step of this process. You can find them below.
+
+//// 
+
 <<PPv2_GuaranteedDirectDebit_TestCredentials, Endpoint>> for
 _Guaranteed Direct Debit_ payments.
 
@@ -85,6 +78,7 @@ _Guaranteed Direct Debit_ payments.
 The initial request creates the payment session. If it's
 successful, you receive a URL as a response which redirects to the
 _Guaranteed Direct Debit_ payment form.
+////
 
 .Request Headers
 
@@ -329,6 +323,10 @@ m|signed-date
 The response to this initial _authorization_ request is the
 ``payment-redirect-url``.
 
+include::include/ppv2-redirect-instructions.adoc[]
+
+////
+
 Consumers are redirected to the payment form. There they enter their
 data and submit the form to confirm the payment. A payment can be:
 
@@ -353,6 +351,7 @@ for more details on redirection targets after payment & transaction status
 notifications.
 
 You can find a decoded payment response example below.
+////
 
 .3. Parse and Process the _authorization_ Response (Decoded Payment Response)
 
@@ -688,3 +687,18 @@ In the case of a credit card statement, it can be dynamically set per transactio
 It is only supported by some acquirers.
 
 |===
+
+////
+
+[#PPv2_{payment-method-name}_PostProcessing]
+====== Post-Processing Operations
+
+WPP is best used for one-off payments (e.g. regular, independent _debit_ transactions) or the initial transaction in a chain of them (e.g. a first _authorization_ in a chain of recurring transactions).
+However, when it comes to referencing a transaction for any kind of post-processing operation - such as a refund of one of your _debit_ transactions - use our <<RestApi, REST API>> directly.
+
+IMPORTANT: Check the REST API <<link to the respective REST API page if available, {payment-method-name} specification>> for details on {payment-method-name}-specific post-processing operations
+
+include::include/ppv2-apm-optional-fields.adoc[]
+
+include::include/ppv2-apm-json-nvp-reference.adoc[]
+////
