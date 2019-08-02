@@ -143,6 +143,7 @@ function documentReady() {
   if(isInternetExplorer) {
     swapSVGandPNG();
   }
+  addZoomToLargeImages();
 }
 
 $(document).ready(function () {
