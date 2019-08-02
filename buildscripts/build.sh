@@ -76,7 +76,11 @@ RUBYOPT="-E utf-8" asciidoctor -b multipage_html5 -a linkcss -a systemtimestamp=
 timed_log "build done"
 
 # improve naming, CSS, etc.
-cp Home.html index.html
+
+## get first menu entry and replace index.html with it
+FIRST=$(sed -n 's/<li><a\ href="\([A-Za-z]\+\.html\)"><span\ class="toc-current">.*/\1/p' index.html)
+[[ ${FIRST} ]] && cp ${FIRST} index.html
+
 # sed -i 's/normal\ normal\ 400\ normal\ 16px/normal normal 400 normal 15px/g' *.svg
 # sed -i 's/foreignObject width="[1-9][0-9]\+\.[0-9]\+" height="[1-9][0-9]\+\.[0-9]\+"/foreignObject width="100%" height="100%"/g' *.svg
 timed_log "post process svg files"

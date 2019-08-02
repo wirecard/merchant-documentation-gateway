@@ -52,9 +52,11 @@ response to verify the payment.
 
 This is an example of a credit card transaction to show how to process a
 payment with the Embedded Payment Page. +
+ifdef::env-wirecard[]
 For more supported payment methods and payment-method-specific
 integration guides, go to
 <<PPv2_PaymentMethods, Payment Methods with {payment-page-v2-abbr}>>.
+endif::[]
 
 The payment-processing example is *designed for the testing environment*
 and *does not use real information.*
@@ -79,39 +81,92 @@ Before you can send your first request, use the following information to
 set up your testing tool:
 
 .Test Credentials
-[%autowidth, cols="1s,2", stripes="none"]
+
+ifdef::env-po[]
+[%autowidth, cols="h,"]
 |===
-|URI (API Endpoint)
-|``\https://{test-instance-hostname}/api/payment/register``
-|Username
-|70000-APIDEMO-CARD
-|Password
-|ohysS0-dvfMx
-|MAID
-|7a6dd74f-06ab-4f3f-a864-adc52687270a
-|Secret Key
-|a8c3fce6-8df7-4fd6-a1fd-62fa229c5e55
+| URL(s) Endpoints           
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+
+| Merchant Account ID (MAID) 
+| cafdc4c6-3eec-424c-9c74-80c31b77cd38
+
+| Username                   
+| 51126-PAYDOO
+
+| Password                   
+| ic1-781Tp14715
+
+| Secret Key (used for response verification) 
+| d64e9579-73bc-47cf-b05d-19d6f39610db
+
+2+h| Test Card
+| Card number 
+| 4012000300001003
+
+| Expiration date 
+| 01/23
+
+| CVV 
+| 003
+|===
+endif::[]
+
+ifdef::env-wirecard[]
+[%autowidth, cols="h,", stripes="none"]
+|===
+| URI (API Endpoint)           
+| ``\https://{pp-test-instance-hostname}/api/payment/register``
+
+| Merchant Account ID (MAID) 
+| 7a6dd74f-06ab-4f3f-a864-adc52687270a
+
+| Username                   
+| 70000-APIDEMO-CARD
+
+| Password                   
+| ohysS0-dvfMx
+
+| Secret Key (used for response verification) 
+| a8c3fce6-8df7-4fd6-a1fd-62fa229c5e55
+
 2+h|Test Card
-|Card number |4200000000000018
-|Expiration date |01/23
-|CVV |018
+|Card number 
+|4200000000000018
+
+|Expiration date 
+|01/23
+
+|CVV 
+|018
 |===
+endif::[]
 
 [#PaymentPageSolutions_PPv2_EPP_Integration_Example_Create]
 .1. Create a Payment Session
 
 To create a payment session, send a *POST request* to the
 ``/api/payment/register`` endpoint,
-e.g. ``\https://{test-instance-hostname}/api/payment/register``.
+e.g. ``\https://{pp-test-instance-hostname}/api/payment/register``.
 
 This is an HTTP request with two headers:
 
 .Request Headers
-[source]
+ifdef::env-wirecard[]
+[source,subs=attributes+]
 ----
 Content-Type: application/json
 Authorization: Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,subs=attributes+]
+----
+Content-Type: application/json
+Authorization: Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+----
+endif::[]
 
 The Authorization header must be formatted as:
 ``Authorization=Basic `` + base64 (``username:password``)
@@ -119,10 +174,19 @@ The Authorization header must be formatted as:
 You can try it using the authorization headers above.
 
 .Create a Payment Session (Initial Request)
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/PaymentPageSolutions_WPP_EPP_IntegrationExampleCreate_CreateAPaymentSessionInitialRequest.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaymentPageSolutions_PaydooPPv2_EPP_IntegrationExampleCreate_CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
 
 .Field Table
 [%autowidth, cols="1e,2,3,4,5,6"]
@@ -165,6 +229,7 @@ as this creates a smoother user experience and ensures a higher level of securit
 Need more information on 3D Secure 2? Head to our <<CreditCard_3DS2, general introduction to 3D Secure 2>>.
 ====
 
+ifdef::env-wirecard[]
 [NOTE]
 ====
 *Which Payment Methods Can I Choose?*
@@ -176,13 +241,14 @@ configuration).
 Alternatively, check out <<PPv2_PaymentMethods, Payment Methods with {payment-page-v2-abbr}>>
 for an overview of all supported payment methods.
 ====
+endif::[]
 
 ifdef::env-wirecard[]
 .Download the full integration demo from our GitHub
 image:images/03-01-02-01-epp-integration-guide/Available_on_Github_JAVA.png[Github Java, link="https://github.com/wirecard/wpp-integration-demo-java", 220,180]
 image:images/03-01-02-01-epp-integration-guide/Available_on_Github_PHP.png[Github PHP, link="https://github.com/wirecard/wpp-integration-demo-php", 220,180]
 endif::[]
- 
+
 [#PaymentPageSolutions_PPv2_EPP_Integration_Example_Embed]
 .2. Embed the Payment Page
 
@@ -197,7 +263,7 @@ include::samples/json/PaymentPageSolutions_WPP_EPP_IntegrationExampleEmbed_Respo
 ----
 
 [#PaymentPageSolutions_PPv2_EPP_Integration_Example_Embed_WPPEmbeddedPayUrl]
-*Embedding the Payment Page in your Checkout Page Using ``{payment-page-function-short}.embeddedPayUrlembeddedPayUrl``*
+*Embedding the Payment Page in your Checkout Page Using ``{payment-page-function-short}.embeddedPayUrl``*
 
 You can use our predefined function to embed the payment page:
 
@@ -210,20 +276,21 @@ code.
 ----
 +
 Make sure to pass the ``payment-redirect-url`` value from the initial
-response to the ``{payment-page-function-short}.embeddedPayUrlembeddedPayUrl`` function and call it to render the
+response to the ``{payment-page-function-short}.embeddedPayUrl`` function and call it to render the
 payment page.
 
 . Submit the *initial payment request* on the backend.
 
-. Call the ``{payment-page-function-short}.embeddedPayUrlembeddedPayUrl(payment-redirect-url)`` function
+. Call the ``{payment-page-function-short}.embeddedPayUrl(payment-redirect-url)`` function
 in your HTML code to render the new pop-up window.
 +
 [source,html,subs=attributes+]
 ----
-<script type="text/javascript">{payment-page-function-short}.embeddedPayUrlembeddedPayUrl("https://{payment-redirect-url-hostname}/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7")</script>
+<script type="text/javascript">{payment-page-function-short}.embeddedPayUrl("https://{pp-test-instance-hostname}/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7")</script>
 ----
 
 //-
+
 [NOTE]
 ====
 The consumer is redirected to the payment form. There they enter their
@@ -247,7 +314,7 @@ In any case, a base64 encoded response containing payment information is
 sent to the corresponding redirection URL
 (``success-redirect-url``, ``cancel-redirect-url``, or ``fail-redirect-url``).
 
-See 
+See
 <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
 for more information on redirection targets
 after payment.
@@ -293,10 +360,19 @@ https://www.base64decode.org/[Base64 Decode].
 You can find a decoded payment response example below.
 
 .Parse and Process the Payment Response (Decoded Payment Response)
+ifdef::env-wirecard[]
 [source,json,subs=attributes+]
 ----
 include::samples/json/PaymentPageSolutions_WPP_EPP_IntegrationExampleParse_ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
 ----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::samples/json/PaymentPageSolutions_PaydooPPv2_EPP_IntegrationExampleParse_ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+endif::[]
 
 .Field Table
 [%autowidth, cols="1e,2,3,4"]
@@ -348,5 +424,7 @@ e.g. ``\https://{pp-redirect-url-error}``
 ====
 For more information on redirect URLs, see <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>. +
 For response verification examples, see <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>>. +
+ifdef::env-wirecard[]
 For payment-method-specific requests, head over to the <<PPv2_PaymentMethods, Payment Methods with {payment-page-v2-abbr}>>.
+endif::[]
 ====

@@ -7,13 +7,12 @@ function closeNav() {
   document.getElementById("toc").style.width = "20px";
 }
 
-$('#toctitle').click(function () {
+$('#toctitle').click(function (event) {
   removeHash();
   window.scrollTo(0, 0);
-  $('.tocify-focus').toggleClass('tocify-focus');
-  $('.tocify-subheader').hide();
   $('#minitoc > ul').html('');
-  $('#tocify-header0 > li > a').click();
+  $('#tocify-header0 > li:nth-child(1) > a:nth-child(1)').click();
+  event.preventDefault();
 });
 
 $('<div id="minitoc"><ul></ul></div>').insertAfter("header");

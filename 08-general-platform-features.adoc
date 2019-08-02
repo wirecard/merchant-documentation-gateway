@@ -1,6 +1,7 @@
 [#GeneralPlatformFeatures]
 == General Platform Features
 
+ifdef::env-wirecard[]
 [#GeneralPlatformFeatures_CrossRef]
 === Cross-Referencing
 
@@ -347,7 +348,7 @@ include::samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialRecurring
 ===== Periodic In Subsequent Transaction
 
 This section describes a set of requests and responses in which the
-"periodic" tag is set at a subsequent request, the _SEPA Debit Recurring_ #1.
+"periodic" tag is set at a subsequent request, the _SEPA Debit Recurring_#1.
 
 [#GeneralPlatformFeatures_CrossPayment_Samples_Subsequent_Xml]
 .XML debit Request Initial iDEAL
@@ -422,6 +423,8 @@ include::samples/xml/sepadirectdebit_debit_request__recurring_recurring_aaf7d691
 ----
 include::samples/xml/sepadirectdebit_debit_response__recurring_recurring_aaf7d691_278830.xml[]
 ----
+
+endif::[]
 
 [#GeneralPlatformFeatures_IPN]
 === Instant Payment Notification
@@ -509,7 +512,7 @@ configured to send notifications as JSON format:
 NOTE: To request an ``application/json-signed`` notification, switch the
 format value. Compared to the default JSON notification, signed
 notifications are base64 encoded and include a security signature: this
-means you can verify that the notification comes from Wirecard, but need
+means you can verify that the notification comes from {payment-provider-name}, but need
 to decode it before you can see its content.
 
 ``<notifications format="application/json>``
@@ -609,6 +612,8 @@ include::samples/xml/generic_debit_request__edeec5.xml[]
 include::samples/xml/GeneralPlatformFeatures_IPN_NotificationExamples_CreditCardPayment.xml[]
 ----
 
+ifdef::env-wirecard[]
+
 .Alternative Payment Methods
 [source,xml,subs=attributes+]
 ----
@@ -617,6 +622,7 @@ include::samples/xml/generic_debit_notification__596c76.xml[]
 
 NOTE: Note that the "amount" value for some alternative payment notifications
 contains 6 minor digits.
+endif::[]
 
 [#GeneralPlatformFeatures_IPN_Content]
 ==== Content of the Notification
@@ -740,10 +746,13 @@ In this request the redirect-URLs are configured on MAID level.
 ----
 include::samples/xml/generic_debit_request__a47021.xml[]
 ----
+
+ifdef::env-wirecard[]
 [NOTE]
 ====
 The payment method can be any payment method that provides the redirect feature.
 ====
+endif::[]
 
 [#GeneralPlatformFeatures_RedirectURL_Request]
 ==== Determined in Request
@@ -757,10 +766,13 @@ in the MAID.
 ----
 include::samples/xml/generic_debit_request__6100a3.xml[]
 ----
+
+ifdef::env-wirecard[]
 [NOTE]
 ====
 The payment method can be any payment method that provides the redirect feature.
 ====
+endif::[]
 
 [#GeneralPlatformFeatures_InstrumentCountryBounceback]
 === Instrument Country Bounceback
@@ -779,13 +791,14 @@ country code via:
 It is available for the following payment methods:
 
 - Credit Card
+ifdef::env-wirecard[]
 - SEPA Direct Debit
 - Paypal
 - Sofort.
 - iDEAL
 - Giropay (if an IBAN is sent)
 - Carrier Billing
-
+endif::[]
 //-
 
 The feature was implemented to support digital merchants to handle the
@@ -833,8 +846,10 @@ when sets of rules are configured.
 [#GeneralPlatformFeatures_ResolvingPaymentMethods]
 ==== Supported Payment Methods
 
-_Merchant Account Resolving_ is available for _Credit Card_ and all
-other alternative payment methods.
+_Merchant Account Resolving_ is available for _Credit Card_ 
+ifdef::env-wirecard[]
+and all other alternative payment methods.
+endif::[]
 
 [#GeneralPlatformFeatures_ResolvingSpecified]
 ==== Specifying Resolvers
@@ -873,7 +888,11 @@ With the _{payment-gateway}_ a payment process can reference two
 subsequent transactions.
 
 This reference can be accomplished in two different ways:
-- For alternative payment methods (such as _PayPal_ and _SEPA_) and
+
+- For 
+ifdef::env-wirecard[]
+alternative payment methods (such as _PayPal_ and _SEPA_) and
+endif::[]
 _credit card_ the merchant can reference transactions via the
 transaction ID.
 - For _credit card_ payments the merchant can also
@@ -919,8 +938,11 @@ transaction workflow which occurs on a regular schedule.
 To submit a recurring transaction, the merchant must submit a request
 with a specific transaction type. It depends on the payment method,
 which transaction types apply. Currently the _{payment-gateway}_
-supports recurring transactions with the payment methods <<CreditCard, Credit Card>>,
-<<API_PaymentMethods_PayPal, PayPal>>, and <<SEPA>>.
+supports recurring transactions with the payment methods <<CreditCard, Credit Card>>
+ifdef::env-wirecard[]
+, <<API_PaymentMethods_PayPal, PayPal>>, and <<SEPA>>
+endif::[]
+.
 If the merchant wants to use recurring transactions the request must
 provide the corresponding PERIODIC TYPE and a SEQUENCE TYPE.
 
@@ -1012,7 +1034,7 @@ after submitting a transaction and still waiting for the IPN.
 Retrieving a transaction using a _Transaction-ID_ returns a single
 transaction belonging to a merchant account. The _Transaction-ID_
 attribute must match the value that was included in the transaction
-response sent by Wirecard. An error occurs if the _Transaction-ID_ is
+response sent by {payment-provider-name}. An error occurs if the _Transaction-ID_ is
 not available (request must be submitted later again) or the requested
 user is not authorized to see the content. The desired content type can
 be set through the _Accept_-header or by specifying an extension.
@@ -1200,6 +1222,8 @@ Enter this URL in your browser and replace the following variables:
 When you login with the username and password of the test account, you
 can see the result of the transaction in your browser.
 
+ifdef::env-wirecard[]
+
 [#GeneralPlatformFeatures_Transactions_TransactionTypes]
 ==== Transaction Types
 
@@ -1307,6 +1331,7 @@ transaction types depending on the currency.
 ``Merchant-id-1``, ``Creditcard``, ``CZK``, ``purchase``;
 ``Merchant-id-1``, ``Creditcard``, ``GBP``, ``authorization-only``;
 
+endif::[]
 
 [#GeneralPlatformFeatures_ServerAvailability]
 === Server Availability
@@ -1329,13 +1354,14 @@ Please be aware that each server request means data traffic. Use this
 request carefully. Use it only, if you encounter server connection
 problems.
 
+ifdef::env-wirecard[]
 [#GeneralPlatformFeatures_IPP]
 === Installment Payment Plan (IPP)
 
 **I**nstallment **P**ayment **P**lan is a feature that allows the consumer to pay in equal installments. +
 Depending on the total order amount, you can offer various payment plans to the consumer. These IPPs differ in tenure and installment payment framework (e.g. interest rate). +
  +
-Set up a contract with your issuing bank to agree on the IPP parameters. The issuing bank then provides Wirecard with these IPP parameters.
+Set up a contract with your issuing bank to agree on the IPP parameters. The issuing bank then provides {payment-provider-name} with these IPP parameters.
 
 ////
 - **tenure:** duration of installment payment in months. Depends on financial institutions
@@ -1407,7 +1433,7 @@ issuing banks that qualify for installment payment.
 
 //-
 
-The issuer provides Wirecard with these IPP parameters.
+The issuer provides {payment-provider-name} with these IPP parameters.
 
 [discrete]
 [#GeneralPlatformFeatures_IPP_Setup_MerchantSetup]
@@ -1563,7 +1589,7 @@ to the merchant.
 [cols="1h,3"]
 |===
 |Test URL       |``\https://{test-instance-hostname}/engine/rest/utils/installmentcalculator``
-|Production URL |``\https://api.wirecard.com/engine/rest/utils/installmentcalculator``
+|Production URL |``\https://{instance-hostname}/engine/rest/utils/installmentcalculator``
 |===
 
 .Test Credentials
@@ -1778,4 +1804,5 @@ include::samples/xml/GeneralPlatformFeatures_IPP_InstallmentCalculatorSamples_In
 include::samples/xml/GeneralPlatformFeatures_IPP_InstallmentCalculatorSamples_InstallmentCalculatorSampleResponse.xml[]
 ----
 
+endif::[]
 //-
