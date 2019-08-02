@@ -7,23 +7,23 @@
 Guaranteed Invoice by Wirecard is a payment method which
 guarantees that merchants receive money in case the consumer does not pay
 (merchants are paid the order amounts by Wirecard in advance of
-settlement with consumers). This payment method is available only
-for *Germany*, *Austria* and *Switzerland.*
+settlement with consumers). This payment method is available only
+for *Germany*, *Austria* and *Switzerland.*
 
 *Guaranteed Invoice by Wirecard* allows the consumer to pay by invoice after the
-receipt of goods. The invoicing and collection process (dunning) is
+receipt of goods. The invoicing and collection process (dunning) is
 handled by Wirecard.
 
 
-Basket items must be specified in every request. The response for each
+Basket items must be specified in every request. The response for each
 authorization request returns an individual string (an alphanumerical
-code, starting with ``DG``) in the field ``descriptor``. The descriptor must
+code) in the field ``descriptor``. The descriptor must
 be printed on all invoice documents and saved by the shop (as it must be
-used by the consumer on bank transfers; German: “Verwendungszweck”).­­
+used by the consumer on bank transfers; German: "Verwendungszweck").­­
 Capture-authorization transactions have to follow a successful
 authorization on the same day the goods are dispatched. The period
 between ``authorization`` and the first ``capture-authorization`` must be at
-least 4 hours. The merchant may do a partial ``capture-authorization`` if the
+least 4 hours. The merchant may do a partial ``capture-authorization`` if the
 goods are shipped in separate shipments.
 
 [#GuaranteedInvoice_GeneralInformation]
@@ -47,7 +47,7 @@ _Guaranteed Invoice by Wirecard._
 [#GuaranteedInvoice_Communication]
 ===== Communication Formats
 
-This table illustrates how _Guaranteed Invoice by Wirecard_ notifications are encoded and which formats and methods can be
+This table illustrates how _Guaranteed Invoice by Wirecard_ notifications are encoded and which formats and methods can be
 used for requests and responses.
 
 [%autowidth,stripes=none]
@@ -61,41 +61,41 @@ used for requests and responses.
 ==== Transaction Types
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
-at <<AppendixB, AppendixB: Transaction Types>>.
+at <<AppendixB, AppendixB: Transaction Types>>.
 
 
 [%autowidth,stripes=none, cols="e,,"]
 |===
 |Transaction Type | Description | Link to samples
 
-|authorization    | Performs a creditworthiness check at the moment when
+|authorization    | Performs a creditworthiness check at the moment when
                     consumer makes an order. All order items must be listed for the shopping
                     basket. The authorization amount must match the value of the items in
                     the basket.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
+                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
 
 |capture-authorization | Used to capture the reserved funds at the moment
                          when some or all goods are physically delivered to the consumer.
-                         Available only on successful ``authorization`` response which wasn’t voided
+                         Available only on successful ``authorization`` response which wasn't voided
                          nor fully captured. Partial (and multiple) capture is allowed, until
                          the authorization limit is not exceeded. Basket items only lists the
                          items that were delivered to the consumer in this delivery, not the ones
                          that were delivered before or are waiting to be delivered. The total
                          amount of the capture must be the value of the items in the basket.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
+                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
 
 |void-authorization | Used when the consumer wishes to cancel some or all
                       (not yet shipped) items from the order. Available only for a successful
                       ``authorization`` response which was not yet voided or captured. Partial and
                       multiple void are allowed, until all items from the order are canceled
                       or shipped. Basket items only list those items which are being canceled from the order.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
+                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
 
 |refund-capture | Used when the consumer wishes to return some or all
                   delivered goods. Available on a successful ``capture-authorization``.
                   Partial and multiple refunds are allowed, until all delivered items have
                   been returned. Basket items list only those items which are being returned to the merchant.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
+                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
 
 |credit | Used when merchant wishes to grant a discount on an existing
           order. Items from this order may already be delivered to the consumer.
@@ -104,23 +104,23 @@ at <<AppendixB, AppendixB: Transaction Types>>.
           delivered goods to the consumer. The credit transaction must include a
           basket item representing the discount. The credit transaction must refer
           to the successful authorization transaction ID.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard samples>>
+                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
 |===
 
 [NOTE]
 ====
-. <<GuaranteedInvoice_BasketItemsDetails, Basket items>>  must be specified in every request.
+. <<GuaranteedInvoice_BasketItemsDetails, Basket items>>  must be specified in every request.
 . The response for each ``authorization`` request returns an individual
-string (an alphanumerical code, starting with DG) in the
-field ``descriptor``.
-. The descriptor must be printed on all invoice documents and saved by
+string (an alphanumerical code) in the
+field ``descriptor``.
+. The descriptor must be printed on all invoice documents and saved by
 the shop (used by consumers in bank transfers; German:
-“Verwendungszweck”).­­
+"Verwendungszweck").­­
 . ``capture-authorization`` transactions have to follow a successful
 ``authorization`` on the same day the goods are dispatched.
 . The period between ``authorization`` and the first
 ``capture-authorization`` must be at least 4 hours.
-. Merchants can request partial ``capture-authorizations`` if the goods
+. Merchants can request partial ``capture-authorizations`` if the goods
 are shipped in separate shipments.
 
 //-
@@ -131,13 +131,13 @@ are shipped in separate shipments.
 
 [%autowidth,stripes=none]
 |===
-.2+h| URLs (Endpoints)            | For transaction type ``authorization`` | `\https://api-test.wirecard.com/engine/rest/paymentmethods`
+.2+h| URLs (Endpoints)            | For transaction type ``authorization`` | `\https://{test-instance-hostname}/engine/rest/paymentmethods`
                                   | For transaction types ``capture-authorization``, ``refund-capture``,
-                                    ``void-authorization`` and ``credit``  |``\https://api-test.wirecard.com/engine/rest/payments``                                                                     
+                                    ``void-authorization`` and ``credit``  |``\https://{test-instance-hostname}/engine/rest/payments``
    h| Merchant Account ID (MAID) 2+| 7d7edecb-b008-4f05-9103-308c81cf2ea2
    h| Username                  2+| 16390-testing
    h| Password                  2+| 3!3013=D3fD8X7
-   h| Secret Key                2+| 555d998b-15db-46a9-8f1f-d9bc3ec66b19                         
+   h| Secret Key                2+| 555d998b-15db-46a9-8f1f-d9bc3ec66b19
 |===
 
 [#GuaranteedInvoice_Workflow]
@@ -156,12 +156,11 @@ image::images/11-11-guaranteed-invoice/guaranteed_invoice_workflow.png[Guarantee
 . Merchant sends an ``authorization`` request including items to
 Wirecard.
 . Merchant receives an ``authorization`` response, including the
-descriptor (an alphanumerical code, starting with ``DG``).
+descriptor (an alphanumerical code).
 . Merchant sends a ``capture`` request to Wirecard when the items
 are ready for delivery.
 . After a successful ``capture`` request, Wirecard or Merchant generates
-the invoice, including the descriptor (an alphanumerical code, starting
-with DG).
+the invoice, including the descriptor (an alphanumerical code).
 . Merchant waits for the incoming payment.
 . If any payment changes are necessary, the following transaction types
 are available: ``credit``, ``refund-capture`` or ``void-authorization``.
@@ -177,7 +176,7 @@ approves the frontend/checkout and invoices (if generated and sent out
 by the merchant).
 
 NOTE: Please provide us with the order number and descriptor for each
-transaction. 
+transaction.
 
 [#GuaranteedInvoice_SimpleProcessChainforGuaranteedInvoice]
 ====== Simple Process Chain for Guaranteed Invoice by Wirecard
@@ -199,7 +198,7 @@ transaction. 
 
 .C: Partial Deliveries
 
-. Order (3 products + shipping costs + voucher) ``authorization``
+. Order (3 products + shipping costs + voucher) ``authorization``
 . Partial delivery of 1 product + shipping costs + voucher ``capture-authorization``
 . Partial delivery of the rest ``capture-authorization``
 
@@ -207,10 +206,10 @@ transaction. 
 
 .D: Partial Cancellation & Partial Delivery
 
-. Order (2 products + shipping costs + voucher) ``authorization``
+. Order (2 products + shipping costs + voucher) ``authorization``
 . Partial cancellation of 1 product ``void-authorization``
 . Partial delivery of 1 product + shipping costs + voucher ``capture-authorization``
-. Invoice generation 
+. Invoice generation
 
 //-
 
@@ -220,7 +219,7 @@ transaction. 
 . Complete delivery of the order ``capture-authorization``
 . Invoice generation
 . Partial return of 1 product ``refund-capture``
-. Partial return of the rest ``refund-capture`` 
+. Partial return of the rest ``refund-capture``
 
 //-
 
@@ -229,7 +228,7 @@ transaction. 
 . Order (2 products + shipping costs + voucher) ``authorization``
 . Complete delivery of the order ``capture-authorization``
 . Invoice generation
-. Full return of the order ``refund-capture`` 
+. Full return of the order ``refund-capture``
 
 //-
 
@@ -250,7 +249,7 @@ transaction. 
 . Order (6 products including shipping costs) ``authorization``
 . Reduction with negative amount ``credit``
 . Partial delivery of 2 products + reduction ``capture-authorization``
-. Invoice generation 
+. Invoice generation
 . Adjustment charge with positive amount ``credit``
 . Partial delivery of the rest = 4 products + adjustment charge ``capture-authorization``
 . Invoice generation
@@ -275,8 +274,8 @@ transaction. 
 ==== Fields
 
 The following elements are mandatory *M*, optional *O* or conditional
-*C* for sending a request for the payment method Guaranteed Invoice by Wirecard (complete field
-list available in <<RestApi_Fields, REST API field list>>):
+*C* for sending a request for the payment method _Guaranteed Invoice by Wirecard_ (complete field
+list available in <<RestApi_Fields, REST API field list>>):
 
 [%autowidth,stripes=none, cols="v,,,,"]
 |===
@@ -304,7 +303,7 @@ list available in <<RestApi_Fields, REST API field list>>):
 |M
 |Alphanumeric
 |30
-|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for Guaranteed Invoice by Wirecard.
+|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for _Guaranteed Invoice by Wirecard_.
 
 |_requested-amount_
 |M
@@ -334,13 +333,13 @@ list available in <<RestApi_Fields, REST API field list>>):
 |O
 |Alphanumeric
 |
-|Merchant’s identifier for the consumer.
+|Merchant's identifier for the consumer.
 
 |_invoice-id_
 |O
 |Alphanumeric
 |
-|Merchant’s invoice identifier.
+|Merchant's invoice identifier.
 
 |_creditor-id_
 |C
@@ -364,7 +363,7 @@ If empty or with wrong value, German language is used by default. The same logic
 |M
 |Alphanumeric
 |15
-|The name of the Payment Method is ``ratepay-invoice``.
+|The name of the Payment Method is ``ratepay-invoice``.
 
 5+a|
 [[GuaranteedInvoice_Fields_AccountHolder]]
@@ -506,13 +505,13 @@ If empty or with wrong value, German language is used by default. The same logic
 |M
 |Number
 |
-|Item’s price per unit.
+|Item's price per unit.
 
 |_order-items.order-item.tax-rate_
 |M
 |Number
 |
-|Item’s tax rate per unit.
+|Item's tax rate per unit.
 
 |_order-items.order-item.quantity_
 |M
@@ -596,7 +595,7 @@ If empty or with wrong value, German language is used by default. The same logic
 |C
 |Alphanumeric
 |
-|Device fingerprinting token that was used in merchant’s online shop to track this transaction.
+|Device fingerprinting token that was used in merchant's online shop to track this transaction.
 
 *It is mandatory for ``authorization``.*
 
@@ -609,7 +608,7 @@ If empty or with wrong value, German language is used by default. The same logic
 |C
 |Alphanumeric
 |
-|Mandate ID will be generated by Wirecard. Please use the following statement as placeholder: “Wird nach Kaufabschluss übermittelt“
+|Mandate ID will be generated by Wirecard. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt"
 
 |===
 
@@ -621,16 +620,16 @@ If empty or with wrong value, German language is used by default. The same logic
 
 consist either of
 
-- ``account-owner``, ``bank-name``, ``account-number`` and ``bank-code`` +
+- ``account-owner``, ``bank-name``, ``account-number`` and ``bank-code`` +
 or
-- ``account-owner``, ``bank-name``, ``iban`` and ``bic`` for SEPA standard.
+- ``account-owner``, ``bank-name``, ``iban`` and ``bic`` for SEPA standard.
 
 NOTE: Account holder details must
-cover ``first-name``, ``last-name``,`` email``,`` phone``, ``date-of-birth``,`` address``
+cover ``first-name``, ``last-name``,`` email``,`` phone``, ``date-of-birth``,`` address``
 and ``gender``. An address within the account holder details must
-``include street1`` (including house number),`` city``, ``country`` and ``postal-code``.
+``include street1`` (including house number),`` city``, ``country`` and ``postal-code``.
 
-NOTE: Shipping address has to match the billing address. 
+NOTE: Shipping address has to match the billing address.
 
 [#GuaranteedInvoice_BasketItemsDetails]
 ===== Basket Items Details
@@ -639,28 +638,27 @@ Basket items details must be sent along with every request. Content of
 the shopping basket depends on the location of the items.
 There can be 3 different locations:
 
-- the (distribution) storage of the merchant,
-- the delivery (items are „on the road“); and
+- the (distribution) storage of the merchant,
+- the delivery (items are „on the road"); and
 - home of the consumer.
 
-//- 
+//-
 
 The shopping basket always contains the items that are being authorized
 (ordered), captured (delivered), voided (canceled), refunded (returned)
 or credited depending to the transaction type.
 
 The detailed items of the shopping basket will be stored as a part of
-payment details on provider and they can be obtained from Wirecard
-Processing API later as part of transaction details.
+payment details on provider and they can be obtained from _{payment-gateway}_ later as part of transaction details.
 
 [cols="v,,,"]
 |===
-| Field                                   | Cardinality  Req/Resp  | Datatype     | Description
+| Field                                   | Cardinality  Req/Resp  | Datatype     | Description
 
 | _order-items.order-item.name_           | M                      | Alphanumeric | Name of the item in the basket.
 | _order-items.order-item.article-number_ | M                      | Alphanumeric | EAN or other article identifier for merchant.
-| _order-items.order-item.amount_         | M                      | Number       | Item’s price per unit.
-| _order-items.order-item.tax-rate_       | M                      | Number       | Item’s tax rate per unit.
+| _order-items.order-item.amount_         | M                      | Number       | Item's price per unit.
+| _order-items.order-item.tax-rate_       | M                      | Number       | Item's tax rate per unit.
 | _order-items.order-item.quantity_       | M                      | Number       | Total count of items in the order.
 |===
 
@@ -670,14 +668,14 @@ Processing API later as part of transaction details.
 [#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice_Introduction]
 ====== Introduction
 
-_Device Fingerprint (Guaranteed Invoice by Wirecard)_ is a method of fraud
+_Device Fingerprint (Guaranteed Invoice by Wirecard)_ is a method of fraud
 protection and able to identify technical devices. Fraudsters learn to
 exploit the weaknesses of traditional fraud prevention tools over time.
-We protect businesses from fraud and loss of revenue with innovative
+We protect businesses from fraud and loss of revenue with innovative
 fraud prevention: by automatically linking transactions, fraud can be
 detected in real time. With our self-learning and adaptive software you
 are prepared to face new and upcoming fraud scenarios. This document
-describes the procedure of a _Device Fingerprint_ call and how to
+describes the procedure of a _Device Fingerprint_ call and how to
 implement its result in the PAYMENT_QUERY operation and PAYMENT_REQUEST
 operation.
 
@@ -701,7 +699,7 @@ $deviceIdentToken = md5($customerId . "_" . $timestamp);
 [#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice_RunJavaScript]
 ====== Run JavaScript
 
-We recommend outputting the _Device Fingerprint_ JavaScript code as
+We recommend outputting the _Device Fingerprint_ JavaScript code as
 early as possible to get a sufficient latency between script call and
 end of the order.
 
@@ -740,11 +738,11 @@ Regular consumers who pay their bills on time are important capital for
 each merchant. With Wirecard, merchants can use this capital as a
 payment method.
 
-To accomplish that, merchants simply submit a list with the order and
+To accomplish that, merchants submit a list with the order and
 payment history of their consumers to Wirecard.
 
 https://wcdwl.ratepay.com/index.php/en/overview.html[Here] you can
-find which format (and content) you need for the list and how to upload
+find which format (and content) you need for the list and how to upload
 it.
 
 [#GuaranteedInvoice_ConsenttoGeneralTermsandConditions]
@@ -759,8 +757,7 @@ appropriate checkbox.
 
 |English
 |I herewith confirm that I have read the https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy
-notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for Wirecard payment types and that I accept their
-validity.
+notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for Wirecard payment types and that I accept their validity.
 a|
 - https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy notice]:
 link to
@@ -781,12 +778,12 @@ https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-f
 |===
 
 Make sure that the privacy notice and the additional terms and
-conditions are linked properly.
+conditions are linked properly.
 
 [#GuaranteedInvoice_AdditionalBusinessContitions]
 ====== Additional Business Conditions
 
-When consumers use _Guaranteed Invoice by Wirecard,_
+When consumers use _Guaranteed Invoice by Wirecard,_
 payments with debt discharging effect can be made solely to Wirecard.
 
 [#GuaranteedInvoice_Samples]
@@ -801,60 +798,60 @@ Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for correspondi
 ====== _authorization_
 
 .XML authorization Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceAuthorization_AuthorizationRequestSuccessful.xml[]
+include::samples/xml/ratepay-invoice_authorization_request_success_nl.xml[]
 ----
 
 .XML authorization Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceAuthorization_AuthorizationResponseSuccessful.xml[]
+include::samples/xml/ratepay-invoice_authorization_response_success_nl.xml[]
 ----
 
 [#GuaranteedInvoice_Samples_GuaranteedInvoice_CaptureAuthorization]
 ====== _capture-authorization_
 
 .XML capture-authorization Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceCaptureAuthorization_CaptureAuthorizationRequestSuccessful.xml[]
+include::samples/xml/ratepay-invoice_capture-authorization_request_success_32783284.xml[]
 ----
 
 .XML capture-authorization Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceCaptureAuthorization_CaptureAuthorizationResponseSuccessful.xml[]
+include::samples/xml/ratepay-invoice_capture-authorization_response_success_nl_32783284.xml[]
 ----
 
 [#GuaranteedInvoice_Samples_GuaranteedInvoice_Credit]
 ====== _credit_
 
 .XML credit Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceCredit_CreditRequestSuccessful.xml[]
+include::samples/xml/ratepay-invoice_credit_request_success_32783284.xml[]
 ----
 
 .XML credit Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceCredit_CreditResponseSuccessful.xml[]
+include::samples/xml/ratepay-invoice_credit_response_success_nl_32783284.xml[]
 ----
 
 [#GuaranteedInvoice_Samples_GuaranteedInvoice_RefundCapture]
 ====== _refund-capture_
 
 .XML refund-capture Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceRefundCapture_RefundCaptureRequestSuccessful.xml[]
+include::samples/xml/ratepay-invoice_refund-capture_request_success_789b1a74.xml[]
 ----
 
 .XML refund-capture Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceRefundCapture_RefundCaptureResponseSuccessful.xml[]
+include::samples/xml/ratepay-invoice_refund-capture_response_success_nl_789b1a74.xml[]
 ----
 
 
@@ -862,24 +859,23 @@ include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceRefundCapture_Refu
 ====== _void-authorization_
 
 .XML void-authorization Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceVoidAuthorization_VoidAuthorizationRequestSuccessful.xml[]
+include::samples/xml/ratepay-invoice_void-authorization_request_success_32783284.xml[]
 ----
 
 .XML void-authorization Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceVoidAuthorization_VoidAuthorizationResponseSuccessful.xml[]
+include::samples/xml/ratepay-invoice_void-authorization_response_success_nl_32783284.xml[]
 ----
 
 [#GuaranteedInvoice_Samples_GuaranteedInvoice_DeviceIdentToken]
 ====== _authorization_ Request to Wirecard
 
 .deviceIdentToken Transfer
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/GuaranteedInvoiceSamplesGuaranteedInvoiceDeviceIdentToken_deviceIdentTokenTransfer.xml[]
+include::samples/xml/ratepay-invoice_authorization_unknown_.xml[]
 ----
-

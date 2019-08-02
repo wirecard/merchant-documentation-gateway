@@ -1,10 +1,7 @@
 [#SEPACreditTransfer]
 ==== SEPA Credit Transfer
- 
-_SEPA Credit Transfer_ is used when a merchant would like to *send money to the consumer's*
-bank account. For example, when a product or service was returned.
 
-_Wirecard Payment Gateway_ supports referenced and non-referenced _SEPA Credit Transfer_ options.
+_{payment-gateway}_ supports referenced and non-referenced _SEPA Credit Transfer_ options.
 
 [#SEPACreditTransfer_GeneralInformation]
 ===== General Information
@@ -12,21 +9,21 @@ _Wirecard Payment Gateway_ supports referenced and non-referenced _SEPA Credit
 [#SEPACreditTransfer_PaymentModeCountriesandCurrencies]
 ====== Payment Mode, Countries and Currencies
 
-This table illustrates which payment mode _SEPA Credit Transfer_ belongs
+This table illustrates which payment mode _SEPA Credit Transfer_ belongs
 to. It also provides detailed information about the countries and
-currencies which are relevant for _SEPA Credit Transfer_.
+currencies which are relevant for _SEPA Credit Transfer_.
 
 [cols="20h, 80"]
 |===
 | Payment Mode | <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
 | Countries    | Please contact <<ContactUs, merchant support>> for Countries.
-| Currencies   | Please contact <<ContactUs, merchant support>> for Currencies.
+| Currencies   | Please contact <<ContactUs, merchant support>> for Currencies.
 |===
 
 [#SEPACreditTransfer_CommunicationFormats]
 ====== Communication Formats
 
-This table illustrates how _SEPA Credit Transfer_ notifications are
+This table illustrates how _SEPA Credit Transfer_ notifications are
 encoded and which formats and methods can be used for requests and
 responses.
 
@@ -34,7 +31,7 @@ responses.
 .2+h| Requests/Responses   | Format  | XML
                             | Methods | POST
 h| IPN Encodement        2+| Please follow the instructions given
-at <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+at <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
 |===
 
 
@@ -46,27 +43,27 @@ at <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notifica
 ====== Transaction Types
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here look
-at <<AppendixB, Appendix B: Transaction Types>>. 
+at <<AppendixB, Appendix B: Transaction Types>>.
 
 [%autowidth]
 |===
 | Transaction Type | Description | Link to the Samples
 
-| _authorization_ | Verifies payment details for structural validity and /
-or generates a reference ID for the merchant (not mandatory). | 
-| _pending-credit_ | Transaction is processed in the Wirecard system.
+| _authorization_ | Verifies payment details for structural validity and /
+or generates a reference ID for the merchant (not mandatory). | 
+| _pending-credit_ | Transaction is processed in the _{payment-gateway}_.
 | See <<SEPACreditTransfer_Samples_PendingCredit, samples>>.
 | _void-pending-credit_ | Voids a _pending-credit_. +
-Only available when the <<SEPA_TransactionType_Void_Restrictions, restrictions>> are met.
+Only available when the <<SEPA_TransactionType_Void_Restrictions, restrictions>> are met.
 | See <<SEPACreditTransfer_Samples_VoidPendingCredit, samples>>.
-| _credit_ | Transaction is processed by Wirecard Bank. | 
+| _credit_ | Transaction is processed by Wirecard Bank. |
 | _credit-return_ | The payment is returned by the consumer bank. See <<SEPA_ReturnCodes, Return Codes>>. |
 |===
 
 NOTE: Recurring Transactions are *not* supported for _SEPA Credit Transfer_.
 
 NOTE: The transaction type within the request must be _credit_ or
-_pending-credit._ A _credit_ will be transformed into a _pending-credit_ by default.
+_pending-credit._ A _credit_ will be transformed into a _pending-credit_ by default.
 
 
 [#SEPACreditTransfer_TransactionTypes_refund]
@@ -97,11 +94,11 @@ processing and is not part of the request or the response.
 
 [cols="30h, 70"]
 |===
-| URLs (Endpoints) | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| URLs (Endpoints) | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
 | Merchant Account ID (MAID) | 59a01668-693b-49f0-8a1f-f3c1ba025d45
 | Username | 16390-testing
 | Password | 3!3013=D3fD8X7
-| Secret Key | Please contact <<ContactUs, merchant support>> for complete test credentials.
+| Secret Key | Please contact <<ContactUs, merchant support>> for complete test credentials.
 |===
 
 [#SEPACreditTransfer_Workflow]
@@ -112,7 +109,7 @@ image::images/11-29-01-sepa-credit-transfer/SEPA_Credit_Transfer_Workflow.png[SE
 . The transaction type within the request must be _credit_ or _pending-credit._
 . If the request is successful, a response will be returned with status
 _Success_. This response means that the transaction has entered the
-Wirecard system successfully. The transaction itself is in a _pending_
+_{payment-gateway}_ successfully. The transaction itself is in a _pending_
 status, waiting to be sent to the merchant's bank.
 . If the request is not successful, a response will be returned with
 status _Failed_. *The response always contains a status code and a description.*
@@ -157,17 +154,17 @@ The following elements are mandatory (M), optional (O) or conditional
 |===
 | Field | Request | Response | Notification | Datatype | Size | Description
 
-| descriptor | O | O | O | String | 100 | Description on the settlement of the account holder's account about a
+| descriptor | O | O | O | String | 100 | Description on the settlement of the account holder's account about a
 transaction.
 
-For SEPA Credit Transfer transactions, it will be combined with the
-Provider Transaction Reference ID and the merchant’s static
-descriptor and will appear on the consumer's bank account statement.
+For SEPA Credit Transfer transactions, it will be combined with the
+Provider Transaction Reference ID and the merchant's static
+descriptor and will appear on the consumer's bank account statement.
 | payment-methods.payment-method-Name | M | M | M | String | 15 | This is the name of the payment method _sepacredit_.
 | api-id |   |   | M | api-id | 25 | The API id is always returned in the notification. For SEPA it is
 "---"
-| bank-account.bic | O | O | O | String | 8 or 11 | This is the Business Identifier Code of the bank of the end-consumer. In SEPA Area where <<SEPA_Reporting_IbanOnly, IBAN Only>> is enabled, BIC is an optional field.
-| bank-account.iban | C | C | C | String | 34 | This is the International Bank Account Number of the end-consumer.
+| bank-account.bic | O | O | O | String | 8 or 11 | This is the Business Identifier Code of the bank of the end-consumer. In SEPA Area where <<SEPA_Reporting_IbanOnly, IBAN Only>> is enabled, BIC is an optional field.
+| bank-account.iban | C | C | C | String | 34 | This is the International Bank Account Number of the end-consumer.
 
 NOTE: If no parent-transaction-id is provided it remains mandatory.
 
@@ -193,30 +190,30 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 
 .XML Pending-Credit Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesPendingCreditXml_PendingCreditRequestSuccessful.xml[]
+include::samples/xml/sepacredit_pending-credit_request_success.xml[]
 ----
 
 .XML Pending-Credit Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesPendingCreditXml_PendingCreditResponseSuccessful.xml[]
+include::samples/xml/sepacredit_pending-credit_response_success.xml[]
 ----
 
 .XML Pending-Credit Request (Failure)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesPendingCreditXml_PendingCreditRequestFailure.xml[]
+include::samples/xml/sepacredit_pending-credit_request_failure.xml[]
 ----
 
 .XML Pending-Credit Response (Failure)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesPendingCreditXml_PendingCreditResponseFailure.xml[]
+include::samples/xml/sepacredit_pending-credit_response_failure.xml[]
 ----
 
 [#SEPACreditTransfer_Samples_PendingCredit_Json]
@@ -224,14 +221,14 @@ include::samples/xml/SEPACreditTransferSamplesPendingCreditXml_PendingCreditResp
 
 .JSON Pending-Credit Request (Successful)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/SEPACreditTransferSamplesPendingCreditJson_JSON_PendingCreditRequestSuccessful.json[]
 ----
 
 .JSON Pending-Credit Response (Successful)
 
-[source,json]
+[source,json,subs=attributes+]
 ----
 include::samples/json/SEPACreditTransferSamplesPendingCreditJson_JSON_PendingCreditResponseSuccessful.json[]
 ----
@@ -251,28 +248,28 @@ not sent to the bank.
 
 .XML Void-Pending-Credit Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesVoidPendingCredit_VoidPendingCreditRequestSuccessful.xml[]
+include::samples/xml/sepacredit_void-pending-credit_request_success.xml[]
 ----
 
 .XML Void-Pending-Credit Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesVoidPendingCredit_VoidPendingCreditResponseSuccessful.xml[]
+include::samples/xml/sepacredit_void-pending-credit_response_success_8938d389.xml[]
 ----
 
 .XML Void-Pending-Credit Request (Failed)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesVoidPendingCredit_VoidPendingCreditRequestFailed.xml[]
+include::samples/xml/sepacredit_void-pending-credit_request_.xml[]
 ----
 
 .XML Void-Pending-Credit Response (Failed)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/SEPACreditTransferSamplesVoidPendingCredit_VoidPendingCreditResponseFailed.xml[]
+include::samples/xml/sepacredit_void-pending-credit_response_.xml[]
 ----

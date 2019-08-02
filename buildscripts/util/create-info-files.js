@@ -17,6 +17,7 @@ const gitCommands = function (file, branchPattern = 'PSPDOC-[0-9]\+') {
     const git = {
         'current_branch': 'git name-rev --name-only HEAD',
         'commit_author': 'git log -1 --pretty=format:%an',
+        'commit_hash': 'git rev-parse HEAD',
         'last_edited_by': 'git log -1 --pretty=format:%an -- "' + file + '"',
         'branch_of_file': 'git --no-pager log --decorate=short --pretty=oneline --follow -- "' + file + '" | sed -n "s/.*(origin\/\(' + branchPattern + '\)).*/\1/p" | head -n 1'
     }
@@ -58,6 +59,7 @@ function writeGitInfo() {
     const gitData = {
         "commit_author": getCommitAuthor(),
         "branch": getCurrentBranch(),
+        "commit_hash": getCurrentHash(),
         "files": gitFilesInformation
     };
     try {
@@ -70,6 +72,11 @@ function writeGitInfo() {
 
 function getCommitAuthor() {
     const cmdGitCommitAuthor = gitCommands()['commit_author'];
+    return childProcess.execSync(cmdGitCommitAuthor).toString().trim();
+}
+
+function getCurrentHash() {
+    const cmdGitCommitAuthor = gitCommands()['commit_hash'];
     return childProcess.execSync(cmdGitCommitAuthor).toString().trim();
 }
 

@@ -58,7 +58,7 @@ function insertContent(element) {
       //console.log('st height of ' + snippetId + ' = ' + element.height());
       //console.log('st height of ' + snippetId + ' = ' + element.css("height"));
       //console.log('st height of ' + snippetId + ' = ' + element[0].getBoundingClientRect().height);
-      console.log('st height of ' + snippetId + ' = ' + window.getComputedStyle(element[0]).height);
+      //console.log('st height of ' + snippetId + ' = ' + window.getComputedStyle(element[0]).height);
       setTimeout(function () {
         element.removeClass('render-sandbox');
       }, 0);
@@ -82,14 +82,11 @@ $('#generated-toc li.tocify-item').on("mouseenter mousedown touchstart", functio
     }
     else {
       contentID = $(udiv).nextAll().find('h4')[0].id;
-      console.log('contentID:' + contentID);
     }
     if (event.type == 'mousedown' || event.type == 'touchstart') {
-      console.log('mousedown for ' + contentID);
       insertContent($('#' + contentID).parent(), 0);
     }
     else if (event.type == 'mouseenter') {
-      console.log('mouseenter for ' + contentID);
       //lazyloadContent(contentID, 2500, 1, 0);
     }
 
@@ -103,7 +100,6 @@ var contentElementsArray = [];
 
 for (var i = 0; i < snippetsArray.length; i++) {
   var snippetId = snippetsArray[i].id;
-  console.log(i + ' ' + snippetId);
   contentElementsArray.push($('#' + snippetId).parent());
   idArray.push(snippetId);
 }
@@ -113,22 +109,14 @@ if (urlHash != '') {
   // insert without delay
   var firstElementId = idArray.indexOf(urlHash);
   for (var i = firstElementId; i > firstElementId - 15; i--) {
-    console.log('priority loading of ' + idArray[i]);
     insertContent(contentElementsArray[i], i * 10);
   }
 }
 
-//console.log(contentElementsArray[163]);
-//insertContent(contentElementsArray[163]);
 for (var i = 0; i < 4; i++) {
   insertContent(contentElementsArray[i], i * 10);
 }
-/*
-for(var i=150; i<snippetsArray.length; i++) {
-  var currentElement = contentElementsArray[i];
-  setTimeout(insertContent.bind(null, currentElement), 10*i+5000);
-}
-*/
+
 for (var i = snippetsArray.length - 1; i > 195; i--) {
   var currentElement = contentElementsArray[i];
   setTimeout(insertContent.bind(null, currentElement), 200 * i);
