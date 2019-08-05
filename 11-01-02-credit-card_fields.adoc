@@ -1,6 +1,11 @@
 [#CC_Fields]
 ==== Fields
 
+////
+@ Karin: At some location we must state, that this table is the general field table for credit card but some transaction types may require a different field definition and that this 
+different definition is given directly with the transaction type.
+////
+
 [#CC_Fields_intro]
 ===== Introduction
 
@@ -11,7 +16,7 @@ This field list gives an overview of all the fields involved in _credit card_ tr
 
 //-
 
-Fields sent in a request will usually also be part of the response. There are additional fields that are returned in the response only. These provide, for example, the result of the payment process. +
+Fields, sent in a request, will usually also be part of the response. There are additional fields that are returned in the response only. These provide, for example, the result of the payment process. +
 We provide the request and the response fields in two separate sections:
 
 - <<CC_Fields_xmlobjects_request, _Request_>> contains those fields sent in the request (and usually in the response).
@@ -19,26 +24,13 @@ We provide the request and the response fields in two separate sections:
 
 //-
 
-////
-This field list for _credit card_ provides an overview over the fields used, when
-performing transactions with a credit card. This field list describes the fields that
-are used, when sending an XML request and receiving a response.
-KKS: Describes the same thing three times.
-
-
-The majority of fields is used in request and response but some are explicitly
-sent in the response. Those are fields which, for example, provide information
-about the result of the payment process. For that reason we divided the fields
-in two main sections: One section, called _Request_, provides a list of fields
-sent in request and usually in the response and another section, called _Response_.
-The _Response_ section provides a field list explicitly sent in the response.
-////
-
 Within <<CC_Fields_xmlobjects_request, _Request_>> and <<CC_Fields_xmlobjects_response, _Response_>>, the fields are sorted by hierarchy.
 ////
-KKS: I rephrased it to make it shorter. I'm not sure about its accuracy though. Note to self --> check wording for accuracy: "sorted by hierarchy"
-
-IMPORTANT NOTE FOR VHS: I'm rephrasing quite a bit, and further down I described the relation between fields a bit differently --> parent & child. This is broader, simplified, and not quite accurate. I think I need your help understanding the difference between object - container - element. 
+vhauss: Do we really need the links twice (line 22 and 27)?
+KKS: What is the difference between object - container - element? 
+vhauss: There is no need to understand the difference. The point is: There is no adequate term available for the individual tables. 
+I think we need a unique term to refer to the table fractions. Possible suggestions from my side are "object", "element" or "container". 
+We need to discuss this.
 ////
 
 [#CC_Fields_intro_objects]
@@ -52,12 +44,8 @@ Each field list has the following columns:
 - <<CC_Fields_intro_objects_lengthLength, Length>>
 
 ////
-Each object provides an introduction and a Field List.
-
-With a short introduction we explain, why the fields are defined and in which
-context they should be used. The following Field List is described in a table.
-This table provides the information about  _Name_, _Cardinality_, _Data Type_
-and _Length_ for each field.
+vhauss: What about the description? The "description" part is the most crucial change compared to the old field table version. We should mention, what kind of 
+information can be derived from this "description".
 ////
 
 [#CC_Fields_intro_objects_name]
@@ -67,15 +55,11 @@ _Example:_ ``order-items.order-item.article-number``
 
 The structure shows a hierarchical relation between ``parent-element`` and ``child-element``. The ``parent-element`` comes first, followed by a separating``.``, followed by the ``child-element``. The child of the ``child-element`` (``child2-element``), also separated by ``.``, comes next. 
 
-//// 
-_Name_ has a structure like ``order-items.order-item.article-number``.
-Object's boundaries are referred to with a period ".", compound words use a
-dash "-". The order of the objects displays a hierarchical order, such as
-``order-items`` consists of ``order-item`` consists of ``article-number``.
-////
-
 ////
 Do we need the "@" as well?
+vhauss: I will clarify with Ralf.
+
+vhauss: Can we use "grand-child" instead of "child2"?
 ////
 
 [#CC_Fields_intro_objects_cardinality]
@@ -85,98 +69,98 @@ _Cardinality_ indicates the functional necessity
 of the field for the request/response. A field can be mandatory (M), optional (O), or conditional \(C).
 
 - If a field is _mandatory_, it must be included in the request and contain a value. Without this field, the request will fail. +
-- If a field is _optional_, it does not have to be included in the request. Including optional fields nevertheless may have certain advantages. +
-- If a field is _conditional_, then it depends on the specific payment transaction, whether or not the field must be included.
+- If a field is _optional_, it does not have to be included in the request. Including optional fields nevertheless may have certain advantages. 
+Reasons why content should be sent with optional fields can be found at the table's description.
 
-////
-If a field is described mandatory, the field must provide content
-otherwise the request will fail. If the field is described optional, the field
-can be empty and the request will be sent successfully. But there are reasons
-why it makes perfect sense to provide information in an optional field. This
-information is given in the introduction.
+The definition of _Cardinality_ may sometimes lead to an ambiguous interpretation.
+Look, for example, at the ``periodic``-object. When you send a request without
+a recurring intention, the ``periodic``-fields are not necessary but they are mandatory, when you send a set of recurring transactions.
+In the tables below we will describe the cardinality, considering the context
+that you want to send a transaction that makes use of the described object.
+
+//-
+
+//// 
+- If a field is _conditional_, then it depends on the specific payment transaction, whether or not the field must be included.
+vhauss: I think, we don't need "conditional", as we build a general Credit Card field table here. If conditions differ among the transaction types we can introduce a table at
+each transaction type and describe the different use there (as we do with the general APM Field table).  
+
+vhauss: Do we need a cardinality for our response fields?
+The merchant has to make sure that the request is send correctly. For that, he needs to know which fields have which cardinality. But for the response it doesn't really matter, as the merchant has no influence on the fields sent in the response. So I really wonder, if it is necessary to provide a "Cardinality" column for the pure response fields.
 ////
 
 
 [#CC_Fields_intro_objects_dataType]
 ._Data Type_
 
-_Data Type_ defines the specific characteristics of the input values that can be used for a field. There are five data types: _String_, _Integer_, _Date_, _Boolean_, and _Time Stamp_.
+_Data Type_ defines the specific characteristics of the input values that can be used for a field. There are seven data types: _Boolean_, _Date_, _Timestamp_, _String_, _Decimal_, _Number_,  and _Enumeration_.
+
+Fields containing child fields (such as ``order-item.article-number``) provide a link in the parent table which points to the table describing the children.
+
+- Boolean: has one of two possible values (usually either true or false)
+- Date: is a value taken from a calendar (e.g. the date of birth). It follows the pattern YYYY-MM-DD. This pattern cannot be customized.
+- Decimal: is a number which has digits before the comma and after the comma, such as the amount of money in a specific currency.
+- Enumeration: is a list of predefined values, e.g. the severity of a status, which can provide the predefined values _warning_, _error_ and _information_.
+- Number: is a numeric value that has no digits after the decimal, such as expiration month of a credit card.
 
 //// 
-Objects of the <<CC_Fields_intro_ComplexType, complex type>>, such as ``order-items`` and
-``address``, will provide a link in the _Data Type_ field which points to the
-detailed list.
-KKS: What does that mean? A detailed list of what?
+Make sure that expiration-month is defined as "Number". If not change the example here!
 ////
 
+- String: allows a combination of text and numbers with an arbitrary but finite length. A subset of _String_ values can be defined according to a pattern value, such as a URL.
+- Timestamp: Is a moment in time defined by a system. It follows the pattern yyyyMMddHHmmss. This pattern cannot be customized.
+
 ////
-For date format see Samples. We only provide one date format.
-KKS: yes; there's date and dateTime though.
+How about _Integer_?
+
+@Karin: There is still a mismatch (as far as I understand it) with Number/Decimal/Integer.
+First question: Does Integer belong to Number or Decimal?
+"color-depth" is defined "Integer" currently. This rather seems to be an "Number" as for color-depth no comma values are needed.
+expiration-month is defined "Numeric" I think it should be "Number" as for expiration-month no comma values are needed.
+I'm waiting for Ralf's replies.
+
+Here we must explain, which data types we use and how we define them. e.g. What is "String"? What is "Date"? Explain!
+Point out that the "Date" and "Timestamp" format are not customizable!!
 ////
+
+
 
 [#CC_Fields_intro_objects_length]
 ._Length_
-_Length_ shows how many characters can be used for this field.
-////
-In the section <<CreditCard_TransactionTypes, _Transaction Types_>> you may,
-on some occasions, also find a field list for each transaction type. The field
-list over there lists only those fields whose definition deviates from the
-definition given here. When you look at the field list at the individual
-transaction type, it is assumed that you have knowledge of this general field
-list described here.
-////
-In general, the _{payment-gateway}_ allows all characters for each field,
-depending on the _Data Type_. 
-////
-If other rules apply they will be stated in the
-column _Value Range_ with each field.
+_Length_ shows how many characters can be used for this field. The value given here is the maximum value merchants can use to make sure the whole amount of characters is processed.
 
+In general, the _{payment-gateway}_ allows all characters for each field, depending on the _Data Type_. 
+////
+If other rules apply they will be stated in the column _Description_ with each field.
 
 Do we need a column for "Value Range"?
+vhauss: Currently: No! As agreed with Karin and Ralf, we can provide information about "pattern value" ( see String) in the "Description" column.
 ////
 
-////
-[#CC_Fields_intro_cardinality]
-====== _Cardinality_
-
-The definition of _Cardinality_ may sometimes lead to an ambiguous interpretation.
-Look, for example, at the ``periodic``-object. When you send a request without
-a recurring intention, the ``periodic``-fields are not necessary and therefore
-noted optional, but they are mandatory, when you send a set of recurring transactions.
-In the tables below we will describe the cardinality, considering the context
-that you want to send a transaction that makes use of the described object.
-
-
-
-[#CC_Fields_intro_DataType]
-====== _Data Type_
-
-Altogether we have the data types _String_, _Integer_, _Date_, _Boolean_ and
-_Time Stamp_.
-KKS: What's the difference between Time Stamp and DateTime?
-In the XSD there's also Token as a data type (I think).
-
-
-Here we must explain, which data types we use and how we define them.
-e.g. do we use "String" or "Alphanumeric"? Explain why.
-What is "Date"? What is the standard format? Is the format customizable?
-////
 
 [#CC_Fields_intro_ComplexType]
 ====== _Complex Type_
 Fields that are complex type elements have been organised in separate field lists (such as ``address``). The field itself is part of the respective
 parent-element table. The parent-element table provides a link to the field's separate table.
-//I don't think I rephrased it well enough to be comprehensible.
+////  
+
+I don't think I rephrased it well enough to be comprehensible.
+
+vhauss: I don't think we need to explain "the complex type" as it will not appear in our new table. It will be replaced in any case with a link
+pointing to the children of the field name.
+Maybe we can describe here something like "Children Tables" ("Linked Tables").
+
+////
 
 ////
 
 Questions:
 
 1) Do we need a column for "value range" (Wertebereich) in the table as well?
-2) Which level of information do we provide in the column "Data Type"? Just very
-   low level such as "numeric", "alphanumeric" or do we go deeper, such as
-   "String", "Integer" (What kind of integer), etc?
-3) How do we treat cardinality: Example: to send a request no ``order-item`` is
+
+vhauss: I agreed with Ralf and Karin that we will describe special value sets (e.g. pattern values such as url) in the description field with each field name.
+
+2) How do we treat cardinality: Example: to send a request no ``order-item`` is
    required. It is optional. But when you use it ``name`` and ``amount`` are
    mandatory.
 
@@ -190,11 +174,8 @@ described in the introduction!
 [#CC_Fields_xmlobjects]
 ===== XML Objects
 Click the X in the respective column for request and response fields.
-////
-Please refer to ``https://doc.wirecard.com/Appendix_Xml.html`` for
-field descriptions.
-////
 
+Please refer to our <<Appendix_Xml, xsd scheme>> for field descriptions.
 
 |===
 |Field |Request |Response
@@ -296,63 +277,6 @@ field descriptions.
 |<<CC_Fields_xmlobjects_response_threed, X>>
 |===
 
-////
-
-
-``payment``: <<CC_Fields_xmlobjects_request_payment, request>>,
-<<CC_Fields_xmlobjects_response_payment, response>>
-
-``account-holder``: <<CC_Fields_xmlobjects_request_accountholder, request>>
-
-``address``: <<CC_Fields_xmlobjects_request_address, request>>
-
-``airline-industry``: <<CC_Fields_xmlobjects_request_airlineindustry, request>>
-
-``audit``: <<CC_Fields_xmlobjects_request_audit, request>>
-
-``avs``: <<CC_Fields_xmlobjects_response_avs, response>>
-
-``browser``: <<CC_Fields_xmlobjects_request_browser, request>>
-
-``card``: <<CC_Fields_xmlobjects_request_card, request>>
-
-``card-emv``: <<CC_Fields_xmlobjects_request_cardemv, request>>
-
-``card-pin``: <<CC_Fields_xmlobjects_request_cardpin, request>>
-
-``card-raw``: <<CC_Fields_xmlobjects_request_cardraw, request>>
-
-``card-token``: <<CC_Fields_xmlobjects_request_cardtoken, request>>
-
-``credit-sender-data``: <<CC_Fields_xmlobjects_request_creditsenderdata, request>>
-
-``cruise-industry``: <<CC_Fields_xmlobjects_request_cruiseindustry, request>>
-
-``custom-fields``: <<CC_Fields_xmlobjects_request_customfields, request>>,
-<<CC_Fields_xmlobjects_response_customfields, response>>
-
-``device``: <<CC_Fields_xmlobjects_request_device, request>>
-
-``notification``: <<CC_Fields_xmlobjects_request_notification, request>>
-
-``order-item``: <<CC_Fields_xmlobjects_request_orderitem, request>>
-
-``payment-method``: <<CC_Fields_xmlobjects_request_paymentmethod, request>>, 
-<<CC_Fields_xmlobjects_response_paymentmethod, response>>
-
-``segment``: <<CC_Fields_xmlobjects_request_segment, request>>
-
-``shipping``: <<CC_Fields_xmlobjects_request_shipping, request>>
-
-``status``: <<CC_Fields_xmlobjects_response_status, response>>
-
-``sub-merchant-info``: <<CC_Fields_xmlobjects_request_submerchantinfo, request>>
-
-``three-d``: <<CC_Fields_xmlobjects_request_threed, request>>,
-<<CC_Fields_xmlobjects_response_threed, response>>
-////
-
-
 [#CC_Fields_xmlobjects_request]
 ====== Request
 
@@ -398,7 +322,7 @@ based on a number of resolving rules.
 
 |requested-amount 
 |M 
-|Numeric 
+|Decimal 
 |18,2 
 |The full amount that is requested/contested in a transaction. Use ``.``(decimal point) as the separator.
 //The amount of the transaction. The amount of the decimal place depends on the currency.
@@ -618,7 +542,7 @@ KKS: Set last-name to Optional due to input from Moritz.
 |O 
 |Date 
 | 
-|This is the consumer's birth date.
+|This is the consumer's birth date. The date format is YYYY-MM-DD.
 
 |phone 
 |O 
@@ -809,7 +733,7 @@ Is that correct?
 |O 
 |Date 
 | ?? 
-|The date the ticket was issued.
+|The date the ticket was issued. The date format is YYYY-MM-DD.
 
 |ticket-number 
 |O 
@@ -849,7 +773,7 @@ Is that correct?
 
 |non-taxable-net-amount 
 |O 
-|Numeric	
+|Decimal	
 |7,2 
 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. 
 //KKS: Two decimal places are implied? They're definitely not just implied.
@@ -1476,17 +1400,17 @@ includes car rental, airline flight, both or neither. Valid entries include: +
 |O 
 |Date 
 | 
-|The cruise departure date also known as the sail date.
+|The cruise departure date also known as the sail date. The date format is YYYY-MM-DD.
 
 |lodging-check-out-date 
 |O 
 |Date	
 | 
-|The cruise return date also known as the sail end date.
+|The cruise return date also known as the sail end date. The date format is YYYY-MM-DD.
 
 |lodging-room-rate 
 |O 
-|Numeric	
+|Decimal	
 |18,2	
 |The total cost of the cruise.
 
@@ -1677,19 +1601,19 @@ When filled by the merchant: Is ``order-items`` a request or response field?
 
 |name 
 |M	
-|Alphanumeric 
+|String 
 |?? 
 |Name of the item in the basket.
 
 |description 
 |O	
-|Alphanumeric 
+|String 
 |?? 
 |??
 
 |article-number 
 |O	
-|Alphanumeric 
+|String 
 |?? 
 |EAN or other article identifier for merchant.
 
@@ -1701,7 +1625,7 @@ When filled by the merchant: Is ``order-items`` a request or response field?
 
 |tax-amount 
 |O	
-|Alphanumeric 
+|String 
 |?? 
 |??
 
@@ -1834,13 +1758,13 @@ Is ``url`` sent in the request or response?
 |M 
 |Date 
 |  
-|
+|The date format is YYYY-MM-DD.
 
 |arrival-date 
 |M 
 |Date 
 |  
-|
+|The date format is YYYY-MM-DD.
 
 |flight-number
 |O 
@@ -2180,7 +2104,7 @@ Accepted values are: 01, 02, 03, 04, 05 +
 |?? 
 |Timestamp 
 | 
-|This is the time-stamp of completion of request.
+|This is the timestamp of completion of request. The timestamp format is yyyyMMddHHmmss.
 
 |avs-code 
 |?? 
@@ -2206,7 +2130,7 @@ Accepted values are: 01, 02, 03, 04, 05 +
 |?? 
 |String 
 |36 
-|The api-id is always returned in the notification.
+|The api-id is always returned in the notification. ``api-id`` is a string with a pattern value. The pattern is: ???
 
 4+|custom-fields 
 | <<CC_Fields_xmlobjects_response_customfield, custom-field>>
@@ -2338,7 +2262,7 @@ MasterCard: +
 |===
 |Field |Cardinality |Datatype |Size |Description
 
-| url | M | ?? | ?? | ??
+| url | M | String | ?? | ``url`` is a string with a pattern value. The pattern is ???
 
 |===
 
