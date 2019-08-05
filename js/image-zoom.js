@@ -212,8 +212,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             function calculateZoom() {
                 var svg = isSVG(targetImage);
-                console.log('is svg: ')
-                console.log(isSVG(targetImage));
 
                 targetImage.offsetWidth // repaint before animating
 
