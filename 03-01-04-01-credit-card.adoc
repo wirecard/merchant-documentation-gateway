@@ -1030,30 +1030,60 @@ Need more information on 3D Secure 2? Head to our <<CreditCard_3DS2, general int
 
 .Additional Fields for 3DS2
 [#PPv2_CC_3DS2Fields_ROC]
-A field can be **R**equired, **O**ptional or **C**onditional.
+A field can be **R**equired or **O**ptional.
 [%autowidth, stripes="none"]
 |===
-4+|JSON |Datatype |<<PPv2_CC_3DS2Fields_ROC, R/O/C>> |Size |Description
+5+|JSON |Datatype |<<PPv2_CC_3DS2Fields_ROC, R/O>> |Size |Description
 
 .27+|account-holder
 
-3+|first-name
+4+|first-name
 |String
-|C
-|50
+|M
+|32
 |The first name provided by the consumer as part of the credit card details.
 
-3+|last-name
+4+|last-name
 |String
-|C
-|50
+|M
+|32
 |The last name provided by the consumer as part of the credit card details.
 
+4+|merchant-crm-id
+|String
+|O
+|64
+|Consumer identifier in the merchant's shop.
+ Requests that contain payment information from the same consumer in the same shop must contain the same string.
+
+4+|email
+|String
+|M
+|256
+|The consumer's email address as given in the merchant's shop.
+
+4+|phone
+|String
+|O
+|18
+|Home phone number provided by the consumer.
+
+4+|mobile-phone
+|String
+|O
+|18
+|Mobile phone number provided by the consumer.
+
+4+|work-phone
+|String
+|O
+|18
+|Work phone number provided by the consumer.
 
 .13+|account-info
-2+|authentication-method
+3+|authentication-method
 |String
-|C
+|O
 |2
 |Type of consumer login in the merchant's shop. +
  Possible values: ``01``, ``02``, ``03``, ``04``, ``05``, ``06`` +
@@ -1063,19 +1093,15 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  ``04`` = Login with card issuer credentials. +
  ``05`` = Login with third-party authentication. +
  ``06`` = Login with FIDO authenticator. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
 
-2+|authentication-timestamp
+3+|authentication-timestamp
 |DateTime
-|C
-|19
-|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``.
- For guest checkout, the datetime is now. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
+|O
+|20
+|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ssZ``.
+ For guest checkout, the DateTime is now.
 
-2+|challenge-indicator
+3+|challenge-indicator
 |String
 |O
 |2
@@ -1085,16 +1111,17 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  ``02`` = No challenge requested. +
  ``03`` = Challenge requested: Merchant Preference. +
  ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
- (e.g. for one-click checkout).
+ (e.g. for one-click checkout). +
+  NOTE: If the element is not provided, the ACS will interpret this as ``01`` = No preference.
 
-2+|account-creation-date
+3+|account-creation-date
 |Date
 |O
 |10
 |Registration date of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
  For guest checkout, do not send this field.
 
-2+|account-update-date
+3+|account-update-date
 |Date
 |O
 |10
@@ -1102,225 +1129,171 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  changes to billing and shipping address, new payment account, new email address. Accepted format: ``YYYY-MM-DD``.
  For guest checkout, do not send this field.
 
-2+|password-change-date
+3+|password-change-date
 |Date
 |O
 |10
 |Date that the consumer last changed/reset their password in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
  For guest checkout, do not send this field.
 
-2+|shipping-address-first-use
+3+|shipping-address-first-use
 |Date
 |O
 |10
 |Date that the consumer first used this shipping address in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
  For guest checkout, do not send this field.
 
-2+|transactions-last-day
+3+|transactions-last-day
 |Numeric
 |O
 |9
 |Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours.
  Does not include merchant-initiated transactions.
 
-2+|transactions-last-year
+3+|transactions-last-year
 |Numeric
 |O
 |9
 |Number of transactions (successful, failed, and canceled) that the consumer has attempted within the past year.
  Does not include merchant-initiated transactions.
 
-2+|card-transactions-last-day
+3+|card-transactions-last-day
 |Numeric
 |O
 |9
 |Number of cards the consumer has attempted to add to their account in the merchant's shop for card-on-file payments
  (one-click checkout) in the past 24 hours.
 
-2+|purchases-last-six-months
+3+|purchases-last-six-months
 |Numeric
 |O
 |9
 |Number of successful orders by the consumer in the merchant's shop within the past six months.
 
-2+|suspicious-activity
+3+|suspicious-activity
 |Boolean
 |O
 |
 |Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud).
 
-2+|card-creation-date
+3+|card-creation-date
 |Date
 |O
 |10
 |Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments
  (one-click checkout). Accepted format: ``YYYY-MM-DD``. +
  For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout),
- the datetime is now.
-
-3+|merchant-crm-id
-|String
-|O
-|64
-|Consumer identifier in the merchant's shop.
- Requests that contain payment information from the same consumer in the same shop must contain the same string.
+ the date is now.
 
 .7+|address
-2+|city
+3+|city
 |String
-|C
+|M
 |50
-|City of the consumer's billing address. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
+|City of the consumer's billing address.
 
-2+|country
+3+|country
 |String
-|C
+|M
 |2
 |Country of the consumer's billing address. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
+Format: ISO 3166-1 alpha-2 country code.
 
-2+|street1
+3+|street1
 |String
-|C
+|M
 |50
-|Line 1 of the street address of the consumer's billing address. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
+|Line 1 of the street address of the consumer's billing address.
 
-2+|street2
+3+|street2
 |String
-|C
+|O
 |50
-|Line 2 of the street address of the consumer's billing address. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
+|Line 2 of the street address of the consumer's billing address.
 
-2+|street3
+3+|street3
 |String
-|C
+|O
 |50
 |Line 3 of the street address of the consumer's billing address. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
 
-2+|postal-code
+3+|postal-code
 |String
-|C
+|M
 |16
 |ZIP/postal code of the consumer's billing address. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
 
-2+|state
+3+|state
 |String
-|C
+|M
 |3
-|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
-
-3+|email
-|String
-|C
-|256
-|The consumer's email address as given in the merchant's shop. +
- This field is conditional. If you do not include it in the request,
- the likelihood that the transaction will be challenged increases.
-
-3+|phone
-|String
-|C
-|18
-|Home phone number provided by the consumer. +
- This field is required if available.
-
-3+|mobile-phone
-|String
-|C
-|18
-|Mobile phone number provided by the consumer. +
- This field is required if available.
-
-3+|work-phone
-|String
-|C
-|18
-|Work phone number provided by the consumer. +
- This field is required if available.
+|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard. 
 
 .8+|shipping
-3+|shipping-method
+4+|shipping-method
+|String
+|O
+|restriction-based enumeration value
+a|The shipping method chosen by the consumer.
+ Merchants must use the shipping indicator value that applies most accurately to the shipping method. If the consumer checks out two or more items, use the shipping indicator value for physical goods. If all are digital goods, use the shipping indicator value that matches the most expensive item.+
+ Accepted values are:
+
+- ``home_delivery``: Ship to consumer's billing address. +
+- ``verified_address_delivery``: Ship to another address known to and verified by the merchant. +
+- ``other_address_delivery``: Ship to an address that differs from the consumer's billing address. +
+- ``store_pick_up``: "Ship to Store" / Pick-up at local store (store address in shipping address fields). +
+- ``digital_goods``: Digital goods (includes online services, electronic gift cards, and redemption codes). +
+- ``digital_tickets``: Travel and event tickets, not shipped. +
+- ``other_verified``: Other (e.g. gaming, digital services, e-media subscriptions)
+
+.7+|address
+3+|city
+|String
+|O
+|50
+|City of the consumer's shipping address. Please provide this field even if billing city is identical.
+
+3+|country
 |String
 |O
 |2
-|The shipping method chosen by the consumer.
- Merchants must use the shipping indicator value that applies most accurately to the shipping method. +
- Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05``, ``06``, ``07`` +
- ``01`` = Ship to consumer's billing address. +
- ``02`` = Ship to another address known to and verified by the merchant. +
- ``03`` = Ship to an address that differs from the consumer's billing address. +
- ``04`` = "Ship to Store" / Pick-up at local store (store address in shipping address fields). +
- ``05`` = Digital goods (includes online services, electronic gift cards, and redemption codes). +
- ``06`` = Travel and event tickets, not shipped. +
- ``07`` = Other (e.g. gaming, digital services, e-media subscriptions)
-
-.7+|address
-2+|city
-|String
-|C
-|50
-|City of the consumer's shipping address. Must be sent even if billing city is identical. +
- This field does not apply to digital goods.
-
-2+|country
-|String
-|C
-|2
 |Country of the consumer's shipping address.
- Must be sent even if billing country is identical. +
- This field does not apply to digital goods.
+Please provide this field even if billing country is identical.
+Format: ISO 3166-1 alpha-2 country code.
 
-2+|street1
+3+|street1
 |String
-|C
+|O
 |50
-|Line 1 of the street address of the consumer's shipping address. Must be sent even if billing address is identical. +
- This field does not apply to digital goods.
+|Line 1 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
-2+|street2
+3+|street2
 |String
-|C
+|O
 |50
-|Line 2 of the street address of the consumer's shipping address. Must be sent even if billing address is identical. +
- This field does not apply to digital goods.
+|Line 2 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
-2+|street3
+3+|street3
 |String
-|C
+|O
 |50
-|Line 3 of the street address of the consumer's shipping address. Must be sent even if billing address is identical. +
- This field does not apply to digital goods.
+|Line 3 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
-2+|postal-code
+3+|postal-code
 |String
-|C
+|O
 |16
-|ZIP/postal code of the consumer's shipping address. Must be sent even if billing address is identical. +
- This field does not apply to digital goods.
+|ZIP/postal code of the consumer's shipping address. Please provide this field even if billing address is identical.
 
-2+|state
+3+|state
 |String
-|C
+|O
 |3
 |State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
- Must be sent even if billing address is identical. +
- This field does not apply to digital goods.
+ Please provide this field even if billing address is identical.
 
 .8+|risk-info
-3+|delivery-timeframe
+4+|delivery-timeframe
 |String
 |O
 |2
@@ -1331,13 +1304,13 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  ``03`` = Overnight delivery +
  ``04`` = Two-day or more delivery
 
-3+|delivery-mail
+4+|delivery-mail
 |String
 |O
 |254
 |The consumer's email address used for electronic delivery of digital goods.
 
-3+|reorder-items
+4+|reorder-items
 |String
 |O
 |2
@@ -1346,7 +1319,7 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  ``01`` = First-time order +
  ``02`` = Reorder
 
-3+|availability
+4+|availability
 |String
 |O
 |2
@@ -1355,44 +1328,52 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  ``01`` = Currently available +
  ``02`` = Future availability
 
-3+|preorder-date
+4+|preorder-date
 |Date
 |O
 |10
 |Expected shipping date for pre-ordered goods. Accepted format: ``YYYY-MM-DD``.
 
-.3+|gift
-2+|amount
+.3+|gift-cards
+.3+|gift-card
+2+|id
 |Numeric
 |O
-|
-|For the purchase of prepaid and gift cards. The total amount of prepaid/gift card in major units (no decimal places allowed).
+|2
+|For prepaid and gift card purchase only. Identifies individual gift cards. Information about up to 10 gift cards can be sent in one request.
+Accepted values range from ``1`` to ``10``.
 
-|amount
+.2+|amount
+|value
+|Numeric
+|O
+|18,2
+|For prepaid and gift card purchase only. The amount paid with a specific gift card. 
+
 |currency
 |String
 |O
 |3
-|The currency code for prepaid and gift cards. Accepted format: ISO 4217.
+|For prepaid and gift card purchase only. The ISO 4217 three-digit currency code of the gift card.
 
-2+|card-count
+.4+|periodic
+4+|recurring-expire-date
+|Date
+|O
+|10
+|For recurring payments. **Required only for authentication of the first transaction.** Date after which further recurring payments with this card are no longer allowed. Accepted format: ``YYYY-MM-DD``.
+
+4+|recurring-frequency
 |Numeric
 |O
-|2
-|The total number of prepaid and gift cards that are being purchased.
-
-.2+|periodic
-3+|recurring-expire-date
-|Date
-|C
-|10
-|For recurring payments only. Date after which no further recurring payments using this card are allowed. Accepted format: ``YYYY-MM-DD``.
-
-3+|recurring-frequency
-|Numeric
-|C
 |4
-|For recurring payments only. The minimum number of days between individual payments.
+|For recurring payments. **Required only for authentication of the first transaction.** Indicates the minimum number of days between individual authorizations.
+
+4+|number-of-installments
+|Numeric
+|O
+|3
+|For installment payments. **Required only for authentication of the first transaction.** Indicates the maximum number of authorizations permitted for installment payments.
 
 4+|iso-transaction-type
 |String
@@ -1406,13 +1387,33 @@ A field can be **R**equired, **O**ptional or **C**onditional.
  ``11`` = Quasi-Cash Transaction +
  ``28`` = Prepaid Activation and Load
 
-.2+|three-d
-3+|version
+.4+|three-d
+4+|version
 |String
 |O
 |5
 |Identifies the version of 3-D Secure authentication used for the transaction.
- Accepted values are: ``1.0``, or ``2.1``
+ Accepted values are: ``1.0``, or ``2.1``.
+ Uses default value ``1.0`` if the version is not provided in the request.
+
+4+|ds-transaction-id
+|String
+|O
+|36
+|Unique transaction identifier assigned by the Directory Server to identify a single transaction.
+Required for external 3D Secure servers not provided by {payment-provider-name}. Format: see IETF RFC 4122.
+
+4+|riid
+|String
+|O
+|2
+|For 3D Secure 2.2. Indicates the type of 3RI request. +
+Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
+``01`` = Recurring transaction +
+``02`` = Installment transaction +
+``03`` = Add card +
+``04`` = Maintain card information +
+``05`` = Account
 |===
 
 [#PPv2_CC_PostProcessing]
