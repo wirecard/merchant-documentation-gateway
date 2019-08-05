@@ -12,11 +12,11 @@ function zoomImage(e) {
 function addZoomToLargeImages() {
     const contentWrapperWidth = $('div#content').width();
     $('img').each(function (i, img) {
-        if( $(img).attr('data-processed') == 'true' ) {
+        if( $(img).attr('data-has-zoom') == 'true' ) {
             return true;
         }
         const hasZoomClass = $(img).parent().parent().hasClass('zoom');
-        $(img).attr('data-processed', 'true');
+        $(img).attr('data-has-zoom', 'true');
         const originalWidth = img.width;
         const originalHeight = img.height;
         // svg naturalWidth === 0, therefore do not use < for comparison
@@ -28,7 +28,8 @@ function addZoomToLargeImages() {
             if ((img.width / img.height < 10 && (img.width > contentWrapperWidth*0.95)) || hasZoomClass) {
                 // add attribute for click zoom functionality from zoom-vanilla.js
                 $(img).attr('data-action', 'zoom');
-                $(img).wrap('<figure class="zoom" onmousemove="zoomImage(event)" style="background-image: url(' + img.src + ')"></figure>');
+                // disable mouseover looking glass zoom effect upon popular request :)
+                //$(img).wrap('<figure class="zoom" onmousemove="zoomImage(event)" style="background-image: url(' + img.src + ')"></figure>');
             }
         });
         return true;
