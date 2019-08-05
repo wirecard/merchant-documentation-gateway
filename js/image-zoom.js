@@ -42,9 +42,10 @@ function isSVG(img) {
 
 /**
  * zoom effect for click
+ * based on // zoom-vanilla.js - 2.0.6 (https://github.com/spinningarrow/zoom-vanilla.js)
+ * modified for correct svg handling in calculateZoom()
  */
-document.addEventListener('DOMContentLoaded', function () {
-    // zoom-vanilla.js - 2.0.6 (https://github.com/spinningarrow/zoom-vanilla.js)
+document.addEventListener('DOMContentLoaded', function () {    
     +function () {
         "use strict";
         var OFFSET = 80
