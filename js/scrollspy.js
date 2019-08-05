@@ -59,9 +59,11 @@ function highlightTOC() {
 }
 
 function documentReady() {
-  var docTitle = $('h1').html();
-  var pageTitle = $('#content h2 > a.link, #content h3 > a.link').first().text();
-  document.title = pageTitle + ' - ' + docTitle;
+  // set title of page
+  const docTitle = $('h1').html();
+  const pageTitle = $('#content h2 > a.link, #content h3 > a.link').first().text();
+  document.title = pageTitle ? (pageTitle + ' - ' + docTitle) : docTitle;
+  
   $("div.sect3 > table.tableblock, div.sect2 > table.tableblock").wrap("<div class='tablewrapper'></div>");
   $('#content').addClass('scene_element--fadeinup');
   if (getUrlHash() !== false) {
@@ -137,6 +139,13 @@ function documentReady() {
       });
     });
   }, { timeout: 15000 });
+  $('#spinner-container').fadeOut();
+  // IE fixes
+  // if(isInternetExplorer || isEdgeBrowser) { }
+  if(isInternetExplorer) {
+    swapSVGandPNG();
+  }
+  addZoomToLargeImages();
 }
 
 $(document).ready(function () {

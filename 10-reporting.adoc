@@ -16,14 +16,14 @@ refunds.
 ==== Available Payment Methods
 
 Reconciliation is currently available for the alternative
-payment methods (i.e. all payment methods but credit card) within _Wirecard Payment Gateway_: <<PaymentMethods, Payment Methods>>
+payment methods (i.e. all payment methods but credit card) within _{payment-gateway}_: <<PaymentMethods, Payment Methods>>
 
 [#Reporting_DataReconciliation_Process]
 [discrete]
 ==== Reconciliation Process
 
 The reconciliation files must be downloaded from an SFTP server on the
-Wirecard platform. The download process is described in
+_{payment-gateway}_. The download process is described in
 <<Reporting_DataReconciliation_FileDownload, File Download>>. Although it is
 possible to download files manually, we recommend to automate the
 process for the sake of consistency and convenience. Likewise, it is
@@ -33,7 +33,7 @@ file format.
 
 image::images/10-reporting/workflow-reconciliation.png[Workflow of Reconciliation Process]
 
-To reconcile your transactions, simply compare the reference transaction
+To reconcile your transactions, compare the reference transaction
 ID in the reconciliation file with a transaction ID that is already
 available in your system. You will be able to see if another transaction
 has been created updating the current status of your payment. Should you
@@ -45,7 +45,7 @@ records that you cannot resolve internally, please contact
 [discrete]
 ==== Reconciliation Files
 
-The Wirecard system generates transaction reports which are very similar
+The _{payment-gateway}_ generates transaction reports which are very similar
 to a typical bank account statement. Merchants are recommended to match
 and reconcile these report files regularly (daily) with the data
 recorded in their system. When matching transaction data it is important
@@ -57,7 +57,7 @@ activities that have been recorded over the previous 24 hours.
 [discrete]
 ===== Formats
 
-The Wirecard system is configured to generate daily transaction reports
+The _{payment-gateway}_ is configured to generate daily transaction reports
 containing sequential data sets for each of your transaction requests
 processed by the system. These records are called reconciliation files
 and are saved in CSV format on the Wirecard SFTP server. When opened and
@@ -69,7 +69,7 @@ semicolon (``;``).
 The files contain transaction data processed over the previous 24 hours.
 They do not present a complete payment flow per payment (from
 authorization, to settlement with possible rejections and disputes) but
-only those transactions which have been processed by the Wirecard system
+only those transactions which have been processed by the _{payment-gateway}_
 within the time period for which the report has been created.
 
 [#Reporting_DataReconciliation_NamingConventions]
@@ -88,15 +88,15 @@ where
 - ``<date>`` is a time stamp represented as ``YYYYMMDD`` (year, month, day). It
 shows the exact file generation date.
 - ``<Merchant Account ID>`` is a 36 character identifier specifying your
-business uniquely in the Wirecard system.
+business uniquely in the _{payment-gateway}_.
 - ``.csv`` is the file extension denoting the format **C**omma **Se**parated **V**alue.
 
 //-
 
-Transactions processed on the Wirecard Payment Gateway are recorded in a
+Transactions processed on the _{payment-gateway}_ are recorded in a
 file named ``EngineAPTransactions.csv``. This file encompasses all
 transaction types for the alternative payments currently available in
-the Wirecard Payment Gateway processed over the previous 24 hours
+the _{payment-gateway}_ processed over the previous 24 hours
 (currently ``get-url``, ``check-signature``, ``pending-debit``, ``pending-credit``,
 ``credit``, ``debit``, ``deposit``, ``credit return``, and ``debit return``).
 
@@ -121,10 +121,10 @@ data is recorded in the following columns/fields:
 
 | MERCHANT ACCOUNT NAME           | The name of the merchant in the WebService Interface
 | MERCHANT ACCOUNT ID             | The Merchant Account ID. This is a unique 36-digit number defining the merchant account.
-| REQUEST ID                      | This is the identification number of the request identifying the transaction in the merchant's system. It is unique for each request.
-| PAYMENT METHOD                  | This is the name of the payment method that was processed via Wirecard Payment Gateway.
+| REQUEST ID                      | This is the identification number of the request identifying the transaction in the merchant’s system. It is unique for each request.
+| PAYMENT METHOD                  | This is the name of the payment method that was processed via _{payment-gateway}_.
 | TRANSACTION ID                  | This field contains the Transaction ID that was created by Wirecard Payment Gateway for the initial XML request message.
-| TRANS. CREATION TIME STAMP      | Timestamp of the transaction from the merchant's system.
+| TRANS. CREATION TIME STAMP      | Timestamp of the transaction from the merchant’s system.
 | TRANSACTION TYPE                | Possible values for transactions are: ``pending-debit``, ``pending-credit``, ``debit``, ``credit``, ``debit-return``, ``credit-return``, ``deposit``.
 | TRANSACTION STATUS              | The transaction status (e.g. ``SUCCESS``). See also <<StatusCodes, Appendix Transaction Statuses>>.
 | TRANSACTION STATUS CODE         | The transaction status code (e.g. ``201.0000``). See also <<StatusCodes, Appendix Transaction Statuses>>.
@@ -146,21 +146,21 @@ data is recorded in the following columns/fields:
 
 [NOTE]
 ====
-If a merchant uses the Wirecard Enterprise Portal (WEP) in
+If a merchant uses the _{enterprise-portal-name}_ ({enterprise-portal-abbr}) in
 combination with the data reconciliation files, there may be a timezone discrepancy.
 
 The timezone for the data reconciliation file is UTC.
 
-The timezone in WEP is configurable. The timezone is automatically taken
-from the user's device (laptop, desktop, etc.). If there is a
-difference, please adjust the timezone in WEP to UTC.
+The timezone in _{enterprise-portal-abbr}_ is configurable. The timezone is automatically taken
+from the user’s device (laptop, desktop, etc.). If there is a
+difference, please adjust the timezone in _{enterprise-portal-abbr}_ to UTC.
 ====
 
 [#Reporting_DataReconciliation_ExampleFile]
 [discrete]
 ===== Sample Reconciliation File
 The following is an example of the file layout for the AP Data
-Reconciliation for Wirecard Payment Gateway, displayed with a spreadsheet application:
+Reconciliation for _{payment-gateway},_ displayed with a spreadsheet application:
 
 image::images/10-reporting/reconciliation-file-table.png[Data Reconciliation File Screenshot]
 
@@ -176,18 +176,17 @@ within the reconciliation file also displayed with a spreadsheet application.
 ===== Unmatched Payment/Transactions
 
 If any of the transaction types deposit, debit-return or credit-return
-enters the Wirecard system and cannot be matched to an existing payment,
+enters the _{payment-gateway}_ and cannot be matched to an existing payment,
 this transaction is created as unmatched transaction. It appears in the reconciliation file without a reference
 transaction ID.
 
 If this unmatched transaction is manually matched to an existing
-payment on the same day as it has entered the Wirecard system, it
+payment on the same day as it has entered the _{payment-gateway}_, it
 appears as a transaction within the payment to which it has been matched. There will be *no record of an unmatched payment* in the reconciliation
 file.
 
 If, however, this *unmatched* transaction is manually matched to an
-existing payment more than a day after it has entered the Wirecard
-system, it will *not* appear in the reconciliation file.
+existing payment more than a day after it has entered the _{payment-gateway}_, it will *not* appear in the reconciliation file.
 If it appeared in the reconciliation file, there would be two entries in
 the reconciliation file for one transaction referring to two different
 payments, thereby resulting in a duplicate.
@@ -223,7 +222,7 @@ download.
 To download files with a graphical application, enter the host name
 ``sftp.wirecard.com`` and your username and password.
 If you do not know your personalized access information,
-please <<ContactUs, contact Wirecard customer service>>.
+please contact <<ContactUs, Nerchant Support>>.
 
 [#Reporting_DataReconciliation_UnixMacOS]
 [discrete]
@@ -265,7 +264,7 @@ to automate the daily downloads. If you are using a graphical user
 interface and you do not run an automated program, you can drag and drop
 those files or copy and paste them.
 . Reconcile the files using a program tailored to the CSV format.
-. _Wirecard Payment Gateway_ allows you to archive reconciled
+. _{payment-gateway}_ allows you to archive reconciled
 report files on the file server for future reference. Therefore move the
 files to the folder ``processed``. +
 Be aware that it is at your discretion to use this file repository.
@@ -288,7 +287,8 @@ This _ICF-Overview Report_ contains signed invoices as well as
 cancelations, with their transactions, aggregated per each transaction
 type and total amount of fees. Data is collected every month for a
 previous month period in a .csv file per each merchant and delivered to
-all merchants via the WEP document center or an SFTP server.
+all merchants via the _{enterprise-portal-abbr}_ document
+center or an SFTP server. 
 
 NOTE: An _ICF-Overview Report_ will only be generated, if there had been
 transactions or signed invoices during the preceding month.
@@ -314,7 +314,7 @@ The detailed report file's name format is:
 Some fields appear in the monthly report (Appearance = ``M``), some in the
 detailed report (Appearance = ``D``) and some in both (Appearance = ``M/D``). If
 you need the fields from the detailed report (_Start_ and _End_ Dates
-are provided explicitly), please <<ContactUs, contact Merchant Support>>.
+are provided explicitly), please contact <<ContactUs, Merchant Support>>.
 
 [%autowidth]
 |===
@@ -360,11 +360,11 @@ generated for those merchants who requested it and had any billed credit
 card transactions during the preceding month. Each generated report is
 delivered to each merchant as .csv file via
 
-- the WEP
+- the _{enterprise-portal-abbr}_
 - an SFTP Server
 
 //-
 
-Please <<ContactUs, contact Merchant Support>> for details.
+Please contact <<ContactUs, Merchant Support>> for details.
 
 //-
