@@ -139,21 +139,30 @@ function buildPartner() {
   # changes need to be created, moved there and committed.
   cp mermaid/*.svg .
   
-  # calculate the checksum for mermaid.css.
-  # mermaid.css is used for the creation of the mermaid diagrams,
-  # which are cached by the asciidoctor-diagram extension in .asciidoctor/diagram/.
-  # we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
-  checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
-  checksum_new="/tmp/mermaid-css-checksum.txt"
-  sha1sum --text css/mermaid.css > "${checksum_new}"
-  # show hashes
-  echo "Reference: $(cat ${checksum_ref})"
-  echo "Current:   $(cat ${checksum_new})"
-  if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
-    debugMsg "Delete all *.svg to force re-creation"
-    rm ./*.svg
-    debugMsg "Overwriting checksum file with new checksum"
-    cp "${checksum_new}" "${checksum_ref}"
+  if [[ -n $MERMAID_UPDATE_CHECK ]]; then
+    # calculate the checksum for mermaid.css.
+    # mermaid.css is used for the creation of the mermaid diagrams,
+    # which are cached by the asciidoctor-diagram extension in .asciidoctor/diagram/.
+    # we do the same with mermaid.css, if it differs, delete all *.svg to force a new generation.
+    checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
+    checksum_new="/tmp/mermaid-css-checksum.txt"
+    sha1sum --text css/mermaid.css > "${checksum_new}"
+    # show hashes
+    echo "Reference: $(cat ${checksum_ref})"
+    echo "Current:   $(cat ${checksum_new})"
+    if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
+      debugMsg "Delete all *.svg to force re-creation"
+      rm ./*.svg
+      debugMsg "Overwriting checksum file with new checksum"
+      cp "${checksum_new}" "${checksum_ref}"
+      NEW_MERMAID="true"
+    fi
+  fi
+
+  if [[ -n $FORCE ]]; then
+    debugMsg "Delete all *.svg to force re-creation (due to --force flag)"
+    rm -f ./*.svg
+    NEW_MERMAID="true"
   fi
   
   if [[ ${PARTNER} != 'WD' ]]; then
@@ -197,9 +206,11 @@ function buildPartner() {
   RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 -r ./buildscripts/asciidoc/multipage-html5-converter.rb || \
   scriptError "asciidoctor in line $(( LINENO - 1 ))"
   
-  debugMsg "Post process svg files"
-  sed -i 's/<foreignObject \(height|width\)/<foreignObject style="overflow: visible;" \1/g' ./*.svg
-  cp ./*.svg mermaid/
+  if [[ -n $NEW_MERMAID ]]; then
+    debugMsg "Post process svg files"
+    sed -r -i 's/<foreignObject (height|width)/<foreignObject style="overflow: visible;" \1/g' ./*.svg
+    cp ./*.svg mermaid/
+  fi
   
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
@@ -211,6 +222,9 @@ function buildPartner() {
   
   mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" || \
   increaseErrorCount
+
+  # fallback png's for IE
+  cp mermaid/*.png "${BUILDFOLDER_PATH}/${PARTNER}/html/"
 
   cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
   
@@ -235,6 +249,14 @@ function main() {
     case "$1" in
       -s|--skip)
         SKIP="true"
+      ;;
+      -f|--force)
+        FORCE="true"
+      ;;
+      -h|--help)
+        echo "Options:"
+        echo "* [-s|--skip] skip basic tests, only build"
+        echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       ;;
       *)
       ;;

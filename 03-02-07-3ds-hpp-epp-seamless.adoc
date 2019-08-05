@@ -31,8 +31,10 @@ following *two preconditions* must be met:
                                                    [Card Holder] is enrolled. Otherwise, the transaction proceeds without 3D Secure.
 |===
 +
+
+ifdef::env-wirecard[]
 .Sample Request
-[source,html]
+[source,html,subs=attributes+]
 ----
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
@@ -40,11 +42,11 @@ following *two preconditions* must be met:
     <title>
       Demo shop
     </title>
-    <script src="https://api-test.wirecard.com/engine/hpp/paymentPageLoader.js" type="text/javascript"></script>
+    <script src="https://{test-instance-hostname}/engine/hpp/paymentPageLoader.js" type="text/javascript"></script>
   </head>
   <body>
     <form>
-      <input id="wirecard_pay_btn" type="button" onclick="pay()" value="Pay Now">
+      <input id="{pay-button-name}_pay_btn" type="button" onclick="pay()" value="Pay Now">
        <script type="text/javascript">
         function pay() {
         var requestedData = {
@@ -59,15 +61,16 @@ following *two preconditions* must be met:
             attempt_three_d: "true",
             request_signature: "kg44730486d159df0bc2e8dea22bd175395636a37b0da0ef785"
          }
-        WirecardPaymentPage.hostedPay(requestedData);
+        {payment-page-function}.hostedPay(requestedData);
         }
       </script>
     </form>
   </body>
 </html>
 ----
+endif::[]
 +
-.. The *merchant account needs to have 3D Secure transactions enabled* (<<ContactUs, contact Merchant Support for queries>>).
+.. The *merchant account needs to have 3D Secure transactions enabled* (contact <<ContactUs, Merchant Support>> for queries).
 
 //-
 ---
@@ -473,11 +476,11 @@ See workflow graphic for details.
 image::images/03-02-07-3ds-hpp-epp-seamless/workflow.png[3D Secure Workflow]
 
 .Submit Form for Redirect
-[source,html]
+[source,html,subs=attributes+]
 ----
 <form action="{acs_URL}" method="post" enctype="application/x-www-form-urlencoded" id="acsform">
     <input type="hidden" name="PaReq" value="{pareq}"/>
-    <input type="hidden" name="TermUrl" value="https://api-test.wirecard.com/engine/rest/hpp/acs/{transaction_id}/"/>
+    <input type="hidden" name="TermUrl" value="https://{test-instance-hostname}/engine/rest/hpp/acs/{transaction_id}/"/>
     <input type="hidden" name="MD" value="merchant_account_id={MAID}&transaction_type=purchase&nonce3d={nonce3d}"/>
 </form>
 ----

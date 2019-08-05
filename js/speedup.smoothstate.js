@@ -852,11 +852,16 @@ var smoothState = $('#content').smoothState({
   onEnd: {
     render: function () {
       // what you want
-      console.log('onEnd called');
+    }
+  },
+  onStart: {
+    duration: 0,
+    render: function ($container) {
+      $('#spinner-container').show();
+      // fadeOut is done in tocgen after creation of the TOC
     }
   },
   onAfter: function () {
-    console.log('onAfter called');
     documentReady();
     initPagePreloading();
     // exclude Edge workaround
@@ -865,12 +870,10 @@ var smoothState = $('#content').smoothState({
     }
     if (getUrlHash() != '') {
       setTimeout(function () {
-        console.log(getUrlHash());
         window.location.href = '#' + getUrlHash();
       }, 2000);
     }
     // trigger Matomo on instant page switch
-    console.log(window.location.href);
     _paq.push(['setCustomUrl', window.location.href]);
     _paq.push(['trackPageView']);
   }
@@ -882,7 +885,6 @@ var globalPriorityPages = ['PPv2.html'];
 function fetchPageUnlessCached(pageName) {
   if (smoothState.cache[pageName] === undefined) {
     smoothState.fetch(pageName);
-    console.log('preload ' + pageName);
   }
 }
 
@@ -948,32 +950,3 @@ function initPagePreloading() {
     loadLunrIndex();
   }
 }
-
-
-
-/*
-function initPagePreloading() {
-  var preloadDelay = (function() {
-    if ( serverResponseTime > 5000 ) return 5000;
-    return serverResponseTime;
-  })();
-  console.log('preloadDelay == time to load toc.json: ' + preloadDelay + 'ms');
-  preloadDelayFactor = 0;
-  while ( preloadQueue.length ) {
-    preloadDelayFactor++;
-    var preloadPage = preloadQueue.shift();
-    if ( typeof smoothState.cache[preloadPage] === 'undefined' ) {
-      setTimeout( function( preloadPage ) {
-          requestIdleCallback( function(){
-            smoothState.fetch( preloadPage );
-          });
-      }.bind( this, preloadPage ), preloadDelay*0.8*preloadDelayFactor );
-    }
-    else {
-      console.log('  ' + preloadPage + ' is already cached');
-    }
-  }
-
-}
-
-*/

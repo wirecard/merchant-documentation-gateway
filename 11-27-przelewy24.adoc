@@ -24,7 +24,7 @@ received within a few minutes. If the notification is not sent within
 this time, the merchant has the possibility to send a request for <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>> or
 <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request ID>>. With the response the merchant will get the
 final status of the requested transaction. If the response is 404, it
-means _Wirecard Payment Gateway_ (WPG) has not received final status
+means _{payment-gateway}_ ({payment-gateway-abbr}) has not received final status
 from P24 yet. In such cases a retrieval should be performed again later.
 A transaction is usually processed within 2 hours. In edge cases it can
 take up to 30 days for P24 to provide a final status of a transaction.
@@ -101,7 +101,7 @@ formats and methods can be used for requests and responses.
 This table lists all transaction types available for _P24_.
 
 NOTE: Some transaction types cannot be sent in your request. Refer to columns
-_Request_, _Response/IPN_ and _WEP_ for details where to expect involved
+_Request_, _Response/IPN_ and _{enterprise-portal-abbr}_ for details where to expect involved
 transaction types.
 
 NOTE: Recurring mode is not available.
@@ -111,7 +111,7 @@ at <<AppendixB, Appendix B: Transaction Types>>.
 
 [cols="e,,,,,"]
 |===
-|Transaction Type | Request | Response/IPN | WEP | Description | Link to Samples
+|Transaction Type | Request | Response/IPN | {enterprise-portal-abbr} | Description | Link to Samples
 
 |debit | Yes | Yes | Yes | Moves funds from Consumer to Merchant.
 ``debit`` requests to take funds from consumer's bank account. a|
@@ -137,7 +137,7 @@ flow.
 |===
 | Request      | *Yes* means the transaction type can be sent in the request.
 | Response/IPN | *Yes* means the transaction type can appear in either response _or_ notification.
-| WEP          | *Yes* means the transaction type is visible in Wirecard Enterprise Portal.
+| _{enterprise-portal-abbr}_          | *Yes* means the transaction type is visible in _{enterprise-portal-name}_.
 |===
 ====
 
@@ -150,9 +150,9 @@ entering consumer card data or credentials and returns to your shop
 immediately.
 
 |===
-.3+h|URLs (Endpoints) .2+| REST API | For transaction type ``debit``.                              | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
-                                    | For transaction types ``refund-request`` and ``refund-debit``. | ``\https://api-test.wirecard.com/engine/rest/payments/``
-                       2+| Payment Page                                                          | ``\https://api-test.wirecard.com/engine/hpp/``
+.3+h|URLs (Endpoints) .2+| REST API | For transaction type ``debit``.                              | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+                                    | For transaction types ``refund-request`` and ``refund-debit``. | ``\https://{test-instance-hostname}/engine/rest/payments/``
+                       2+| Payment Page                                                          | ``\https://{test-instance-hostname}/engine/hpp/``
 h| Merchant Account ID 3+| 86451785-3ed0-4aa1-99b2-cc32cf54ce9a
 h| Username            3+| 16390-testing
 h| Password            3+| 3!3013=D3fD8X7
@@ -171,7 +171,7 @@ h| Secret Key          3+| fdd54ea1-cef1-449a-945c-55abc631cfdc
 For a successful workflow, please keep the following prerequisites in
 mind:
 
-* A P24 payment process is *accomplished successfully only, if WPG has
+* A P24 payment process is *accomplished successfully only, if {payment-gateway-abbr} has
 sent out a successful notification*. The status ``success`` in the response
 only confirms that the payment was technically accepted.
 * In case the consumer closes the browser before confirming the payment,
@@ -192,21 +192,21 @@ image::images/11-27-przelewy24/Przelewy24_Debit_TX_ReST.png[Payment Process Usin
 
 . The consumer initiates a transaction (currency is set to ``PLN``).
 . The merchant sends a request with the consumer's data to the
-endpoint of WPG.
-. WPG sends a response to the merchant.
+endpoint of _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} sends a response to the merchant.
 . The merchant redirects the consumer to the P24 landing page (The URL
 for redirection is in the response message, field
 ``payment-methods/payment-method/@url``).
 . The consumer authorizes the transaction.
-. WPG performs two actions simultaneously:
-. WPG redirects the consumer (via redirect URLs) back to the shop
+. {payment-gateway-abbr} performs two actions simultaneously:
+. {payment-gateway-abbr} redirects the consumer (via redirect URLs) back to the shop
 where the information about the status of the payment is displayed. The
 redirect URL uses the definition in ``success-redirect-url`` and
 ``fail-redirect-url`` from the request (Step 2). According to success or
-failure during the payment process WPG sends the consumer to the
+failure during the payment process {payment-gateway-abbr} sends the consumer to the
 corresponding URL. This is the page where the consumer is informed about
 his successful or failed payment.
-. WPG sends a notification (IPN) of the payment outcome. In order to
+. {payment-gateway-abbr} sends a notification (IPN) of the payment outcome. In order to
 receive server-to-server notification, the notification must use the
 definition in the field ``notifications/notification/@url`` in the request
 (Step 2)
@@ -219,25 +219,25 @@ image::images/11-27-przelewy24/Przelewy24_Debit_TX_PPage.png[Payment Process Usi
 
 . The consumer initiates a transaction (currency is set to PLN).
 . The merchant sends a request with the consumer's data to the
-endpoint of WPG.
-. WPG analyses the consumer's data.
-.. If the request does not include the payment method P24, the WPG
+endpoint of _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} analyses the consumer's data.
+.. If the request does not include the payment method P24, the _{payment-gateway-abbr}_
 redirects the consumer to Payment Page
 ... The consumer selects P24.
-... WPG redirects the consumer to the P24 landing page.
-.. If the request already includes the payment method P24, WPG
+... {payment-gateway-abbr} redirects the consumer to the P24 landing page.
+.. If the request already includes the payment method P24, _{payment-gateway-abbr}_
 redirects the consumer to the P24 landing page.
 . The consumer selects the desired bank.
 . The consumer authorizes the transaction.
-. WPG performs two actions simultaneously:
-.. WPG redirects the consumer (via redirect URLs) back to the shop
+. {payment-gateway-abbr} performs two actions simultaneously:
+.. {payment-gateway-abbr} redirects the consumer (via redirect URLs) back to the shop
 where the information about the status of the payment is displayed. The
 redirect URL uses the definition
 in ``success-redirect-url`` and ``fail-redirect-url`` from the request (Step
-2). According to success or failure during the payment process WPG sends
+2). According to success or failure during the payment process {payment-gateway-abbr} sends
 the consumer to the corresponding URL. This is the page where the
 consumer is informed about his successful or failed payment.
-.. WPG sends a notification (IPN) of the payment outcome. In order to
+.. {payment-gateway-abbr} sends a notification (IPN) of the payment outcome. In order to
 receive a server-to-server notification, the notification must use the
 definition in the field ``notifications/notification/@url`` in the request
 (Step 2).
@@ -274,21 +274,21 @@ subsequent notification.
 image::images/11-27-przelewy24/Przelewy24_Refund_TX_ReST.png[refund Process Using the ReST API]
 
 . The merchant initiates a ``refund`` transaction.
-. The merchant sends a request to the endpoint of WPG. The request
+. The merchant sends a request to the endpoint of _{payment-gateway-abbr}_. The request
 must contain:
 .. the _Request ID_ from a previously sent successful ``debit``
 transaction. The _Request ID_ is expected in the
 field ``parent-transaction-id``
 .. a ``payment-methods/payment-method/@name`` set to ``p24``
 .. a ``transaction-type`` set to ``refund-request``
-. WPG sends a response to the merchant.
+. {payment-gateway-abbr} sends a response to the merchant.
 . P24 processes the refund.
 +
 NOTE: Processing a refund lasts at least one day!
 
 +
-. WPG waits for the status "Refund Process Finished".
-. WPG sends a notification (IPN) of the ``refund`` outcome to the
+. {payment-gateway-abbr} waits for the status "Refund Process Finished".
+. {payment-gateway-abbr} sends a notification (IPN) of the ``refund`` outcome to the
 merchant. This notification has the transaction type ``refund-debit``,
 instead of ``refund-request`` which was sent in the merchant's request
 (Step 2).  +
@@ -307,7 +307,7 @@ provided in the field ``descriptor`` of the <<Przelewy24_Samples_debit, debit re
 
 The structure of the _P24-Transaction-ID_ is
 ``P24-YXX-XXX-XXX``. _The _P24-Transaction-ID__ is also displayed in
-the _Wirecard Enterprise Portal_ (WEP) as _Provider Transaction-ID_.
+the _{enterprise-portal-name}_ ({enterprise-portal-abbr}) as _Provider Transaction-ID_.
 
 [#Przelewy24_Fields]
 ==== Fields
@@ -392,13 +392,13 @@ Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>
 ===== debit
 
 .debit Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
 include::samples/xml/p24_debit_request_success.xml[]
 ----
 
 .debit Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
 include::samples/xml/p24_debit_response_success.xml[]
 ----
@@ -407,13 +407,13 @@ include::samples/xml/p24_debit_response_success.xml[]
 ===== refund
 
 .refund-request Request (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/p24_refund-request_request_success.xml[]
+include::samples/xml/p24_refund-request_request_success_77e8f783.xml[]
 ----
 
 .refund-request Response (Successful)
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/p24_refund-request_request_success.xml[]
+include::samples/xml/p24_refund-request_response_success_77e8f783.xml[]
 ----

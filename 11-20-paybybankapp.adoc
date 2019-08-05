@@ -1,12 +1,13 @@
 [#API_PaybyBankapp]
 === Pay by Bank app (Zapp)
 
-
+////
 .First-time integration only
 IMPORTANT: Based on Zapp rules, the first merchant integrating either mobile or
 eCom journey must pass a qualification in Live-Proving environment in
 order to go live. This is to ensure that merchant has correctly
 integrated Zapp elements in cooperation with WDT.
+////
 
 [#API_PaybyBankapp_Introduction]
 ==== Introduction
@@ -92,8 +93,8 @@ merchandise |
 
 [%autowidth]
 |===
-.2+h| URL(s) Endpoints |For the transaction type _debit_.        |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
-                       |For the transaction type _refund-debit_. |``\https://api-test.wirecard.com/engine/rest/payments/``
+.2+h| URL(s) Endpoints |For the transaction type _debit_.        |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+                       |For the transaction type _refund-debit_. |``\https://{test-instance-hostname}/engine/rest/payments/``
 h| Merchant Account ID (MAID)
 2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
 
@@ -156,9 +157,9 @@ image::images/11-20-paybybankapp/paybybank_refund_workflow.png[Pay by Bank app R
 
 . Consumers request a refund from merchant.
 . Merchants send _refund_ request to Wirecard.
-. _WPG_ requests refund account details of the consumers
+. _{payment-gateway-abbr}_ requests refund account details of the consumers
 (transaction type _refund-request_).
-. _WPG_ initiates refund using wiretransfer method (take several
+. _{payment-gateway-abbr}_ initiates refund using wiretransfer method (take several
 days).
 . After confirmation from bank, consumers are refunded (transaction type
 _refund-debit_).
@@ -392,23 +393,28 @@ a|(from EE release 1.130.0)
 
 ._debit_ Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_debit_request_success.xml[]
+POST https://{test-instance-hostname}/engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 1307
+Host: {test-instance-hostname}
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+Authorization: Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
 ----
 
-._debit_ Response (Successful)
-
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_debit_response_success.xml[]
+include::samples/xml/zapp_debit_response_success_87c979.xml[]
 ----
 
 ._debit_ Notification (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_debit_notification_success.xml[]
+include::samples/xml/zapp_debit_notification_success_fb22856d.xml[]
 ----
 
 [#API_PaybyBankapp_Samples_debit_withoutPC]
@@ -416,23 +422,32 @@ include::samples/xml/zapp_debit_notification_success.xml[]
 
 ._debit_ Request (Successful)
 
-[source,xml]
 ----
-include::samples/xml/zapp_debit_request_success.xml[]
+POST https://{test-instance-hostname}/engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 989
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+----
+
+[source,xml,subs=attributes+]
+----
+include::samples/xml/zapp_debit_request_success_ad66b3.xml[]
 ----
 
 ._debit_ Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_debit_response_success.xml[]
+include::samples/xml/zapp_debit_response_success_670826.xml[]
 ----
 
 ._debit_ Notification (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_debit_notification_success.xml[]
+include::samples/xml/zapp_debit_notification_success_3958a84c.xml[]
 ----
 
 NOTE: For a failed notification, notice the 'failed' state of the transaction.
@@ -446,23 +461,23 @@ used to arrange a wiretransfer using BACS scheme (takes several days).
 
 ._refund-request_ Request (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_refund-request_request_success.xml[]
+include::samples/xml/zapp_refund-request_request_success_24b115ba.xml[]
 ----
 
 ._refund-request_ Response (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_refund-request_request_success.xml[]
+include::samples/xml/zapp_refund-request_response_success_b1ca738d.xml[]
 ----
 
 ._refund-debit_ Notification (Successful)
 
-[source,xml]
+[source,xml,subs=attributes+]
 ----
-include::samples/xml/zapp_refund-debit_request_success.xml[]
+include::samples/xml/zapp_refund-debit_notification_success_1309ca5e.xml[]
 ----
 
 //-

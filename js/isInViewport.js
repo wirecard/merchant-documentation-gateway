@@ -172,5 +172,3 @@
   }
 
 })));
-
-//# sourceMappingURL=isInViewport.js.map
