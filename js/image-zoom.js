@@ -22,10 +22,7 @@ function addZoomToLargeImages() {
         // svg naturalWidth === 0, therefore do not use < for comparison
         requestIdleCallback(function () {
             if (img.src.match(new RegExp('\.svg$'))) {
-                console.log(img.src);
-                console.log($(img));
                 img.width = contentWrapperWidth;
-                console.log(img.width);
             }
             // do not give zoom to "one liner images"
             if ((img.width / img.height < 10 && (img.width > contentWrapperWidth * 0.95)) || hasZoomClass) {
