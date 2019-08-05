@@ -167,9 +167,9 @@ Possible values: ``01``, ``02``, ``03`` +
 ``01`` = Not Applicable. +
 ``02`` = Credit. +
 ``03``= Debit. +
-The field is needed: 
+Include this field: 
 
-- If the merchant asks the consumer to select the account type they are using.
+- If you want consumers to select the account type they are using before completing their purchase.
 - For certain markets, e.g. Brazil.
 
 //-
@@ -191,9 +191,9 @@ Otherwise, the field is optional. +
 |account-holder.account-info.authentication-timestamp
 |O
 |DateTime
-|19
-|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ss``.
- For guest checkout, the datetime is now.
+|20
+|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ssZ``.
+ For guest checkout, the DateTime is now.
 
 | [[CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator]]
 account-holder.account-info.challenge-indicator
@@ -278,7 +278,7 @@ account-holder.account-info.challenge-indicator
 |Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments
  (one-click checkout). Accepted format: ``YYYY-MM-DD``. +
  For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout),
- the datetime is now.
+ the date is now.
 
 |account-holder.merchant-crm-id
 |O
@@ -331,7 +331,7 @@ account-holder.account-info.challenge-indicator
 |3
 |State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard.
 
-|account-holder.address.email
+|account-holder.email
 |M
 |String
 |256
@@ -341,22 +341,19 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |18
-|Home phone number provided by the consumer. +
- This field is required if available.
+|Home phone number provided by the consumer. 
 
 |account-holder.mobile-phone
 |O
 |String
 |18
-|Mobile phone number provided by the consumer. +
- This field is required if available.
+|Mobile phone number provided by the consumer.
 
 |account-holder.work-phone
 |O
 |String
 |18
-|Work phone number provided by the consumer. +
- This field is required if available.
+|Work phone number provided by the consumer.
 
 |account-holder.first-name
 |M
@@ -374,54 +371,53 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |50
-|City of the consumer's shipping address. Must be sent even if billing city is identical.
+|City of the consumer's shipping address. Please provide this field even if billing city is identical.
 
 |shipping.address.country
 |O
 |String
 |2
 |Country of the consumer's shipping address.
- Must be sent even if billing country is identical.
- //KKS: So it's not optional. FFS.
- Format: ISO 3166-1 alpha-2 country code.
+Please provide this field even if billing country is identical.
+Format: ISO 3166-1 alpha-2 country code.
 
 |shipping.address.street1
 |O
 |String
 |50
-|Line 1 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
+|Line 1 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.street2
 |O
 |String
 |50
-|Line 2 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
+|Line 2 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.street3
 |O
 |String
 |50
-|Line 3 of the street address of the consumer's shipping address. Must be sent even if billing address is identical.
+|Line 3 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.postal-code
 |O
 |String
 |16
-|ZIP/postal code of the consumer's shipping address. Must be sent even if billing address is identical.
+|ZIP/postal code of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.state
 |O
 |String
 |3
 |State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
- Must be sent even if billing address is identical.
+ Please provide this field even if billing address is identical.
 
 |shipping.shipping-method
 |O
 |String
 |restriction-based enumeration value
 a|The shipping method chosen by the consumer.
- Merchants must use the shipping indicator value that applies most accurately to the shipping method. +
+ Merchants must use the shipping indicator value that applies most accurately to the shipping method. If the consumer checks out two or more items, use the shipping indicator value for physical goods. If all are digital goods, use the shipping indicator value that matches the most expensive item.+
  Accepted values are:
 
 - ``home_delivery``: Ship to consumer's billing address. +
@@ -477,42 +473,38 @@ a|The shipping method chosen by the consumer.
 |O
 |Numeric
 |2
-|For prepaid or gift card purchase only. Identifies individual gift cards. Information about up to 10 gift cards can be sent in one request.
+|For prepaid and gift card purchase only. Identifies individual gift cards. Information about up to 10 gift cards can be sent in one request.
 Accepted values range from ``1`` to ``10``.
-//KKS: Description provided in ticket is not sufficient.
 
 |risk-info.gift-cards.gift-card.amount
 |O
 |Numeric
 |18,2
-|For prepaid or gift card purchase only. 
-//KKS: Description provided in ticket is not sufficient. 
+|For prepaid and gift card purchase only. The amount paid with a specific gift card. 
 
 |risk-info.gift-cards.gift-card.amount@currency
 |O
 |String
 |3
-|For prepaid or gift card purchase only. ISO 4217 three-digit currency code of the gift card. 
-//KKS: Description provided in ticket is not sufficient.
+|For prepaid and gift card purchase only. The ISO 4217 three-digit currency code of the gift card. 
 
 |periodic.recurring-expire-date
 |O
 |Date
 |10
-|For recurring payments only. Date after which further recurring payments with this card are no longer allowed. Accepted format: ``YYYY-MM-DD``.
+|For recurring payments. **Required only for authentication of the first transaction.** Date after which further recurring payments with this card are no longer allowed. Accepted format: ``YYYY-MM-DD``.
 
 |periodic.recurring-frequency
 |O
 |Numeric
 |4
-|For recurring payments only. The minimum number of days between individual payments.
+|For recurring payments. **Required only for authentication of the first transaction.** Indicates the minimum number of days between individual authorizations.
 
 |periodic.number-of-installments
 |O
 |Numeric
 |3
-|For installment payments only. Indicates the maximum number of authorizations permitted for installment payments.
-//KKS: Contradictory description in table.
+|For installment payments. **Required only for authentication of the first transaction.** Indicates the maximum number of authorizations permitted for installment payments.
 
 |iso-transaction-type
 |O
@@ -531,7 +523,6 @@ Accepted values range from ``1`` to ``10``.
 |String
 |2048
 |This is the HTTP Accept Header as retrieved from the consumer’s browser in the HTTP request. If the string is longer than 2048, it must be truncated. It is strongly recommended to provide this field to prevent rejection from the ACS server.
-//KKS: longer than 2048 what?
 
 |browser.user-agent
 |O
@@ -558,7 +549,7 @@ Accepted values range from ``1`` to ``10``.
 |Numeric
 |2
 |Value representing the bit depth of the color palette for displaying images, in bits per pixel. Obtained
- from cardholder browser using the ``screen.colorDepth`` property. The field is limited to 1-2 characters.
+ from consumer browser using the ``screen.colorDepth`` property. The field is limited to single and double digits.
 
 |browser.screen-resolution
 |O
@@ -570,13 +561,13 @@ Accepted values range from ``1`` to ``10``.
 |O
 |String
 |2
-|Dimensions of the challenge window that has been displayed to the
-cardholder. The ACS shall reply with content that is formatted to
-appropriately render in this window to provide the best possible user
+|Dimensions of the challenge window as displayed to the
+consumer. The ACS replies with content that is formatted to
+correctly render in this window to provide the best possible user
 experience. +
 Preconfigured sizes are width X height in pixels of the window
-displayed in the cardholder browser window. This is used only to prepare
-the _CReq_ request and it is not part of the _AReq_ flow. If not present it
+displayed in the consumer's browser window. This is used only to prepare
+the _CReq_ request and it is not part of the _AReq_ flow. If not present, it
 will be omitted. +
 Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
 ``01`` = 250 x 400 +
@@ -595,10 +586,10 @@ Accepted values are: ``1.0``, or ``2.1``.
 Uses default value ``1.0`` if the version is not provided in the request.
 
 |three-d.ds-transaction-id
-|
+|O
 |String
 |36
-|Universally unique transaction identifier assigned by the Directory Server to identify a single transaction.
+|Unique transaction identifier assigned by the Directory Server to identify a single transaction.
 Required for external 3D Secure servers not provided by {payment-provider-name}. Format: see IETF RFC 4122.
 
 |three-d.riid
