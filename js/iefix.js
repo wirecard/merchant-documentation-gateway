@@ -6,7 +6,7 @@ function isIE() {
 function swapSVGandPNG() {
     $('img').each(function (i, img) {
         requestIdleCallback(function () {
-            img.src = img.src.replace( new RegExp('\.svg$'), '.png');
+            img.src = img.src.replace(new RegExp('\.svg$'), '.png');
         });
     });
 }
