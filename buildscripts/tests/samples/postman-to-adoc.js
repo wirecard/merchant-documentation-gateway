@@ -21,10 +21,13 @@ const TRANSACTIONCODE_SUCCESS = '201.0000';
 
 const ELEMENT_TRANSACTION_TYPE = 'transaction_type';
 const ELEMENT_PAYMENT_METHOD = 'payment_method';
+const ELEMENT_INSTCALC_PAYMENT_METHOD = 'installment_calculator_payment_method';
 const ELEMENT_TRANSACTION_ID = 'transaction_id';
 const ELEMENT_CRYPTOGRAM_TYPE = 'cryptogram_type';
 const ELEMENT_PARENT_TRANSACTION_ID = 'parent_transaction_id';
 const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
+
+const GENERIC_ROOT_ELEMENT = 'GENERIC_ROOT_ELEMENT'; // used in elements map. bc some responses do not have 'payment' as root element
 
 const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
 
@@ -44,6 +47,7 @@ PMUtil.getTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTI
 PMUtil.getTransactionType = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body);
 PMUtil.getParentTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
 PMUtil.getPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body);
+PMUtil.getInstallmentCalculatorPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_INSTCALC_PAYMENT_METHOD, body);
 PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
 /**
  * Reads the Secondary Payment Method of a given request or response body.
@@ -63,33 +67,38 @@ PMUtil.getSecondaryPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_
 */
 PMUtil.ElementNamesMap = {
     cryptogram_type: {
-        xml: ['payment', 'cryptogram', 'cryptogram-type'],
-        json: ['payment', 'cryptogram', 'cryptogram-type'],
+        xml: [GENERIC_ROOT_ELEMENT, 'cryptogram', 'cryptogram-type'],
+        json: [GENERIC_ROOT_ELEMENT, 'cryptogram', 'cryptogram-type'],
         nvp: 'cryptogram_type'
     },
     payment_method: {
-        xml: ['payment', 'payment-methods', 'payment-method', '@_name'],
-        json: ['payment', 'payment-methods', 'payment-method', 0, 'name'],
+        xml: [GENERIC_ROOT_ELEMENT, 'payment-methods', 'payment-method', '@_name'],
+        json: [GENERIC_ROOT_ELEMENT, 'payment-methods', 'payment-method', 0, 'name'],
+        nvp: 'payment_method'
+    },
+    installment_calculator_payment_method: {
+        xml: [GENERIC_ROOT_ELEMENT, 'payment-method'],
+        json: [GENERIC_ROOT_ELEMENT, 'payment-method'],
         nvp: 'payment_method'
     },
     transaction_id: {
-        xml: ['payment', 'transaction-id'],
-        json: ['payment', 'transaction-id'],
+        xml: [GENERIC_ROOT_ELEMENT, 'transaction-id'],
+        json: [GENERIC_ROOT_ELEMENT, 'transaction-id'],
         nvp: 'transaction_id'
     },
     parent_transaction_id: {
-        xml: ['payment', 'parent-transaction-id'],
-        json: ['payment', 'parent-transaction-id'],
+        xml: [GENERIC_ROOT_ELEMENT, 'parent-transaction-id'],
+        json: [GENERIC_ROOT_ELEMENT, 'parent-transaction-id'],
         nvp: 'parent_transaction_id'
     },
     transaction_type: {
-        xml: ['payment', 'transaction-type'],
-        json: ['payment', 'transaction-type'],
+        xml: [GENERIC_ROOT_ELEMENT, 'transaction-type'],
+        json: [GENERIC_ROOT_ELEMENT, 'transaction-type'],
         nvp: 'transaction_type'
     },
     merchant_account_id: {
-        xml: ['payment', 'merchant-account-id'],
-        json: ['payment', 'merchant-account-id'],
+        xml: [GENERIC_ROOT_ELEMENT, 'merchant-account-id'],
+        json: [GENERIC_ROOT_ELEMENT, 'merchant-account-id'],
         nvp: 'merchant_account_id'
     }
 };
@@ -489,6 +498,10 @@ PMUtil.uuidv4 = function () {
  */
 PMUtil.readElementFromBody = function (elementName, body) {
     const getElementByPath = function (e, obj) {
+        if(e[0] == GENERIC_ROOT_ELEMENT) {
+            e[0] = Object.keys(obj)[0];
+        }
+
         return e.reduce((x, i) => (x && x[i]) ? x[i] : undefined, obj);
     }
     var elementValue = undefined;
@@ -571,7 +584,21 @@ PMUtil.readPaymentMethod = function (body) {
         // returns 'google-pay', we can skip and return the found 2ndary pm
         return secondaryPaymentMethod;
     }
-    paymentMethod = PMUtil.getPaymentMethod(body);
+
+    // unfortunately there is one request that differs from all others 
+    // instead of
+    // <payment-methods>
+    //   <payment-method>klarna-install</payment-method>
+    // </payment-methods>
+    // it is <payment-method>klarna-install</payment-method>
+    // without the <payment-methods> parent
+    if( PMUtil.bodyHasElement(body, 'installment-calculator-request')) {
+        console.log('body has element installment-calculator-request');
+        paymentMethod = PMUtil.getInstallmentCalculatorPaymentMethod(body);
+    }
+    else {
+        paymentMethod = PMUtil.getPaymentMethod(body);
+    }
     if (paymentMethod === undefined) {
         paymentMethod = PMUtil.getParentPaymentMethod(body);
     }
