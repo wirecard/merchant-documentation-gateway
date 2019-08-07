@@ -21,13 +21,12 @@ const TRANSACTIONCODE_SUCCESS = '201.0000';
 
 const ELEMENT_TRANSACTION_TYPE = 'transaction_type';
 const ELEMENT_PAYMENT_METHOD = 'payment_method';
-const ELEMENT_INSTCALC_PAYMENT_METHOD = 'installment_calculator_payment_method';
+const ELEMENT_FLAT_PAYMENT_METHOD = 'flat_payment_method';
 const ELEMENT_TRANSACTION_ID = 'transaction_id';
 const ELEMENT_CRYPTOGRAM_TYPE = 'cryptogram_type';
 const ELEMENT_PARENT_TRANSACTION_ID = 'parent_transaction_id';
 const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
-
-const GENERIC_ROOT_ELEMENT = 'GENERIC_ROOT_ELEMENT'; // used in elements map. bc some responses do not have 'payment' as root element
+const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc some responses do not have 'payment' as root element
 
 const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
 
@@ -44,11 +43,15 @@ PMUtil.RequestResponseIndex = {};
 * @return {string} The element value.
 */
 PMUtil.getTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, body);
-PMUtil.getTransactionType = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body);
 PMUtil.getParentTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
-PMUtil.getPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body);
-PMUtil.getInstallmentCalculatorPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_INSTCALC_PAYMENT_METHOD, body);
+PMUtil.getPaymentMethod = (body) => {
+    return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body) : PMUtil.readElementFromBody(ELEMENT_FLAT_PAYMENT_METHOD, body);
+}
 PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
+PMUtil.getTransactionType = (body) => { // returns value of transaction type. or parent element name for sonderfälle like get-address-request
+    return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body) : PMUtil.readElementFromBody(GENERIC_ROOT_ELEMENT, body, true);
+}
+
 /**
  * Reads the Secondary Payment Method of a given request or response body.
  * 
@@ -66,6 +69,11 @@ PMUtil.getSecondaryPaymentMethod = (body) => PMUtil.readElementFromBody(ELEMENT_
 * May be string or path as array.
 */
 PMUtil.ElementNamesMap = {
+    generic_root_element: {
+        xml: GENERIC_ROOT_ELEMENT,
+        json: GENERIC_ROOT_ELEMENT,
+        nvp: GENERIC_ROOT_ELEMENT
+    },
     cryptogram_type: {
         xml: [GENERIC_ROOT_ELEMENT, 'cryptogram', 'cryptogram-type'],
         json: [GENERIC_ROOT_ELEMENT, 'cryptogram', 'cryptogram-type'],
@@ -76,7 +84,7 @@ PMUtil.ElementNamesMap = {
         json: [GENERIC_ROOT_ELEMENT, 'payment-methods', 'payment-method', 0, 'name'],
         nvp: 'payment_method'
     },
-    installment_calculator_payment_method: {
+    flat_payment_method: {
         xml: [GENERIC_ROOT_ELEMENT, 'payment-method'],
         json: [GENERIC_ROOT_ELEMENT, 'payment-method'],
         nvp: 'payment_method'
@@ -141,83 +149,6 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
         return pm;
     }
 };
-
-/**
- * Writes .adoc file with table and code blocks for request, response and other info
- *
- * Creates table with general info on the request (is to be hidden by default in frontend)
- * Creates two source blocks, request and response with titles according to Payment Method, Transaction Type and Content Type
- * Request contains all Postman variables unsubstituted for integrators to copy&paste.
- *
- * @param {string} info Contains request and response body as well as metadata (status code, engine response, etc.)
- * 
- * @return Nothing.
- */
-/*PMUtil.writeAdoc = function (info) {
-    const fileExtension = '.adoc';
-    const path = 'samples/adoc/';
-    const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(info.payment_method);
-    const requestContentTypeAbbr = PMUtil.getContentType(info.request.body_source, type = 'short');
-    const responseContentTypeAbbr = PMUtil.getContentType(info.response.body, type = 'short');
-    const filename = info.payment_method + '_' + info.transaction_type + '_' + requestContentTypeAbbr;
-    //const curlPayloadString = encodeURIComponent(info.request.body_source.replace('{{$guid}}', PMUtil.uuidv4()));
-    //const curlString = "curl -u '" + info.request.username + ":" + info.request.password + "' -H \"" + info.request.content_type + '" -d "' + curlPayloadString + '" ' + info.request.endpoint;
-    var statusesAdocTableCells = '';
-    info.response.engine_status.forEach(s => {
-        statusesAdocTableCells += `| Code        | ` + '``' + s.code + '``' + `
-| Severity    | ` + '``' + s.severity + '``' + `
-| Description | ` + '``' + s.description + '``' + `
-`;
-    });
-    const fileContent = `
-[.request-details]
-.Request Details
-[%autowidth, cols="1v,2", stripes="none"]
-|===
-2+| API Endpoint
-
-e| Method | ` + info.request.method + `
-e| URI    | ` + '``\\' + info.request.endpoint + '``' + `
-
-2+h| Header
-e| Content-type | \`` + info.request.content_type + `\`
-e| Accept       | \`` + info.request.accept + `\`
-
-2+h| Authentication
-e| Type     | _HTTP Basic Authentication_
-e| Username | \`` + info.request.username + `\`
-e| Password | \`` + info.request.password + `\`
-|===
-
-.Request ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + requestContentTypeAbbr.toUpperCase() + `)
-[source,` + requestContentTypeAbbr + `]
-----
-` + info.request.body_sent + `
-----
-
----
-
-[%autowidth, cols="1v,2", stripes="none"]
-|===
-2+| Transaction Results
-
-` + statusesAdocTableCells + `
-|===
-
-.Response ` + paymentMethodBrandName + `: ` + info.transaction_type + ` (` + responseContentTypeAbbr.toUpperCase() + `)
-[source,` + responseContentTypeAbbr + `]
-----
-` + info.response.body + `
-----
-`;
-    try {
-        fs.writeFileSync(path + filename + fileExtension, fileContent);
-    }
-    catch (err) {
-        throw err;
-    }
-}
-*/
 
 PMUtil.writeAdocSummarySeparated = function (RequestResponseIndex) {
     const fileExtension = '.adoc';
@@ -491,38 +422,38 @@ PMUtil.uuidv4 = function () {
 /**
  * Reads element value from XML or JSON body if found and mapped in ElementNamesMap.
  *
- * @param {string} elementName Name or path of element whose value is to be returned.
+ * @param {string} elementName Name or path (see PMUtil.ElementNamesMap) of element whose value is to be returned.
  * @param {string} body Request body in which to look for the element.
+ * @param {boolean} key Optional: returns name of element. Use to get name of GENERIC_ROOT_ELEMENT
  * 
  * @return {string} Value of the element or undefined if not found in ElementNamesMap.
  */
-PMUtil.readElementFromBody = function (elementName, body) {
+PMUtil.readElementFromBody = function (elementName, body, key = false ) {
     const getElementByPath = function (e, obj) {
         if(e[0] == GENERIC_ROOT_ELEMENT) {
             e[0] = Object.keys(obj)[0];
         }
-
-        return e.reduce((x, i) => (x && x[i]) ? x[i] : undefined, obj);
+        return e.reduce((x, i) => (x && x[i]) ? (key ? i : x[i]) : undefined, obj);
     }
     var elementValue = undefined;
     const contentType = PMUtil.getContentType(body);
     switch (contentType) {
         case MIMETYPE_XML:
             var obj = xmlparser.parse(body, { ignoreAttributes: false });
-            var e = PMUtil.ElementNamesMap[elementName].xml;
+            var e = PMUtil.ElementNamesMap[elementName].xml.slice();
             e = Array.isArray(e) ? e : [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_JSON:
             var obj = JSON.parse(body);
-            var e = PMUtil.ElementNamesMap[elementName].json;
+            var e = PMUtil.ElementNamesMap[elementName].json.slice();
             e = Array.isArray(e) ? e : [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_NVP:
             var obj = new URLSearchParams(body);
             try {
-                var e = PMUtil.ElementNamesMap[elementName].nvp;
+                var e = PMUtil.ElementNamesMap[elementName].nvp.slice();
             }
             catch (err) {
                 console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
@@ -584,21 +515,7 @@ PMUtil.readPaymentMethod = function (body) {
         // returns 'google-pay', we can skip and return the found 2ndary pm
         return secondaryPaymentMethod;
     }
-
-    // unfortunately there is one request that differs from all others 
-    // instead of
-    // <payment-methods>
-    //   <payment-method>klarna-install</payment-method>
-    // </payment-methods>
-    // it is <payment-method>klarna-install</payment-method>
-    // without the <payment-methods> parent
-    if( PMUtil.bodyHasElement(body, 'installment-calculator-request')) {
-        console.log('body has element installment-calculator-request');
-        paymentMethod = PMUtil.getInstallmentCalculatorPaymentMethod(body);
-    }
-    else {
-        paymentMethod = PMUtil.getPaymentMethod(body);
-    }
+    paymentMethod = PMUtil.getPaymentMethod(body);
     if (paymentMethod === undefined) {
         paymentMethod = PMUtil.getParentPaymentMethod(body);
     }
@@ -731,6 +648,7 @@ newman.run({
 }).on('request', function (err, args) {
     const item = args.item;
     const requestSource = item.request;
+    const requestName = item.name;
     const requestSent = args.request;
     const requestMethod = requestSource.method;
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
@@ -749,7 +667,7 @@ newman.run({
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
-    console.log('paymentMethod ' + paymentMethod + ' -> ' + transactionType);
+    console.log(paymentMethod + ' -> ' + transactionType + ' (' + requestName + ')');
 
     var responseContentType;
     var responseContentTypeAbbr;
@@ -824,6 +742,7 @@ newman.run({
                 http_status_code: responseCodeHTTP,
                 engine_status: responseOfEngine
             },
+            name: requestName,
             transaction_id: transactionID,
             parent_transaction_id: parentTransactionID,
             success: true //TODO simple true/false for success. decide elsewhere which it is
