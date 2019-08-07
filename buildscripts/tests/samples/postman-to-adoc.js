@@ -417,8 +417,9 @@ PMUtil.readEngineResponse = function (body) {
         case MIMETYPE_XML:
             try {
                 var obj = xmlparser.parse(body, { ignoreAttributes: false });
+                var objRoot = obj[Object.keys(obj)[0]];
                 statusResponse = [];
-                var statuses = obj.payment.statuses.status;
+                var statuses = objRoot.statuses.status;
                 statuses = Array.isArray(statuses) ? statuses : [statuses];
                 statuses.forEach(status => {
                     statusResponse.push({
@@ -432,13 +433,14 @@ PMUtil.readEngineResponse = function (body) {
                 console.log('isXML');
                 //console.log(body)
                 console.log('readEngineResponse failed.')
-                console.log(obj.payment.statuses);
+                console.log(obj);
             }
             break;
         case MIMETYPE_JSON:
             try {
                 var obj = JSON.parse(body);
-                obj.payment.statuses.status.forEach(status => {
+                var objRoot = obj[Object.keys(obj)[0]];
+                objRoot.statuses.status.forEach(status => {
                     statusResponse.push({
                         code: status.code,
                         description: status.description,
@@ -538,6 +540,10 @@ PMUtil.readElementFromBody = function (elementName, body) {
 PMUtil.getParentPaymentMethod = function (body) {
     const pid = PMUtil.getParentTransactionID(body);
     console.log('looking for pid: ' + pid + ' in RequestsIndex');
+    if (pid == undefined) {
+        console.log('no pid found')
+        console.log(body);
+    }
     for (paymentMethod in PMUtil.RequestsIndex) {
         const pm = PMUtil.RequestsIndex[paymentMethod];
         for (transactionType in pm) {
@@ -716,6 +722,8 @@ newman.run({
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
+    console.log('paymentMethod ' + paymentMethod + ' -> ' + transactionType);
+
     var responseContentType;
     var responseContentTypeAbbr;
     var transactionID;
@@ -737,6 +745,8 @@ newman.run({
 
     /*
     * Contains all necessary information to create the .adoc table and blocks.
+    *
+    * OBSOLETE. We now use PMUtil.RequestResponseIndex for this
     */
     const info = {
         payment_method: paymentMethod,
