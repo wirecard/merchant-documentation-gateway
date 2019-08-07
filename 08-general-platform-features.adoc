@@ -1899,34 +1899,60 @@ Mandatory (M) or optional (O).
 |===
 |Field |Cardinality |Datatype |Size |Description
 
+|merchant-account-id  |M  |String |36 |A unique identifier assigned for every merchant account.
+|request-id |M |String| 32 a|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. _{{$guid}}_ serves as a placeholder for a random _request-id_. Allowed characters: +
+a - z +
+0 - 9 +
+-_
+|transaction-type |M  |String |n/a  |The requsted transaction type. Examples are: _authorization, capture, credit, purchase, refund, void authorization, void capture, void credit, void purchase._ For a complete list of transaction types, please see <<AppendixB, Appendix B: Transaction Types>>.
+|requested-amount |M |Decimal |18,2 |The full amount that is requested/contested in a transaction. The number of decimals depends on the currency.
+|requested-amount@currency |M  |String |3  |This is the currency in which a transaction is received and processed.
 |account-holder/last-name |M  |String  |32 |The last name of the account holder.
 |account-holder/email |O  |String  |64 |The email address of the account holder.
-|account-holder/address/street1 |O  |String  |128  |Line 1 of the street adreess of the account holder's address.
-|account-holder/address/street2 |O  |String  |128  |Line 2 of the street adress of the account holder's address.
-|account-holder/address/state |O  |String  |32 |State/province of the account holder's address.
-|account-holder/address/country |O  |String |3  |Country ID of the account holder's address.
-|account-holder/address/postal-code |O  |String  |16 |ZIP/postal code of the account holder's address.
 |card/account-number  |M - Or Card Token  |String |36 |The embossed or encoded number that identifies the card issuer to which a transaction is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In the case of a credit card, this is the primary account number.
 |card/expiration-month  |M - Or Card Token  |Number|2  |The 2-digit representation of the expiration month of the account-number.
 |card/expiration-year |M - Or Card Token  |Number |4  |The 4-digit representation of the expiration year of the account-number.
-|card/card-security-code  |Depending on merchant account settings |String |4  |A security feature for credit or debit card transactions, providing increased protection against credit card or debit card fraud. The card security code is located on the back of MasterCard, Visa and Discover credit or debit cards and is typically a se parate group of 3 digits to the right of the signature strip. On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right.
+|card/card-security-code  |Depending on merchant account settings |String |4  |A security feature for credit or debit card transactions, providing increased protection against credit card or debit card fraud. The card security code is located on the back of Mastercard, Visa and Discover credit or debit cards and is typically a se parate group of 3 digits to the right of the signature strip. On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right.
 |card/card-type |M |String  |15 |A card scheme accepted by the processing system. This includes physically issued cards.
-|payment-methods/payment-method-name  |O  |String  |256  |The name of the payment method.
-|merchant-account-id  |M  |String |36 |A unique identifier assigned for every merchant account.
-|merchant-account-id/@ref |M  |String  |n/a  |A reference URL to the merchant account. Can be used to retrieve merchant account details over a browser. This information is returned in the response only.
-|transaction-type |M  |String |n/a  |Determines a transaction's behavior during transaction processing and merchant settlement. Examples are: _authorization, capture, credit, purchase, refund, void authorization, void capture, void credit, void purchase._ For a complete list of transaction types, please see <<AppendixB, Appendix B: Transaction Types>>.
-|transaction-state  |M  |String |n/a  |The current status of a transaction. Typically, a transaction will start from an ``in-progress`` state, and then finish in either the ``success`` or ``failed`` state. This information is returned in the response only.
-|completion-time-stamp  |M  |Timestamp |n/a  |The date and time that a transaction state became either ``success`` or ``failed`` in GMT. This information is returned in the response only.
-|requested-amount/@currency |M  |String |3  |This is the currency in which a transaction is received and processed.
-|statuses/status/@code  |M  |String  |12 |The status of a transaction. This is primarily used in conjunction with the transaction state to determine the exact details of the status of the transaction. This information is returned in the response only.
+|surcharge/surcharge-amount | O   | Decimal | 18,6 | This is the surcharge amount of a transaction. The number of decimals depends on the currency.
+|payment-methods/payment-method@name  |O  |String  |256  |The name of the payment method.
+|descriptor |O |String | n/a |Description of the transaction for account holder's
+bank statement purposes.
+|merchant-account-id@ref |M  |String  |n/a  |A reference URL to the merchant account. Can be used to retrieve merchant account details over a browser. This information is returned in the response only.
+|transaction-id |M |String |36 |A unique identifier to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later. This information is returned in the response only.
+|transaction-state  |M  |String |n/a  a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+//-
+
+Typically, a transaction will start from an ``in-progress`` state, and then finish in either the ``success`` or ``failed`` state. This information is returned in the response only.
+|completion-time-stamp  |M  |Timestamp |n/a  |The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO). 
+
+This information is returned in the response only.
+
+|statuses/status@code  |M  |String  |12 |Status code of the status message. This is primarily used in conjunction with the transaction state to determine the exact details of the status of the transaction. This information is returned in the response only.
+|statuses/status@description |M |String |256 |The description of the transaction status message. This information is returned in the response only.
+|statuses/status@severity |M |String |20 a|The definition of the status message. +
+Possible values:
+
+- ``information`` +
+- ``warning`` +
+- ``error`` 
+//-
 |card-token/token-id  |O |String  |16 |A unique identifier assigned for every card token. This is a surrogate value for the primary account number. This information is returned in the response only.
 |card-token/masked-account-number |M  |String |16 |The masked account number. This information is returned in the response only.
-|custom-fields/custom-field/@field-name |O  |String  |36 |The merchant defined name of the custom field.
 |authorization-code |O  |String |24 |A code generated by the card issuing bank as proof that the transaction request was acknowledged or declined. This information is returned in the response only.
-|api-id |O  |String |36 |A unique identifier assigned for every API. This information is returned in the response only.
-|surcharge/surcharge-amount | O   | Decimal | 18,6 | This is the surcharge amount of the transaction. The number of decimals depends on the currency.
-|original-requested-amount | O  | Decimal | 18,6 | This is the requested amount of the original transaction. This information is returned in the response only.
-|original-requested-amount@currency |O |String |3 |This is the currency of the original transaction.
+|api-id |O  |String |36 |Identifier of the currently used API. This information is returned in the response only.
+
+|original-requested-amount | O  | Decimal | 18,6 | The full amount that is requested/contested in the original transaction. The number of decimals depends on the currency. This information is returned in the response only.
+|original-requested-amount@currency |O |String |3 |This is the currency in which the original transaction is received and processed. This information is returend in the response only.
 |===
 
 [#GeneralPlatformFeatures_Surcharging_Samples]
