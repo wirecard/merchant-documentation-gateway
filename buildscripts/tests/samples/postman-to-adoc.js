@@ -198,7 +198,11 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
         for (var t in paymentMethods) {
             const transactionTypes = paymentMethods[t];
             const transactionType = t;
-            const filename = paymentMethod + '_' + transactionType + fileExtension;
+            // make filename from first (e.g. XML) request name (Postman name)
+            var filename = paymentMethod + '_' + transactionTypes[Object.keys(transactionTypes)[0]].name;
+            // remove non-chars, remove empty array elements, capitalize, concatenate for CamelCase and add extension
+            filename = filename.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != '' }).map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)) }).join('') + fileExtension;
+
             var fileContent = `
 [.sample-tabs]
 
@@ -206,6 +210,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 
             for (var c in transactionTypes) {
                 const transaction = transactionTypes[c];
+                console.log('writing ' + paymentMethodBrandName + ': ' + transactionType);
                 var statusesAdocTableCells = '';
                 transaction.response.engine_status.forEach(function (s, i) {
                     statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
@@ -237,6 +242,7 @@ e| Accept       | \`` + transaction.request.accept + `\`
 e| Type     | HTTP Basic Authentication
 e| Username | \`` + transaction.request.username + `\`
 e| Password | \`` + transaction.request.password + `\`
+e| Merchant Account ID | \`` + transaction.maid + `\`
 |===
 
 //.Request ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
@@ -262,7 +268,6 @@ e| Content-Type | \`` + transaction.response.content_type + `\`
 ` + transaction.response.body + `
 ----
 `;
-
             }
             fileContent += "\n";
             try {
@@ -347,10 +352,8 @@ PMUtil.readEngineResponse = function (body) {
                 }];
             }
             catch (e) {
-                console.log(body)
                 console.log('readEngineResponse failed.')
-                console.log(e);
-                console.log(obj);
+                console.log(body)
                 console.log(statusResponse);
             }
             break;
@@ -428,9 +431,9 @@ PMUtil.uuidv4 = function () {
  * 
  * @return {string} Value of the element or undefined if not found in ElementNamesMap.
  */
-PMUtil.readElementFromBody = function (elementName, body, key = false ) {
+PMUtil.readElementFromBody = function (elementName, body, key = false) {
     const getElementByPath = function (e, obj) {
-        if(e[0] == GENERIC_ROOT_ELEMENT) {
+        if (e[0] == GENERIC_ROOT_ELEMENT) {
             e[0] = Object.keys(obj)[0];
         }
         return e.reduce((x, i) => (x && x[i]) ? (key ? i : x[i]) : undefined, obj);
@@ -560,11 +563,11 @@ PMUtil.bodyInjectElementValue = function (requestBody, elementName, elementValue
  * Else attempt to identify NVP by looking for mandatory request_id parameter.
  * 
  * @param {string} body The request/response body sent or received by Postman.
- * @param {string} type Default 'full' returns the complete mime type, e.g. "application/xml". 'short' returns, e.g. "xml"
+ * @param {boolean} short Default false returns the complete mime type, e.g. "application/xml". true returns, e.g. "xml"
  * 
  * @return {string} contentType
  */
-PMUtil.getContentType = function (body, type = 'full') {
+PMUtil.getContentType = function (body, short = false) {
     const isJSON = (body) => {
         try { JSON.parse(body); } catch (e) { return false; }
         return true;
@@ -599,7 +602,7 @@ PMUtil.getContentType = function (body, type = 'full') {
         contentType = MIMETYPE_NVP;
     }
 
-    if (type == 'short') {
+    if (short) {
         return PMUtil.ContentTypeAbbr[contentType];
     } else {
         return contentType;
@@ -657,7 +660,7 @@ newman.run({
     const responseCodeHTTP = args.response.code;
     const responseOfEngine = PMUtil.readEngineResponse(responseBody);
     const requestContentType = PMUtil.getContentType(requestBodySent);
-    const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, 'short');
+    const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
     const transactionType = PMUtil.getTransactionType(requestBodySent);
     const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
@@ -672,11 +675,11 @@ newman.run({
     var responseContentType;
     var responseContentTypeAbbr;
     var transactionID;
-    if (responseCodeHTTP < 400) { // else there is no response element parsing possible
-        responseContentType = PMUtil.getContentType(responseBody);
-        responseContentTypeAbbr = PMUtil.getContentType(responseBody, 'short');
-        transactionID = PMUtil.getTransactionID(responseBody);
-    }
+    //if (responseCodeHTTP < 400) { // else there is no response element parsing possible
+    responseContentType = PMUtil.getContentType(responseBody);
+    responseContentTypeAbbr = PMUtil.getContentType(responseBody, true);
+    transactionID = PMUtil.getTransactionID(responseBody);
+    //}
 
     if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
         PMUtil.RequestsIndex[paymentMethod] = [];
@@ -688,34 +691,6 @@ newman.run({
         parent_transaction_id: parentTransactionID
     }
 
-    /*
-    * Contains all necessary information to create the .adoc table and blocks.
-    *
-    * OBSOLETE. We now use PMUtil.RequestResponseIndex for this
-    */
-    const info = {
-        payment_method: paymentMethod,
-        transaction_type: transactionType,
-        merchant_account_id: merchantAccountID,
-        request: {
-            body_source: requestBodySource,
-            body_sent: requestBodySent,
-            content_type: requestContentType,
-            method: requestMethod,
-            endpoint: requestEndpoint,
-            username: requestUsername,
-            password: requestPassword,
-            accept: acceptHeader
-        },
-        response: {
-            content_type: responseContentType,
-            body: responseBody,
-            http_status_code: responseCodeHTTP,
-            engine_status: responseOfEngine
-        }
-    }
-
-    //this global thing will replace local const info. remove const info later.
     if (typeof PMUtil.RequestResponseIndex[paymentMethod] === 'undefined') {
         PMUtil.RequestResponseIndex[paymentMethod] = {}; // array for sort order
     }
@@ -743,6 +718,7 @@ newman.run({
                 engine_status: responseOfEngine
             },
             name: requestName,
+            maid: merchantAccountID,
             transaction_id: transactionID,
             parent_transaction_id: parentTransactionID,
             success: true //TODO simple true/false for success. decide elsewhere which it is
