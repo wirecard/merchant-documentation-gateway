@@ -229,10 +229,40 @@ PMUtil.writeAdocSummarySeparated = function (RequestResponseIndex) {
             }
         }
     }
-}
+};
+
+
+/**
+ * Write single request/response files for separate include not tied to the adoc tabs page
+ *
+ * @param {string} rType Request type. Either 'request' or 'response'
+ * @param {string} contentTypeAbbr Content type in short form, i.e. xml, json, nvp.
+ * @param {string} basename e.g. Creditcard_CaptureAuthorizationForVoidCapture
+ * @param {string} path Global path of directory where the subfolders for xml, json, nvp are created in. E.g. 'samples/adoc/'
+ * @param {string} body Request or response body to write into the file.
+ * 
+ * @return {string} Path to file for use in include:: statement
+ */
+PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body) {
+    const dirname = contentTypeAbbr + '/'; // add slash to have same format as path
+    const fileExtension = '.' + contentTypeAbbr;
+    const filename = basename + '_' + rType; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
+
+    // create directory to hold the sample files
+    if (!fs.existsSync(path + dirname)) {
+        fs.mkdirSync(path + dirname);
+    }
+    try {
+        fs.writeFileSync(path + dirname + filename + fileExtension, body);
+    }
+    catch (err) {
+        throw err;
+    }
+    return dirname + filename + fileExtension;
+};
 
 PMUtil.writeAdocSummary = function (RequestResponseIndex) {
-    const fileExtension = '.adoc';
+    const adocFileExtension = '.adoc';
     const path = 'samples/adoc/';
 
     for (var r in RequestResponseIndex) {
@@ -243,9 +273,10 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             const transactionTypes = paymentMethods[t];
             const transactionType = t;
             // make filename from first (e.g. XML) request name (Postman name)
-            var filename = paymentMethod + '_' + transactionTypes[Object.keys(transactionTypes)[0]].name;
+            var basename = paymentMethod + '_' + transactionTypes[Object.keys(transactionTypes)[0]].name;
             // remove non-chars, remove empty array elements, capitalize, concatenate for CamelCase and add extension
-            filename = filename.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != '' }).map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)) }).join('') + fileExtension;
+            basename = basename.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != '' }).map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)) }).join('');
+            var adocFilename = basename + adocFileExtension;
 
             var fileContent = `
 [.sample-tabs]
@@ -255,6 +286,10 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             for (var c in transactionTypes) {
                 const transaction = transactionTypes[c];
                 console.log('writing ' + paymentMethodBrandName + ': ' + transactionType);
+
+                const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
+                const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
+
                 var statusesAdocTableCells = '';
                 transaction.response.engine_status.forEach(function (s, i) {
                     statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
@@ -292,7 +327,7 @@ e| Merchant Account ID | \`` + transaction.maid + `\`
 //.Request ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.request.content_type_abbr + `]
 ----
-` + transaction.request.body_web + `
+include::` + requestFile + `[]
 ----
 
 [.r-details]
@@ -309,13 +344,13 @@ e| Content-Type | \`` + transaction.response.content_type + `\`
 //.Response ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.response.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.response.content_type_abbr + `]
 ----
-` + transaction.response.body + `
+include::` + responseFile + `[]
 ----
 `;
             }
             fileContent += "\n";
             try {
-                fs.writeFileSync(path + filename, fileContent);
+                fs.writeFileSync(path + adocFilename, fileContent);
             }
             catch (err) {
                 throw err;
@@ -530,7 +565,7 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
  */
 PMUtil.getParentPaymentMethod = function (body) {
     const pid = PMUtil.getParentTransactionID(body);
-    console.log('looking for pid: ' + pid + ' in RequestsIndex');
+    //console.log('looking for pid: ' + pid + ' in RequestsIndex');
     if (pid == undefined) {
         console.log('no pid found')
         console.log(body);
@@ -539,7 +574,7 @@ PMUtil.getParentPaymentMethod = function (body) {
         const pm = PMUtil.RequestsIndex[paymentMethod];
         for (transactionType in pm) {
             if (pm[transactionType].transaction_id === pid) {
-                console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
+        //        console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
                 return paymentMethod;
             }
         }
@@ -690,13 +725,52 @@ PMUtil.formatRequestForWeb = function (body_sent) {
     return formattedBody.replace(requestID, PM_GUID_VARIABLE);
 };
 
+const ConsoleColors = {
+    bg: {
+        black: "\x1b[40m",
+        blue: "\x1b[44m",
+        cyan: "\x1b[46m",
+        green: "\x1b[42m",
+        magenta: "\x1b[45m",
+        red: "\x1b[41m",
+        yellow: "\x1b[43m",
+        white: "\x1b[47m"
+    },
+    fg: {
+        black: "\x1b[30m",
+        blue: "\x1b[34m",
+        cyan: "\x1b[36m",
+        green: "\x1b[32m",
+        magenta: "\x1b[35m",
+        red: "\x1b[31m",
+        yellow: "\x1b[33m",
+        white: "\x1b[37m"
+    },
+    ctrl: {
+        blink: "\x1b[5m",
+        bright: "\x1b[1m",
+        dim: "\x1b[1m",
+        hidden: "\x1b[8m",
+        reset: "\x1b[0m",
+        reverse: "\x1b[7m",
+        underscore: "\x1b[4m"
+    }
+}
+
+const styleText = function (text, style, type = 'fg') {    
+    return (ConsoleColors[type] === undefined || ConsoleColors[type][style] === undefined) ? text : ConsoleColors[type][style] + text + ConsoleColors.ctrl.reset;
+};
+
 newman.run({
     collection: postmanCollectionFile,
     environment: pmEnv
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
-    // placeholder. not necessary for now.
+    const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
+    const transactionType = PMUtil.getTransactionType(args.request.body.raw);
+    const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + args.item.name + ')';
+    process.stdout.write( '[WAIT] ' + consoleString + "\r");
 }).on('request', function (err, args) {
     const item = args.item;
     const requestSource = item.request;
@@ -706,9 +780,6 @@ newman.run({
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
     const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);  // body that has no vars in them (for web display) except request id
-    const responseBody = PMUtil.formatResponse(args.response.stream.toString());
-    const responseCodeHTTP = args.response.code;
-    const responseOfEngine = PMUtil.readEngineResponse(responseBody);
     const requestContentType = PMUtil.getContentType(requestBodySent);
     const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
@@ -720,11 +791,26 @@ newman.run({
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
-    console.log(paymentMethod + ' -> ' + transactionType + ' (' + requestName + ')');
+    const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + requestName + ')'; 
+    
+    // if a server is not reachable or there is some other network related issue and no response could be received
+    // then do not pursue this request any further
+    // do not write anything for this request because we do not know if the request failed because of server issue
+    // or client network connectivity is bad
+    if(args.response === undefined) {
+        process.stdout.write( consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+        return false;
+    }
 
     var responseContentType;
     var responseContentTypeAbbr;
     var transactionID;
+    const responseBody = PMUtil.formatResponse(args.response.stream.toString());
+    const responseCodeHTTP = args.response.code;
+    const responseOfEngine = PMUtil.readEngineResponse(responseBody);
+
+    process.stdout.write( '[' + (responseCodeHTTP < 400 ? styleText(' OK ', 'green') : styleText('FAIL', 'red')) + '] ' + consoleString + "\n");
+
     //if (responseCodeHTTP < 400) { // else there is no response element parsing possible
     responseContentType = PMUtil.getContentType(responseBody);
     responseContentTypeAbbr = PMUtil.getContentType(responseBody, true);
