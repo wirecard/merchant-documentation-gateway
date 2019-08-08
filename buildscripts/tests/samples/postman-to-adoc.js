@@ -31,8 +31,38 @@ const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
 const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc some responses do not have 'payment' as root element
 
 const PM_GUID_VARIABLE = '{{$guid}}';
-
 const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
+const postmanEnvironmentFile = argv['env'];
+var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : {};
+
+/**
+ * Reads JSON file without complaining about empty files or invalid content
+ *
+ * If file doesn't exist returns empty Object.
+ * If file content is invalid JSON it returns empty Object unless strict == true
+ *
+ * @param {string} file Path to .json file.
+ * @param {boolean} strict Decides wether to throw or ignore invalid JSON
+ * 
+ * @return {Object} Object or {}.
+ */
+function stfuGetJsonFromFile(file, strict = false) {
+    var fileContents;
+    try {
+        fileContents = fs.readFileSync(file);
+    } catch (err) {
+        if (err.code === 'ENOENT') fileContents = '{}';
+        else throw err;
+    }
+    try {
+        JsonObject = JSON.parse(fileContents);
+    }
+    catch (err) {
+        if (strict) throw err;
+        else JsonObject = {};
+    }
+    return JsonObject;
+}
 
 var PMUtil = {};
 
@@ -658,9 +688,7 @@ PMUtil.formatRequestForWeb = function (body_sent) {
 
 newman.run({
     collection: postmanCollectionFile,
-    environment: {
-        "parent-transaction-id": "123-123-123-123" // remove..
-    }
+    environment: pmEnv
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
