@@ -32,6 +32,10 @@ const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc
 
 const PM_GUID_VARIABLE = '{{$guid}}';
 const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
+if (fs.existsSync(postmanCollectionFile) === false) {
+    console.log('could not read postman collection file. specify with --file <postman_collection.json>');
+    process.exit(1);
+}
 const postmanEnvironmentFile = argv['env'];
 var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : {};
 
