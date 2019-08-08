@@ -18,6 +18,7 @@ const MIMETYPE_JSON = 'application/json';
 const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8'
 const TRANSACTIONSTATE_SUCCESS = 'success';
 const TRANSACTIONCODE_SUCCESS = '201.0000';
+const DEFAULT_PAYMENT_METHOD = 'creditcard';
 
 // for PMUtil.ElementNamesMap:
 const ELEMENT_TRANSACTION_TYPE = 'transaction_type';
@@ -566,20 +567,23 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
 PMUtil.getParentPaymentMethod = function (body) {
     const pid = PMUtil.getParentTransactionID(body);
     //console.log('looking for pid: ' + pid + ' in RequestsIndex');
-    if (pid == undefined) {
-        console.log('no pid found')
-        console.log(body);
+    if (pid === undefined) {
+        // credit card requests also work if there's not payment method specified
+        // getParentTransactionID returns undefined, because request has no parent-transaction-id 
+        return DEFAULT_PAYMENT_METHOD;
     }
-    for (paymentMethod in PMUtil.RequestsIndex) {
-        const pm = PMUtil.RequestsIndex[paymentMethod];
-        for (transactionType in pm) {
-            if (pm[transactionType].transaction_id === pid) {
-        //        console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
-                return paymentMethod;
+    else {
+        for (paymentMethod in PMUtil.RequestsIndex) {
+            const pm = PMUtil.RequestsIndex[paymentMethod];
+            for (transactionType in pm) {
+                if (pm[transactionType].transaction_id === pid) {
+                    // console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
+                    return paymentMethod;
+                }
             }
         }
     }
-    return undefined;
+    return DEFAULT_PAYMENT_METHOD;
 };
 
 /**
@@ -757,7 +761,7 @@ const ConsoleColors = {
     }
 }
 
-const styleText = function (text, style, type = 'fg') {    
+const styleText = function (text, style, type = 'fg') {
     return (ConsoleColors[type] === undefined || ConsoleColors[type][style] === undefined) ? text : ConsoleColors[type][style] + text + ConsoleColors.ctrl.reset;
 };
 
@@ -767,10 +771,12 @@ newman.run({
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
+
     const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
     const transactionType = PMUtil.getTransactionType(args.request.body.raw);
     const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + args.item.name + ')';
-    process.stdout.write( '[WAIT] ' + consoleString + "\r");
+    process.stdout.write('[--------] ' + consoleString + "\r");
+
 }).on('request', function (err, args) {
     const item = args.item;
     const requestSource = item.request;
@@ -791,14 +797,14 @@ newman.run({
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
-    const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + requestName + ')'; 
-    
+    const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + requestName + ')';
+
     // if a server is not reachable or there is some other network related issue and no response could be received
     // then do not pursue this request any further
     // do not write anything for this request because we do not know if the request failed because of server issue
     // or client network connectivity is bad
-    if(args.response === undefined) {
-        process.stdout.write( consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+    if (args.response === undefined) {
+        process.stdout.write(consoleString + ' FAILED. CONNECTION FAILED' + "\n");
         return false;
     }
 
@@ -808,8 +814,8 @@ newman.run({
     const responseBody = PMUtil.formatResponse(args.response.stream.toString());
     const responseCodeHTTP = args.response.code;
     const responseOfEngine = PMUtil.readEngineResponse(responseBody);
-
-    process.stdout.write( '[' + (responseCodeHTTP < 400 ? styleText(' OK ', 'green') : styleText('FAIL', 'red')) + '] ' + consoleString + "\n");
+    const firstResponseCodeOfEngine = responseOfEngine[0].code;
+    process.stdout.write('[' + (parseInt(firstResponseCodeOfEngine) < 400 ? styleText(firstResponseCodeOfEngine, 'green') : styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
 
     //if (responseCodeHTTP < 400) { // else there is no response element parsing possible
     responseContentType = PMUtil.getContentType(responseBody);
@@ -862,10 +868,6 @@ newman.run({
         }
 
     });
-
-    // TODO TODO TODO: decide on status code wether to write samples or not.
-    // TODO TODO TODO: slack notifications...
-    //PMUtil.writeAdoc(info);
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
