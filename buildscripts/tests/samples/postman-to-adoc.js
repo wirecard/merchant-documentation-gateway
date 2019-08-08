@@ -19,14 +19,18 @@ const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8'
 const TRANSACTIONSTATE_SUCCESS = 'success';
 const TRANSACTIONCODE_SUCCESS = '201.0000';
 
+// for PMUtil.ElementNamesMap:
 const ELEMENT_TRANSACTION_TYPE = 'transaction_type';
 const ELEMENT_PAYMENT_METHOD = 'payment_method';
 const ELEMENT_FLAT_PAYMENT_METHOD = 'flat_payment_method';
 const ELEMENT_TRANSACTION_ID = 'transaction_id';
+const ELEMENT_REQUEST_ID = 'request_id';
 const ELEMENT_CRYPTOGRAM_TYPE = 'cryptogram_type';
 const ELEMENT_PARENT_TRANSACTION_ID = 'parent_transaction_id';
 const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
 const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc some responses do not have 'payment' as root element
+
+const PM_GUID_VARIABLE = '{{$guid}}';
 
 const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
 
@@ -43,6 +47,7 @@ PMUtil.RequestResponseIndex = {};
 * @return {string} The element value.
 */
 PMUtil.getTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTION_ID, body);
+PMUtil.getRequestID = (body) => PMUtil.readElementFromBody(ELEMENT_REQUEST_ID, body);
 PMUtil.getParentTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
 PMUtil.getPaymentMethod = (body) => {
     return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body) : PMUtil.readElementFromBody(ELEMENT_FLAT_PAYMENT_METHOD, body);
@@ -88,6 +93,11 @@ PMUtil.ElementNamesMap = {
         xml: [GENERIC_ROOT_ELEMENT, 'payment-method'],
         json: [GENERIC_ROOT_ELEMENT, 'payment-method'],
         nvp: 'payment_method'
+    },
+    request_id: {
+        xml: [GENERIC_ROOT_ELEMENT, 'request-id'],
+        json: [GENERIC_ROOT_ELEMENT, 'request-id'],
+        nvp: 'request_id'
     },
     transaction_id: {
         xml: [GENERIC_ROOT_ELEMENT, 'transaction-id'],
@@ -170,7 +180,7 @@ PMUtil.writeAdocSummarySeparated = function (RequestResponseIndex) {
 [.tab-source.tab-` + transaction.request.content_type_abbr + `]
 [source,` + transaction.request.content_type_abbr + `]
 ----
-` + transaction.request.body_source + `
+` + transaction.request.body_web + `
 ----
 `;
                 fileContent += samplesAdoc;
@@ -248,7 +258,7 @@ e| Merchant Account ID | \`` + transaction.maid + `\`
 //.Request ` + paymentMethodBrandName + `: ` + transactionType + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.request.content_type_abbr + `]
 ----
-` + transaction.request.body_source + `
+` + transaction.request.body_web + `
 ----
 
 [.r-details]
@@ -639,6 +649,13 @@ PMUtil.formatJSON = function (jsonString) {
     return JSON.stringify(JSON.parse(jsonString), null, 2);
 };
 
+PMUtil.formatRequestForWeb = function (body_sent) {
+    // TODO. doesn't replace anything? check!
+    const requestID = new RegExp(PMUtil.getRequestID(body_sent));
+    var formattedBody = body_sent.slice();
+    return formattedBody.replace(requestID, PM_GUID_VARIABLE);
+};
+
 newman.run({
     collection: postmanCollectionFile,
     environment: {
@@ -656,6 +673,7 @@ newman.run({
     const requestMethod = requestSource.method;
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
+    const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);  // body that has no vars in them (for web display) except request id
     const responseBody = PMUtil.formatResponse(args.response.stream.toString());
     const responseCodeHTTP = args.response.code;
     const responseOfEngine = PMUtil.readEngineResponse(responseBody);
@@ -704,6 +722,7 @@ newman.run({
                 content_type_abbr: requestContentTypeAbbr,
                 body_source: requestBodySource,
                 body_sent: requestBodySent,
+                body_web: requestBodyWeb,
                 method: requestMethod,
                 endpoint: requestEndpoint,
                 username: requestUsername,
