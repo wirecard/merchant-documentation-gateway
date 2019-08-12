@@ -2,14 +2,15 @@
 ==== Fields
 
 ////
-@ Karin: At some location we must state, that this table is the general field table for credit card but some transaction types may require a different field definition and that this 
-different definition is given directly with the transaction type.
+@ Karin: At some location we must state, that 
 ////
 
 [#CC_Fields_intro]
 ===== Introduction
 
-This field list gives an overview of all the fields involved in _credit card_ transactions.
+This table is the general field table for _Credit Card_. It gives a general overview of all the fields involved in _credit card_ transactions.
+
+Some transaction types may require a different field definition. If this is the case, the different definition is given directly with the transaction type.
 
 - _Format:_ XML 
 - _POST_ requests and responses
@@ -24,14 +25,11 @@ We provide the request and the response fields in two separate sections:
 
 //-
 
-Within <<CC_Fields_xmlobjects_request, _Request_>> and <<CC_Fields_xmlobjects_response, _Response_>>, the fields are sorted by hierarchy.
-////
-vhauss: Do we really need the links twice (line 22 and 27)?
-KKS: What is the difference between object - container - element? 
-vhauss: There is no need to understand the difference. The point is: There is no adequate term available for the individual tables. 
-I think we need a unique term to refer to the table fractions. Possible suggestions from my side are "object", "element" or "container". 
-We need to discuss this.
-////
+Within _Request_ and _Response_, the fields are sorted by hierarchy.
+
+In each section, the _Request_ section and the _Response_ section, the fields are grouped according to their elements (such as _payment_, _account-holder_, _card_, _shipping_, etc).
+Each element is displayed with an own table.
+
 
 [#CC_Fields_intro_objects]
 ====== Objects
@@ -39,56 +37,36 @@ We need to discuss this.
 Each field list has the following columns:
 
 - <<CC_Fields_intro_objects_name, Name>>
-- <<CC_Fields_intro_objects_cardinality, Cardinality>>
+- <<CC_Fields_intro_objects_cardinality, Cardinality>> (for _Request_ elements only)
 - <<CC_Fields_intro_objects_dataType, Data Type>>
 - <<CC_Fields_intro_objects_lengthLength, Length>>
-
-////
-vhauss: What about the description? The "description" part is the most crucial change compared to the old field table version. We should mention, what kind of 
-information can be derived from this "description".
-////
 
 [#CC_Fields_intro_objects_name]
 ._Name_
 _Structure:_ ``parent-element.child-element.child2-element`` +
 _Example:_ ``order-items.order-item.article-number``
 
-The structure shows a hierarchical relation between ``parent-element`` and ``child-element``. The ``parent-element`` comes first, followed by a separating``.``, followed by the ``child-element``. The child of the ``child-element`` (``child2-element``), also separated by ``.``, comes next. 
+The structure shows a hierarchical relation between the elements. We have a parent element consisting of children. Some children can turn into a parent element and have their own children.
 
-////
-Do we need the "@" as well?
-vhauss: Discussed with Ralf: We don't need the "@".
-
-vhauss: Can we use "grand-child" instead of "child2"?
-////
+According to the above example we have the parent element ``order-items`` and its child ``order-item``. ``order-item`` itself is also a parent element of its child ``article-number``. 
+The hierarchy levels are sparated by a ``.``.
 
 [#CC_Fields_intro_objects_cardinality]
 ._Cardinality_
 
 _Cardinality_ indicates the functional necessity
-of the field for the request/response. A field can be mandatory (M), optional (O), or conditional \(C).
+of the field for the request/response. A field can be either mandatory (M) or optional (O).
 
 - If a field is _mandatory_, it must be included in the request and contain a value. Without this field, the request will fail. +
 - If a field is _optional_, it does not have to be included in the request. Including optional fields nevertheless may have certain advantages. 
 Reasons why content should be sent with optional fields can be found at the table's description.
 
 The definition of _Cardinality_ may sometimes lead to an ambiguous interpretation.
-Look, for example, at the ``periodic``-object. When you send a request without
-a recurring intention, the ``periodic``-fields are not necessary but they are mandatory, when you send a set of recurring transactions.
-In the tables below we will describe the cardinality, considering the context
-that you want to send a transaction that makes use of the described object.
+Look, for example, at the ``periodic``-element. When you send a request without a recurring intention, the ``periodic``-fields are not necessary. But they are mandatory, when you start a payment process with recurring transactions.
+
+In the tables below we will describe the cardinality considering the technical requirement. We provide suggestions in the description of the tables in which context it makes sense to send a field even though its technical cardinality is _Optional_.
 
 //-
-
-//// 
-- If a field is _conditional_, then it depends on the specific payment transaction, whether or not the field must be included.
-vhauss: I think, we don't need "conditional", as we build a general Credit Card field table here. If conditions differ among the transaction types we can introduce a table at
-each transaction type and describe the different use there (as we do with the general APM Field table).  
-
-vhauss: Do we need a cardinality for our response fields?
-The merchant has to make sure that the request is send correctly. For that, he needs to know which fields have which cardinality. But for the response it doesn't really matter, as the merchant has no influence on the fields sent in the response. So I really wonder, if it is necessary to provide a "Cardinality" column for the pure response fields.
-////
-
 
 [#CC_Fields_intro_objects_dataType]
 ._Data Type_
@@ -97,79 +75,25 @@ _Data Type_ defines the specific characteristics of the input values that can be
 
 Fields containing child fields (such as ``order-item.article-number``) provide a link in the parent table which points to the table describing the children.
 
-- Boolean: has one of two possible values (usually either true or false)
+- String: allows a combination of text and numbers with an arbitrary but finite length. A subset of _String_ values can be defined according to a pattern value, such as a api-id. The pattern will be given in the _Description_ column.
+- Boolean: has one of two possible values (usually either true or false).
 - Date: is a value taken from a calendar (e.g. the date of birth). It follows the pattern YYYY-MM-DD. This pattern cannot be customized.
-- Decimal: is a numeric value which has digits before the comma and after the comma, such as the amount of money in a specific currency.
-- Enumeration: is a list of predefined values, e.g. the severity of a status, which can provide the predefined values _warning_, _error_ and _information_.
-- Number: is a numeric value that has no digits after the decimal, such as expiration month of a credit card.
-
-//// 
-Make sure that expiration-month is defined as "Number". If not change the example here!
-////
-
-- String: allows a combination of text and numbers with an arbitrary but finite length. A subset of _String_ values can be defined according to a pattern value, such as a URL.
 - Timestamp: Is a moment in time defined by a system. It follows the pattern yyyyMMddHHmmss. This pattern cannot be customized.
-
-////
-How about _Integer_?
-
-@Karin: There is still a mismatch (as far as I understand it) with Number/Decimal/Integer.
-First question: Does Integer belong to Number or Decimal?
-"color-depth" is defined "Integer" currently. This rather seems to be an "Number" as for color-depth no comma values are needed.
-expiration-month is defined "Numeric" I think it should be "Number" as for expiration-month no comma values are needed.
-I'm waiting for Ralf's replies.
-
-Here we must explain, which data types we use and how we define them. e.g. What is "String"? What is "Date"? Explain!
-Point out that the "Date" and "Timestamp" format are not customizable!!
-////
-
-
+- Decimal: is a numeric value which has digits before the comma and after the comma, such as the amount of money in a specific currency (e.g. 138,53 €).
+- Number: is a numeric value that has no digits after the decimal, such as expiration month of a credit card.
+- Enumeration: is a list of predefined values, e.g. the severity of a status, which can provide the predefined values _warning_, _error_ and _information_.
 
 [#CC_Fields_intro_objects_length]
 ._Length_
 _Length_ shows how many characters can be used for this field. The value given here is the maximum value merchants can use to make sure the whole amount of characters is processed.
 
 In general, the _{payment-gateway}_ allows all characters for each field, depending on the _Data Type_. 
-////
+
 If other rules apply they will be stated in the column _Description_ with each field.
 
-Do we need a column for "Value Range"?
-vhauss: Currently: No! As agreed with Karin and Ralf, we can provide information about "pattern value" ( see String) in the "Description" column.
-////
-
-
 [#CC_Fields_intro_ComplexType]
-====== _Complex Type_
-Fields that are complex type elements have been organised in separate field lists (such as ``address``). The field itself is part of the respective
-parent-element table. The parent-element table provides a link to the field's separate table.
-////  
-
-I don't think I rephrased it well enough to be comprehensible.
-
-vhauss: I don't think we need to explain "the complex type" as it will not appear in our new table. It will be replaced in any case with a link
-pointing to the children of the field name.
-Maybe we can describe here something like "Children Tables" ("Linked Tables").
-
-////
-
-////
-
-Questions:
-
-1) Do we need a column for "value range" (Wertebereich) in the table as well?
-
-vhauss: I agreed with Ralf and Karin that we will describe special value sets (e.g. pattern values such as url) in the description field with each field name.
-
-2) How do we treat cardinality: Example: to send a request no ``order-item`` is
-   required. It is optional. But when you use it ``name`` and ``amount`` are
-   mandatory.
-
-Suggestion: As we have individual blocks for each object, we can explain in the
-"Description" that the object is optional but give the cardinality of each
-field assuming that the object is being used. This strategy needs to be
-described in the introduction!
-
-////
+====== Parent Elements and its Children
+Parent elements (also refered to as _Complex type_) are organised in subordinate tables (such as ``address``). The fields itself are part of the respective parent element table (e.g. ``address`` is a subordinate table of ``account-holder``, which is a subordinate table of ``payment``). The parent element table provides a link to the table of the child element.
 
 [#CC_Fields_xmlobjects]
 ===== XML Objects
@@ -501,7 +425,7 @@ transaction. Can be one of the following:
 
 ``account-holder`` is a child of
 <<CC_Fields_xmlobjects_request_payment, ``payment``>>. +
-With the ``account-holder`` complex type element merchants can gather detailed information about the
+With the ``account-holder`` merchants can gather detailed information about the
 consumer. Please provide all the ``account-holder`` data in your request to make fraud
 prevention easier.
 
