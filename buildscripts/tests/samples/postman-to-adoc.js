@@ -274,47 +274,44 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     const adocFileExtension = '.adoc';
     const path = 'samples/adoc/';
 
-    //    PMUtil.RequestResponseIndex[paymentMethod][transactionName], {
-    //        [requestContentTypeAbbr]: {
-    //            request: {
 
-    for (var r in RequestResponseIndex) {
-        const paymentMethods = RequestResponseIndex[r];
-        const paymentMethod = r;
-        const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
-        for (var t in paymentMethods) {
-            const transactionKey = paymentMethods[t];
-            const transactionName = transactionKey.name;
-            const transactionType = transactionKey.transaction_type;
-            //const basename = paymentMethod + '_' + camelCase(t);
-            const basename = camelCase(t);
-            const adocFilename = basename + adocFileExtension;
-            if (fs.existsSync(path + adocFilename)) {
-                console.log(adocFilename + ' already exists. overwriting');
-            }
+    for (var t in RequestResponseIndex) {
+        const item = RequestResponseIndex[t];
+        const paymentMethod = item.payment_method;
+        //const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
+        const paymentMethodBrandName = item.payment_method_name
+        const transactionKey = RequestResponseIndex[t];
+        const transactionName = transactionKey.name;
+        const transactionType = transactionKey.transaction_type;
+        //const basename = paymentMethod + '_' + camelCase(t);
+        const basename = camelCase(t);
+        const adocFilename = basename + adocFileExtension;
+        if (fs.existsSync(path + adocFilename)) {
+            console.log(adocFilename + ' already exists. overwriting');
+        }
 
-            var fileContent = `
+        var fileContent = `
 [.sample-tabs]
 
 == ` + paymentMethodBrandName + `: ` + transactionName;
 
-            for (var c in transactionKey['content_types']) {
-                const transaction = transactionKey['content_types'][c]; // "xml transaction" = get-url[0]
-                const transactionType = transactionKey.transaction_type;
-                const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
-                const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
+        for (var c in transactionKey['content_types']) {
+            const transaction = transactionKey['content_types'][c]; // "xml transaction" = get-url[0]
+            const transactionType = transactionKey.transaction_type;
+            const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
+            const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
 
-                var statusesAdocTableCells = '';
-                transaction.response.engine_status.forEach(function (s, i) {
-                    statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
+            var statusesAdocTableCells = '';
+            transaction.response.engine_status.forEach(function (s, i) {
+                statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
 e| Severity    | ` + '``' + s.severity + '``' + `
 e| Description | ` + '``' + s.description + '``' + `
 `;                  // add divider between different status messages in response
-                    if (transaction.response.engine_status.length > 1 && i < (transaction.response.engine_status.length - 1)) {
-                        statusesAdocTableCells += '2+|' + "\n";
-                    }
-                });
-                fileContent += `
+                if (transaction.response.engine_status.length > 1 && i < (transaction.response.engine_status.length - 1)) {
+                    statusesAdocTableCells += '2+|' + "\n";
+                }
+            });
+            fileContent += `
 [.tab-content.tab-` + transaction.request.content_type_abbr + `]
 === ` + transaction.request.content_type_abbr.toUpperCase() + `
 
@@ -361,14 +358,13 @@ e| Content-Type | \`` + transaction.response.content_type + `\`
 include::` + responseFile + `[]
 ----
 `;
-            }
-            fileContent += "\n";
-            try {
-                fs.writeFileSync(path + adocFilename, fileContent);
-            }
-            catch (err) {
-                throw err;
-            }
+        }
+        fileContent += "\n";
+        try {
+            fs.writeFileSync(path + adocFilename, fileContent);
+        }
+        catch (err) {
+            throw err;
         }
     }
 }
@@ -587,7 +583,7 @@ PMUtil.getParentPaymentMethod = function (body) {
     }
     else {
         for (paymentMethod in PMUtil.RequestsIndex) {
-            const pm = PMUtil.RequestsIndex[paymentMethod];
+            const pm = PMUtil.RequestsIndex;
             for (transactionType in pm) {
                 if (pm[transactionType].transaction_id === pid) {
                     // console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
@@ -815,7 +811,7 @@ PMUtil.getFolderPath = function (body, requestName) {
 
 newman.run({
     collection: postmanCollectionFile,
-    environment: pmEnv
+    environment: pmEnv // set notification_endpoint, etc
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
@@ -839,9 +835,9 @@ newman.run({
     const requestContentType = PMUtil.getContentType(requestBodySent);
     const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
+    const paymentMethodName = requestFolderPathArray.join(' ');
     const transactionType = PMUtil.getTransactionType(requestBodySent);
     const transactionKey = requestFolderPathString + '_' + camelCase(requestName);
-    const transactionName = camelCase(transactionType);
     const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
     const merchantAccountID = PMUtil.getMerchantAccountID(requestBodySent);
     const requestEndpoint = 'https://' + requestSent.url.host.join('.') + '/' + requestSent.url.path.join('/');
@@ -884,27 +880,29 @@ newman.run({
     transactionID = PMUtil.getTransactionID(responseBody);
     //}
 
-    if (typeof PMUtil.RequestsIndex[paymentMethod] === 'undefined') {
-        PMUtil.RequestsIndex[paymentMethod] = [];
+    if (typeof PMUtil.RequestsIndex === 'undefined') {
+        PMUtil.RequestsIndex = [];
     }
 
-    PMUtil.RequestsIndex[paymentMethod][transactionKey] = {
+    PMUtil.RequestsIndex[transactionKey] = {
         response_code: responseCodeHTTP,
         transaction_id: transactionID,
         parent_transaction_id: parentTransactionID
     }
 
-    if (typeof PMUtil.RequestResponseIndex[paymentMethod] === 'undefined') {
-        PMUtil.RequestResponseIndex[paymentMethod] = {}; // array for sort order
+    if (typeof PMUtil.RequestResponseIndex === 'undefined') {
+        PMUtil.RequestResponseIndex = {}; // array for sort order
     }
-    if (typeof PMUtil.RequestResponseIndex[paymentMethod][transactionKey] === 'undefined') {
-        PMUtil.RequestResponseIndex[paymentMethod][transactionKey] = {};
+    if (typeof PMUtil.RequestResponseIndex[transactionKey] === 'undefined') {
+        PMUtil.RequestResponseIndex[transactionKey] = {};
     }
-    Object.assign(PMUtil.RequestResponseIndex[paymentMethod][transactionKey],
+    Object.assign(PMUtil.RequestResponseIndex[transactionKey],
         {
-            name: transactionName,
+            name: requestName, // name of req in postman collection
             folder_path_string: requestFolderPathArray,
             transaction_type: transactionType,
+            payment_method: paymentMethod,
+            payment_method_name: paymentMethodName, // folders in postman coll.
             content_types: {
                 [requestContentTypeAbbr]: {
                     request: {
