@@ -79,6 +79,8 @@ var PMUtil = {};
 
 PMUtil.RequestsIndex = {};
 PMUtil.RequestResponseIndex = {};
+PMUtil.Collection = stfuGetJsonFromFile(postmanCollectionFile);
+
 /**
 * These are wrappers for readElementFromBody() to make code more writable/readable.
 * Use the wrappers instead of PMUtil.readElementFromBody() wherever feasible.
@@ -284,9 +286,8 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             const transactionKey = paymentMethods[t];
             const transactionName = transactionKey.name;
             const transactionType = transactionKey.transaction_type;
-            // make filename from first (e.g. XML) request name (Postman name)
-            var basename = paymentMethod + '_' + camelCase(t);
-            var adocFilename = basename + adocFileExtension;
+            const basename = paymentMethod + '_' + camelCase(t);
+            const adocFilename = basename + adocFileExtension;
 
             var fileContent = `
 [.sample-tabs]
@@ -777,6 +778,28 @@ const camelCase = function (str) {
     return str.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != '' }).map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)) }).join('');
 }
 
+// has to use body, because in collection there's no ID for an item
+PMUtil.getFolderPath = function (body) {
+    var itemPath = [];
+    var getFolders = (i, body, path = []) => {
+        for (key in i){
+            var folder = i[key];
+            if(folder.item !== undefined) {
+                var _path = path.slice();
+                _path.push(folder.name);
+                getFolders(folder.item, body, _path);
+            }
+            else {
+                if(folder.request.body.raw == body) {
+                    itemPath = path;
+                }
+            }
+        }
+    };
+    getFolders(PMUtil.Collection.item, body);
+    return itemPath;
+};
+
 newman.run({
     collection: postmanCollectionFile,
     environment: pmEnv
@@ -787,7 +810,7 @@ newman.run({
     const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
     const transactionType = PMUtil.getTransactionType(args.request.body.raw);
     const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + args.item.name + ')';
-    process.stdout.write('[  WAIT  ] ' + consoleString + "\r");
+    process.stdout.write('[  WAIT  ] ' + consoleString + "\n");
 
 }).on('request', function (err, args) {
     const item = args.item;
@@ -796,13 +819,18 @@ newman.run({
     const requestSent = args.request;
     const requestMethod = requestSource.method;
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
+    const requestFolderPathArray = PMUtil.getFolderPath(requestBodySource);
+    if (requestFolderPathArray === undefined) {
+        console.log(requestBodySource)
+    }
+    const requestFolderPathString = requestFolderPathArray.join('_');
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
     const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);  // body that has no vars in them (for web display) except request id
     const requestContentType = PMUtil.getContentType(requestBodySent);
     const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
     const transactionType = PMUtil.getTransactionType(requestBodySent);
-    const transactionKey = transactionType + '_' + sha256(requestBodySent).substr(0,4);
+    const transactionKey = requestFolderPathString + '_' + transactionType;
     const transactionName = camelCase(transactionType);
     const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
     const merchantAccountID = PMUtil.getMerchantAccountID(requestBodySent);
@@ -865,6 +893,7 @@ newman.run({
     Object.assign(PMUtil.RequestResponseIndex[paymentMethod][transactionKey],
         {
             name: transactionName,
+            folder_path_string: requestFolderPathArray,
             transaction_type: transactionType,
             content_types: {
                 [requestContentTypeAbbr]: {
