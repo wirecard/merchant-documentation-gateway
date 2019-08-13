@@ -274,6 +274,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     const adocFileExtension = '.adoc';
     const path = 'samples/adoc/';
 
+    var _writtenFiles = [];
 
     for (var t in RequestResponseIndex) {
         const item = RequestResponseIndex[t];
@@ -361,12 +362,19 @@ include::` + responseFile + `[]
         }
         fileContent += "\n";
         try {
+            _writtenFiles.push(t);
             fs.writeFileSync(path + adocFilename, fileContent);
         }
         catch (err) {
             throw err;
         }
     }
+    for (var x in RequestResponseIndex) {
+        if(_writtenFiles.includes(x) === false) {
+            console.log(x + ' from RRI not written')
+        }
+    }
+    console.log('num written files: ' + _writtenFiles.length);
 }
 
 /**
@@ -801,6 +809,7 @@ PMUtil.getFolderPath = function (body, requestName) {
             else {
                 if (folder.name == requestName && folder.request.body.raw == body) {
                     itemPath = path;
+                    return true;
                 }
             }
         }
@@ -815,7 +824,6 @@ newman.run({
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
-
     const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
     const transactionType = PMUtil.getTransactionType(args.request.body.raw);
     const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + args.item.name + ')';
@@ -845,7 +853,7 @@ newman.run({
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
 
-    const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + requestName + ')';
+    const consoleString = paymentMethodName + ' -> ' + transactionType + ' (' + requestName + ')';
 
     // if a server is not reachable or there is some other network related issue and no response could be received
     // then do not pursue this request any further
@@ -940,6 +948,6 @@ newman.run({
         console.log('collection run completed.');
 
     }
-    console.log('writing adoc file');
+    console.log('writing adoc file from index (' + Object.keys(PMUtil.RequestResponseIndex).length + ' items)');
     PMUtil.writeAdocSummary(PMUtil.RequestResponseIndex);
 });
