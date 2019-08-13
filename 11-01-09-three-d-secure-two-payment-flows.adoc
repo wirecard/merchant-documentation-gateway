@@ -2567,14 +2567,14 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ucof`` and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
 |===
 |XML 2+|Fields
 
-.3+a|
+.5+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <account-holder>
@@ -2582,6 +2582,10 @@ CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include th
         <challenge-indicator>04</challenge-indicator>
     </account-info>
 </account-holder>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
 <three-d>
     <version>2.1</version>
 </three-d>
@@ -2591,6 +2595,12 @@ m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
 
 m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
 m| 04
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m|first
 
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
@@ -2680,7 +2690,7 @@ If the *check-payer-response* was not executed, instead use the
 *PARes* received via TermURL as part of the response to the ACS HTTP POST request.
 
 +
-CAUTION: Set the ``periodic-type`` to ``ucof``.
+CAUTION: Set the ``periodic-type`` to ``ucof`` and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -2868,7 +2878,7 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``.
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ucof`` and ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -2883,6 +2893,10 @@ CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the
         <challenge-indicator>04</challenge-indicator>
     </account-info>
 </account-holder>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
 <three-d>
     <version>2.1</version>
 </three-d>
@@ -2893,6 +2907,12 @@ m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
 
 m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
 m| 04
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
 
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
@@ -2947,7 +2967,7 @@ Once the consumer has been redirected, they receive an authentication prompt. Th
  * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
 --
 +
-NOTE: It is not required to set the *check-payer-response* to ``ucof`` and ``recurring``.
+NOTE: It is not required to include ``periodic`` in the *check-payer-response*.
 
 +
 [%autowidth]
@@ -2988,7 +3008,7 @@ If the *check-payer-response* was not executed, instead use the
 *PARes* received via TermURL as part of the response to the ACS HTTP POST request.
 
 +
-CAUTION: Set the ``periodic-type`` to ``ucof``.
+CAUTION: Set the ``periodic-type`` to ``ucof`` and to ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -3058,7 +3078,7 @@ m| <<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
 [#API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_OneStepMIT]
 ====== Option 1: One-Step Merchant Initiated Transaction (MIT)
 
-. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring``.
+. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring`` (or ``final`` for the last recurring transaction).
 +
 CAUTION: Set the ``periodic-type`` to ``ucof``.
 
