@@ -1,4 +1,4 @@
-/* replace xml samples in postman collection with json
+/* replace XML samples in postman collection with JSON
 *
 * Parameters
 * --input <postman-collection-xml.json>    Input file, a PM Collection containing XML requests
@@ -6,13 +6,12 @@
 */
 
 const child_process = require('child_process');
-const stream = require('stream');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 
-const inputFileName = (argv['input'] === undefined) ? '00DOC.postman_collection.json' : argv['input'];
+const inputFileName = (argv['input'] === undefined) ? ' Wirecard XML.postman_collection.json' : argv['input'];
 if (fs.existsSync(inputFileName) === false) {
-    console.log('could not read input postman collection file. specify with --file <postman_collection.json>');
+    console.log('could not read input postman collection file. specify with --input <postman_collection.json>');
     process.exit(1);
 }
 const outputFileName = (argv['output'] === undefined) ? inputFileName.replace(/(_XML)?\.json$/, '_JSON.json') : argv['output'];
@@ -47,6 +46,7 @@ function replaceXMLRequestswithJSON(folder) {
             replaceXMLRequestswithJSON(Item.item)
         }
         try {
+            process.stdout.write('.');
             Item.request.body.raw = xml2json(Item.request.body.raw);
             for (h in Item.request.header) {
                 if (Item.request.header[h].key == 'Content-Type') {
@@ -65,8 +65,9 @@ function replaceXMLRequestswithJSON(folder) {
         }
     }
 }
+
 /**
- * Spawns xml2json.py and pipes XML body to it's stdin
+ * Spawns xml2json.py and pipes XML body to its stdin
  * Parses output to JSON object, then removes any 'xmlns:xsi' element
  * @param {string} body 
  * @returns {string} Prettified JSON string
@@ -86,10 +87,11 @@ function xml2json(body) {
 
 var PMCollection = simpleReadJSON(inputFileName);
 replaceXMLRequestswithJSON(PMCollection.item);
+process.stdout.write("\n" + 'Done' + "\n");
 
 try {
     fs.writeFileSync(outputFileName, JSON.stringify(PMCollection, null, 2));
-    console.log('output written to: ' + outputFileName);
+    console.log('Converted Postman Collection written to: ' + outputFileName);
 }
 catch (err) {
     throw err;
