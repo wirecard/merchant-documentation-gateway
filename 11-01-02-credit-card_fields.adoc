@@ -1,3 +1,6 @@
+:date-pattern: The date format is YYYY-MM-DD.
+:timestamp-pattern: The timestamp format is yyyyMMddHHmmss.
+
 [#CC_Fields]
 ==== Fields
 
@@ -103,10 +106,6 @@ Parent elements (also refered to as _Complex type_) are organised in subordinate
 Click the X in the respective column for request and response fields.
 
 Please refer to our <<Appendix_Xml, xsd scheme>> for field descriptions.
-
-//// 
-card-emv, card-pin, card-raw must be removed from table!
-////
 
 |===
 | Field | Request | Response
@@ -354,17 +353,6 @@ confirmation page on the merchant's website.
 | The URL to which the consumer will be re-directed after he has cancelled a payment. This is normally a page on the merchant's website.
 // We must provide the "url" pattern
 
-| instrument-country 
-| O 
-| String 
-| 256 
-| The instrument country retrieves the issuer country of a certain credit card. If this field is configured it will be sent in the response. Use a two-digit country code, such as ``DE`` (Germany), ``ES`` (Spain), ``FR`` (France), and ``IT`` (Italy). If you want a full list of countries, please contact <<ContactUs, Merchant Support>>.
-
-////
-Is <instrument-country> only sent in the response?
-KKS: Elsewhere, the description is: "The instrument country retrieves the issuer country of a certain credit card." and "Payment origin country." This suggests that this needs to come either from the consumer or the issuer, right? I'm confused.
-////
-
 | locale 
 | M 
 | String 
@@ -465,7 +453,7 @@ KKS: Set last-name to Optional due to input from Moritz.
 | O 
 | Date 
 |  
-| This is the consumer's birth date. The date format is YYYY-MM-DD.
+| This is the consumer's birth date. {date-pattern}
 
 | phone 
 | O 
@@ -600,6 +588,37 @@ Is that correct?
 | This is the consumer's house extension.
 |===
 
+[#CC_Fields_xmlelements_request_airlineindustry]
+.airline-industry
+
+``airline-industry`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| airline-code |O |String |3	|The airline code assigned by IATA.
+| airline-name |O |String	|64	|Name of the airline.
+| passenger-code |O |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
+| passenger-name |O |String	|32	|The name of the Airline Transaction passenger.
+| passenger-phone |O |String	|32	|The phone number of the Airline Transaction passenger.
+| passenger-email |O |String	|64	|The Email Address of the Airline Transaction passenger.
+| passenger-ip-address |O |String |45 |The IP Address of the Airline Transaction passenger.
+| ticket-issue-date |O |Date | |The date the ticket was issued. {date-pattern}
+| ticket-number |O |String |11	|The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
+| ticket-restricted-flag |O |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
+| pnr-file-key |O |String	|10	|The Passenger Name File Id for the Airline Transaction.
+| ticket-check-digit |O |String |2	|The airline ticket check digit.
+| agent-code |O |String |3	|The agency code assigned by IATA.
+| agent-name |O |String |64	|The agency name.
+| non-taxable-net-amount |O | Decimal	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction
+| ticket-issuer/address |O |Address | |The address of the ticket issuer.
+| number-of-passengers |O |String |3	|The number of passengers on the Airline Transaction.
+| reservation-code |O |String |32 |The reservation code of the Airline Transaction passenger.
+| itinerary | 2+| <<CreditCard_Fields_Segment, segment>> | The itinerary segments of the airline transaction. Up to 99 itinerary segments can be defined. 
+|===
+
 //// 
 [#CC_Fields_xmlelements_request_airlineindustry]
 .airline-industry
@@ -728,6 +747,21 @@ can be defined.
 
 ////
 
+[#CC_Fields_xmlelements_request_audit]
+.audit
+
+``audit`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>. 
+Audit data is displayed in _{enterprise-portal-abbr}_ for each transaction it has been send with.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| request-source |O |String |30 |Optional information that references the application or _{payment-gateway}_ a transaction is processed with.
+| user |O | String |128 |Optional information that identifies the origin/user of the payment request. Audit user is send by frontend applications referencing the user processing transactions or follow up operations using the application.
+|===
+
 //// 
 [#CC_Fields_xmlelements_request_audit]
 .audit
@@ -753,6 +787,20 @@ can be defined.
 |===
 
 ////
+
+[#CC_Fields_xmlelements_request_browser]
+.browser
+
+``browser`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+|accept |O |String |2048 |This is the HTTP Accept Header as retrieved from the cardholder's browser in the HTTP request. In case it is longer than 2048 it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
+|user-agent |O |String |256 |This is the User Agent as retrieved from the card holder's browser in the HTTP request. In case it is longer than 256 Byte it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
+|===
 
 //// 
 [#CC_Fields_xmlelements_request_browser]
@@ -952,7 +1000,7 @@ types return elements of ``card-token`` in the response.
 | 256 
 | This is the card's track-2.
 
-5+a| <<CC_Fields_xmlelements_request_cardemv, card-emv>>
+// 5+a| <<CC_Fields_xmlelements_request_cardemv, card-emv>>
 
 ////
 EMV cards are smart cards (also called chip cards or IC cards) that store their
@@ -964,7 +1012,7 @@ over a short distance using near-field communication (NFC) technology.
 KKS: great as an internal reference. I'm not sure this is needed as a description
 ////
 
-5+a| <<CC_Fields_xmlelements_request_cardpin, card-pin>>
+// 5+a| <<CC_Fields_xmlelements_request_cardpin, card-pin>>
 
 ////
 A PIN pad or PIN entry device is an electronic device used in a debit, credit or smart card-based transaction to accept and encrypt the cardholder's personal identification number (PIN).
@@ -976,7 +1024,7 @@ The PIN pad is required to read the card and allow the PIN to be securely
 entered and encrypted before it is sent to the bank. (Taken from Wikipedia)
 ////
 
-5+a| <<CC_Fields_xmlelements_request_cardraw, card-raw>>
+// 5+a| <<CC_Fields_xmlelements_request_cardraw, card-raw>>
 
 ////
 What is <card-raw>?
@@ -1106,8 +1154,8 @@ KKS: are these fields also required for online transactions, or only POS transac
 [#CC_Fields_xmlelements_request_cardraw]
 .card-raw
 
-``card-raw`` belongs to the
-<<CC_Fields_xmlelements_request_card, ``card``>> object.
+``card-raw`` is a child of
+<<CC_Fields_xmlelements_request_card, ``card``>>
 
 ??
 
@@ -1189,6 +1237,47 @@ transaction response for the first use of a credit card.
 ``card-type`` is a child of <<CC_Fields_xmlelements_request_paymentmethod, ``payment-methods.card-types``>>. It provides a list of all supported card types. Please refer to the <<Appendic_Xml, Payment XSD>>
 for the complete list of supported card types.
 
+[#CC_Fields_xmlelements_request_creditsenderdata]
+.credit-sender-data
+
+``credit-sender-data`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| receiver-name | M/O |String |35 |Mandatory for cross-border transactions. +
+Maximum length for Visa: 30
+| receiver-last-name | M/O |String |35 |Mandatory for cross-border transactions.
+| reference-number |O |String |19 |Maximum length for Visa: 16
+| sender-account-number | M/O |String |20 |_Mastercard:_ Mandatory +
+_Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
+| sender-name | M/O |String |24 |_Mastercard:_ Mandatory +
+_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
+| sender-last-name | M/O |String |35 |_Mastercard:_ Mandatory +
+_Visa:_ Optional
+| sender-address | M/O |String |50 |_Mastercard:_ Optional +
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
+| sender-city | M/O |String |25 |_Mastercard:_ Optional +
+_Visa:_ Mandatory for US domestic and cross-border transactions
+| sender-country | M/O |String |3 |_Mastercard:_ Optional +
+_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 2
+// Max. Size seems to be rather 2 (ISO-Country names consist of 2 characters.)
+| sender-state | M/O |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada +
+_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
+| sender-postal-code |O |String |10 |No specific requirements for _Mastecard_ and _Visa_.
+| sender-funds-source |O |String |2 |Accepted characters are: +
+_Mastercard_ +
+- US: 01, 02, 03, 04, 05, 07
+- Non-US: 01, 02, 03, 04, 05, 06, 07 +
+//-
+_Visa_ +
+- US: 1, 2, 3
+- Non-US: 01, 02, 03, 04, 05, 06
+//-
+|===
+
 //// 
 [#CC_Fields_xmlelements_request_creditsenderdata]
 .credit-sender-data
@@ -1197,12 +1286,16 @@ for the complete list of supported card types.
 <<CC_Fields_xmlelements_request_payment, ``payment``>>.
 
 ////
+
+////
 ``credit-sender-data`` is used in OCT non gambling payment processes only.
 KKS: I think I would actually include the sentence above. Below: it would be nice to have this as a use case for cc transactions of this type.
 With this set of fields the merchant can send money to the consumer.
 This can be the case, if the merchant is
 - an insurance company and has to pay out money to the consumer (insurance case).
 - the government and has to pay back taxes.
+////
+
 ////
 
 [cols="30,6,9,7,48a"]
@@ -1302,6 +1395,34 @@ _Visa_
 |===
 
 ////
+
+[#CC_Fields_xmlelements_request_cruiseindustry]
+.cruise-industry
+
+``cruise-industry`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| carrier-code |O |String |3 |The carrier code assigned by IATA.
+| agent-code |O |String |8 |The agent code assigned by IATA.
+| travel-package-type-code |O |String	|10	|This indicates if the package includes car rental, airline flight, both or neither. Valid entries include: +
+C = Car rental reservation included, A = Airline flight reservation included, B = Both car rental and airline flight reservations included, N = Unknown.
+| ticket-number |O |String |15 |The ticket number, including the check digit.
+| passenger-name |O |String |100 |The name of the passenger.
+| airline-code |O |String |3 |The airline code assigned by IATA.
+| lodging-check-in-date |O |Date | |The cruise departure date also known as the sail date. {date-pattern}
+| lodging-check-out-date |O |Date | |The cruise return date also known as the sail end date. {date-pattern}
+| lodging-room-rate |O | Decimal |18,2 |The total cost of the cruise.
+| number-of-nights |O |Number |3 |The length of the cruise in days.
+| lodging-name |O |String |100 |The lodging name booked for the cruise.
+| lodging-city-name |O |String |20 |The name of the city where the lodging property is located.
+| lodging-region-code |O |String	|10	|The region code where the lodging property is located.
+| lodging-country-code |O |String |10 |The country code where the lodging property is located.
+| segment | 2+| <<CreditCard_Fields_Segment, segment>> |The itinerary segments of the cruise. Up to 99 itinerary segments can be defined.
+|===
 
 //// 
 [#CC_Fields_xmlelements_request_cruiseindustry]
@@ -1406,6 +1527,22 @@ can be defined.
 
 ////
 
+[#CC_Fields_xmlelements_request_customfield]
+.custom-field
+
+``custom-field`` is a child of  
+<<CC_Fields_xmlelements_request_payment, ``payment.custom-fields``>>.
+
+In the <<CC_Fields_xmlelements_response_customfield, response > ``custom-field``>> section you can find examples for ready-to-use ``custom-field``.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+|field-name |O |String |36 |This is the name for the custom field.
+|field-value |O |String |256 |This is the content of the custom field. In this field the merchant can send additional information.
+|===
+
 //// 
 [#CC_Fields_xmlelements_request_customfield]
 .custom-field
@@ -1436,6 +1573,19 @@ Additional fields can be found in the
 |===
 
 ////
+
+[#CC_Fields_xmlelements_request_device]
+.device
+
+``device`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| fingerprint |O |String |4096 |A device fingerprint is information collected about a remote computing device for the purpose of identification retrieved on merchants side. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
+|===
 
 //// 
 [#CC_Fields_xmlelements_request_device]
@@ -1492,13 +1642,10 @@ Additional fields can be found in the
 [#CC_Fields_xmlelements_request_itinerary]
 .itinerary
 
-//// 
-What do we do with ``itinerary``?
-////
-
 ``itinerary`` is a child of
 <<CC_Fields_xmlelements_request_airlineindustry, ``airline-industry``>> and
 <<CC_Fields_xmlelements_request_cruiseindustry, ``cruise-industry``>>.
+ is the parent of <<CC_Fields_xmlelements_request_segment, segment>>. Airline Industry and Cruise Industry can define up to 99 itinerary segments.
 
 [cols="30,6,9,7,48a"]
 |===
@@ -1508,8 +1655,23 @@ What do we do with ``itinerary``?
 4+| <<CC_Fields_xmlelements_request_segment, segment>>
 |===
 
-////
+[#CC_Fields_xmlelements_request_notification]
+.notification
 
+``notification`` is a child of 
+<<CC_Fields_xmlelements_request_payment, ``payment.notifications``>>, which
+is used to set up <<GeneralPlatformFeatures_IPN, Instant Payment Notification (IPN)>>. It is highly recommended to use IPN. IPN informs you about the outcome of the individual payment processes. By including ``notifications`` in the request
+you can overwrite the <<GeneralPlatformFeatures_IPN_Configuration, merchant account configuration>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| transaction-state |O |String |12 |This is the status of a transaction when IPN will be sent.
+| url |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
+|===
+
+////
 [#CC_Fields_xmlelements_request_notification]
 .notification
 
@@ -1557,6 +1719,25 @@ KKS: I think there is little need to explain all of this here; linking it twice 
 
 ////
 
+[#CC_Fields_xmlelements_request_orderitem]
+.order-item
+
+``order-item`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment.order-items``>>. This is a field
+for order's items filled by the merchant. Order item amount always includes tax.
+Tax can be specified either by tax-amount or by tax-rate.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| name |O | String | |Name of the item in the basket.
+| article-number |O | String | |EAN or other article identifier for merchant.
+| amount |O |Number | |Item's price per unit.
+| tax-rate |O |Number | |Item's tax rate per unit.
+| quantity |O |Number | |Total count of items in the order.
+|===
+
 //// 
 [#CC_Fields_xmlelements_request_orderitem]
 .order-item
@@ -1567,7 +1748,11 @@ for order's items filled by the merchant. Order item amount always includes tax.
 Tax can be specified either by tax-amount or by tax-rate.
 
 ////
+
+//// 
 When filled by the merchant: Is ``order-items`` a request or response field?
+////
+
 ////
 
 [cols="30,6,9,7,48a"]
@@ -1690,11 +1875,36 @@ In which context is this URL used? I cannot find it in a single sample (neither 
 ////
 // We must provide the "url" pattern
 
-4+| card-types 
-| This is the parent of multiple <<CC_Fields_xmlelements_request_cardtype, ``card-type``>> elements. 
+2+| card-types 
+3+| This is the parent of multiple <<CC_Fields_xmlelements_request_cardtype, ``card-type``>> elements. 
 
-4+| payload 
-| This is the parent of multiple <<CC_Fields_xmlelements_request_payload, ``payload-field``>> elements. 
+2+| payload 
+3+| This is the parent of multiple <<CC_Fields_xmlelements_request_payload, ``payload-field``>> elements. 
+|===
+
+[#CC_Fields_xmlelements_request_segment]
+.segment
+
+``segment`` is a child of
+<<CC_Fields_xmlelements_request_itinerary, ``itinerary``>>. Itinerary segment data is used e.g. within airline-industry to specify itineraries of the flight.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| carrier-code | M/O |String	|3	|The 2-letter airline code (e.g. LH, BA, KL) supplied by IATA for each leg of a flight. Mandatory, if itinerary is provided.
+// Max. Size seems to be rather 2 (2-letter airline code obviously consists of 2 characters.)
+| departure-airport-code | M/O |String	|3	|The departure airport code. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+| departure-city-code | M/O |String	|32	|The departure City Code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+| arrival-airport-code | M/O |String	|3	|The arrival airport code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+| arrival-city-code | M/O |String	|32	|The arrival city code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
+| departure-date | M/O |Date  |  |The departure date for a given leg. Mandatory, if itinerary is provided. {date-pattern}
+| arrival-date | M/O |String | |The arrival date for a given leg. Mandatory, if itinerary is provided. {date-pattern}
+| flight-number |O |String |6 |The flight number of the Itinerary Segment.
+| fare-class |O |String |3 |Used to distinguish between First Class, Business Class and Economy Class, but also used to distinguish between different fares and booking
+| fare-basis |O |String	|6 |Represents a specific fare and class of service with letters, numbers, or a combination of both.
+| stop-over-code |O |String	|1 |0 = allowed, 1 = not allowed
+| tax-amount@currency |O |String |3 |The currency of the Value Added Tax Amount levied on the transaction amount.
 |===
 
 //// 
@@ -1875,12 +2085,32 @@ KKS: I think for 3DS2, it's necessary to send shipping in any case. I would remo
 | This is used to specify the return shipping company from shipping information.
 |===
 
+[#CC_Fields_xmlelements_request_submerchantinfo]
+.sub-merchant-info
+
+``sub-merchant-info`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| id | O | String |15 | If you want to use <sub-merchant-info> _id_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+| name	| O | String |22 | If you want to use <sub-merchant-info> _name_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+| country | O | String |2 | If you want to use <sub-merchant-info> _country_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+| state | M/O | String |3 | Mandatory, when _country_ =  US or CA. +
+For all other countries _state_ is optional. If _country_ is neither US nor CA, do not send this field at all in the request.
+| city | O | String |13 |If you want to use <sub-merchant-info> _city_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+| street | O | String |38 |If you want to use <sub-merchant-info> _street_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+| postal-code | O | String |10	|If you want to use <sub-merchant-info> _postal-code_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
+|===
+
 //// 
 [#CC_Fields_xmlelements_request_submerchantinfo]
 .sub-merchant-info
 
-``sub-merchant-info`` belongs to the
-<<CC_Fields_xmlelements_request_payment, ``payment``>> object.
+``sub-merchant-info`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>
 
 [cols="30,6,9,7,48a"]
 |===
@@ -1961,8 +2191,33 @@ KKS: I think for 3DS2, it's necessary to send shipping in any case. I would remo
 
 ////
 
-//// 
+[#CC_Fields_xmlelements_request_threed]
+.three-d
 
+``three-d`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+Additional fields can be found in the
+<<CC_Fields_xmlelements_response_threed, response > three-d>> section.
+
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| attempt-three-d |O |String |1 |Indicates that the Transaction Request should proceed with the 3D Secure workflow if the [Card Holder] is enrolled.  Otherwise, the transaction proceeds without 3D Secure. This field is used in conjunction with Hosted Payment Page.
+|[[CreditCard_Fields_ThreeD_Pares]]
+ pares |C |String |2048 |In a 3D Secure transaction, this is the digitally signed, base64-encoded authentication response message received from the issuer.
+| eci |C |String |2 |In a 3D Secure process, this indicates the status of the VERes.
+| xid |C |String |36 |In a 3D Secure process, this is the unique transaction identifier.
+| cardholder-authentication-value |C |String |1024 |The CAVV is a cryptographic value generated by the Issuer. For Visa transaction it is called CAVV (Cardholder Authentication Verification Value) for MasterCard it is either called Accountholder Authentication Value (AAV) or Universal Cardholder Authentication Field (UCAF).
+| cardholder-authentication-status |C |String |1 |Status of 3D Secure check.
+| pareq |C |String |16000 |In a 3D Secure transaction, this is a base64-encoded request message created for cards participating in the 3D program. The PaReq is returned by the issuer's ACS via the VISA or MasterCard directory to the _{payment-gateway}_ and from here passed on to the merchant.
+| liability-shift-indicator | |String |2048 |Liability shift can be enabled for 3D Secure enabled customers.
+// Wird der shift-indicator nur in der response gesendet? Oder wie ist die Kardinalität für den request? Momentan keine Angabe.
+| acs-url |C |String |2048 |The issuer URL to where the merchant must direct the enrolment check request via the cardholder's browser. It is returned only in case the cardholder is enrolled in 3D Secure program.
+|===
+
+//// 
 [#CC_Fields_xmlelements_request_threed]
 .three-d
 
@@ -2080,101 +2335,12 @@ Accepted values are: 01, 02, 03, 04, 05 +
 
 
 
-[#CreditCard_Fields_Statuses]
-.statuses
 
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h| Field 3+h| Transaction Process .2+h| Datatype .2+h| Size .2+h| Description
-h| Request h| Response h| Notification
 
-|statuses.status | |M |M |String |12 |This is the status of a transaction.
-|status@code | |M |M |String |12 |This is the code of the status of a transaction.
-|status@description | |M |M |String |256 |This is the description to the status code of a transaction.
-|status@severity | |M |M |String |20 |This field gives information if a status is a warning, an error or an information.
-|requested-amount | |M |M |Numeric |18,2 |This is the amount of the transaction. The amount of the decimal place is dependent of the currency.
-|requested-amount@currency |M |M |M |String |3 |This is the currency of the transaction.
-|===
 
-[#CC_Fields_xmlelements_request_orderitem]
-.order-item
 
-``order-item`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment.order-items``>>. This is a field
-for order's items filled by the merchant. Order item amount always includes tax.
-Tax can be specified either by tax-amount or by tax-rate.
 
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|order-items.order-item.name |O	| | |Alphanumeric | |Name of the item in the basket.
-|order-items.order-item.article-number |O	| | |Alphanumeric | |EAN or other article identifier for merchant.
-|order-items.order-item.amount |O	| | |Number | |Item's price per unit.
-|order-items.order-item.tax-rate |O	| | |Number | |Item's tax rate per unit.
-|order-items.order-item.quantity |O	| | |Number | |Total count of items in the order.
-|===
-
-[#CC_Fields_xmlelements_request_notification]
-.notification
-
-``notification`` is a child of 
-<<CC_Fields_xmlelements_request_payment, ``payment.notifications``>>, which
-is used to set up <<GeneralPlatformFeatures_IPN, Instant Payment Notification (IPN)>>. It is highly
-recommended to use IPN. IPN informs you about
-the outcome of the individual payment processes. By including ``notifications`` in the request
-you can overwrite the
-<<GeneralPlatformFeatures_IPN_Configuration, merchant account configuration>>.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|notifications.notification |O |O |O | | |This is used for IPN (Instant Payment Notification).
-|notifications.notification@transaction-state |O |O |O |String |12 |This is the status of a transaction when IPN will be sent.
-|notifications.notification@url |O |O |O |String |256 |The URL to be used for the IPN. It overwrites the notification URL that is set up in the merchant configuration.
-|===
-
-[#CC_Fields_xmlelements_request_device]
-.device
-
-``device`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|device.fingerprint |O |O |O |String |4096 |A device fingerprint is information collected about a remote computing device for the purpose of identification retrieved on merchants side. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
-|===
-
-[#CC_Fields_xmlelements_request_customfield]
-.custom-field
-
-``custom-field`` is a child of  
-<<CC_Fields_xmlelements_request_payment, ``payment.custom-fields``>>.
-
-Additional fields can be found in the
-<<CC_Fields_xmlelements_response_customfield, response > ``custom-field``>> section.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|custom-fields.custom-field |O |O |O | | |This is used for adding custom information related to transaction.
-|custom-field@field-name |O |O |O |String |36 |This is the name for the custom field.
-|custom-field field-name="CardCategoryExt" field-value="M/C" | |O | | | |If this field has been configured by {payment-provider-name}, it will be sent in the response. Possible field values are: M (Consumer), C (Commercial)
-|custom-field field-name="CardProductID" field-value="See description for possible field values" | |O	| | | |If this field has been configured by {payment-provider-name}, it will be sent in the response. For possible field values see the following selected examples. If you need the values of other card products, please contact mailto:{e-mail-support}[merchant support]. +
-VISA: A (VISA Traditional), F (ViSA Classic), G (VISA Business), I (VISA Infinite) +
-MasterCard: MCC (MasterCard® Consumer), MCD (Debit MasterCard® Card), MCS (MasterCard® Consumer - Standard)
-|custom-field field-name="CardCategory" field-value="D/C/P" | |O | | | |	If this field has been configured by {payment-provider-name}, it will be sent in the response. Possible field values are: D (Debit), C (Credit), P (Prepaid)
-|custom-field@field-value |O |O |O |String |256 |This is the content of the custom field. In this field the merchant can send additional information.
-|===
-
+//// 
 [#CC_Fields_xmlelements_response_paymentmethod]
 .payment-method
 
@@ -2192,46 +2358,11 @@ Value "creditcard" should be used.
 |payment-methods.payment-method@url |O |O |O |String |256 |The URL to be used for proceeding with payment on provider side.
 |===
 
-[#CC_Fields_xmlelements_request_threed]
-.three-d
+////
 
-``three-d`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>.
 
-Additional fields can be found in the
-<<CC_Fields_xmlelements_response_threed, response > three-d>> section.
 
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
 
-|three-d.attempt-three-d |O |O |O |String |1 |Indicates that the Transaction Request should proceed with the 3D Secure workflow if the [Card Holder] is enrolled.  Otherwise, the transaction proceeds without 3D Secure. This field is used in conjunction with Hosted Payment Page.
-|[[CreditCard_Fields_ThreeD_Pares]]
-three-d.pares |C |C |C |String |2048 |In a 3D Secure transaction, this is the digitally signed, base64-encoded authentication response message received from the issuer.
-|three-d.eci |C |C |C |String |2 |In a 3D Secure process, this indicates the status of the VERes.
-|three-d.xid |C |C |C |String |36 |In a 3D Secure process, this is the unique transaction identifier.
-|three-d.cardholder-authentication-value |C |C |C |String |1024 |The CAVV is a cryptographic value generated by the Issuer. For Visa transaction it is called CAVV (Cardholder Authentication Verification Value) for MasterCard it is either called Accountholder Authentication Value (AAV) or Universal Cardholder Authentication Field (UCAF).
-|three-d.cardholder-authentication-status |C |C |C |String |1 |Status of 3D Secure check.
-|three-d.pareq |C |C |C |String |16000 |In a 3D Secure transaction, this is a base64-encoded request message created for cards participating in the 3D program. The PaReq is returned by the issuer's ACS via the VISA or MasterCard directory to the _{payment-gateway}_ and from here passed on to the merchant.
-|three-d.liability-shift-indicator | |O |O |String |2048 |Liability shift can be enabled for 3D Secure enabled customers.
-|three-d.acs-url |C |C |C |String |2048 |The issuer URL to where the merchant must direct the enrolment check request via the cardholder's browser. It is returned only in case the cardholder is enrolled in 3D Secure program.
-|===
-
-[#CC_Fields_xmlelements_request_browser]
-.browser
-
-``browser`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|browser.accept |O | |M |String |2048 |This is the HTTP Accept Header as retrieved from the cardholder's browser in the HTTP request. In case it is longer than 2048 it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
-|browser.user-agent |O |  |M |String |256 |This is the User Agent as retrieved from the card holder's browser in the HTTP request. In case it is longer than 256 Byte it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
-|===
 
 //// 
 [#CreditCard_Fields_Avs]
@@ -2250,171 +2381,17 @@ h|Request h|Response h|Notification
 
 ////
 
-[#CC_Fields_xmlelements_request_creditsenderdata]
-.credit-sender-data
-
-``credit-sender-data`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|credit-sender-data.receiver-name |C | | |String |35 |Mandatory for cross-border transactions. +
-Maximum length for Visa: 30
-|credit-sender-data.receiver-last-name |C | | |String |35 |Mandatory for cross-border transactions.
-|credit-sender-data.reference-number |O | | |String |19 |Maximum length for Visa: 16
-|credit-sender-data.sender-account-number |C | | |String |20 |_Mastercard:_ Mandatory +
-_Visa:_ Mandatory if ReferenceNumber is empty, Maximum length: 34
-|credit-sender-data.sender-name |C | | |String |24 |_Mastercard:_ Mandatory +
-_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum length: 30
-|credit-sender-data.sender-last-name |C | | |String |35 |_Mastercard:_ Mandatory +
-_Visa:_ Optional
-|credit-sender-data.sender-address |C | | |String |50 |_Mastercard:_ Optional +
-_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 35
-|credit-sender-data.sender-city |C | | |String |25 |_Mastercard:_ Optional +
-_Visa:_ Mandatory for US domestic and cross-border transactions
-|credit-sender-data.sender-country |C | | |String |3 |_Mastercard:_ Optional +
-_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum length: 2
-|credit-sender-data.sender-state |C | | |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada +
-_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
-|credit-sender-data.sender-postal-code |O | | |String |10 |No specific requirements for _Mastecard_ and _Visa_.
-|credit-sender-data.sender-funds-source |O | | |String |2 |Accepted characters are: +
-_Mastercard_ +
-- US: 01, 02, 03, 04, 05, 07
-- Non-US: 01, 02, 03, 04, 05, 06, 07 +
-//-
-_Visa_ +
-- US: 1, 2, 3
-- Non-US: 01, 02, 03, 04, 05, 06
-//-
-|===
 
 
-[#CC_Fields_xmlelements_request_submerchantinfo]
-.sub-merchant-info
 
-``sub-merchant-info`` belongs to the
-<<CC_Fields_xmlelements_request_payment, ``payment``>> object.
 
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
 
-|sub-merchant-info.id |O | | |Alphabetic, Numeric and Special Characters |15	|If you want to use <sub-merchant-info> _id_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
-|sub-merchant-info.name	|O | | |Alphabetic, Numeric and Special Characters |22 |If you want to use <sub-merchant-info> _name_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
-|sub-merchant-info.country |O | | |Alphabetic, Numeric and Special Characters	|2	|If you want to use <sub-merchant-info> _country_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
-|sub-merchant-info.state |C | | | |3 |Mandatory, when _country_ =  US or CA. +
-For all other countries _state_ is optional. If _country_ is neither US nor CA, do not send this field at all in the request.
-|sub-merchant-info.city |O | | |Alphabetic, Numeric and Special Characters |13 |If you want to use <sub-merchant-info> _city_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
-|sub-merchant-info.street |O | | |Alphabetic, Numeric and Special Characters |38 |If you want to use <sub-merchant-info> _street_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
-|sub-merchant-info.postal-code |O | | |Alphabetic, Numeric and Special Characters	|10	|If you want to use <sub-merchant-info> _postal-code_ is mandatory in every initial step of a transaction. It is recommended to set the <sub-merchant-info> in all the transaction steps. Otherwise some transactions cannot be completed successfully.
-|===
 
-[#CC_Fields_xmlelements_request_airlineindustry]
-.airline-industry
 
-``airline-industry`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>.
 
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
 
-|airline-industry.airline-code |O |O | |String |3	|The airline code assigned by IATA.
-|airline-industry.airline-name |O |O | |String	|64	|Name of the airline.
-|airline-industry.passenger-code |O |O | |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
-|airline-industry.passenger-name |O |O | |String	|32	|The name of the Airline Transaction passenger.
-|airline-industry.passenger-phone |O |O | |String	|32	|The phone number of the Airline Transaction passenger.
-|airline-industry.passenger-email |O |O | |String	|64	|The Email Address of the Airline Transaction passenger.
-|airline-industry.passenger-ip-address |O |O | |String |45 |The IP Address of the Airline Transaction passenger.
-|airline-industry.ticket-issue-date |O |O | |Date | |The date the ticket was issued.
-|airline-industry.ticket-number |O |O | |String |11	|The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
-|airline-industry.ticket-restricted-flag |O |O | |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
-|airline-industry.pnr-file-key |O |O | |String	|10	|The Passenger Name File Id for the Airline Transaction.
-|airline-industry.ticket-check-digit |O |O | |String |2	|The airline ticket check digit.
-|airline-industry.agent-code |O |O | |String |3	|The agency code assigned by IATA.
-|airline-industry.agent-name |O |O | |String |64	|The agency name.
-|airline-industry.non-taxable-net-amount |O |O | |Numeric	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction
-|airline-industry.ticket-issuer/address |O |O | |Address | |The address of the ticket issuer.
-|airline-industry.number-of-passengers |O |O | |String |3	|The number of passengers on the Airline Transaction.
-|airline-industry.reservation-code |O |O | |String |32 |The reservation code of the Airline Transaction passenger.
-|airline-industry.itinerary.segment |O |O | | | | The itinerary segments of the airline transaction. Up to 99 itinerary segments can be defined. For details see section <<CreditCard_Fields_Segment, segment>>.
-|===
 
-[#CC_Fields_xmlelements_request_cruiseindustry]
-.cruise-industry
 
-``cruise-industry`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|cruise-industry.carrier-code |O |O | |String	|3	|The carrier code assigned by IATA.
-|cruise-industry.agent-code |O |O | |String	|8	|The agent code assigned by IATA.
-|cruise-industry.travel-package-type-code |O |O | |String	|10	|This indicates if the package includes car rental, airline flight, both or neither. Valid entries include: +
-C = Car rental reservation included, A = Airline flight reservation included, B = Both car rental and airline flight reservations included, N = Unknown.
-|cruise-industry.ticket-number |O |O | |String |15 |The ticket number, including the check digit.
-|cruise-industry.passenger-name |O |O | |String	|100 |The name of the passenger.
-|cruise-industry.airline-code |O |O | |String	|3 |The airline code assigned by IATA.
-|cruise-industry.lodging-check-in-date |O |O | |Date | |The cruise departure date also known as the sail date.
-|cruise-industry.lodging-check-out-date |O |O | |Date	| |The cruise return date also known as the sail end date.
-|cruise-industry.lodging-room-rate |O |O | |Numeric	|18,2	|The total cost of the cruise.
-|cruise-industry.number-of-nights |O |O | |Numeric	|3	|The length of the cruise in days.
-|cruise-industry.lodging-name |O |O | |String	|100 |The lodging name booked for the cruise.
-|cruise-industry.lodging-city-name |O |O | |String |20	|The name of the city where the lodging property is located.
-|cruise-industry.lodging-region-code |O |O | |String	|10	|The region code where the lodging property is located.
-|cruise-industry.lodging-country-code |O |O | |String	|10	|The country code where the lodging property is located.
-|cruise-industry.segment |O |O | | | |The itinerary segments of the cruise. Up to 99 itinerary segments can be defined. For details see section <<CreditCard_Fields_Segment, segment>>.
-|cruise-industry.lodging-name |O |O | |String	|100	|The ship name booked for the cruise.
-|===
-
-[#CC_Fields_xmlelements_request_segment]
-.segment
-
-``segment`` is a child of
-<<CC_Fields_xmlelements_request_itinerary, ``itinerary``>>. Itinerary segment data is used e.g. within airline-industry to specify itineraries of the flight.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|segment.carrier-code |C |C | |String	|3	|The 2-letter airline code (e.g. LH, BA, KL) supplied by IATA for each leg of a flight. Mandatory, if itinerary is provided.
-|segment.departure-airport-code |C |C | |String	|3	|The departure airport code. IATA assigns the airport codes. Mandatory, if itinerary is provided.
-|segment.departure-city-code |C |C | |String	|32	|The departure City Code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
-|segment.arrival-airport-code |C |C | |String	|3	|The arrival airport code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
-|segment.arrival-city-code |C |C | |String	|32	|The arrival city code of the Itinerary Segment. IATA assigns the airport codes. Mandatory, if itinerary is provided.
-|segment.departure-date |C |C | |Date  |  |The departure date for a given leg. Mandatory, if itinerary is provided.
-|segment.arrival-date |C |C | |String | |The arrival date for a given leg. Mandatory, if itinerary is provided.
-|segment.flight-number |O |O | |String |6	|The flight number of the Itinerary Segment.
-|segment.fare-class |O |O | |String	|3 |Used to distinguish between First Class, Business Class and Economy Class, but also used to distinguish between different fares and booking
-|segment.fare-basis |O |O | |String	|6 |Represents a specific fare and class of service with letters, numbers, or a combination of both.
-|segment.stop-over-code |O |O | |String	|1	|0 = allowed, 1 = not allowed
-|segment.tax-amount@currency |O |O | |String |3	|The currency of the Value Added Tax Amount levied on the transaction amount.
-|===
-
-[#CC_Fields_xmlelements_request_audit]
-.audit
-
-``audit`` is a child of
-<<CC_Fields_xmlelements_request_payment, ``payment``>>. 
-Audit data is displayed in _{enterprise-portal-abbr}_ for each transaction it has been send with.
-
-[cols="15,9,9,9,12,7,40a"]
-|===
-.2+h|Field 3+h|Transaction Process .2+h|Datatype .2+h|Size .2+h|Description
-h|Request h|Response h|Notification
-
-|audit.request-source |O |O |O |ASCII String |30 |Optional information that references the application or _{payment-gateway}_ a transaction is processed with.
-|audit.user |O |O |O |String |128 |Optional information that identifies the origin/user of the payment request. Audit user is send by frontend applications referencing the user processing transactions or follow up operations using the application.
-|===
 
 
 
@@ -2446,7 +2423,7 @@ Here you can find the ``payment`` element fields which are sent in the response 
 |completion-time-stamp 
 |Timestamp 
 | 
-|This is the timestamp of completion of request. The timestamp format is yyyyMMddHHmmss.
+|This is the timestamp of completion of request. {timestamp-pattern}
 
 |avs-code 
 |String 
@@ -2487,9 +2464,13 @@ Here you can find the ``payment`` element fields which are sent in the response 
 //KKS:?? are SignedInfo etc. fields?
 
 |instrument-country	
-| 
-| 
-|If this field is configured it will be sent in the response. Use a two-digit country code, such as DE (Germany), ES (Spain), FR (France), IT (Italy). If you want to know the exact list of applying countries, please contact <<ContactUs, Merchant Support>>.
+| String
+| 256
+|The instrument country retrieves the issuer country of a certain credit card. If this field is configured, use a two-digit country code, such as ``DE`` (Germany), ``ES`` (Spain), ``FR`` (France), or ``IT`` (Italy). If you want a full list of countries, please contact <<ContactUs, Merchant Support>>. 
+
+//// 
+KKS: Elsewhere, the description is: "The instrument country retrieves the issuer country of a certain credit card." and "Payment origin country." This suggests that this needs to come either from the consumer or the issuer, right? I'm confused.
+////
 
 4+|<<CC_Fields_xmlelements_response_threed, three-d>>
 |===
@@ -2497,8 +2478,10 @@ Here you can find the ``payment`` element fields which are sent in the response 
 [#CC_Fields_xmlelements_response_avs]
 .avs
 
-``avs`` belongs to the <<CC_Fields_xmlelements_response_payment, ``payment``>>
-object. The <<FraudPrevention_AVS, Address Verification System (AVS)>> is an
+``avs`` is a child of
+<<CC_Fields_xmlelements_request_payment, ``payment``>>.
+
+The <<FraudPrevention_AVS, Address Verification System (AVS)>> is an
 advanced level of credit card security that is built in to the {payment-provider}
 credit card processing network to help thwart identity theft. When a user makes
 an online purchase with a credit card their billing address is required. The
@@ -2615,7 +2598,7 @@ response page (success page or failure page).
 |code 
 |String 
 |12 
-|This is the code of the status of a transaction.
+|This is the <<StatusCodes_InDetail, code of the status>> of a transaction.
 
 |description 
 |String 
@@ -2625,7 +2608,7 @@ response page (success page or failure page).
 |severity 
 |String 
 |20 
-|This field gives information if a status is a warning, an error or an information.
+|This field gives information about the severity. It can be either ``warning``, ``error`` or ``information``.
 |===
 
 [#CC_Fields_xmlelements_response_threed]
