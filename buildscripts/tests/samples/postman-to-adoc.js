@@ -40,7 +40,7 @@ if (fs.existsSync(postmanCollectionFile) === false) {
     process.exit(1);
 }
 const postmanEnvironmentFile = argv['env'];
-var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : { parent_transaction_id: ''};
+var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : { parent_transaction_id: '' };
 
 /**
  * Reads JSON file without complaining about empty files or invalid content
@@ -299,7 +299,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
         for (var c in transactionKey['content_types']) {
             const transaction = transactionKey['content_types'][c]; // "xml transaction" = get-url[0]
 
-            if(transaction.success === false) {
+            if (transaction.success === false) {
                 continue;
             }
             numSuccessfulRequests++;
@@ -307,7 +307,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             const transactionType = transactionKey.transaction_type;
             const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
             const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
-           
+
             var statusesAdocTableCells = '';
             transaction.response.engine_status.forEach(function (s, i) {
                 statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
@@ -369,7 +369,7 @@ include::` + responseFile + `[]
         fileContent += "\n";
         try {
             _writtenFiles.push(t);
-            if(numSuccessfulRequests > 0) {
+            if (numSuccessfulRequests > 0) {
                 fs.writeFileSync(path + adocFilename, fileContent);
                 console.log(styleText('WRITTEN: ', 'green') + adocFilename);
             } else {
@@ -380,14 +380,6 @@ include::` + responseFile + `[]
             throw err;
         }
     }
-    /*
-    for (var x in RequestResponseIndex) {
-        if (_writtenFiles.includes(x) === false) {
-            console.log(x + ' from RRI not written')
-        }
-    }
-    console.log('num written files: ' + _writtenFiles.length);
-    */
 }
 
 /**
@@ -925,34 +917,37 @@ newman.run({
             transaction_type: transactionType,
             payment_method: paymentMethod,
             payment_method_name: paymentMethodName, // folders in postman coll.
-            content_types: {
-                [requestContentTypeAbbr]: {
-                    request: {
-                        content_type: requestContentType,
-                        content_type_abbr: requestContentTypeAbbr,
-                        body_source: requestBodySource,
-                        body_sent: requestBodySent,
-                        body_web: requestBodyWeb,
-                        method: requestMethod,
-                        endpoint: requestEndpoint,
-                        username: requestUsername,
-                        password: requestPassword,
-                        accept: acceptHeader
-                    },
-                    response: {
-                        content_type: responseContentType,
-                        content_type_abbr: responseContentTypeAbbr,
-                        body: responseBody,
-                        http_status_code: responseCodeHTTP,
-                        engine_status: engineStatusResponses
-                    },
-                    maid: merchantAccountID,
-                    transaction_id: transactionID,
-                    parent_transaction_id: parentTransactionID,
-                    success: requestSuccessful(engineStatusResponses)
-                }
+        });
+    if (typeof PMUtil.RequestResponseIndex[transactionKey].content_types === 'undefined') {
+        PMUtil.RequestResponseIndex[transactionKey].content_types = {};
+    }
+    Object.assign(PMUtil.RequestResponseIndex[transactionKey].content_types,
+        {
+            [requestContentTypeAbbr]: {
+                request: {
+                    content_type: requestContentType,
+                    content_type_abbr: requestContentTypeAbbr,
+                    body_source: requestBodySource,
+                    body_sent: requestBodySent,
+                    body_web: requestBodyWeb,
+                    method: requestMethod,
+                    endpoint: requestEndpoint,
+                    username: requestUsername,
+                    password: requestPassword,
+                    accept: acceptHeader
+                },
+                response: {
+                    content_type: responseContentType,
+                    content_type_abbr: responseContentTypeAbbr,
+                    body: responseBody,
+                    http_status_code: responseCodeHTTP,
+                    engine_status: engineStatusResponses
+                },
+                maid: merchantAccountID,
+                transaction_id: transactionID,
+                parent_transaction_id: parentTransactionID,
+                success: requestSuccessful(engineStatusResponses)
             }
-
         });
 }).on('done', function (err, summary) {
     if (err || summary.error) {
