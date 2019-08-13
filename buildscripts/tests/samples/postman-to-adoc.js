@@ -40,7 +40,7 @@ if (fs.existsSync(postmanCollectionFile) === false) {
     process.exit(1);
 }
 const postmanEnvironmentFile = argv['env'];
-var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : {};
+var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : { parent_transaction_id: ''};
 
 /**
  * Reads JSON file without complaining about empty files or invalid content
@@ -288,20 +288,26 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
         const basename = camelCase(t);
         const adocFilename = basename + adocFileExtension;
         if (fs.existsSync(path + adocFilename)) {
-            console.log(adocFilename + ' already exists. overwriting');
+            //console.log(adocFilename + ' already exists. overwriting');
         }
 
         var fileContent = `
 [.sample-tabs]
 
 == ` + paymentMethodBrandName + `: ` + transactionName;
-
+        var numSuccessfulRequests = 0;
         for (var c in transactionKey['content_types']) {
             const transaction = transactionKey['content_types'][c]; // "xml transaction" = get-url[0]
+
+            if(transaction.success === false) {
+                continue;
+            }
+            numSuccessfulRequests++;
+
             const transactionType = transactionKey.transaction_type;
             const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
             const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
-
+           
             var statusesAdocTableCells = '';
             transaction.response.engine_status.forEach(function (s, i) {
                 statusesAdocTableCells += `e| Code        | ` + '``' + s.code + '``' + `
@@ -363,18 +369,25 @@ include::` + responseFile + `[]
         fileContent += "\n";
         try {
             _writtenFiles.push(t);
-            fs.writeFileSync(path + adocFilename, fileContent);
+            if(numSuccessfulRequests > 0) {
+                fs.writeFileSync(path + adocFilename, fileContent);
+                console.log(styleText('WRITTEN: ', 'green') + adocFilename);
+            } else {
+                console.log(styleText('SKIPPED: ', 'red') + adocFilename + ' (no successful request)');
+            }
         }
         catch (err) {
             throw err;
         }
     }
+    /*
     for (var x in RequestResponseIndex) {
-        if(_writtenFiles.includes(x) === false) {
+        if (_writtenFiles.includes(x) === false) {
             console.log(x + ' from RRI not written')
         }
     }
     console.log('num written files: ' + _writtenFiles.length);
+    */
 }
 
 /**
@@ -873,7 +886,8 @@ newman.run({
     const firstResponseCodeOfEngine = engineStatusResponses[0].code;
     const requestSuccessful = (responses) => {
         for (var i in responses) {
-            const responseCode = parseInt(responses[i].code.replace(/\./, ''));
+            var responseCode = parseInt(responses[i].code.toString().replace(/\./, ''));
+            responseCode = responseCode < 999 ? responseCode * 10000 : responseCode; // bad request gives html and an integer like 400, not 400.0000 like engine
             if (responseCode / 10000 >= 400) {
                 return false;
             }
