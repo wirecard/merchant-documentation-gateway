@@ -1,90 +1,25 @@
-// include::shortcuts.adoc[]
+include::shortcuts.adoc[]
 :payment-method-name: Guaranteed Invoice by {payment-provider-name}
 
 [#PPv2_GuaranteedInvoice]
 ===== {payment-method-name}
 
-[#PPv2_GuaranteedInvoice_About]
-====== About _{payment-method-name}_
-
-With Guaranteed Invoice, {payment-provider-name} guarantees that merchants receive money, even if the consumer does not pay.
+With Guaranteed Invoice, {payment-provider-name} guarantees that merchants receive the payment amount, even if the consumer does not pay.
 
 The consumer pays by invoice upon receipt of the goods. {payment-provider-name} pays the merchant the order amount prior to settlement with the consumer. The invoicing and collection process (including dunning) is also handled by {payment-provider-name}.
 
 This payment method is available for *German merchants* only.
 
-_{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, offline bank transfer>>.
+_{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
-[#PPv2_GuaranteedInvoice_ProcessChain]
-====== Process Chain
-
-Every merchant needs to follow test process chains successfully in a test environment to get an approval to go live. {payment-provider-name} checks and approves the frontend/checkout and invoices (if generated and sent out by the merchant).
-image:images/icons/arrow.png[click here] <<GuaranteedInvoice_ProcessChain, More information on the process chain.>> 
-
-ifdef::env-wirecard[]
-
-[#PPv2_GuaranteedInvoice_ConsenttoGeneralTermsandConditions]
-====== Consent to General Terms and Conditions
-
-During checkout, the consumer has to agree to {payment-provider-name}'s general terms and conditions. They have to give their consent by ticking an
-appropriate checkbox.
-
-[%autowidth]
-|===
-|Language |Check-box text |Correct links
-
-|English
-|I herewith confirm that I have read the https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy
-notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for Wirecard payment types and that I accept their
-validity.
-a|
-- https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy notice]: +
-link to +
-https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/
-- https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions]: +
-link to +
-https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/
-|Deutsch
-|Hiermit bestätige ich, dass ich die https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]
-und https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzlichen Geschäftsbedingungen] für Wirecard-Zahlarten zur Kenntnis genommen habe und mit deren Geltung einverstanden bin.
-a|
-- https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]: +
-link to +
-https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/]
-- https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzliche Geschäftsbedingungen]:
-link to
-https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/]
-|===
-
-Make sure that the privacy notice and the additional terms and
-conditions are linked properly.
-
-endif::[]
-
-ifndef::env-wirecard[]
-
-[#PPv2_GuaranteedInvoice_ConsenttoGeneralTermsandConditions]
-====== Consent to General Terms and Conditions
-
-During checkout, the consumer has to agree to {payment-provider-name}'s general terms and conditions. They have to give their consent by ticking an
-appropriate checkbox.
-
-endif::[]
-
-[#PP2_GuaranteedInvoice_AdditionalBusinessContitions]
-====== Additional Business Conditions
-
-When consumers use _{payment-method-name},_
-payments with debt discharging effect can be made solely to {payment-provider-name}.
-
-[#PP2_GuaranteedInvoice_GeneralInformation]
+[#PPv2_GuaranteedInvoice_GeneralInformation]
 ====== General Information
 include::include/ppv2-general-information.adoc[]
 
 <<PPv2_GuaranteedInvoice_TransactionType_authorization, Below>> you find a sample request for the available transaction type authorization, including a field list with short descriptions.
 
-
 include::include/ppv2-general-information-2.adoc[]
+
 
 [#PPv2_GuaranteedInvoice_TestCredentials]
 ====== Test Credentials
@@ -114,31 +49,30 @@ h| Password
 |EUR
 |===
 
+[#PPv2_GuaranteedInvoice_ProcessChain]
+[WARNING]
+====
+To get the approval to go live, every merchant needs to complete a number of <<GuaranteedInvoice_ProcessChain, process chains>> in a test environment successfully. {payment-provider-name} checks and approves the frontend/checkout and invoices (if generated and sent out by the merchant).
+====
+
 [#PPv2_GuaranteedInvoice_TransactionType_authorization]
 ====== Transaction Type _authorization_
 
-An _authorization_
-
-- performs a creditworthiness check at the moment when the consumer makes an order.
-- does not trigger money transfer.
-
-//-
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer. It also triggers a creditworthiness-check.
 
 [NOTE]
 ====
-. <<PPv2_GuaranteedInvoice_TransactionType_authorization_orderItem, All Shopping basket items (order-items)>>  must be specified in every request.
-. The authorization amount must match the total value of the items in the basket.
-. The response for each ``authorization`` request returns the field ``descriptor``, a unique alphanumerical code identifying the authorization. This ``descriptor`` must be printed on all invoice documents and saved by
-the shop (used by consumers in bank transfers; German:
+
+. The response for each ``authorization`` request returns the field ``descriptor``, a unique alphanumerical code identifying the authorization. This ``descriptor`` must be printed on all invoice documents and saved by the merchant (used by consumers in bank transfers; German:
 "Verwendungszweck"). 
 . You have to <<PPv2_GuaranteedInvoice_PostProcessingOperations, capture>> each succesful authorization on the same day the goods are dispatched.
 . The period between the ``authorization`` and the capture must be at least 4 hours.
 
 ====
 
-For a successful _authorization_ transaction
+For a successful transaction:
 
-. Create an _authorization_ session (initial _authorization_ request).
+. Create a payment session (initial request).
 . Redirect the consumer to the payment page (initial response URL).
 . Highly recommended: Parse and process the payment response.
 
@@ -146,8 +80,71 @@ For a successful _authorization_ transaction
 
 [#PPv2_GuaranteedInvoice_Samples]
 ====== Sample Workflow
-We provide JSON examples for each step of this process. You can find them below.
 
+We provide JSON examples for this process. You can find them <<PPv2_GuaranteedInvoice_Sample, below>>.
+
+ifdef::env-wirecard[]
+
+====
+[#PPv2_GuaranteedInvoice_ConsenttoGeneralTermsandConditions]
+.Checkout
+
+During checkout, the consumer has to agree to {payment-provider-name}'s General Terms and Conditions. They have to give their consent by ticking the
+respective checkbox.
+
+[%autowidth]
+|===
+|Language |Checkbox Text |Correct Links
+
+|English
+|I herewith confirm that I have read the https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[Privacy
+Notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[Additional Terms and Conditions] for Wirecard payment types and that I accept their
+validity.
+a|
+- https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[Privacy Notice]: +
+link to +
+``https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/``
+- https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[Additional Terms and Conditions]: +
+link to +
+``https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/``
+
+|Deutsch
+|Hiermit bestätige ich, dass ich die https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]
+und https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzlichen Geschäftsbedingungen] für Wirecard-Zahlarten zur Kenntnis genommen habe und mit deren Geltung einverstanden bin.
+a|
+- https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]: +
+link to +
+``https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/``
+- https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzliche Geschäftsbedingungen]:
+link to
+``https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/``
+|===
+
+Make sure that the privacy notice and the additional terms and
+conditions are properly linked.
+
+endif::[]
+
+ifndef::env-wirecard[]
+
+====
+[#PPv2_GuaranteedInvoice_ConsenttoGeneralTermsandConditions]
+.Checkout
+
+During checkout, the consumer has to agree to {payment-provider-name}'s general terms and conditions. They have to give their consent by ticking the
+respective checkbox.
+====
+endif::[]
+
+
+[#PPv2_GuaranteedInvoice_AdditionalBusinessContitions]
+.Additional Business Conditions
+
+When consumers use _{payment-method-name},_
+payments with debt discharging effect can be made solely to {payment-provider-name}.
+====
+
+[#PPv2_GuaranteedInvoice_Sample]
 .Request Headers
 
 [%autowidth, cols=","]
@@ -165,6 +162,8 @@ Wirecard contract to base64-encode the authorization.
 ----
 include::samples/json/PPv2GuaranteedInvoiceTransactionTypeAuthorizationRequest.json[]
 ----
+NOTE:  <<PPv2_GuaranteedInvoice_TransactionType_authorization_orderItem, All Shopping basket items (order-items)>> must be specified in every request. + 
+The authorized amount must match the total value of the items in the basket.
 
 [%autowidth]
 [cols="e,,,,,,"]
@@ -265,13 +264,19 @@ form. Sent as a response to the initial request.
 
 include::include/ppv2-redirect-instructions.adoc[]
 
-.3. Parse and Process the _authorization_ Response (Decoded Payment Response)
+.3. Parse and Process the Payment Response (Decoded Payment Response)
 
 [source,json]
 
 ----
 include::samples/json/PPv2GuaranteedInvoiceTransactionTypeAuthorizationResponse.json[]
 ----
+
+[WARNING]
+====
+. The response for each ``authorization`` request returns the field ``descriptor``, a unique alphanumerical code identifying the authorization. This ``descriptor`` must be printed on all invoice documents and saved by the merchant (used by consumers in bank transfers; German:
+"Verwendungszweck").
+====
 
 In addition to the request fields, the response returns the following fields:
 
@@ -339,14 +344,7 @@ Always empty for _{payment-method-name}_.
 ====== Post-Processing Operations 
 WPP is best used for one-off payments (e.g. regular, independent _authorization_ transactions) or the initial transaction in a chain of them (e.g. a first _authorization_ in a chain of recurring transactions). However, when it comes to referencing a transaction for any kind of post-processing operation - such as a capturing of one of your _authorization_ transactions - use our <<RestApi, REST API>> directly.
 
-NOTE: Check the REST API <<GuaranteedInvoice, {payment-method-name} specification>> for details on {payment-method-name}-specific post-processing operations.
-
-To complete a purchase, i.e. to capture an authorization, you must provide the necessary data:
-
-- ``parent-transaction-id``: This is the transaction ID of the preceding
-authorization. You can retrieve it from the response to a successful authorization.
-- ``amount``: This can be either the total amount for capturing the full
-amount, or a partial amount for a partial capture.
+IMPORTANT: Check the REST API <<GuaranteedInvoice, {payment-method-name} specification>> for details on {payment-method-name}-specific post-processing operations.
 
 [#PPv2_GuaranteedInvoice_JSONNVPFields]
 ====== JSON/NVP Field Reference
@@ -366,7 +364,6 @@ Here you can:
 [source,json,subs=attributes+]
 ----
 include::samples/json/PPv2GuaranteedInvoice_JSONNVP_FieldReference_JSON_StructureForGuaranteedInvoiceRequests.json[]
-
 ----
 
 [%autowidth, cols="e,e,e"]
