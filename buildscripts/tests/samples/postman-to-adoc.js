@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const MIMETYPE_XML = 'application/xml';
 const MIMETYPE_HTML = 'text/html';
 const MIMETYPE_JSON = 'application/json';
-const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8'
+const MIMETYPE_NVP = 'application/x-www-form-urlencoded;charset=UTF-8';
 const TRANSACTIONSTATE_SUCCESS = 'success';
 const TRANSACTIONCODE_SUCCESS = '201.0000';
 const DEFAULT_PAYMENT_METHOD = 'creditcard';
@@ -35,12 +35,12 @@ const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
 const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc some responses do not have 'payment' as root element
 
 const PM_GUID_VARIABLE = '{{$guid}}';
-const postmanCollectionFile = (argv['file'] === undefined) ? '00DOC.postman_collection.json' : argv['file'];
+const postmanCollectionFile = (argv.file === undefined) ? '00DOC.postman_collection.json' : argv.file;
 if (fs.existsSync(postmanCollectionFile) === false) {
     console.log('could not read postman collection file. specify with --file <postman_collection.json>');
     process.exit(1);
 }
-const postmanEnvironmentFile = argv['env'];
+const postmanEnvironmentFile = argv.env;
 var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : { parent_transaction_id: '' };
 
 /**
@@ -95,11 +95,11 @@ PMUtil.getRequestID = (body) => PMUtil.readElementFromBody(ELEMENT_REQUEST_ID, b
 PMUtil.getParentTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
 PMUtil.getPaymentMethod = (body) => {
     return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body) : PMUtil.readElementFromBody(ELEMENT_FLAT_PAYMENT_METHOD, body);
-}
+};
 PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
 PMUtil.getTransactionType = (body) => { // returns value of transaction type. or parent element name for sonderfälle like get-address-request
     return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body) : PMUtil.readElementFromBody(GENERIC_ROOT_ELEMENT, body, true);
-}
+};
 
 /**
  * Reads the Secondary Payment Method of a given request or response body.
@@ -281,7 +281,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
         const item = RequestResponseIndex[t];
         const paymentMethod = item.payment_method;
         //const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
-        const paymentMethodBrandName = item.payment_method_name
+        const paymentMethodBrandName = item.payment_method_name;
         const transactionKey = RequestResponseIndex[t];
         const transactionName = transactionKey.name;
         const transactionType = transactionKey.transaction_type;
@@ -297,8 +297,8 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 
 == ` + paymentMethodBrandName + `: ` + transactionName;
         var numSuccessfulRequests = 0;
-        for (var c in transactionKey['content_types']) {
-            const transaction = transactionKey['content_types'][c]; // "xml transaction" = get-url[0]
+        for (var c in transactionKey.content_types) {
+            const transaction = transactionKey.content_types[c]; // "xml transaction" = get-url[0]
 
             if (transaction.success === false) {
                 continue;
@@ -381,7 +381,7 @@ include::` + responseFile + `[]
             throw err;
         }
     }
-}
+};
 
 /**
  * Get Accept header from Postman Request item
@@ -444,10 +444,12 @@ PMUtil.getAuth = function (request) {
 PMUtil.readEngineStatusResponses = function (body) {
     var statusResponse = [];
     const contentType = PMUtil.getContentType(body);
+    var obj;
+    var objRoot;
     switch (contentType) {
         case MIMETYPE_HTML:
             try {
-                var obj = xmlparser.parse(body, {});
+                obj = xmlparser.parse(body, {});
                 statusResponse = [{
                     code: parseInt(obj.html.head.title.replace(/([0-9]+)\ .*/, '$1')),
                     description: obj.html.head.title.replace(/([0-9]+)\ (.*)/, '$2'),
@@ -455,15 +457,15 @@ PMUtil.readEngineStatusResponses = function (body) {
                 }];
             }
             catch (e) {
-                console.log('readEngineStatusResponses failed.')
-                console.log(body)
+                console.log('readEngineStatusResponses failed.');
+                console.log(body);
                 console.log(statusResponse);
             }
             break;
         case MIMETYPE_XML:
             try {
-                var obj = xmlparser.parse(body, { ignoreAttributes: false });
-                var objRoot = obj[Object.keys(obj)[0]];
+                obj = xmlparser.parse(body, { ignoreAttributes: false });
+                objRoot = obj[Object.keys(obj)[0]];
                 statusResponse = [];
                 var statuses = objRoot.statuses.status;
                 statuses = Array.isArray(statuses) ? statuses : [statuses];
@@ -478,14 +480,14 @@ PMUtil.readEngineStatusResponses = function (body) {
             catch (e) {
                 console.log('isXML');
                 //console.log(body)
-                console.log('readEngineStatusResponses failed.')
+                console.log('readEngineStatusResponses failed.');
                 console.log(obj);
             }
             break;
         case MIMETYPE_JSON:
             try {
-                var obj = JSON.parse(body);
-                var objRoot = obj[Object.keys(obj)[0]];
+                obj = JSON.parse(body);
+                objRoot = obj[Object.keys(obj)[0]];
                 objRoot.statuses.status.forEach(status => {
                     statusResponse.push({
                         code: status.code,
@@ -495,8 +497,8 @@ PMUtil.readEngineStatusResponses = function (body) {
                 });
             }
             catch (e) {
-                console.log(body)
-                console.log('readEngineStatusResponses failed.')
+                console.log(body);
+                console.log('readEngineStatusResponses failed.');
                 console.log(obj);
             }
             break;
@@ -540,26 +542,28 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
             e[0] = Object.keys(obj)[0];
         }
         return e.reduce((x, i) => (x && x[i]) ? (key ? i : x[i]) : undefined, obj);
-    }
-    var elementValue = undefined;
+    };
+    var elementValue;
     const contentType = PMUtil.getContentType(body);
+    var obj;
+    var e;
     switch (contentType) {
         case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, { ignoreAttributes: false });
-            var e = PMUtil.ElementNamesMap[elementName].xml.slice();
+            obj = xmlparser.parse(body, { ignoreAttributes: false });
+            e = PMUtil.ElementNamesMap[elementName].xml.slice();
             e = Array.isArray(e) ? e : [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_JSON:
-            var obj = JSON.parse(body);
-            var e = PMUtil.ElementNamesMap[elementName].json.slice();
+            obj = JSON.parse(body);
+            e = PMUtil.ElementNamesMap[elementName].json.slice();
             e = Array.isArray(e) ? e : [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_NVP:
-            var obj = new URLSearchParams(body);
+            obj = new URLSearchParams(body);
             try {
-                var e = PMUtil.ElementNamesMap[elementName].nvp.slice();
+                e = PMUtil.ElementNamesMap[elementName].nvp.slice();
             }
             catch (err) {
                 console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
@@ -596,9 +600,9 @@ PMUtil.getParentPaymentMethod = function (body) {
         return DEFAULT_PAYMENT_METHOD;
     }
     else {
-        for (paymentMethod in PMUtil.RequestsIndex) {
+        for (var paymentMethod in PMUtil.RequestsIndex) {
             const pm = PMUtil.RequestsIndex;
-            for (transactionType in pm) {
+            for (var transactionType in pm) {
                 if (pm[transactionType].transaction_id === pid) {
                     // console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
                     return paymentMethod;
@@ -641,12 +645,13 @@ PMUtil.readPaymentMethod = function (body) {
  */
 PMUtil.bodyHasElement = function (body, elementName) {
     const contentType = PMUtil.getContentType(body);
+    var obj;
     switch (contentType) {
         case MIMETYPE_XML:
-            var obj = xmlparser.parse(body, { ignoreAttributes: false });
+            obj = xmlparser.parse(body, { ignoreAttributes: false });
             break;
         case MIMETYPE_JSON:
-            var obj = JSON.parse(body);
+            obj = JSON.parse(body);
             break;
         case MIMETYPE_NVP:
             return (new URLSearchParams(body).get(elementName) !== null);
@@ -781,7 +786,7 @@ const ConsoleColors = {
         reverse: "\x1b[7m",
         underscore: "\x1b[4m"
     }
-}
+};
 
 const styleText = function (text, style, type = 'fg') {
     return (ConsoleColors[type] === undefined || ConsoleColors[type][style] === undefined) ? text : ConsoleColors[type][style] + text + ConsoleColors.ctrl.reset;
@@ -789,8 +794,9 @@ const styleText = function (text, style, type = 'fg') {
 
 // removes non-chars, remove empty array elements, capitalize, concatenate for CamelCase and add extension
 const camelCase = function (str) {
-    return str.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != '' }).map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)) }).join('');
-}
+    return str.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != ''; })
+    .map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)); }).join('');
+};
 
 /**
  * Get folders structure/path of a given request body
@@ -805,7 +811,7 @@ const camelCase = function (str) {
 PMUtil.getFolderPath = function (body, requestName) {
     var itemPath = [];
     var getFolders = (i, body, path = []) => {
-        for (key in i) {
+        for (var key in i) {
             var folder = i[key];
             if (folder.item !== undefined) {
                 var _path = path.slice();
@@ -903,7 +909,7 @@ newman.run({
         response_code: responseCodeHTTP,
         transaction_id: transactionID,
         parent_transaction_id: parentTransactionID
-    }
+    };
 
     if (typeof PMUtil.RequestResponseIndex === 'undefined') {
         PMUtil.RequestResponseIndex = {}; // array for sort order

@@ -10,14 +10,14 @@ const child_process = require('child_process');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 
-const inputFileName = (argv['input'] === undefined) ? ' Wirecard XML.postman_collection.json' : argv['input'];
+const inputFileName = (argv.input === undefined) ? ' Wirecard XML.postman_collection.json' : argv.input;
 if (fs.existsSync(inputFileName) === false) {
     console.log('could not read input postman collection file. specify with --input <postman_collection.json>');
     process.exit(1);
 }
-const outputFileName = (argv['output'] === undefined) ?
+const outputFileName = (argv.output === undefined) ?
     inputFileName.replace(/(_XML)?\.json$/, '_JSON.json') :
-    argv['output'];
+    argv.output;
 
 /**
  * Very simple JSON file to Object conversion
@@ -46,12 +46,12 @@ function replaceXMLRequestswithJSON(folder) {
     for (var i in folder) {
         var Item = folder[i];
         if (Item.item !== undefined) {
-            replaceXMLRequestswithJSON(Item.item)
+            replaceXMLRequestswithJSON(Item.item);
         }
         try {
             process.stdout.write('.');
             Item.request.body.raw = xml2json(Item.request.body.raw);
-            for (h in Item.request.header) {
+            for (var h in Item.request.header) {
                 if (Item.request.header[h].key == 'Content-Type') {
                     Item.request.header[h].value = 'application/json';
                 }
