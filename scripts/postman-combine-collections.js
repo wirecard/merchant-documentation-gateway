@@ -5,7 +5,7 @@
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
 
-const outputFileName = (argv['output'] === undefined) ? ('out.json') : argv['output'];
+const outputFileName = (argv.output === undefined) ? ('out.json') : argv.output;
 
 /**
  * Very simple JSON file to Object conversion
@@ -23,8 +23,8 @@ function simpleReadJSON(inputFileName) {
     return JsonObject;
 }
 
-const inputFiles = argv['_'].slice();
-for (i in inputFiles) {
+const inputFiles = argv['_'].slice(); // jshint ignore:line
+for (var i in inputFiles) {
     if (fs.existsSync(inputFiles[i]) === false) {
         console.log('could not read ' + inputFiles[i]);
         process.exit(1);
