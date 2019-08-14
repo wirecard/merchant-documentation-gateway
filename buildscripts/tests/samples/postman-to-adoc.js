@@ -6,6 +6,7 @@
 * --file <postman-collection.json>       Optional. Uses hardcoded filename if unspecified.
 * --env <postman-environment.json>       Optional.
 */
+/*jshint esversion: 6 */
 
 const newman = require('newman');
 const argv = require('minimist')(process.argv.slice(2));
@@ -259,7 +260,7 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
 
     // create directory to hold the sample files
     if (!fs.existsSync(path + dirname)) {
-        fs.mkdirSync(path + dirname);
+        fs.mkdirSync(path + dirname, { recursive: true });
     }
     try {
         fs.writeFileSync(path + dirname + filename + fileExtension, body);
