@@ -4,6 +4,7 @@
 * --input <postman-collection-xml.json>    Input file, a PM Collection containing XML requests
 * --output <postman-environment-json.json>  Output file, a PM Collection containing JSON requests
 */
+/*jshint esversion: 6 */
 
 const child_process = require('child_process');
 const argv = require('minimist')(process.argv.slice(2));
@@ -14,7 +15,9 @@ if (fs.existsSync(inputFileName) === false) {
     console.log('could not read input postman collection file. specify with --input <postman_collection.json>');
     process.exit(1);
 }
-const outputFileName = (argv['output'] === undefined) ? inputFileName.replace(/(_XML)?\.json$/, '_JSON.json') : argv['output'];
+const outputFileName = (argv['output'] === undefined) ?
+    inputFileName.replace(/(_XML)?\.json$/, '_JSON.json') :
+    argv['output'];
 
 /**
  * Very simple JSON file to Object conversion
@@ -75,7 +78,7 @@ function replaceXMLRequestswithJSON(folder) {
 function xml2json(body) {
     try { // yep. turned out to be that easy in the end
         const jsonObject = JSON.parse(child_process.spawnSync('python3', ['scripts/xml2json.py'], { input: body }).stdout.toString('utf8'));
-        if ( jsonObject[Object.keys(jsonObject)[0]]['xmlns:xsi'] !== undefined) {
+        if (jsonObject[Object.keys(jsonObject)[0]]['xmlns:xsi'] !== undefined) {
             delete jsonObject[Object.keys(jsonObject)[0]]['xmlns:xsi'];
         }
         return JSON.stringify(jsonObject, null, 2);

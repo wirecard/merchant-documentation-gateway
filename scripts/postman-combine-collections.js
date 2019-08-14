@@ -1,5 +1,6 @@
 // combines requests from two PM collections
 // usage: postman-combine-collections.js --output <output-file.json> FILES
+/*jshint esversion: 6 */
 
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
@@ -35,7 +36,7 @@ while (inputFiles.length > 0) {
     const nextFile = simpleReadJSON(inputFiles.shift());
     for (var i in nextFile.item) {
         Collection.item.push(nextFile.item[i]);
-    }    
+    }
 }
 
 try {
