@@ -522,13 +522,22 @@ function sendNotifications ( $results ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console\n";
 
   $partner = getenv( 'PARTNER' );
-  $currentBranch = GitInfo::getInstance()->getBranch();
+  $isPullRequest = (getenv('TRAVIS_PULL_REQUEST') !== 'false');
+  if($isPullRequest) {
+    $currentBranch = "Pull Request #".getenv('TRAVIS_PULL_REQUEST');
+    $fileBranch = getenv('TRAVIS_PULL_REQUEST_BRANCH');
+    $githubLink = "https://github.com/wirecard/merchant-documentation-gateway/pull/".getenv('TRAVIS_PULL_REQUEST');
+  } else {
+    $currentBranch = GitInfo::getInstance()->getBranch();
+    $fileBranch = $currentBranch;
+    $githubLink = "https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch;
+  }
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $commitHash = GitInfo::getInstance()->getCommitHash();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  $headerText = "*Branch:* ".$currentBranch." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github)>PHP_EOL"
+  $headerText = "*Branch:* ".$currentBranch." (<".$githubLink."|On Github)>PHP_EOL"
   ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
@@ -551,9 +560,12 @@ function sendNotifications ( $results ) {
         $result['filename'] = $filename;
       if(!isset($result['branch']))
         $result['branch'] = "whitelabel";
+      elseif(getenv('TRAVIS_PULL_REQUEST') !== "false")
+        $result['branch'] = "Pull Request #".getenv('TRAVIS_PULL_REQUEST');
+
       if(!isset($result['author']))
         $result['author'] = "redacted";
-      $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
+      $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $fileBranch, $commitAuthor, $commitHash );
       $msgCount++;
       if($msgCount % 10 === 0) {
         $msgsContent[] = $msgContent;
@@ -566,7 +578,7 @@ function sendNotifications ( $results ) {
   }
   else {
     // empty error array creates "success" msg in createSlackMessageFromErrors
-    $msgsContent = array(createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor, $commitHash ));
+    $msgsContent = array(createSlackMessageFromErrors( array(), $partner, $currentBranch, $fileBranch, $commitAuthor, $commitHash ));
   }
 
   $msgClosing = array(array("type" => "divider"),
@@ -588,20 +600,21 @@ function sendNotifications ( $results ) {
   return true;
 }
 
-// creates a single error message
-function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
+/** creates a single error message
+* @param $result result of the build for a given file
+* @param $partner name of partner (deprecated, use getenv('PARTNER'))
+* @param $currentBranch name of current branch or "Pull Request #XXX" if pull request (deprecated, unused)
+* @param $fileBranch points to branch or originating branch for a PR (for correct file links)
+* @param @commitAuthor the author of this commit
+* @param @commitHash hash of this commit (unused)
+*/
+function createSlackMessageFromErrors( $result, $partner, $currentBranch, $fileBranch, $commitAuthor, $commitHash ) {
 
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
     $filename = $result['filename'];
-    $branch = $result['branch'];
     $lastEditedAuthor = $result['author'];
-    if( $branch == PULL_REQUEST_BRANCH ) {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
-    }
-    else {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
-    }
+    $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$fileBranch.'/'.$filename;
 
     $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|On Github>)"."PHP_EOL"
                       ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
