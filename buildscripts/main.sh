@@ -184,7 +184,7 @@ function buildPartner() {
   
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
-  if [[ -z $SKIP ]] && [[ "${PARTNER}" == "WD" ]]; then
+  if [[ -z $SKIP ]] && [[ "${PARTNER}" != "MS" ]]; then
     php buildscripts/tests/basic-tests.php || true
   fi
   
@@ -274,6 +274,7 @@ function main() {
   
   # prepare master template
   # need to delete folder before to avoid weird file permission errors
+  debugMsg "Prepare template"
   if [[ -d "${MASTERTEMPLATE_PATH}" ]]; then
     rm -rf "${MASTERTEMPLATE_PATH}"
   fi
