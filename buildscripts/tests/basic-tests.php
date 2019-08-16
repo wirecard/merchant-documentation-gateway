@@ -568,9 +568,14 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
 
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
-    $filename = $result['filename'];
-    $branch = $result['branch'];
-    $lastEditedAuthor = $result['author'];
+    try {
+      $filename = $result['filename'];
+      $branch = $result['branch'];
+      $lastEditedAuthor = $result['author'];
+    } catch(Exception $e) {
+      echo "### Error fetch result!\nMessage:\n".$e->getMessage();
+      return null;
+    }
     if( $branch == PULL_REQUEST_BRANCH ) {
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
     }
@@ -626,9 +631,6 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
-  echo "SLACK_TOKEN is empty: ".empty(getenv('SLACK_TOKEN'));
-  echo "SLACK_TOKEN: ".getenv('SLACK_TOKEN');
-
   if( empty(getenv( 'SLACK_TOKEN' ))) {
     echo $messageString."\n";
   }
