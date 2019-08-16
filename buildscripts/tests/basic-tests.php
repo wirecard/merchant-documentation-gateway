@@ -626,10 +626,15 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
-  if( empty(getenv( 'SLACK_TOKEN' )) || !empty(getenv('SKIP_SLACK_MESSAGE')) ) {
+  echo "SLACK_TOKEN is empty: ".empty(getenv('SLACK_TOKEN'));
+  echo "SLACK_TOKEN: ".getenv('SLACK_TOKEN');
+
+  if( empty(getenv( 'SLACK_TOKEN' ))) {
     echo $messageString."\n";
-    return true;
   }
+
+  if(!empty(getenv('SKIP_SLACK_MESSAGE')))
+    return true;
 
   $descriptorspec = array(
       0 => array('pipe', 'r'),  // stdin
