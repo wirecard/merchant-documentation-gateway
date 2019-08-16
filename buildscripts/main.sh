@@ -274,6 +274,7 @@ function main() {
   
   # prepare master template
   # need to delete folder before to avoid weird file permission errors
+  debugMsg "Prepare template"
   if [[ -d "${MASTERTEMPLATE_PATH}" ]]; then
     rm -rf "${MASTERTEMPLATE_PATH}"
   fi

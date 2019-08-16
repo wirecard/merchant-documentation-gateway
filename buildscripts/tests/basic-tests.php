@@ -516,9 +516,11 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
   // Gather information
-  if( empty(getenv( 'SLACK_TOKEN' )) ) {
-    echo "Environment Var SLACK_TOKEN not set -> output to console";
-  }  
+  if( !empty(getenv('DEBUG')) )
+    echo "DEBUG for messaging is ".getenv('DEBUG')."\n";
+  if( empty(getenv( 'SLACK_TOKEN' )) )
+    echo "Environment Var SLACK_TOKEN not set -> output to console\n";
+
   $partner = getenv( 'PARTNER' );
   $currentBranch = GitInfo::getInstance()->getBranch();
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
@@ -538,6 +540,16 @@ function sendNotifications ( $results ) {
     $msgContent = array("type" => "section",
                         "fields" => array());
     foreach( $results as $filename => $result ) {
+      if( getenv('DEBUG') === "TRUE" || getenv('DEBUG') === "YES" || getenv('DEBUG') === "1" ) {
+        echo "*** ".$filename."\n";
+        echo json_encode($result, JSON_PRETTY_PRINT)."\n";
+      }
+      if(!isset($result['filename']))
+        $result['filename'] = $filename;
+      if(!isset($result['branch']))
+        $result['branch'] = "whitelabel";
+      if(!isset($result['author']))
+        $result['author'] = "redacted";
       $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
     }
   }
@@ -568,14 +580,9 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
 
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
-    try {
-      $filename = $result['filename'];
-      $branch = $result['branch'];
-      $lastEditedAuthor = $result['author'];
-    } catch(Exception $e) {
-      echo "### Error fetch result!\nMessage:\n".$e->getMessage();
-      return null;
-    }
+    $filename = $result['filename'];
+    $branch = $result['branch'];
+    $lastEditedAuthor = $result['author'];
     if( $branch == PULL_REQUEST_BRANCH ) {
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
     }
