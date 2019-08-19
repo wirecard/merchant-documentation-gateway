@@ -551,13 +551,15 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
         case MIMETYPE_XML:
             obj = xmlparser.parse(body, { ignoreAttributes: false });
             e = PMUtil.ElementNamesMap[elementName].xml.slice();
-            e = Array.isArray(e) ? e : [e];
+            if(!Array.isArray(e))
+                e = [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_JSON:
             obj = JSON.parse(body);
             e = PMUtil.ElementNamesMap[elementName].json.slice();
-            e = Array.isArray(e) ? e : [e];
+            if(!Array.isArray(e))
+                e = [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_NVP:
@@ -570,9 +572,8 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
                 console.log(PMUtil.ElementNamesMap);
                 return elementValue;
             }
-            if (obj.get(e) !== null) {
+            if (obj.get(e) !== null)
                 elementValue = obj.get(e);
-            }
             break;
         default:
             console.log('in readElement: ' + elementName + ' + unknown content type');
