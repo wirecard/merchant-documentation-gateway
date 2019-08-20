@@ -295,7 +295,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
         var fileContent = `
 [.sample-tabs]
 
-== ` + paymentMethodBrandName + `: ` + transactionName;
+=== ` + paymentMethodBrandName + `: ` + transactionName;
         var numSuccessfulRequests = 0;
         for (var c in transactionKey.content_types) {
             const transaction = transactionKey.content_types[c]; // "xml transaction" = get-url[0]
@@ -321,7 +321,7 @@ e| Description | ` + '``' + s.description + '``' + `
             });
             fileContent += `
 [.tab-content.tab-` + transaction.request.content_type_abbr + `]
-=== ` + transaction.request.content_type_abbr.toUpperCase() + `
+==== ` + transaction.request.content_type_abbr.toUpperCase() + `
 
 [.r-details]
 .Request Details
@@ -873,7 +873,7 @@ newman.run({
     // do not write anything for this request because we do not know if the request failed because of server issue
     // or client network connectivity is bad
     if (args.response === undefined) {
-        process.stdout.write(consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+        process.stdout.write('[' + styleText("  FAIL  ", 'red') + ']' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
         return false;
     }
 
