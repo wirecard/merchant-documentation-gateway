@@ -1,6 +1,10 @@
 function enableRequestDetailsHideShow() {
+    console.log("enableRequestDetailsHideShow");
     $('table.r-details > caption').each(function () {
+        if($(this).hasClass('hide-show-enabled'))
+            return;
         $(this).on('click touch', function () {
+            $(this).addClass('hide-show-enabled');
             $(this).toggleClass('r-details-expanded');
             $(this).siblings('tbody').toggle();
             $(this).siblings('thead').toggle();
@@ -9,8 +13,12 @@ function enableRequestDetailsHideShow() {
 }
 
 function createSampleTabs() {
+    console.log("createSampleTabs");
     var sampleTabs = $('div.sample-tabs');
     sampleTabs.each(function () {
+        if($(this).hasClass('tabs-enabled'))
+            return;
+        $(this).addClass('tabs-enabled');
         const headlineElement = $(this).children('h3,h4,h5').first();
         if (headlineElement.length == 0) {
             return false;
@@ -50,5 +58,5 @@ function createSampleTabs() {
     });
 }
 
-enableRequestDetailsHideShow();
-createSampleTabs();
+// enableRequestDetailsHideShow();
+// createSampleTabs();
