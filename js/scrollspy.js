@@ -146,8 +146,9 @@ function documentReady() {
     swapSVGandPNG();
   }
   addZoomToLargeImages();
-  enableRequestDetailsHideShow();
-  createSampleTabs();
+  // ENABLE:TABS
+  // enableRequestDetailsHideShow();
+  // createSampleTabs();
 }
 
 $(document).ready(function () {
