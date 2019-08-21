@@ -284,31 +284,47 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
 PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredentials, AdditionalTestCredentials) {
     const fileExtension = '.adoc';
     const filename = basename + '_TestCredentials'; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
-    var additionalTestCredentialsAdocTable = `
-[cols="1v,2"]
-|===
-2+| Additional Test Credentials
+    var additionalTestCredentialsAdoc = '';
+    if (Object.keys(AdditionalTestCredentials).length > 1) {
+        additionalTestCredentialsAdoc = `==== Additional Test Credentials
 
 `;
-    for (i in AdditionalTestCredentials) {
-        const name = i;
-        const value = AdditionalTestCredentials[i];
-        additionalTestCredentialsAdocTable += `e| ` + name + ` | ` + '``' + value + '``' + "\n";
+        var atcHeader = 'null';
+        for (var i in AdditionalTestCredentials) {
+            if (i !== atcHeader) { // create new table
+                additionalTestCredentialsAdoc += `[cols="1v,2"]
+|===
+`;
+            if (i !== 'null') // must use string 'null' although "var header = null; in PMUtil.parseAdditionalTestCredentials"
+                additionalTestCredentialsAdoc += '2+h| ' + i + "\n";
+            }
+            for (var j in AdditionalTestCredentials[i]) {
+                const CredentialsPair = AdditionalTestCredentials[i][j];
+                additionalTestCredentialsAdoc += `e| ` + CredentialsPair.name + ` | ` + '``' + CredentialsPair.value + '``' + "\n";
+            }
+            if (i !== atcHeader) { // close table
+                additionalTestCredentialsAdoc += "|===\n\n";
+                atcHeader = i;
+            }
+        }
+        //additionalTestCredentialsAdoc += "|===\n";
     }
-    var fileContent = `
-=== Test Credentials
+    var fileContent = `=== Test Credentials
+[cols="1v,2"]
+|===
+h| Merchant Account ID | \`` + TestCredentials.maid + `\`
+|===
 
 [cols="1v,2"]
 |===
-2+| HTTP Basic Authentication
+2+|HTTP Basic Authentication
 
 e| Username | \`` + TestCredentials.ba_username + `\`
 e| Password | \`` + TestCredentials.ba_password + `\`
-e| Merchant Account ID | \`` + TestCredentials.maid + `\`
 |===
 
-` + additionalTestCredentialsAdocTable
-;
+` + additionalTestCredentialsAdoc
+        ;
 
     // create directory to hold the table
     if (!fs.existsSync(path)) {
@@ -865,24 +881,35 @@ const camelCase = function (str) {
  * ATC: Consumer Account
  * Password on Website::WebseitenPasswort123!"§!"§
  * 
- * @param {string} itemDescription Contains
- * @param {string} requestName Necessary for identical body in same folder.
+ * @param {string} itemDescription Contains ATC info like above
  * 
- * @return {array} Array of path elements, e.g. ["Klarna", "SE", "Utils"]
+ * @return {array} Array of name value pair objects
  */
 PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
     var AdditionalTestCredentials = {};
     if (itemDescription === undefined)
         return AdditionalTestCredentials;
     const descriptionLines = itemDescription.content.split("\n");
+    const headerRegex = new RegExp('^ATC:\ *(.+)');
+    const keyValueRegex = new RegExp('^\ *(.+)\ *::\ *(.+)\ *');
+    var header = null;
     for (var i in descriptionLines) {
         const line = descriptionLines[i];
-        const headerRegex = new RegExp('^ATC:\ ?(.+)');
-        const header = line.split(headerRegex);
-        if (atc.length > 1) {
-            const atcKey = atc[1];
+
+        headerMatches = line.match(headerRegex);
+        // if line is like "ATC: Consumer Account"
+        if (headerMatches !== null)
+            header = headerMatches[1];
+        // create key for header if it does not exist
+        if (AdditionalTestCredentials[header] === undefined) {
+            AdditionalTestCredentials[header] = [];
+        }
+
+        const atc = line.match(keyValueRegex);
+        if (atc !== null && atc.length > 1) { // if line is like "Password on Website::PaSS123"
+            const atcName = atc[1];
             const atcValue = atc[2];
-            AdditionalTestCredentials[atcKey] = atcValue;
+            AdditionalTestCredentials[header].push({ name: atcName, value: atcValue });
         }
     }
     return AdditionalTestCredentials;
