@@ -271,6 +271,47 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
     return dirname + filename + fileExtension;
 };
 
+
+/**
+ * Write adoc file that contains all necessary test credentials for a request
+ *
+ * @param {string} basename e.g. Creditcard_CaptureAuthorizationForVoidCapture
+ * @param {string} path Global path of directory where the subfolder for the tables are created in. E.g. 'samples/adoc/'
+ * @param {Object} TestCredentials Object containing the Test Credentials
+ *
+ * @return {string} Path to file for use in include:: statement
+ */
+PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredentials) {
+    const fileExtension = '.adoc';
+    const filename = basename + '_TestCredentials'; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
+    var fileContent = `
+=== Test Credentials
+
+[cols="1v,2"]
+|===
+e| Type     | HTTP Basic Authentication
+e| Username | \`` + TestCredentials.ba_username + `\`
+e| Password | \`` + TestCredentials.ba_password + `\`
+e| Merchant Account ID | \`` + TestCredentials.maid + `\`
+|===
+`;
+
+    // create directory to hold the table
+    if (!fs.existsSync(path)) {
+        fs.mkdirSync(path, { recursive: true });
+    }
+    try {
+        fs.writeFileSync(path + filename + fileExtension, fileContent);
+        console.log(styleText('WRITTEN: ', 'green') + filename + fileExtension);
+    }
+    catch (err) {
+        throw err;
+    }
+    return filename + fileExtension;
+};
+
+
+// not in use. obsolete
 PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     const adocFileExtension = '.adoc';
     const path = 'samples/adoc/';
@@ -279,13 +320,9 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 
     for (var t in RequestResponseIndex) {
         const item = RequestResponseIndex[t];
-        const paymentMethod = item.payment_method;
-        //const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
         const paymentMethodBrandName = item.payment_method_name;
         const transactionKey = RequestResponseIndex[t];
         const transactionName = transactionKey.name;
-        const transactionType = transactionKey.transaction_type;
-        //const basename = paymentMethod + '_' + camelCase(t);
         const basename = camelCase(t);
         const adocFilename = basename + adocFileExtension;
         if (fs.existsSync(path + adocFilename)) {
@@ -305,9 +342,19 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             }
             numSuccessfulRequests++;
 
-            const transactionType = transactionKey.transaction_type;
             const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
             const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
+
+            if (numSuccessfulRequests < 2) { // write Test Credentials table only once. is in loop because that's where transaction details are available
+                const TestCredentials = {
+                    maid: transaction.maid,
+                    ba_username: transaction.request.username, // ba_ because there can additional "usernames" for web interfaces
+                    ba_password: transaction.request.password,
+                    endpoint: transaction.request.endpoint,
+                    http_method: transaction.request.method
+                };
+                const testCredentialsAdocTableFile = PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials);
+            }
 
             var statusesAdocTableCells = '';
             transaction.response.engine_status.forEach(function (s, i) {
@@ -335,12 +382,6 @@ e| URI    | ` + '``\\' + transaction.request.endpoint + '``' + `
 2+h| Headers
 e| Content-Type | \`` + transaction.request.content_type + `\`
 e| Accept       | \`` + transaction.request.accept + `\`
-
-2+h| Authentication
-e| Type     | HTTP Basic Authentication
-e| Username | \`` + transaction.request.username + `\`
-e| Password | \`` + transaction.request.password + `\`
-e| Merchant Account ID | \`` + transaction.maid + `\`
 |===
 
 //.Request ` + paymentMethodBrandName + `: ` + transactionName + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
@@ -551,14 +592,14 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
         case MIMETYPE_XML:
             obj = xmlparser.parse(body, { ignoreAttributes: false });
             e = PMUtil.ElementNamesMap[elementName].xml.slice();
-            if(!Array.isArray(e))
+            if (!Array.isArray(e))
                 e = [e];
             elementValue = getElementByPath(e, obj);
             break;
         case MIMETYPE_JSON:
             obj = JSON.parse(body);
             e = PMUtil.ElementNamesMap[elementName].json.slice();
-            if(!Array.isArray(e))
+            if (!Array.isArray(e))
                 e = [e];
             elementValue = getElementByPath(e, obj);
             break;
@@ -796,7 +837,7 @@ const styleText = function (text, style, type = 'fg') {
 // removes non-chars, remove empty array elements, capitalize, concatenate for CamelCase and add extension
 const camelCase = function (str) {
     return str.replace(/[^A-Za-z0-9_]/g, ' ').split(' ').filter(function (el) { return el != ''; })
-    .map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)); }).join('');
+        .map(function (el) { return (el.charAt(0).toUpperCase() + el.slice(1)); }).join('');
 };
 
 /**
