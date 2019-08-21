@@ -281,20 +281,34 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
  *
  * @return {string} Path to file for use in include:: statement
  */
-PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredentials) {
+PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredentials, AdditionalTestCredentials) {
     const fileExtension = '.adoc';
     const filename = basename + '_TestCredentials'; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
+    var additionalTestCredentialsAdocTable = `
+[cols="1v,2"]
+|===
+2+| Additional Test Credentials
+
+`;
+    for (i in AdditionalTestCredentials) {
+        const name = i;
+        const value = AdditionalTestCredentials[i];
+        additionalTestCredentialsAdocTable += `e| ` + name + ` | ` + '``' + value + '``' + "\n";
+    }
     var fileContent = `
 === Test Credentials
 
 [cols="1v,2"]
 |===
-e| Type     | HTTP Basic Authentication
+2+| HTTP Basic Authentication
+
 e| Username | \`` + TestCredentials.ba_username + `\`
 e| Password | \`` + TestCredentials.ba_password + `\`
 e| Merchant Account ID | \`` + TestCredentials.maid + `\`
 |===
-`;
+
+` + additionalTestCredentialsAdocTable
+;
 
     // create directory to hold the table
     if (!fs.existsSync(path)) {
@@ -353,7 +367,7 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
                     endpoint: transaction.request.endpoint,
                     http_method: transaction.request.method
                 };
-                const testCredentialsAdocTableFile = PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials);
+                const testCredentialsAdocTableFile = PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials, transaction.additional_test_credentials);
             }
 
             var statusesAdocTableCells = '';
@@ -841,6 +855,41 @@ const camelCase = function (str) {
 };
 
 /**
+ * Extracts additional Test Credentials from PM collection request description
+ *
+ * e.g.
+ * ATC:Merchant Account
+ * name::value
+ * another name :: some other value
+ *
+ * ATC: Consumer Account
+ * Password on Website::WebseitenPasswort123!"§!"§
+ * 
+ * @param {string} itemDescription Contains
+ * @param {string} requestName Necessary for identical body in same folder.
+ * 
+ * @return {array} Array of path elements, e.g. ["Klarna", "SE", "Utils"]
+ */
+PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
+    var AdditionalTestCredentials = {};
+    if (itemDescription === undefined)
+        return AdditionalTestCredentials;
+    const descriptionLines = itemDescription.content.split("\n");
+    for (var i in descriptionLines) {
+        const line = descriptionLines[i];
+        const headerRegex = new RegExp('^ATC:\ ?(.+)');
+        const header = line.split(headerRegex);
+        if (atc.length > 1) {
+            const atcKey = atc[1];
+            const atcValue = atc[2];
+            AdditionalTestCredentials[atcKey] = atcValue;
+        }
+    }
+    return AdditionalTestCredentials;
+};
+
+
+/**
  * Get folders structure/path of a given request body
  *
  * Walks through item tree of PM collection and returns path as array if found.
@@ -874,7 +923,13 @@ PMUtil.getFolderPath = function (body, requestName) {
 
 newman.run({
     collection: postmanCollectionFile,
-    environment: pmEnv // set notification_endpoint, etc
+    environment: pmEnv, // set notification_endpoint, etc
+    reporters: 'htmlextra',
+    reporter: {
+        htmlextra: {
+            export: './report.html'
+        }
+    }
 }).on('start', function (err, args) { // on start of run, log to console
     console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
@@ -906,6 +961,7 @@ newman.run({
     const requestUsername = PMUtil.getAuth(requestSent).username;
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
+    const AdditionalTestCredentials = PMUtil.parseAdditionalTestCredentials(item.request.description);
 
     const consoleString = paymentMethodName + ' -> ' + transactionType + ' (' + requestName + ')';
 
@@ -995,6 +1051,7 @@ newman.run({
                 maid: merchantAccountID,
                 transaction_id: transactionID,
                 parent_transaction_id: parentTransactionID,
+                additional_test_credentials: AdditionalTestCredentials,
                 success: requestSuccessful(engineStatusResponses)
             }
         });
