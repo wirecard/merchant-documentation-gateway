@@ -57,6 +57,3 @@ function createSampleTabs() {
         $(_btnrow).children('button').first().click();
     });
 }
-
-// enableRequestDetailsHideShow();
-// createSampleTabs();
