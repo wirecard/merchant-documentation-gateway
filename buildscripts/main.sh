@@ -95,7 +95,9 @@ function cloneWhitelabelRepository() {
   fi
 
   debugMsg "Create info files"
-  node buildscripts/util/create-info-files.js
+  if [[ -z $SKIP ]]; then
+    node buildscripts/util/create-info-files.js
+  fi
 
   return $?
 }
