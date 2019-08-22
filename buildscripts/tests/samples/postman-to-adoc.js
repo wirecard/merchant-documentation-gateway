@@ -80,6 +80,7 @@ var PMUtil = {};
 
 PMUtil.RequestsIndex = {};
 PMUtil.RequestResponseIndex = {};
+PMUtil.Endpoints = {};
 PMUtil.Collection = stfuGetJsonFromFile(postmanCollectionFile);
 
 /**
@@ -233,9 +234,42 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
     return dirname + filename + fileExtension;
 };
 
+/**
+ * Loop through all requests and create TC tables for each payment method (once)
+ * Looks up endpoint information from PMUtil.Endpoints using payment_method, e.g. "klarna-install" as key
+ * @param {Object} RequestResponseIndex Whole Request Response Index
+ *
+ * @return {array} Array of Test Credential Table files written
+ */
+PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {  
+    const path = 'test-credentials/adoc/';
+    var _done = []; // array contains payment methods that already have a tc table written
+    var _writtenFiles = [];
+    for (var k in RequestResponseIndex) {
+        const TransactionKey = RequestResponseIndex[k];
+        const paymentMethod = TransactionKey.payment_method;
+        const basename = camelCase(paymentMethod); // e.g. "klarna-install"
+
+        if (_done.includes(paymentMethod)) continue; // skip if we already have a table for this payment method
+
+        FirstTransaction = RequestResponseIndex[k].content_types[Object.keys(RequestResponseIndex[k].content_types)[0]]; // we only need one transaction to get maid,
+        const TestCredentials = {
+            maid: FirstTransaction.maid,
+            ba_username: FirstTransaction.request.username, // ba_ because there can additional "usernames" for web interfaces
+            ba_password: FirstTransaction.request.password,
+            endpoints: PMUtil.Endpoints[TransactionKey.payment_method],
+            http_method: FirstTransaction.request.method,
+            additional_test_credentials: FirstTransaction.additional_test_credentials
+        };
+        _done.push(paymentMethod);
+        _writtenFiles.push(PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials));
+    }
+    return _writtenFiles;
+}
+
 
 /**
- * Write adoc file that contains all necessary test credentials for a request
+ * Write adoc file that contains all necessary test credentials for all request of a payment method
  *
  * @param {string} basename e.g. Creditcard_CaptureAuthorizationForVoidCapture
  * @param {string} path Global path of directory where the subfolder for the tables are created in. E.g. 'samples/adoc/'
@@ -243,9 +277,33 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
  *
  * @return {string} Path to file for use in include:: statement
  */
-PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredentials, AdditionalTestCredentials) {
+PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredentials) {
     const fileExtension = '.adoc';
     const filename = basename + '_TestCredentials'; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
+
+    /*
+    Endpoints
+    */
+    const Endpoints = TestCredentials.endpoints;
+    var endpointsAdoc = `==== Endpoints
+|===
+| URI | Transaction Types
+`;
+    for (var ep in Endpoints) {
+        const rowSpan = (Endpoints[ep].length > 1) ? '.' + Endpoints[ep].length + '+' : '';
+        endpointsAdoc += rowSpan + `| \`\\` + ep + `\`
+`;
+        for (var r in Endpoints[ep]) {
+            endpointsAdoc += '| ' + Endpoints[ep][r] + "\n";
+        }
+    }
+    endpointsAdoc += '|===' + "\n";
+
+
+    /*
+    Additional Test Credentials
+    */
+    const AdditionalTestCredentials = TestCredentials.additional_test_credentials;
     var additionalTestCredentialsAdoc = '';
     if (Object.keys(AdditionalTestCredentials).length > 1) {
         additionalTestCredentialsAdoc = `==== Additional Test Credentials
@@ -268,8 +326,8 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
                 atcHeader = i;
             }
         }
-        //additionalTestCredentialsAdoc += "|===\n";
     }
+
     var fileContent = `=== Test Credentials
 [cols="1v,2"]
 |===
@@ -284,7 +342,7 @@ e| Username | \`` + TestCredentials.ba_username + `\`
 e| Password | \`` + TestCredentials.ba_password + `\`
 |===
 
-` + additionalTestCredentialsAdoc;
+` + additionalTestCredentialsAdoc + endpointsAdoc;
 
     // create directory to hold the table
     if (!fs.existsSync(path)) {
@@ -300,8 +358,11 @@ e| Password | \`` + TestCredentials.ba_password + `\`
     return filename + fileExtension;
 };
 
-
-// not in use. obsolete
+/**
+ * Write adoc file that contains sample tabs
+ *
+ * @param {object} RequestResponseIndex all tested requests and their info
+ */
 PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     const adocFileExtension = '.adoc';
     const path = 'samples/adoc/';
@@ -309,10 +370,10 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     var _writtenFiles = [];
 
     for (var t in RequestResponseIndex) {
-        const item = RequestResponseIndex[t];
-        const paymentMethodBrandName = item.payment_method_name;
-        const transactionKey = RequestResponseIndex[t];
-        const transactionName = transactionKey.name;
+        const TransactionKey = RequestResponseIndex[t];
+        const paymentMethodBrandName = TransactionKey.payment_method_name;
+        const transactionName = TransactionKey.name;
+        const transactionType = TransactionKey.transaction_type;
         const basename = camelCase(t);
         const adocFilename = basename + adocFileExtension;
         if (fs.existsSync(path + adocFilename)) {
@@ -324,9 +385,10 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 
 === ` + paymentMethodBrandName + `: ` + transactionName;
         var numSuccessfulRequests = 0;
-        for (var c in transactionKey.content_types) {
-            const transaction = transactionKey.content_types[c]; // "xml transaction" = get-url[0]
-
+        var numTotalRequests = 0; // needed for check if we are in last request (to collect all endpoints)
+        for (var c in TransactionKey.content_types) {
+            numTotalRequests = numTotalRequests + 1;
+            const transaction = TransactionKey.content_types[c]; // "xml transaction" = get-url[0]
             if (transaction.success === false) {
                 continue;
             }
@@ -334,17 +396,6 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 
             const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
             const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
-
-            if (numSuccessfulRequests < 2) { // write Test Credentials table only once. is in loop because that's where transaction details are available
-                const TestCredentials = {
-                    maid: transaction.maid,
-                    ba_username: transaction.request.username, // ba_ because there can additional "usernames" for web interfaces
-                    ba_password: transaction.request.password,
-                    endpoint: transaction.request.endpoint,
-                    http_method: transaction.request.method
-                };
-                const testCredentialsAdocTableFile = PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials, transaction.additional_test_credentials);
-            }
 
             var statusesAdocTableCells = '';
             transaction.response.engine_status.forEach(function (s, i) {
@@ -926,7 +977,7 @@ newman.run({
     const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
     const transactionType = PMUtil.getTransactionType(args.request.body.raw);
     const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + args.item.name + ')';
-    process.stdout.write('[  WAIT  ] ' + consoleString + "\r");
+    process.stderr.write('[  WAIT  ] ' + consoleString + "\r");
 
 }).on('request', function (err, args) {
     const item = args.item;
@@ -944,10 +995,11 @@ newman.run({
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
     const paymentMethodName = requestFolderPathArray.join(' ');
     const transactionType = PMUtil.getTransactionType(requestBodySent);
-    const transactionKey = requestFolderPathString + '_' + camelCase(requestName);
+    const TransactionKey = requestFolderPathString + '_' + camelCase(requestName);
     const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
     const merchantAccountID = PMUtil.getMerchantAccountID(requestBodySent);
     const requestEndpoint = 'https://' + requestSent.url.host.join('.') + '/' + requestSent.url.path.join('/');
+    const requestEndpointPath = requestSent.url.path.join('/');
     const requestUsername = PMUtil.getAuth(requestSent).username;
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
@@ -960,7 +1012,7 @@ newman.run({
     // do not write anything for this request because we do not know if the request failed because of server issue
     // or client network connectivity is bad
     if (args.response === undefined) {
-        process.stdout.write('[' + styleText("  FAIL  ", 'red') + ']' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+        process.stderr.write('[' + styleText("  FAIL  ", 'red') + ']' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
         return false;
     }
 
@@ -971,7 +1023,7 @@ newman.run({
     const responseCodeHTTP = args.response.code;
     const engineStatusResponses = PMUtil.readEngineStatusResponses(responseBody);
     var firstResponseCodeOfEngine = engineStatusResponses[0].code.toString();
-    if (firstResponseCodeOfEngine.length == 3) firstResponseCodeOfEngine = 'HTTP:' + firstResponseCodeOfEngine;
+    if (firstResponseCodeOfEngine.length == 3) firstResponseCodeOfEngine = 'HTTP ' + firstResponseCodeOfEngine;
     const requestSuccessful = (responses) => {
         for (var i in responses) {
             var responseCode = parseInt(responses[i].code.toString().replace(/\./, ''));
@@ -982,7 +1034,7 @@ newman.run({
         }
         return true;
     };
-    process.stdout.write('[' + (requestSuccessful(engineStatusResponses) ? styleText(firstResponseCodeOfEngine, 'green') : styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
+    process.stderr.write('[' + (requestSuccessful(engineStatusResponses) ? styleText(firstResponseCodeOfEngine, 'green') : styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
 
     //if (responseCodeHTTP < 400) { // else there is no response element parsing possible
     responseContentType = PMUtil.getContentType(responseBody);
@@ -994,7 +1046,7 @@ newman.run({
         PMUtil.RequestsIndex = [];
     }
 
-    PMUtil.RequestsIndex[transactionKey] = {
+    PMUtil.RequestsIndex[TransactionKey] = {
         response_code: responseCodeHTTP,
         transaction_id: transactionID,
         parent_transaction_id: parentTransactionID
@@ -1003,10 +1055,10 @@ newman.run({
     if (typeof PMUtil.RequestResponseIndex === 'undefined') {
         PMUtil.RequestResponseIndex = {}; // array for sort order
     }
-    if (typeof PMUtil.RequestResponseIndex[transactionKey] === 'undefined') {
-        PMUtil.RequestResponseIndex[transactionKey] = {};
+    if (typeof PMUtil.RequestResponseIndex[TransactionKey] === 'undefined') {
+        PMUtil.RequestResponseIndex[TransactionKey] = {};
     }
-    Object.assign(PMUtil.RequestResponseIndex[transactionKey],
+    Object.assign(PMUtil.RequestResponseIndex[TransactionKey],
         {
             name: requestName, // name of req in postman collection
             folder_path_string: requestFolderPathArray,
@@ -1014,10 +1066,10 @@ newman.run({
             payment_method: paymentMethod,
             payment_method_name: paymentMethodName, // folders in postman coll.
         });
-    if (typeof PMUtil.RequestResponseIndex[transactionKey].content_types === 'undefined') {
-        PMUtil.RequestResponseIndex[transactionKey].content_types = {};
+    if (typeof PMUtil.RequestResponseIndex[TransactionKey].content_types === 'undefined') {
+        PMUtil.RequestResponseIndex[TransactionKey].content_types = {};
     }
-    Object.assign(PMUtil.RequestResponseIndex[transactionKey].content_types,
+    Object.assign(PMUtil.RequestResponseIndex[TransactionKey].content_types,
         {
             [requestContentTypeAbbr]: {
                 request: {
@@ -1046,6 +1098,22 @@ newman.run({
                 success: requestSuccessful(engineStatusResponses)
             }
         });
+
+    /*
+    Endpoints: {
+        [payment_method]: {
+            '/engine/rest/paymentmethods/': ['get-url', 'debit', 'blablubb'],
+            '/engine/rest/payments/': ['refund-debit']
+        }
+    }    
+    */
+
+    // add transaction types to endpoint index later used in creating test credentials tables
+    if (PMUtil.Endpoints[paymentMethod] === undefined) PMUtil.Endpoints[paymentMethod] = {};
+    if (PMUtil.Endpoints[paymentMethod][requestEndpoint] === undefined) PMUtil.Endpoints[paymentMethod][requestEndpoint] = [];
+    PMUtil.Endpoints[paymentMethod][requestEndpoint].push(transactionType); // add e.g. get-url to endpoint object
+    PMUtil.Endpoints[paymentMethod][requestEndpoint] = [...new Set(PMUtil.Endpoints[paymentMethod][requestEndpoint].sort())]; // remove duplicate entries of sorted array
+
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
@@ -1054,6 +1122,11 @@ newman.run({
         console.log('collection run completed.');
 
     }
-    console.log('writing adoc file from index (' + Object.keys(PMUtil.RequestResponseIndex).length + ' items)');
+    console.log('writing test credentials tables');
+    process.stderr.write('writing test credentials tables...' + "\r");
+    var _numTCT = PMUtil.createTestCredentialsTables(PMUtil.RequestResponseIndex).length;
+    process.stderr.write('writing test credentials tables: ' + _numTCT + "\n");
+
+    console.log('writing adoc request/response and sample files (' + Object.keys(PMUtil.RequestResponseIndex).length + ' items)');
     PMUtil.writeAdocSummary(PMUtil.RequestResponseIndex);
 });
