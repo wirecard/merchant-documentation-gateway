@@ -282,42 +282,18 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
     const filename = basename + '_TestCredentials'; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
 
     /*
-    Endpoints old
-
-    const Endpoints = TestCredentials.endpoints;
-    var endpointsAdoc = `==== Endpoints
-|===
-| URI | Transaction Types
-`;
-    for (var ep in Endpoints) {
-        const rowSpan = (Endpoints[ep].length > 1) ? '.' + Endpoints[ep].length + '+' : '';
-        endpointsAdoc += rowSpan + `| \`\\` + ep + `\`
-`;
-        for (var r in Endpoints[ep]) {
-            endpointsAdoc += '| ' + Endpoints[ep][r] + "\n";
-        }
-    }
-    endpointsAdoc += '|===' + "\n";
-    */
-
-    /*
     Endpoints
     */
-
-
-
     const Endpoints = TestCredentials.endpoints;
-    var endpointsAdoc = `==== Endpoints
-
-`;
+    var endpointsAdoc = '==== Endpoint' + ((Object.keys(Endpoints).length > 1) ? 's' : '') + "\n\n";
     for (var ep in Endpoints) {
-        endpointsAdoc += '[cols="10v,30"]' + "\n";
+        endpointsAdoc += '[cols="1v,3"]' + "\n";
         endpointsAdoc += '|===' + "\n";
-        endpointsAdoc += '| Transaction Types | ' + Endpoints[ep].map(e => `\`${e}\``).join(', ') + "\n"; // wrap in `` for monospace
-        endpointsAdoc += '| URI | \\' + ep + "\n";
-        endpointsAdoc += '|===' + "\n";
+        endpointsAdoc += 's| Transaction Type' + ((Endpoints[ep].length > 1) ? 's' : '') + ' | ' + Endpoints[ep].map(e => `\`${e}\``).join(', ') + "\n"; // wrap in `` for monospace
+        endpointsAdoc += 's| URI | \\' + ep + "\n";
+        endpointsAdoc += '|===' + "\n\n";
     }
-    endpointsAdoc += '|===' + "\n";
+    endpointsAdoc += "\n";
 
     /*
     Additional Test Credentials
@@ -334,7 +310,7 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
 |===
 `;
                 if (i !== 'null') // must use string 'null' although "var header = null; in PMUtil.parseAdditionalTestCredentials"
-                    additionalTestCredentialsAdoc += '2+h| ' + i + "\n";
+                    additionalTestCredentialsAdoc += '2+s| ' + i + "\n";
             }
             for (var j in AdditionalTestCredentials[i]) {
                 const CredentialsPair = AdditionalTestCredentials[i][j];
