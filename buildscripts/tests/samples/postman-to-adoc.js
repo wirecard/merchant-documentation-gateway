@@ -204,44 +204,6 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
     }
 };
 
-PMUtil.writeAdocSummarySeparated = function (RequestResponseIndex) {
-    const fileExtension = '.adoc';
-    const path = 'samples/adoc/';
-
-    for (var r in RequestResponseIndex) {
-        const paymentMethods = RequestResponseIndex[r];
-        const paymentMethod = r;
-        const paymentMethodBrandName = PMUtil.brandNameOfPaymentMethod(paymentMethod);
-        for (var t in paymentMethods) {
-            const transactionTypes = paymentMethods[t];
-            const transactionType = t;
-            const filename = paymentMethod + '_' + transactionType + fileExtension;
-            var fileContent = ``;
-            // c == e.g. "xml"
-            for (var c in transactionTypes) {
-                const transaction = transactionTypes[c];
-                const samplesAdoc = `
-[.tab-source.tab-` + transaction.request.content_type_abbr + `]
-[source,` + transaction.request.content_type_abbr + `]
-----
-` + transaction.request.body_web + `
-----
-`;
-                fileContent += samplesAdoc;
-
-            }
-            fileContent += "\n";
-            try {
-                fs.writeFileSync(path + filename, fileContent);
-            }
-            catch (err) {
-                throw err;
-            }
-        }
-    }
-};
-
-
 /**
  * Write single request/response files for separate include not tied to the adoc tabs page
  *
@@ -323,8 +285,7 @@ e| Username | \`` + TestCredentials.ba_username + `\`
 e| Password | \`` + TestCredentials.ba_password + `\`
 |===
 
-` + additionalTestCredentialsAdoc
-        ;
+` + additionalTestCredentialsAdoc;
 
     // create directory to hold the table
     if (!fs.existsSync(path)) {
