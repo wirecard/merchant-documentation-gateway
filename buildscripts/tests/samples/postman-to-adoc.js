@@ -241,7 +241,7 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
  *
  * @return {array} Array of Test Credential Table files written
  */
-PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {  
+PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {
     const path = 'test-credentials/adoc/';
     var _done = []; // array contains payment methods that already have a tc table written
     var _writtenFiles = [];
@@ -282,8 +282,8 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
     const filename = basename + '_TestCredentials'; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
 
     /*
-    Endpoints
-    */
+    Endpoints old
+
     const Endpoints = TestCredentials.endpoints;
     var endpointsAdoc = `==== Endpoints
 |===
@@ -298,7 +298,26 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
         }
     }
     endpointsAdoc += '|===' + "\n";
+    */
 
+    /*
+    Endpoints
+    */
+
+
+
+    const Endpoints = TestCredentials.endpoints;
+    var endpointsAdoc = `==== Endpoints
+
+`;
+    for (var ep in Endpoints) {
+        endpointsAdoc += '[cols="10v,30"]' + "\n";
+        endpointsAdoc += '|===' + "\n";
+        endpointsAdoc += '| Transaction Types | ' + Endpoints[ep].map(e => `\`${e}\``).join(', ') + "\n"; // wrap in `` for monospace
+        endpointsAdoc += '| URI | \\' + ep + "\n";
+        endpointsAdoc += '|===' + "\n";
+    }
+    endpointsAdoc += '|===' + "\n";
 
     /*
     Additional Test Credentials
