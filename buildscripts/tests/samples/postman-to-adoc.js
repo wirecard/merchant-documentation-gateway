@@ -249,7 +249,6 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
     var additionalTestCredentialsAdoc = '';
     if (Object.keys(AdditionalTestCredentials).length > 1) {
         additionalTestCredentialsAdoc = `==== Additional Test Credentials
-
 `;
         var atcHeader = 'null';
         for (var i in AdditionalTestCredentials) {
@@ -257,8 +256,8 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
                 additionalTestCredentialsAdoc += `[cols="1v,2"]
 |===
 `;
-            if (i !== 'null') // must use string 'null' although "var header = null; in PMUtil.parseAdditionalTestCredentials"
-                additionalTestCredentialsAdoc += '2+h| ' + i + "\n";
+                if (i !== 'null') // must use string 'null' although "var header = null; in PMUtil.parseAdditionalTestCredentials"
+                    additionalTestCredentialsAdoc += '2+h| ' + i + "\n";
             }
             for (var j in AdditionalTestCredentials[i]) {
                 const CredentialsPair = AdditionalTestCredentials[i][j];
@@ -606,6 +605,9 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
             }
             if (obj.get(e) !== null)
                 elementValue = obj.get(e);
+            break;
+        case MIMETYPE_HTML:
+            elementValue = undefined; // explicitly set to undefined (not really necessary, already is undefined)
             break;
         default:
             console.log('in readElement: ' + elementName + ' + unknown content type');
@@ -968,7 +970,8 @@ newman.run({
     const responseBody = PMUtil.formatResponse(args.response.stream.toString());
     const responseCodeHTTP = args.response.code;
     const engineStatusResponses = PMUtil.readEngineStatusResponses(responseBody);
-    const firstResponseCodeOfEngine = engineStatusResponses[0].code;
+    var firstResponseCodeOfEngine = engineStatusResponses[0].code.toString();
+    if (firstResponseCodeOfEngine.length == 3) firstResponseCodeOfEngine = 'HTTP:' + firstResponseCodeOfEngine;
     const requestSuccessful = (responses) => {
         for (var i in responses) {
             var responseCode = parseInt(responses[i].code.toString().replace(/\./, ''));
