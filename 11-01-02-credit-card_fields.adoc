@@ -1,6 +1,6 @@
 include::shortcuts.adoc[]
 :date-pattern: The date format is YYYY-MM-DD.
-:timestamp-pattern: The timestamp format is yyyyMMddHHmmss.
+:timestamp-pattern: The timestamp format is YYYY-MM-DDThh:mm:ss.
 
 [#CC_Fields]
 ==== Fields
@@ -8,16 +8,16 @@ include::shortcuts.adoc[]
 [#CC_Fields_intro]
 ===== Introduction
 
-This table is the general field table for _Credit Card_. It gives a general overview of all the fields involved in _credit card_ transactions.
+This is the general field table for _Credit Card_ transactions.
 
-NOTE: Some transaction types may require a different field definition. If this is the case, the different definition is given directly with the transaction type.
+NOTE: Some transaction types may require different field definitions. If this is the case, the different definition is given directly with the transaction type.
+//KKS: Field definitions may vary by transaction type. Deviations from standard field definitions are given with the respective transaction type.
 
 - _Format:_ XML 
 - _POST_ requests and responses
 
 //-
 
-Fields, sent in a request, will usually also be part of the response. There are additional fields that are returned in the response only. These provide, for example, the result of the payment process. +
 We provide the request and the response fields in two separate sections:
 
 - <<CC_Fields_xmlelements_request, _Request_>> contains those fields sent in the request (and usually in the response).
@@ -25,18 +25,13 @@ We provide the request and the response fields in two separate sections:
 
 //-
 
-Within _Request_ and _Response_, the fields are sorted by hierarchy.
-
-// What kind of hierarchy does here apply?
-
-In each section ─ the _Request_ section and the _Response_ section ─ the fields are grouped according to their elements (such as _payment_, _account-holder_, _card_, _shipping_, etc).
-Each element is displayed in an own table. The element tables are sorted alphabetically.
-
+Within _Request_ and _Response_, the fields are sorted by parent and child elements (such as _payment_, _account-holder_, _card_, _shipping_, etc).
+Each element is displayed in a separate table. The element tables are sorted alphabetically.
 
 [#CC_Fields_intro_elements]
 ====== Objects
 
-Each field table has the following columns:
+Each field table contains the following columns:
 
 - <<CC_Fields_intro_elements_name, Name>>
 - <<CC_Fields_intro_elements_cardinality, Cardinality>> (for _Request_ elements only)
@@ -47,37 +42,42 @@ Each field table has the following columns:
 
 [#CC_Fields_intro_elements_name]
 ._Name_
-_Structure:_ 
+The field name structure is based on the hierarchical relation between individual elements. +
+_Example:_ ``order-items.order-item.article-number`` +
+_Structure:_ +
 
 image::images/11-01-02-credit-card_fields/parent-child.png[] 
 
-_Example:_ ``order-items.order-item.article-number``
+//KKS: please create a mermaid graphic for this; we need to make sure we have consistency in our new graphics
 
 // Follow up task: With the corresponding excerpt of the XSD we can show the structure of the xml elements.
 
-The structure shows a hierarchical relation between the elements. We have a parent element consisting of children. Some children can turn into a parent element themselves and have their own children.
-
-According to the above example we have the parent element ``order-items`` and its child ``order-item``. +
+In the example, the parent element is ``order-items``, and its child ``order-item``. +
 ``order-item`` itself is also a parent element of its child ``article-number``. 
-The hierarchy levels are sparated by a dot ``.``.
+The hierarchies are sparated by a dot ``.``
 
 [#CC_Fields_intro_elements_cardinality]
 ._Cardinality_
 
-_Cardinality_ indicates the functional necessity of the field for the request. A field can be either mandatory (M) or optional (O).
+_Cardinality_ indicates if the field is necessary for the request to work. A field can be either mandatory (M) or optional (O).
 
 - If a field is _mandatory_, it must be included in the request and contain a value. Without this field, the request will fail. +
-- If a field is _optional_, it does not have to be included in the request. Including optional fields nevertheless may have certain advantages. 
-Reasons why content should be sent with optional fields can be found at the table's description.
+- If a field is _optional_, it does not have to be included in the request. Including optional fields can have certain advantages. These are included in the respective field description.
 
-NOTE: If the cardinality depends on the context it will be marked with "M/O". The _Description_ will explain the conditions in which the field is mandatory.
+[NOTE]
+====
+Cardinality can depend on the context. In those cases, fields will be marked with "M/O". The _Description_ will explain under which conditions the field is mandatory.
 
-The definition of _Cardinality_ may sometimes lead to an ambiguous interpretation.
-Look, for example, at the ``periodic`` element. When you send a request without a recurring intention, the ``periodic`` fields are not necessary. But they are mandatory, when you start a payment process with recurring transactions.
+*Example*:``payment.periodic`` 
+
+- ``periodic`` fields are optional when you send a request for a one-time payment transaction.
+- ``periodic`` fields are mandatory when you send a request for one-time payments with one-click checkout, recurring payments, and installment payment transactions.
+
+//-
+====
 
 //if we talk about a "periodic-element" we should publish the table as designed in the lines 914 to 937. What do you think?
-
-In the tables below we describe the cardinality considering the technical requirement. We provide suggestions in the description of the tables in which context it makes sense to send a field even though its technical cardinality is _Optional_.
+//KKS: (Y)
 
 //-
 
