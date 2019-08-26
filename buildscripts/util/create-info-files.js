@@ -20,9 +20,9 @@ const gitCommands = function (file, branchPattern = 'PSPDOC-[0-9]\+') {
         'commit_hash': 'git rev-parse HEAD',
         'last_edited_by': 'git log -1 --pretty=format:%an -- "' + file + '"',
         'branch_of_file': 'git --no-pager log --decorate=short --pretty=oneline --follow -- "' + file + '" | sed -n "s/.*(origin\/\(' + branchPattern + '\)).*/\1/p" | head -n 1'
-    }
+    };
     return git;
-}
+};
 
 function readInfoFile(file) {
     var fileContents;
@@ -37,7 +37,7 @@ function readInfoFile(file) {
     return JsonObject;
 }
 
-function getAllFilesInFolder(folderPath = './', fileList) {
+function getAllFilesInFolder(folderPath = './', fileList = null) {
     var files = fs.readdirSync(folderPath);
     fileList = fileList || [];
     files.forEach(function (file) {
@@ -54,7 +54,6 @@ function getAllFilesInFolder(folderPath = './', fileList) {
     return fileList;
 }
 
-const infoFiles = readInfoFile(infoFilesFile);
 function writeGitInfo() {
     const gitData = {
         "commit_author": getCommitAuthor(),
@@ -113,8 +112,9 @@ function runGitCommand(file, type) {
     });
 }
 
-var promisesPromises = [];
+const infoFiles = readInfoFile(infoFilesFile);
 const filesInDirectory = getAllFilesInFolder();
+var promisesPromises = [];
 filesInDirectory.forEach(file => {
     promisesPromises.push(runGitCommand(file, 'last_edited_by'));
     //promisesPromises.push(runGitCommand(file, 'branch_of_file')); // disabled
@@ -123,5 +123,6 @@ filesInDirectory.forEach(file => {
 Promise.all(promisesPromises)
     .then(() => {
         writeGitInfo();
+        console.log("-> DONE!");
         process.exit(0);
     });

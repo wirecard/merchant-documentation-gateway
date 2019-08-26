@@ -1,5 +1,6 @@
 #!/bin/python3
 
+import sys
 import argparse
 import xmltodict
 import json
@@ -96,10 +97,10 @@ def post_process_json(info_dict):
 def main():
     parser = argparse.ArgumentParser(
         description="Convert XML requests to JSON")
-    parser.add_argument("input", metavar="FILE",
-                        type=str, help="Input XML file")
+    parser.add_argument("input", nargs='?', metavar="FILE",
+                        type=str, help="input XML file or read from STDIN if not specified")
     parser.add_argument(
-        "-o", "--output", type=str, help="Output JSON file (default: print to stdout")
+        "-o", "--output", type=str, help="output JSON file (default: print to stdout)")
     args = parser.parse_args()
 
     input_file = args.input
@@ -110,8 +111,11 @@ def main():
     ###########################################################################
     # use xmltodict
     xml_json_dict = {}
-    with open(input_file, "r+", encoding="utf8") as in_xml:
-        xml_json_dict = xmltodict.parse(in_xml.read())
+    if input_file:
+        with open(input_file, "r+", encoding="utf8") as in_xml:
+            xml_json_dict = xmltodict.parse(in_xml.read())
+    else:
+        xml_json_dict = xmltodict.parse("".join(sys.stdin.readlines()))
 
     xml_json_dict = post_process_json(xml_json_dict)
 
