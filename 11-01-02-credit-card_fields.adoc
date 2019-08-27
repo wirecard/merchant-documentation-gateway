@@ -24,6 +24,7 @@ We provide the request and the response fields in two separate sections:
 
 Within _Request_ and _Response_, the fields are sorted by parent and child elements (such as _payment_, _account-holder_, _card_, _shipping_, etc).
 Each element is displayed in a separate table. The element tables are sorted alphabetically.
+//KKS: rephrase
 
 [#CC_Fields_intro_elements]
 ===== Objects
@@ -120,10 +121,13 @@ In general, the _{payment-gateway}_ allows all characters for each field, depend
 If other rules apply for a field, they will be stated in the _Description_ column of that field.
 
 [#CC_Fields_intro_ParentElement]
-===== Parent Element and its Children
-Parent elements (also referred to as _Complex type_) contain subordinate child tables (such as ``account-holder.address``). The fields themselves are part of the respective parent element table (e.g. <<CC_Fields_xmlelements_request_address, address>> is a child table of <<CC_Fields_xmlelements_request_accountholder, account-holder>>. The ``address`` fields are listed in a child table of ``account-holder``). The parent element table provides a link to the table of the child element.
+===== Complex types
+////
+Parent elements (also referred to as _Complex type_ fields) contain subordinate child tables (such as ``account-holder.address``). The fields themselves are part of the respective parent element table (e.g. <<CC_Fields_xmlelements_request_address, address>> is a child table of <<CC_Fields_xmlelements_request_accountholder, account-holder>>. The ``address`` fields are listed in a child table of ``account-holder``). The parent element table provides a link to the table of the child element.
+////
 
-//KKS: NOTE TO SELF --> Rephrase
+The tables are ordered hierarchically. ``payment`` is the top parent element and all fields that are part of ``payment`` are listed in the first table <<CC_Fields_xmlelements_request_payment, provided here>>. 
+Some fields listed in this table are _complex type_ fields, e.g. ``payment.account-holder``. _Complex type_ fields are parents to a number of further fields. For example, ``payment.account-holder`` is a parent of ``address``. Click on the link provided in the table to view the fields contained in a _complex type_ field.
 
 [#CC_Fields_xmlelements]
 ===== XML Elements
@@ -239,24 +243,25 @@ Please refer to our <<Appendix_Xml, XSD>> for field descriptions.
 ====== Request
 
 [#CC_Fields_xmlelements_request_payment]
-.payment
+.``payment``
 
-Additional fields can be found in the
-<<CC_Fields_xmlelements_response_payment, Response > payment>> section.
+Additional ``payment`` fields can be found in the
+<<CC_Fields_xmlelements_response_payment, Response > ``payment``>> section.
 
-[cols="30,6,9,7,48a"]
+[cols="30m,6,9,7,48a"]
 |===
 | Field | Cardinality | Datatype | Size | Description
 
 | merchant-account-id | C | String | 36 | A unique identifier assigned to every merchant account.
+//KKS: MAID is conditional, even though above we state that we have M, O and M/O.
 | merchant-account-resolver-category | C | String | 36 | The category used to
 <<GeneralPlatformFeatures_ResolverCategoryCode, resolve the merchant-account>>
 based on a number of resolving rules.
 | request-id | M | String | 32 | The identification number of the request. It must be unique for each request. The following characters are allowed: ASCII characters Code 32-38 and 40-126.
 | requested-amount | M | Decimal | 18,2 | The full amount that is requested/contested in a transaction. Use ``.``(decimal point) as the separator.
-a| currency
-
+a| ``currency``
 (Attribute of ``requested-amount``) | M | String | 3 | The currency of the requested/contested transaction amount. Format: 3-character abbreviation according to ISO 4217.
+//KKS: is that, broadly speaking, a child of requested amount?
 | transaction-type | M | String | 30 | The requested transaction type .
 | descriptor | M | String | 64 | Describes the settlement of the consumer's account about a transaction. 
 | order-detail | O | String | 65535 | Details of an order filled in by the merchant.
@@ -315,23 +320,23 @@ empty: unknown source +
 // Are we aware that we use "transaction type" here in a different context as we use it generally? This requires a more detailed explanation!
 //vhauss: According to line 103 "iso-transaction-type"'s data type should be "Enumeration"!
 
-4+| account-holder | <<CC_Fields_xmlelements_request_accountholder, account-holder>> is a child element of ``payment``.
-4+| airline-industry | <<CC_Fields_xmlelements_request_airlineindustry, airline-industry>> is a child element of ``payment``.
-4+| browser | <<CC_Fields_xmlelements_request_browser, browser>> is a child element of ``payment``.
-4+| card | Used with the first request of card use only. <<CC_Fields_xmlelements_request_card, card>> is a child element of ``payment``.
-4+| card-token | Returned by the first payment response and used for further operations. <<CC_Fields_xmlelements_request_cardtoken, card-token>> is a child element of ``payment``.
-4+| credit-sender-data | <<CC_Fields_xmlelements_request_creditsenderdata, credit-sender-data>> is a child element of ``payment``.
-4+| cruise-industry | <<CC_Fields_xmlelements_request_cruiseindustry, cruise-industry>> is a child element of ``payment``.
-4+| custom-fields | ``custom-fields`` is the parent element of <<CC_Fields_xmlelements_request_customfield, custom-field>>
-4+| device | <<CC_Fields_xmlelements_request_device, device>> is a child element of ``payment``.
-4+| notifications | ``notifications`` is the parent element of <<CC_Fields_xmlelements_request_notification, notification>>
-4+| order-items | ``order-items`` is the parent element of <<CC_Fields_xmlelements_request_orderitem, order-item>>
-4+| payment-methods | ``payment-methods`` is the parent element of <<CC_Fields_xmlelements_request_paymentmethod, payment-method>>
+4+| account-holder | <<CC_Fields_xmlelements_request_accountholder, ``account-holder``>> is a child element of ``payment``.
+4+| airline-industry | <<CC_Fields_xmlelements_request_airlineindustry, ``airline-industry``>> is a child element of ``payment``.
+4+| browser | <<CC_Fields_xmlelements_request_browser, ``browser``>> is a child element of ``payment``.
+4+| card | Used with the first request of card use only. <<CC_Fields_xmlelements_request_card, ``card``>> is a child element of ``payment``.
+4+| card-token | Returned by the first payment response and used for further operations. <<CC_Fields_xmlelements_request_cardtoken, ``card-token``>> is a child element of ``payment``.
+4+| credit-sender-data | <<CC_Fields_xmlelements_request_creditsenderdata, ``credit-sender-data``>> is a child element of ``payment``.
+4+| cruise-industry | <<CC_Fields_xmlelements_request_cruiseindustry, ``cruise-industry``>> is a child element of ``payment``.
+4+| custom-fields | ``custom-fields`` is the parent element of <<CC_Fields_xmlelements_request_customfield, ``custom-field``>>
+4+| device | <<CC_Fields_xmlelements_request_device, ``device``>> is a child element of ``payment``.
+4+| notifications | ``notifications`` is the parent element of <<CC_Fields_xmlelements_request_notification, ``notification``>>
+4+| order-items | ``order-items`` is the parent element of <<CC_Fields_xmlelements_request_orderitem, ``order-item``>>
+4+| payment-methods | ``payment-methods`` is the parent element of <<CC_Fields_xmlelements_request_paymentmethod, ``payment-method``>>
 //4+| periodic | <<CC_Fields_xmlelements_request_periodic, periodic>> is a child element of ``payment``.
-4+| risk-info | <<CC_Fields_xmlelements_request_riskinfo, risk-info>> is a child element of ``payment``.
-4+| shipping | <<CC_Fields_xmlelements_request_shipping, shipping>> is a child element of ``payment``.
-4+| sub-merchant-info | <<CC_Fields_xmlelements_request_submerchantinfo, sub-merchant-info>> is a child element of ``payment``.
-4+| three-d | <<CC_Fields_xmlelements_request_threed, three-d>> is a child element of ``payment``.
+4+| risk-info | <<CC_Fields_xmlelements_request_riskinfo, ``risk-info``>> is a child element of ``payment``.
+4+| shipping | <<CC_Fields_xmlelements_request_shipping, ``shipping``>> is a child element of ``payment``.
+4+| sub-merchant-info | <<CC_Fields_xmlelements_request_submerchantinfo, ``sub-merchant-info``>> is a child element of ``payment``.
+4+| three-d | <<CC_Fields_xmlelements_request_threed, ``three-d``>> is a child element of ``payment``.
 |===
 
 [#CC_Fields_xmlelements_request_accountholder]
