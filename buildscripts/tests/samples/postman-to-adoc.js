@@ -11,9 +11,11 @@
 const newman = require('newman');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
+const path = require('path');
 const xmlparser = require('fast-xml-parser');
 const URLSearchParams = require('url').URLSearchParams;
 const crypto = require('crypto');
+const child_process = require('child_process');
 
 const MIMETYPE_XML = 'application/xml';
 const MIMETYPE_HTML = 'text/html';
@@ -252,16 +254,18 @@ PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {
 
         if (_done.includes(paymentMethod)) continue; // skip if we already have a table for this payment method
 
-        FirstTransaction = RequestResponseIndex[k].content_types[Object.keys(RequestResponseIndex[k].content_types)[0]]; // we only need one transaction to get maid,
+        FirstTransaction = RequestResponseIndex[k].content_types[Object.keys(RequestResponseIndex[k].content_types)[0]]; // we only need one transaction for credentials, e.g. XML
         const TestCredentials = {
             maid: FirstTransaction.maid,
             ba_username: FirstTransaction.request.username, // ba_ because there can additional "usernames" for web interfaces
             ba_password: FirstTransaction.request.password,
             endpoints: PMUtil.Endpoints[TransactionKey.payment_method],
             http_method: FirstTransaction.request.method,
-            additional_test_credentials: FirstTransaction.additional_test_credentials
+            additional_test_credentials: FirstTransaction.additional_test_credentials,
+            folder_description: RequestResponseIndex[k].folder_description
         };
         _done.push(paymentMethod);
+        //console.log(TestCredentials);
         _writtenFiles.push(PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials));
     }
     return _writtenFiles;
@@ -298,31 +302,33 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
     /*
     Additional Test Credentials
     */
-    const AdditionalTestCredentials = TestCredentials.additional_test_credentials;
-    var additionalTestCredentialsAdoc = '';
-    if (Object.keys(AdditionalTestCredentials).length > 1) {
-        additionalTestCredentialsAdoc = `==== Additional Test Credentials
-`;
-        var atcHeader = 'null';
-        for (var i in AdditionalTestCredentials) {
-            if (i !== atcHeader) { // create new table
-                additionalTestCredentialsAdoc += `[cols="1v,2"]
-|===
-`;
-                if (i !== 'null') // must use string 'null' although "var header = null; in PMUtil.parseAdditionalTestCredentials"
-                    additionalTestCredentialsAdoc += '2+s| ' + i + "\n";
-            }
-            for (var j in AdditionalTestCredentials[i]) {
-                const CredentialsPair = AdditionalTestCredentials[i][j];
-                additionalTestCredentialsAdoc += `e| ` + CredentialsPair.name + ` | ` + '``' + CredentialsPair.value + '``' + "\n";
-            }
-            if (i !== atcHeader) { // close table
-                additionalTestCredentialsAdoc += "|===\n\n";
-                atcHeader = i;
+    const additionalTestCredentialsAdoc = TestCredentials.folder_description + "\n";
+    /*
+        const AdditionalTestCredentials = TestCredentials.additional_test_credentials;
+        var additionalTestCredentialsAdoc = '';
+        if (Object.keys(AdditionalTestCredentials).length > 1) {
+            additionalTestCredentialsAdoc = `==== Additional Test Credentials
+    `;
+            var atcHeader = 'null';
+            for (var i in AdditionalTestCredentials) {
+                if (i !== atcHeader) { // create new table
+                    additionalTestCredentialsAdoc += `[cols="1v,2"]
+    |===
+    `;
+                    if (i !== 'null') // must use string 'null' although "var header = null; in PMUtil.parseAdditionalTestCredentials"
+                        additionalTestCredentialsAdoc += '2+s| ' + i + "\n";
+                }
+                for (var j in AdditionalTestCredentials[i]) {
+                    const CredentialsPair = AdditionalTestCredentials[i][j];
+                    additionalTestCredentialsAdoc += `e| ` + CredentialsPair.name + ` | ` + '``' + CredentialsPair.value + '``' + "\n";
+                }
+                if (i !== atcHeader) { // close table
+                    additionalTestCredentialsAdoc += "|===\n\n";
+                    atcHeader = i;
+                }
             }
         }
-    }
-
+    */
     var fileContent = `=== Test Credentials
 [cols="1v,2"]
 |===
@@ -880,6 +886,35 @@ const camelCase = function (str) {
 };
 
 /**
+ * NOT IN USE!
+ * Converts a Markdown string to Asciidoc with kramdoc
+ * 
+ * @param {string} txtMarkdown Contains ATC info like above
+ * 
+ * @return {string} Asciidoc text
+ */
+PMUtil.markdown2adoc = function (txtMarkdown) {
+    var txtAdoc;
+    //const _tmpfile = child_process.spawnSync('mktemp').stdout.toString('utf8'); // Error: ENOENT: no such file or directory, open 'C:\tmp\tmp.DCGQiKZehy
+    const _tmpfile = '_' + PMUtil.uuidv4() + '.tmp';
+    try {
+        fs.writeFileSync(_tmpfile, txtMarkdown);
+    }
+    catch (err) {
+        throw err;
+    }
+    try {
+        txtAdoc = child_process.spawnSync('kramdoc', [_tmpfile, '-o', '-']).stdout.toString('utf8');
+    }
+    catch (err) {
+        throw (err);
+    }
+    fs.unlinkSync(_tmpfile);
+    return txtAdoc;
+};
+
+
+/**
  * Extracts additional Test Credentials from PM collection request description
  *
  * e.g.
@@ -898,6 +933,7 @@ PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
     var AdditionalTestCredentials = {};
     if (itemDescription === undefined)
         return AdditionalTestCredentials;
+
     const descriptionLines = itemDescription.content.split("\n");
     const headerRegex = new RegExp('^ATC:\ *(.+)');
     const keyValueRegex = new RegExp('^\ *(.+)\ *::\ *(.+)\ *');
@@ -926,7 +962,7 @@ PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
 
 
 /**
- * Get folders structure/path of a given request body
+ * Get folders info: structure/path of a given request body and folder description
  *
  * Walks through item tree of PM collection and returns path as array if found.
  * 
@@ -935,15 +971,17 @@ PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
  * 
  * @return {array} Array of path elements, e.g. ["Klarna", "SE", "Utils"]
  */
-PMUtil.getFolderPath = function (body, requestName) {
+PMUtil.getFolderInfo = function (body, requestName) {
     var itemPath = [];
-    var getFolders = (i, body, path = []) => {
+    var folderDescription;
+    var getFolderInfo = (i, body, path = []) => {
         for (var key in i) {
             var folder = i[key];
             if (folder.item !== undefined) {
                 var _path = path.slice();
                 _path.push(folder.name);
-                getFolders(folder.item, body, _path);
+                if (folder.description !== undefined) folderDescription = folder.description;
+                getFolderInfo(folder.item, body, _path);
             }
             else {
                 if (folder.name == requestName && folder.request.body.raw == body) {
@@ -953,9 +991,13 @@ PMUtil.getFolderPath = function (body, requestName) {
             }
         }
     };
-    getFolders(PMUtil.Collection.item, body);
-    return itemPath;
+    getFolderInfo(PMUtil.Collection.item, body);
+    return {
+        path_array: itemPath,
+        folder_description: folderDescription
+    };
 };
+
 
 newman.run({
     collection: postmanCollectionFile,
@@ -981,7 +1023,9 @@ newman.run({
     const requestSent = args.request;
     const requestMethod = requestSource.method;
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
-    const requestFolderPathArray = PMUtil.getFolderPath(requestBodySource, requestName);
+    const requestFolderInfo = PMUtil.getFolderInfo(requestBodySource, requestName);
+    const requestFolderDescription = requestFolderInfo.folder_description;
+    const requestFolderPathArray = requestFolderInfo.path_array;
     const requestFolderPathString = camelCase(requestFolderPathArray.join('_'));
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
     const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);  // body that has no vars in them (for web display) except request id
@@ -998,7 +1042,9 @@ newman.run({
     const requestUsername = PMUtil.getAuth(requestSent).username;
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
-    const AdditionalTestCredentials = PMUtil.parseAdditionalTestCredentials(item.request.description);
+    // no longer used per item but read description from folder as asciidoc   const AdditionalTestCredentials = PMUtil.parseAdditionalTestCredentials(item.request.description);
+    // no conversion. just use directly in asciidoc const AdditionalTestCredentials = PMUtil.markdown2adoc(requestFolderDescription);
+    const AdditionalTestCredentials = requestFolderDescription;
 
     const consoleString = paymentMethodName + ' -> ' + transactionType + ' (' + requestName + ')';
 
@@ -1007,7 +1053,7 @@ newman.run({
     // do not write anything for this request because we do not know if the request failed because of server issue
     // or client network connectivity is bad
     if (args.response === undefined) {
-        process.stderr.write('[' + styleText("  FAIL  ", 'red') + ']' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+        process.stderr.write('[' + styleText('  FAIL  ', 'red') + ']' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
         return false;
     }
 
@@ -1057,6 +1103,7 @@ newman.run({
         {
             name: requestName, // name of req in postman collection
             folder_path_string: requestFolderPathArray,
+            folder_description: requestFolderDescription,
             transaction_type: transactionType,
             payment_method: paymentMethod,
             payment_method_name: paymentMethodName, // folders in postman coll.
@@ -1089,7 +1136,6 @@ newman.run({
                 maid: merchantAccountID,
                 transaction_id: transactionID,
                 parent_transaction_id: parentTransactionID,
-                additional_test_credentials: AdditionalTestCredentials,
                 success: requestSuccessful(engineStatusResponses)
             }
         });

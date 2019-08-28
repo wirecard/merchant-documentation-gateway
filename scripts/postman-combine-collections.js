@@ -1,4 +1,4 @@
-// combines requests from two PM collections
+// combines requests from two or more PM collections
 // usage: postman-combine-collections.js --output <output-file.json> FILES
 /*jshint esversion: 6 */
 
