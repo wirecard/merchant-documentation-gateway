@@ -101,7 +101,7 @@ PMUtil.getPaymentMethod = (body) => {
 };
 PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
 PMUtil.getTransactionType = (body) => { // returns value of transaction type. or parent element name for sonderfälle like get-address-request
-    return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body) : PMUtil.readElementFromBody(GENERIC_ROOT_ELEMENT, body, true);
+    return (PMUtil.bodyHasElement(body, 'payment') || PMUtil.getContentType(body) == MIMETYPE_NVP) ? PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body) : PMUtil.readElementFromBody(GENERIC_ROOT_ELEMENT, body, true);
 };
 
 /**
@@ -586,8 +586,17 @@ PMUtil.readEngineStatusResponses = function (body) {
             }
             break;
         case MIMETYPE_NVP:
-            // no NVP response from engine
-            //Response = new URLSearchParams(body).get('merchant-account-id');
+            const Params = new URLSearchParams(body);
+            for (var [k,v] of Params.entries()) {
+                const matches = k.match(/status_code_([0-9]+)/);
+                if(matches && matches.length) {
+                    statusResponse.push({
+                        code: Params.get('status_code_' + matches[1]),
+                        description: Params.get('status_description_' + matches[1]),
+                        severity: Params.get('status_severity_' + matches[1])
+                    });
+                }
+            }
             break;
         default:
             console.log(body);
