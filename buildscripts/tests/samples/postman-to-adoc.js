@@ -696,20 +696,16 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
  */
 PMUtil.getParentPaymentMethod = function (body) {
     const pid = PMUtil.getParentTransactionID(body);
-    //// console.log('looking for pid: ' + pid + ' in RequestsIndex');
     if (pid === undefined) {
         // credit card requests also work if there's not payment method specified
         // getParentTransactionID returns undefined, because request has no parent-transaction-id 
         return DEFAULT_PAYMENT_METHOD;
     }
     else {
-        for (var paymentMethod in PMUtil.RequestsIndex) {
-            const pm = PMUtil.RequestsIndex;
-            for (var transactionType in pm) {
-                if (pm[transactionType].transaction_id === pid) {
-                    // // console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
-                    return paymentMethod;
-                }
+        //console.log('looking for pid: ' + pid + ' in RequestsIndex');
+        for (var transaction_id in PMUtil.RequestsIndex) {
+            if (transaction_id === pid) {
+                return PMUtil.RequestsIndex[transaction_id].payment_method;
             }
         }
     }
@@ -733,6 +729,7 @@ PMUtil.readPaymentMethod = function (body) {
     }
     paymentMethod = PMUtil.getPaymentMethod(body);
     if (paymentMethod === undefined) {
+        //console.log("\n undefined payment method. looking for parent")
         paymentMethod = PMUtil.getParentPaymentMethod(body);
     }
     return paymentMethod.trim();
@@ -1127,10 +1124,10 @@ newman.run({
         PMUtil.RequestsIndex = [];
     }
 
-    PMUtil.RequestsIndex[transactionKey] = {
+    PMUtil.RequestsIndex[transactionID] = {
         response_code: responseCodeHTTP,
-        transaction_id: transactionID,
-        parent_transaction_id: parentTransactionID
+        parent_transaction_id: parentTransactionID,
+        payment_method: paymentMethod
     };
 
     if (typeof PMUtil.RequestResponseIndex === 'undefined') {
