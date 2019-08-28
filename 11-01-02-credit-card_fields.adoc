@@ -265,141 +265,8 @@ Please refer to our <<Appendix_Xml, XSD>> for the structural relationship betwee
 Additional ``payment`` fields can be found in the
 <<CC_Fields_xmlelements_response_payment, Response > ``payment``>> section.
 
-[cols="30m,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
+include::include/fields/rest_cc/payment.adoc[]
 
-|merchant-account-id 
-|M/O 
-|String 
-|36 
-|A unique identifier assigned to every merchant account.
-//KKS: MAID is conditional, even though above we state that we have M, O and M/O.
-|merchant-account-resolver-category 
-|M/O 
-|String 
-|36 
-|The category used to <<GeneralPlatformFeatures_ResolverCategoryCode, resolve the merchant-account>> based on a number of resolving rules.
-
-|request-id 
-|M 
-|String 
-|32 
-|The identification number of the request. It must be unique for each request. The following characters are allowed: ASCII characters Code 32-38 and 40-126.
-
-|requested-amount 
-|M 
-|Decimal 
-|18,2 
-|The full amount that is requested/contested in a transaction. Use ``.``(decimal point) as the separator.
-
-a|``currency``(attribute of ``requested-amount``) 
-|M 
-|String 
-|3 
-|The currency of the requested/contested transaction amount. Format: 3-character abbreviation according to ISO 4217.
-//KKS: is that, broadly speaking, a child of requested amount?
-
-|transaction-type 
-|M 
-|String 
-|30 
-|The requested transaction type.
-
-|descriptor 
-|M 
-|String 
-|64 
-|Describes the settlement of the consumer's account about a transaction. 
-
-|order-detail 
-|O 
-|String 
-|65535 
-|Details of an order filled in by the merchant.
-
-|order-number 
-|M 
-|String 
-|32 
-|The order number provided by the merchant. Allowed characters: ASCII characters Code 32-38 and 40-126.
-| parent-transaction-id | M/O | String | 36 | This is the unique identifier of the referenced transaction. This is mandatory if 
-
-- ``merchant-account-id`` or ``merchant-account-resolver-category`` are not used.
-- the transaction refers to a previously processed transaction (e.g. a _refund_ refers to a _purchase_).
-
-|group-transaction-id 
-|M/O 
-|String 
-|36 
-|A unique ID assigned to a group of related transactions. For example, an _authorization_, _capture_, and _refund_ will all share the same ``group-transaction-id``.
-| authorization-code | C | String | 36 | The authorization-code can be
-
-. input for a _capture_ without reference to _authorization_
-. output for _authorization_
-//-
-//KKS: Follow up task: clarify use of field. output for or of authorization?
-| ip-address | O | String | 45 | The global (internet) IP address of the consumer's device.
-| non-gambling-oct-type | O | String | 7 | A transfer type of non-gambling Original Credit Transaction (OCT).
-Allowed values: ``p2p``, ``md``, ``acc2acc``, ``ccBill`` and ``fd``.
-//KKS: Follow up task: Provide a brief description for each of these values.
-//vhauss: According to line 103 "non-gambling-oct-type"'s data type should be "Enumeration"!
-| processing-redirect-url | O | String | 256 | The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page
-on the merchant's website.
-| success-redirect-url | M | String | 256 | The URL to which the consumer will be re-directed after a successful payment. This is normally a success
-confirmation page on the merchant's website.
-| cancel-redirect-url | M | String | 256 | The URL to which the consumer will be re-directed after he has cancelled a payment. This is normally a page on the merchant's website.
-| locale | M | String | 6 | Code of the language. Can be ``CZ``, ``DA``, ``EN``, ``DE``,
-``ES``, ``FI``, ``FR``, ``IT``, ``NL``, ``PL``, ``GR``, ``RO``, ``RU``, ``SV``, and ``TR``.
-Can be sent in the format ``language`` or in the format ``language_country``.
-//KKS: Follow up task > Pattern for language/language_country.
-| entry-mode | O | String | 24 | This is information about the channel used for this transaction.
-Can be one of the following: +
-empty: unknown source +
-``mail-order``: collected over mail order +
-``telephone-order``: collected over telephone +
-``ecommerce``: collected over the internet +
-``mcommerce``: collected over mobile devices +
-``pos``: collected by the primary payment instrument
-//vhauss: According to line 103 "entry-mode"'s data type should be "Enumeration"!
-| periodic | O | String | 24 | Indicates how and why a payment occurs more than once. Can be one of the following: +
-``installment``: one in a set that completes a financial transaction +
-``recurring``: one in a set that occurs repeatedly, such as a subscription
-``ci``.
-//KKS: for 3DS2 this can be ``ci`` as well. Follow up task: Provide a brief description for each of these values. 
-//vhauss: Now we have additional fields for "periodic" in the 3DS2 context.
-//vhauss: What do we do? Install a new "periodic" table? > see line 316 and lines 914 to 937!
-//| periodic.recurring-expire-date| C| Date| 10| For recurring payments. Date after which no further recurring payments using this card are allowed. {date-pattern}
-//| periodic.recurring-frequency| C| Number| 4| For recurring payments. The minimum number of days between individual payments.
-//vhauss: According to line 103 "periodic"'s data type should be "Enumeration"!
-| iso-transaction-type | O | String | 2 | ``iso-transaction-type`` is a 3DS2 field. It identifies the transaction type. The values are derived from ISO 8583.
- Accepted values are: +
- ``01`` = Goods/ Service Purchase +
- ``03`` = Check Acceptance +
- ``10`` = Account Funding +
- ``11`` = Quasi-Cash Transaction +
- ``28`` = Prepaid Activation and Load
-// Are we aware that we use "transaction type" here in a different context as we use it generally? This requires a more detailed explanation!
-//vhauss: According to line 103 "iso-transaction-type"'s data type should be "Enumeration"!
-
-4+| account-holder | <<CC_Fields_xmlelements_request_accountholder, ``account-holder``>> is a child element of ``payment``.
-4+| airline-industry | <<CC_Fields_xmlelements_request_airlineindustry, ``airline-industry``>> is a child element of ``payment``.
-4+| browser | <<CC_Fields_xmlelements_request_browser, ``browser``>> is a child element of ``payment``.
-4+| card | Used with the first request of card use only. <<CC_Fields_xmlelements_request_card, ``card``>> is a child element of ``payment``.
-4+| card-token | Returned by the first payment response and used for further operations. <<CC_Fields_xmlelements_request_cardtoken, ``card-token``>> is a child element of ``payment``.
-4+| credit-sender-data | <<CC_Fields_xmlelements_request_creditsenderdata, ``credit-sender-data``>> is a child element of ``payment``.
-4+| cruise-industry | <<CC_Fields_xmlelements_request_cruiseindustry, ``cruise-industry``>> is a child element of ``payment``.
-4+| custom-fields | ``custom-fields`` is the parent element of <<CC_Fields_xmlelements_request_customfield, ``custom-field``>>
-4+| device | <<CC_Fields_xmlelements_request_device, ``device``>> is a child element of ``payment``.
-4+| notifications | ``notifications`` is the parent element of <<CC_Fields_xmlelements_request_notification, ``notification``>>
-4+| order-items | ``order-items`` is the parent element of <<CC_Fields_xmlelements_request_orderitem, ``order-item``>>
-4+| payment-methods | ``payment-methods`` is the parent element of <<CC_Fields_xmlelements_request_paymentmethod, ``payment-method``>>
-//4+| periodic | <<CC_Fields_xmlelements_request_periodic, periodic>> is a child element of ``payment``.
-4+| risk-info | <<CC_Fields_xmlelements_request_riskinfo, ``risk-info``>> is a child element of ``payment``.
-4+| shipping | <<CC_Fields_xmlelements_request_shipping, ``shipping``>> is a child element of ``payment``.
-4+| sub-merchant-info | <<CC_Fields_xmlelements_request_submerchantinfo, ``sub-merchant-info``>> is a child element of ``payment``.
-4+| three-d | <<CC_Fields_xmlelements_request_threed, ``three-d``>> is a child element of ``payment``.
-|===
 
 [#CC_Fields_xmlelements_request_accountholder]
 .account-holder
@@ -412,28 +279,6 @@ prevention easier.
 
 include::include/fields/rest_cc/account-holder.adoc[]
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| first-name | M/O | String | 32 | Mandatory for 3DS2 transactions. The first name of the consumer.
-| last-name | M/O | String | 50 | Mandatory for 3DS2 transactions. The last name of the consumer.
-| email | M/O | String | 64 | Mandatory for 3DS2 transactions. The consumer’s email address as given in the merchant’s shop.
-// compare to "address.email"!
-| gender | O | String | 1 | This is the consumer's gender.
-| date-of-birth | O | Date |  | This is the consumer's birth date. {date-pattern}
-| phone | O | String | 32 | This is the phone number of the consumer.
-| home-phone| M/O | String| 18| Mandatory for 3DS2 transactions. Home phone number provided by the consumer. 
-| mobile-phone| M/O | String| 18| Mandatory for 3DS2 transactions. Mobile phone number provided by the consumer. 
-| work-phone| M/O | String| 18| Mandatory for 3DS2 transactions. Work phone number provided by the consumer. 
-// Which of the "phone" fields ("home-phone", "mobile-phone", or "work-phone") replace "phone"? Or do we have now 4 "phone" fields?
-| social-security-number | O | String | 14 | This is the social security number of the consumer.
-| tax-number | O | String | 14 | This is the social security number of the consumer.
-| merchant-crm-id | O | String | 64 | Consumer identifier in the merchant’s shop. Requests that contain payment information from the same consumer in the same shop must contain the same string.
-4+| address | <<CC_Fields_xmlelements_request_address, address>> is a child element of ``account-holder``.
-4+| account-info | <<CC_Fields_xmlelements_request_accountinfo, account-info>> is a child element of ``account-holder``.
-
-|===
 
 [#CC_Fields_xmlelements_request_accountinfo]
 .account-info
@@ -442,50 +287,7 @@ include::include/fields/rest_cc/account-holder.adoc[]
 <<CC_Fields_xmlelements_request_accountholder, account-holder>>. +
 ``account-info`` fields are used with 3DS2. With ``account-info`` merchants can gather detailed information about the consumer. Please provide all the ``account-info`` data in your 3DS2 request to make fraud prevention easier.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| authentication-method | O | String | 2 a| Type of consumer login in the merchant's shop. +
- Possible values: +
- ``01`` = Guest checkout (i.e. the consumer is not logged in). +
- ``02`` = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
- ``03`` = Login with Federated ID. +
- ``04`` = Login with card issuer credentials. +
- ``05`` = Login with third-party authentication. +
- ``06`` = Login with FIDO authenticator.
-//vhauss: According to line 103 "authentication-method"'s data type should be "Enumeration"!
-| authentication-timestamp | O | Timestamp | 19 | Date and time (UTC) of the consumer login in the merchant's shop. {timestamp-pattern}
- For guest checkout, the timestamp is _Now_.
-|  [[CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator]]
-challenge-indicator | O | String| 2| Indicates whether a challenge is requested for this transaction. +
- Possible values: +
- ``01`` = No preference. +
- ``02`` = No challenge requested. +
- ``03`` = Challenge requested: Merchant Preference. +
- ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
- (e.g. for one-click checkout).
-//vhauss: According to line 103 "challenge-indicator"'s data type should be "Enumeration"!
-| creation-date | O| Timestamp | 19| Registration date (UTC) of the consumer's account in the merchant's shop. {timestamp-pattern}
- For guest checkout, do not send this field.
-| update-date | O| Date| 10| Date that the consumer last made changes to their account in the merchant's shop. For example,
- changes to billing and shipping address, new payment account, new email address. {date-pattern}
- For guest checkout, do not send this field.
-| password-change-date | O| Date| 10| Date that the consumer last changed/reset their password in the merchant's shop. {date-pattern}
- For guest checkout, do not send this field.
-| shipping-address-first-use | O| Date| 10| Date that the consumer first used this shipping address in the merchant's shop. {date-pattern}
- For guest checkout, do not send this field.
-| transactions-last-day | O| Number| 9| Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours. Does not include merchant-initiated transactions.
-| transactions-last-year | O| Number| 9| Number of transactions (successful, failed, and canceled) that the consumer has attempted within the past year. Does not include merchant-initiated transactions.
-| card-transactions-last-day | O| Number| 9| Number of cards the consumer has attempted to add to their account in the merchant's shop for card-on-file payments
- (one-click checkout) in the past 24 hours.
-| purchases-last-six-months | O| Number| 9| Number of successful orders by the consumer in the merchant's shop within the past six months.
-| suspicious-activity | O| Boolean| | Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud).
-| card-creation-date | O| Date| 10| Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments
- (one-click checkout). {date-pattern} +
- For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout),
- the date is _Now_.
-|===
+include::include/fields/rest_cc/account-info.adoc[]
 
 [#CC_Fields_xmlelements_request_address]
 .address
@@ -502,26 +304,7 @@ specify the consumer's address and can refer to
 
 Data can be provided optionally but it helps with fraud checks, if ``address`` is complete.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| block-no | O | String | 12 | This is the block-no of the consumer.
-| level | O | String | 3 | This is the level of the consumer.
-| unit | O | String | 12 | This is the unit of the consumer.
-| street1 | M | String | 50 | Line 1 of the street address of the consumer’s billing address.
-| street2 | M/O | String | 50 | Mandatory for 3DS2 transactions. Line 2 of the street address of the consumer’s billing address.
-| street3 | M/O | String | 50 | Mandatory for 3DS2 transactions. Line 3 of the street address of the consumer’s billing address.
-| city | M | String | 50 | City of the consumer’s billing address.
-| state | M/O | String | 3 | Mandatory for 3DS2 transactions. State/province of the consumer’s billing address. Accepted format: numeric ISO 3166-2 standard.
-| country | M | String | 2 | Country of the consumer’s billing address.
-| postal-code | M/O | String | 16 | Mandatory for 3DS2 transactions. ZIP/postal code of the consumer’s billing address. 
-| email| M/O | String| 256| Mandatory for 3DS2 transactions. The consumer's email address as given in the merchant's shop.
-// to peer reviewer: 
-// > Please verify, whether "email" is mandatory in 3DS2 transactions.
-// > see "account-holder" above: There, we also have a field "email". Does "address.email" replace "account-holder.email"?
-| house-extension | O | String | 16 | This is the consumer's house extension.
-|===
+include::include/fields/rest_cc/address.adoc[]
 
 [#CC_Fields_xmlelements_request_airlineindustry]
 .airline-industry
@@ -529,30 +312,8 @@ Data can be provided optionally but it helps with fraud checks, if ``address`` i
 ``airline-industry`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
+include::include/fields/rest_cc/airline-industry.adoc[]
 
-| airline-code |O |String |3	|The airline code assigned by IATA.
-| airline-name |O |String	|64	|Name of the airline.
-| passenger-code |O |String	|10	|The file key of the Passenger Name Record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
-| passenger-name |O |String	|32	|The name of the Airline Transaction passenger.
-| passenger-phone |O |String	|32	|The phone number of the Airline Transaction passenger.
-| passenger-email |O |String	|64	|The Email Address of the Airline Transaction passenger.
-| passenger-ip-address |O |String |45 |The IP Address of the Airline Transaction passenger.
-| ticket-issue-date |O |Date | |The date the ticket was issued. {date-pattern}
-| ticket-number |O |String |11	|The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with 99999999999.
-| ticket-restricted-flag |O |String |1 |Indicates that the Airline Transaction is restricted. 0 = No restriction, 1 = Restricted (non-refundable).
-| pnr-file-key |O |String	|10	|The Passenger Name File Id for the Airline Transaction.
-| ticket-check-digit |O |String |2	|The airline ticket check digit.
-| agent-code |O |String |3	|The agency code assigned by IATA.
-| agent-name |O |String |64	|The agency name.
-| non-taxable-net-amount |O | Decimal	|7,2 |This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are allowed. If this field contains a value greater than zero, the indicated value must differ from the amount of the transaction.
-| number-of-passengers |O |String |3	|The number of passengers on the Airline Transaction.
-| reservation-code |O |String |32 |The reservation code of the Airline Transaction passenger.
-4+| itinerary | ``itinerary`` is the parent element of <<CC_Fields_xmlelements_request_segment, segment>>. Up to 99 itinerary segments can be defined.
-4+| ticket-issuer/address |The address of the ticket issuer. <<CC_Fields_xmlelements_request_address, address>> is a child element of ``ticket-issuer``. 
-|===
 
 [#CC_Fields_xmlelements_request_audit]
 .audit
@@ -561,13 +322,8 @@ Data can be provided optionally but it helps with fraud checks, if ``address`` i
 <<CC_Fields_xmlelements_request_payment, payment>>. 
 Audit data is displayed in _{enterprise-portal-abbr}_ for each transaction it has been send with.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
+include::include/fields/rest_cc/audit.adoc[]
 
-| request-source |O |String |30 |Optional information that references the application or _{payment-gateway}_ a transaction is processed with.
-| user |O | String |128 |Optional information that identifies the origin/user of the payment request. Audit user is send by frontend applications referencing the user processing transactions or follow up operations using the application.
-|===
 
 [#CC_Fields_xmlelements_request_browser]
 .browser
@@ -575,46 +331,7 @@ Audit data is displayed in _{enterprise-portal-abbr}_ for each transaction it ha
 ``browser`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| accept |O |String |2048 |This is the HTTP Accept Header as retrieved from the cardholder's browser in the HTTP request. In case it is longer than 2048 it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
-| user-agent |O |String |256 |This is the User Agent as retrieved from the card holder's browser in the HTTP request. In case it is longer than 256 Byte it has to be truncated. It is strongly recommended to provide this field to prevent rejections from ACS server side.
-| challenge-window-size | O | String | 2 a| Dimensions of the challenge window that has been displayed to the cardholder. The ACS shall reply with content that is formatted to appropriately render in this window to provide the best possible user experience. Preconfigured sizes are width X height in pixels of the window
-displayed in the cardholder browser window. This is used only to prepare
-the _CReq_ request and it is not part of the _AReq_ flow. If not present it will be omitted.
-Accepted values are: +
-``01`` = 250 x 400 +
-``02`` = 390 x 400 +
-``03`` = 500 x 600 +
-``04`` = 600 x 400 +
-``05`` = Full screen
-//vhauss: According to line 103 "challenge-window-size"'s data type should be "Enumeration"!
-| color-depth | O | Number | 2 | Value representing the bit depth of the color palette for displaying images, in bits per pixel. Obtained from cardholder browser using the ``screen.colorDepth`` property. The field is limited to 1-2 characters.
-| java-enabled | O | Boolean |  | Boolean that represents the ability of the cardholder browser to execute Java. Value is returned from the ``navigator.javaEnabled`` property.
-| language | O | String | 8 | Value representing the browser language as defined in IETF BCP47. The value is limited to 1-8 characters. Value is returned from ``navigator.language`` property.
-//KKS: From "challenge-window-size" to "language": Info based on https://confluence.wirecard.sys/pages/viewpage.action?pageId=79700815
-|===
-
-//// 
-[#CC_Fields_xmlelements_request_browser]
-.browser
-
-The following fields are currently not part of the doc: 
-
-| ip-address | O | String | ?? | ??
-| hostname | O  | String | ?? | ??
-| browser-version | O | String | ?? | ??
-| os | O | String  | ?? | ??
-| time-zone | O | String | ?? | ??
-| screen-resolution | O | String | ?? | ??
-| referrer | O | String | ?? | ??
-| headers | O | ?? | ?? | ??
-| cookies | O | ?? | ?? | ??
-|===
-
-////
+include::include/fields/rest_cc/browser.adoc[]
 
 [#CC_Fields_xmlelements_request_card]
 .card
@@ -629,32 +346,7 @@ NOTE: Only the transaction type _detokenize_ returns ``expiration-month``,
 ``expiration-year`` and ``card-type`` in a response. All the other transaction
 types return elements of ``card-token`` in the response.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| account-number | M/O | String | 36 | This is the card account number of the consumer. It is mandatory if ``card-token`` is not used.
-| expiration-month | M | Number | 2 | This is the card's expiration month. If this field is configured it will be sent in the response.
-| expiration-year | M | Number | 4 | This is the card's expiration year. If this field is configured it will be sent in the response.
-| card-security-code | M/O | String | 4 | This is the card's security code. Depending on configuration it may be mandatory.
-| card-type | M | String | 15 | This is the card's type. If this field is configured it will be sent in the response.
-//vhauss "card-type" obviously is a response field. Please compare with payment-methods.payment-method.card-type and discuss how we handle this best.
-| issue-number | M | Number | 4 | This is the card's issue number.
-| start-month | M | Number | 2 | This is the card's issue start month "(valid from)".
-| start-year | M | Number | 4 | This is the card's issue start year "(valid from)".
-| track-2 | O | String | 256 | This is the card's track-2.
-| card-emv
-// <<CC_Fields_xmlelements_request_cardemv, card-emv>>
-| O | | | This is used for EMV data for credit card of the end-consumer
-| card-pin
-// <<CC_Fields_xmlelements_request_cardpin, card-pin>>
-| O | | | This is used for PIN data for credit card of the end-consumer.
-a| card-raw
-// <<CC_Fields_xmlelements_request_cardraw, card-raw>> 
-| O | | | This is the raw card data.
-| merchant-tokenization-flag | O  | Boolean |  | The value is to be set to true as soon as consumer's card data has been stored by merchant for future transactions. Maps the Visa field _Stored Credential_.
-// KKS: The merchant-tokenization-flag is needed for one-click checkout. Follow up task: Add description for mandatory use.
-|===
+include::include/fields/rest_cc/card.adoc[]
 
 //// 
 [#CC_Fields_xmlelements_request_cardemv]
@@ -662,77 +354,20 @@ a| card-raw
 
 ``card-emv`` is a child of <<CC_Fields_xmlelements_request_card, card>>. 
 
-EMV cards are smart
-cards (also called chip cards or IC cards) that store their data on integrated
-circuits in addition to magnetic stripes (for backward compatibility). These
-include cards that must be physically inserted (or "dipped") into a reader, as
-well as contactless cards that can be read over a short distance using
-near-field communication (NFC) technology. (Taken from Wikipedia)
-KKS: OK as an internal reference but in my opinion not needed here. Maybe describe card types separately?
-
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| request-icc-data | O | ?? | ?? | ??
-| request-icc-data-encoding | O | ?? | ?? | ??
-| response-icc-data | M | ?? | ?? | ??
-| response-icc-data-encoding | O | ?? | ?? | ??
-|===
-
-////
-
-//// 
 
 [#CC_Fields_xmlelements_request_cardpin]
 .card-pin
 
 ``card-pin`` is a child of <<CC_Fields_xmlelements_request_card, card>>. 
 
-A PIN pad or PIN entry
-device is an electronic device used in a debit, credit or smart card-based
-transaction to accept and encrypt the cardholder's personal identification
-number (PIN). PIN pads are normally used with payment terminals, automated
-teller machines or integrated point of sale devices in which an electronic
-cash register is responsible for taking the sale amount and initiating/handling
-the transaction. The PIN pad is required to read the card and allow the PIN to
-be securely entered and encrypted before it is sent to the bank.
-(Taken from Wikipedia)
-KKS: are these fields also required for online transactions, or only POS transactions?
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| data | O | ?? | ?? | ??
-| encoding | O | ?? | ?? | ??
-| format | O | ?? | ?? | ??
-| encryption-context | O | ?? | ?? | ??
-| encryption-version | O | ?? | ?? | ??
-|===
-
-////
-
-//// 
 [#CC_Fields_xmlelements_request_cardraw]
 .card-raw
 
 ``card-raw`` is a child of
 <<CC_Fields_xmlelements_request_card, card>>
 
-??
-
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| data | O | ?? | ?? | ??
-| encoding | O | ?? | ?? | ??
-| format | O | ?? | ?? | ??
-| encryption-context | O | ?? | ?? | ??
-| encryption-version | O | ?? | ?? | ??
-|===
-
+KKS: insert when ready
 ////
 
 [#CC_Fields_xmlelements_request_cardtoken]
@@ -744,15 +379,7 @@ for <<CC_Fields_xmlelements_request_card, card>>. Due to
 <<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
 compliance, ``card`` data must not be sent in payment transactions. The _{payment-gateway}_ replaces ``card`` immediately with a token in the transaction response for the first use of a credit card.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-| token-id | M/O | String | 36 | This is the token corresponding to the ``card.account-number`` of the consumer. It is mandatory if
-``card.account-number`` is not specified. It is unique per instance.
-| token-ext-id | O | String | 36 | Identifier used for credit card in external system which will be used in mapping to token-id.
-| masked-account-number | O | String | 36 | This is the masked version of ``card.account-number`` of the consumer, e.g. 440804\*****7893.
-|===
+include::include/fields/rest_cc/card-token.adoc[]
 
 [#CC_Fields_xmlelements_request_cardtype]
 .card-type
@@ -774,41 +401,9 @@ This can be the case, if the merchant is
 - an insurance company and has to pay out money to the consumer (insurance case).
 - the government and has to pay back taxes.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
+//-
 
-| receiver-name | M/O |String |35 |Mandatory for cross-border transactions. +
-Maximum size for Visa: 30
-| receiver-last-name | M/O |String |35 |Mandatory for cross-border transactions.
-| reference-number |O |String |19 |Maximum size for Visa: 16
-| sender-account-number | M/O |String |20 |_Mastercard:_ Mandatory +
-_Visa:_ Mandatory if ``reference-number`` is empty, Maximum size: 34
-| sender-name | M/O |String |24 |_Mastercard:_ Mandatory +
-_Visa:_ Mandatory for US domestic transactions and cross-border money transfers, Maximum size: 30
-| sender-last-name | M/O |String |35 |_Mastercard:_ Mandatory +
-_Visa:_ Optional
-| sender-address | M/O |String |50 |_Mastercard:_ Optional +
-_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum size: 35
-| sender-city | M/O |String |25 |_Mastercard:_ Optional +
-_Visa:_ Mandatory for US domestic and cross-border transactions
-| sender-country | M/O |String |3 |_Mastercard:_ Optional +
-_Visa:_ Mandatory for US domestic and cross-border transactions, Maximum size: 2
-// Follow up task: Clarify: Max. Size seems to be rather 2 (ISO-Country names consist of 2 characters.)
-| sender-state | M/O |String |2 |_Mastercard:_ Mandatory if sender country is US or Canada +
-_Visa:_ Mandatory for US domestic and cross-border transactions originating from US or Canada
-| sender-postal-code |O |String |10 |No specific requirements for _Mastecard_ and _Visa_.
-| sender-funds-source |O |String |2 |Accepted characters are: +
-_Mastercard_ +
-- US: 01, 02, 03, 04, 05, 07
-- Non-US: 01, 02, 03, 04, 05, 06, 07 +
-//-
-_Visa_ +
-- US: 1, 2, 3
-- Non-US: 01, 02, 03, 04, 05, 06
-//vhauss: According to line 103 "sender-funds-source"'s data type should be "Enumeration"!
-//-
-|===
+include::include/fields/rest_cc/credit-sender-data.adoc[]
 
 [#CC_Fields_xmlelements_request_cruiseindustry]
 .cruise-industry
@@ -816,27 +411,8 @@ _Visa_ +
 ``cruise-industry`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
+include::include/fields/rest_cc/cruise-industry.adoc[]
 
-| carrier-code |O |String |3 |The carrier code assigned by IATA.
-| agent-code |O |String |8 |The agent code assigned by IATA.
-| travel-package-type-code |O |String	|10	|This indicates if the package includes car rental, airline flight, both or neither. Valid entries include: +
-C = Car rental reservation included, A = Airline flight reservation included, B = Both car rental and airline flight reservations included, N = Unknown.
-| ticket-number |O |String |15 |The ticket number, including the check digit.
-| passenger-name |O |String |100 |The name of the passenger.
-| airline-code |O |String |3 |The airline code assigned by IATA.
-| lodging-check-in-date |O |Date | |The cruise departure date also known as the sail date. {date-pattern}
-| lodging-check-out-date |O |Date | |The cruise return date also known as the sail end date. {date-pattern}
-| lodging-room-rate |O | Decimal |18,2 |The total cost of the cruise.
-| number-of-nights |O |Number |3 |The duration of the cruise in days.
-| lodging-name |O |String |100 |The lodging name booked for the cruise.
-| lodging-city-name |O |String |20 |The name of the city where the lodging property is located.
-| lodging-region-code |O |String	|10	|The region code where the lodging property is located.
-| lodging-country-code |O |String |10 |The country code where the lodging property is located.
-4+| itinerary | ``itinerary`` is the parent element of <<CC_Fields_xmlelements_request_segment, segment>>. Up to 99 itinerary segments can be defined.
-|===
 
 [#CC_Fields_xmlelements_request_customfield]
 .custom-field
@@ -846,19 +422,7 @@ C = Car rental reservation included, A = Airline flight reservation included, B 
 
 In the <<CC_Fields_xmlelements_response_customfield, response > custom-field>> section you can find examples for ready-to-use ``custom-field``.
 
-[cols="30,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
-
-a|field-name 
-
-(Attribute of ``custom-field``)
-|O |String |36 |This is the name for the custom field.
-a|field-value 
-
-(Attribute of ``custom-field``)
-|O |String |256 |This is the content of the custom field. In this field the merchant can send additional information.
-|===
+include::include/fields/rest_cc/custom-field.adoc[]
 
 [#CC_Fields_xmlelements_request_device]
 .device

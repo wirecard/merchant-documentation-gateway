@@ -1,0 +1,44 @@
+[cols="30,6,9,7,48a"]
+|===
+| Field | Cardinality | Datatype | Size | Description
+
+| authentication-method | O | String | 2 a| Type of consumer login in the merchant's shop. +
+ Possible values: +
+ ``01`` = Guest checkout (i.e. the consumer is not logged in). +
+ ``02`` = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
+ ``03`` = Login with Federated ID. +
+ ``04`` = Login with card issuer credentials. +
+ ``05`` = Login with third-party authentication. +
+ ``06`` = Login with FIDO authenticator.
+//vhauss: According to line 103 "authentication-method"'s data type should be "Enumeration"!
+| authentication-timestamp | O | Timestamp | 19 | Date and time (UTC) of the consumer login in the merchant's shop. {timestamp-pattern}
+ For guest checkout, the timestamp is _Now_.
+|  [[CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator]]
+challenge-indicator | O | String| 2| Indicates whether a challenge is requested for this transaction. +
+ Possible values: +
+ ``01`` = No preference. +
+ ``02`` = No challenge requested. +
+ ``03`` = Challenge requested: Merchant Preference. +
+ ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
+ (e.g. for one-click checkout).
+//vhauss: According to line 103 "challenge-indicator"'s data type should be "Enumeration"!
+| creation-date | O| Timestamp | 19| Registration date (UTC) of the consumer's account in the merchant's shop. {timestamp-pattern}
+ For guest checkout, do not send this field.
+| update-date | O| Date| 10| Date that the consumer last made changes to their account in the merchant's shop. For example,
+ changes to billing and shipping address, new payment account, new email address. {date-pattern}
+ For guest checkout, do not send this field.
+| password-change-date | O| Date| 10| Date that the consumer last changed/reset their password in the merchant's shop. {date-pattern}
+ For guest checkout, do not send this field.
+| shipping-address-first-use | O| Date| 10| Date that the consumer first used this shipping address in the merchant's shop. {date-pattern}
+ For guest checkout, do not send this field.
+| transactions-last-day | O| Number| 9| Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours. Does not include merchant-initiated transactions.
+| transactions-last-year | O| Number| 9| Number of transactions (successful, failed, and canceled) that the consumer has attempted within the past year. Does not include merchant-initiated transactions.
+| card-transactions-last-day | O| Number| 9| Number of cards the consumer has attempted to add to their account in the merchant's shop for card-on-file payments
+ (one-click checkout) in the past 24 hours.
+| purchases-last-six-months | O| Number| 9| Number of successful orders by the consumer in the merchant's shop within the past six months.
+| suspicious-activity | O| Boolean| | Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud).
+| card-creation-date | O| Date| 10| Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments
+ (one-click checkout). {date-pattern} +
+ For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout),
+ the date is _Now_.
+|===
