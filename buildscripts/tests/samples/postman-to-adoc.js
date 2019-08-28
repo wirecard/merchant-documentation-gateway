@@ -39,7 +39,7 @@ const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc
 const PM_GUID_VARIABLE = '{{$guid}}';
 const postmanCollectionFile = (argv.file === undefined) ? '00DOC.postman_collection.json' : argv.file;
 if (fs.existsSync(postmanCollectionFile) === false) {
-    console.log('could not read postman collection file. specify with --file <postman_collection.json>');
+    // console.log('could not read postman collection file. specify with --file <postman_collection.json>');
     process.exit(1);
 }
 const postmanEnvironmentFile = argv.env;
@@ -223,10 +223,7 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
     const fileExtension = '.' + contentTypeAbbr;
     const filename = basename + '_' + rType; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
 
-    // create directory to hold the sample files
-    if (!fs.existsSync(path + dirname)) {
-        fs.mkdirSync(path + dirname, { recursive: true });
-    }
+    fs.existsSync(path + dirname) || fs.mkdirSync(path + dirname, { recursive: true });
     try {
         fs.writeFileSync(path + dirname + filename + fileExtension, body);
     }
@@ -248,8 +245,8 @@ PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {
     var _done = []; // array contains payment methods that already have a tc table written
     var _writtenFiles = [];
     for (var k in RequestResponseIndex) {
-        const TransactionKey = RequestResponseIndex[k];
-        const paymentMethod = TransactionKey.payment_method;
+        const transactionKey = RequestResponseIndex[k];
+        const paymentMethod = transactionKey.payment_method;
         const basename = camelCase(paymentMethod); // e.g. "klarna-install"
 
         if (_done.includes(paymentMethod)) continue; // skip if we already have a table for this payment method
@@ -259,13 +256,13 @@ PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {
             maid: FirstTransaction.maid,
             ba_username: FirstTransaction.request.username, // ba_ because there can additional "usernames" for web interfaces
             ba_password: FirstTransaction.request.password,
-            endpoints: PMUtil.Endpoints[TransactionKey.payment_method],
+            endpoints: PMUtil.Endpoints[transactionKey.payment_method],
             http_method: FirstTransaction.request.method,
             additional_test_credentials: FirstTransaction.additional_test_credentials,
             folder_description: RequestResponseIndex[k].folder_description
         };
         _done.push(paymentMethod);
-        //console.log(TestCredentials);
+        //// console.log(TestCredentials);
         _writtenFiles.push(PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials));
     }
     return _writtenFiles;
@@ -351,7 +348,7 @@ e| Password | \`` + TestCredentials.ba_password + `\`
     }
     try {
         fs.writeFileSync(path + filename + fileExtension, fileContent);
-        console.log(styleText('WRITTEN: ', 'green') + filename + fileExtension);
+        // console.log(styleText('WRITTEN: ', 'green') + filename + fileExtension);
     }
     catch (err) {
         throw err;
@@ -371,25 +368,24 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
     var _writtenFiles = [];
 
     for (var t in RequestResponseIndex) {
-        const TransactionKey = RequestResponseIndex[t];
-        const paymentMethodBrandName = TransactionKey.payment_method_name;
-        const transactionName = TransactionKey.name;
-        const transactionType = TransactionKey.transaction_type;
+        const transactionKey = RequestResponseIndex[t];
+        const paymentMethodBrandName = transactionKey.payment_method_name;
+        const transactionName = transactionKey.name;
+        const transactionType = transactionKey.transaction_type;
         const basename = camelCase(t);
         const adocFilename = basename + adocFileExtension;
         if (fs.existsSync(path + adocFilename)) {
-            //console.log(adocFilename + ' already exists. overwriting');
+            //// console.log(adocFilename + ' already exists. overwriting');
         }
 
-        var fileContent = `
-[.sample-tabs]
+        var fileContent = `[.sample-tabs]
 
 === ` + paymentMethodBrandName + `: ` + transactionName;
         var numSuccessfulRequests = 0;
         var numTotalRequests = 0; // needed for check if we are in last request (to collect all endpoints)
-        for (var c in TransactionKey.content_types) {
+        for (var c in transactionKey.content_types) {
             numTotalRequests = numTotalRequests + 1;
-            const transaction = TransactionKey.content_types[c]; // "xml transaction" = get-url[0]
+            const transaction = transactionKey.content_types[c]; // "xml transaction" = get-url[0]
             if (transaction.success === false) {
                 continue;
             }
@@ -455,9 +451,9 @@ include::` + responseFile + `[]
             _writtenFiles.push(t);
             if (numSuccessfulRequests > 0) {
                 fs.writeFileSync(path + adocFilename, fileContent);
-                console.log(styleText('WRITTEN: ', 'green') + adocFilename);
+                // console.log(styleText('WRITTEN: ', 'green') + adocFilename);
             } else {
-                console.log(styleText('SKIPPED: ', 'red') + adocFilename + ' (no successful request)');
+                // console.log(styleText('SKIPPED: ', 'red') + adocFilename + ' (no successful request)');
             }
         }
         catch (err) {
@@ -540,9 +536,9 @@ PMUtil.readEngineStatusResponses = function (body) {
                 }];
             }
             catch (e) {
-                console.log('readEngineStatusResponses failed.');
-                console.log(body);
-                console.log(statusResponse);
+                // console.log('readEngineStatusResponses failed.');
+                // console.log(body);
+                // console.log(statusResponse);
             }
             break;
         case MIMETYPE_XML:
@@ -561,10 +557,10 @@ PMUtil.readEngineStatusResponses = function (body) {
                 });
             }
             catch (e) {
-                console.log('isXML');
-                //console.log(body)
-                console.log('readEngineStatusResponses failed.');
-                console.log(obj);
+                // console.log('isXML');
+                //// console.log(body)
+                // console.log('readEngineStatusResponses failed.');
+                // console.log(obj);
             }
             break;
         case MIMETYPE_JSON:
@@ -580,27 +576,35 @@ PMUtil.readEngineStatusResponses = function (body) {
                 });
             }
             catch (e) {
-                console.log(body);
-                console.log('readEngineStatusResponses failed.');
-                console.log(obj);
+                // console.log(body);
+                // console.log('readEngineStatusResponses failed.');
+                // console.log(obj);
             }
             break;
         case MIMETYPE_NVP:
             const Params = new URLSearchParams(body);
-            for (var [k,v] of Params.entries()) {
-                const matches = k.match(/status_code_([0-9]+)/);
-                if(matches && matches.length) {
+            for (var [k, v] of Params.entries()) {
+                const matches = k.match(/status_code(_[0-9]+)?/);
+                if (matches) {
+                    const needle = matches[1].trim();
                     statusResponse.push({
-                        code: Params.get('status_code_' + matches[1]),
-                        description: Params.get('status_description_' + matches[1]),
-                        severity: Params.get('status_severity_' + matches[1])
+                        code: Params.get(matches[0]),
+                        description: Params.get('status_description' + needle),
+                        severity: Params.get('status_severity' + needle)
                     });
                 }
             }
+            if (statusResponse.length === 0) {
+                statusResponse.push({
+                    code: '600.0000',
+                    description: 'No Status response',
+                    severity: 'ERROR'
+                });
+            }
             break;
         default:
-            console.log(body);
-            console.log('in readEngineStatusResponses: unknown content type');
+            // console.log(body);
+            // console.log('in readEngineStatusResponses: unknown content type');
             break;
     }
     return statusResponse;
@@ -619,6 +623,15 @@ PMUtil.uuidv4 = function () {
     });
 };
 
+
+PMUtil.getElementByPath = function (e, obj, key = false) {
+    if (e[0] == GENERIC_ROOT_ELEMENT) {
+        e[0] = Object.keys(obj)[0];
+    }
+    return e.reduce((x, i) => (x && x[i]) ? (key ? i : x[i]) : undefined, obj);
+};
+
+
 /**
  * Reads element value from XML or JSON body if found and mapped in ElementNamesMap.
  *
@@ -629,12 +642,6 @@ PMUtil.uuidv4 = function () {
  * @return {string} Value of the element or undefined if not found in ElementNamesMap.
  */
 PMUtil.readElementFromBody = function (elementName, body, key = false) {
-    const getElementByPath = function (e, obj) {
-        if (e[0] == GENERIC_ROOT_ELEMENT) {
-            e[0] = Object.keys(obj)[0];
-        }
-        return e.reduce((x, i) => (x && x[i]) ? (key ? i : x[i]) : undefined, obj);
-    };
     var elementValue;
     const contentType = PMUtil.getContentType(body);
     var obj;
@@ -645,14 +652,14 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
             e = PMUtil.ElementNamesMap[elementName].xml.slice();
             if (!Array.isArray(e))
                 e = [e];
-            elementValue = getElementByPath(e, obj);
+            elementValue = PMUtil.getElementByPath(e, obj, key);
             break;
         case MIMETYPE_JSON:
             obj = JSON.parse(body);
             e = PMUtil.ElementNamesMap[elementName].json.slice();
             if (!Array.isArray(e))
                 e = [e];
-            elementValue = getElementByPath(e, obj);
+            elementValue = PMUtil.getElementByPath(e, obj, key);
             break;
         case MIMETYPE_NVP:
             obj = new URLSearchParams(body);
@@ -660,18 +667,18 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
                 e = PMUtil.ElementNamesMap[elementName].nvp.slice();
             }
             catch (err) {
-                console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
-                console.log(PMUtil.ElementNamesMap);
+                // console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
+                // console.log(PMUtil.ElementNamesMap);
                 return elementValue;
             }
             if (obj.get(e) !== null)
-                elementValue = obj.get(e);
+                elementValue = obj.get(e).trim();
             break;
         case MIMETYPE_HTML:
             elementValue = undefined; // explicitly set to undefined (not really necessary, already is undefined)
             break;
         default:
-            console.log('in readElement: ' + elementName + ' + unknown content type');
+            // console.log('in readElement: ' + elementName + ' + unknown content type');
             break;
     }
     return elementValue;
@@ -689,7 +696,7 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
  */
 PMUtil.getParentPaymentMethod = function (body) {
     const pid = PMUtil.getParentTransactionID(body);
-    //console.log('looking for pid: ' + pid + ' in RequestsIndex');
+    //// console.log('looking for pid: ' + pid + ' in RequestsIndex');
     if (pid === undefined) {
         // credit card requests also work if there's not payment method specified
         // getParentTransactionID returns undefined, because request has no parent-transaction-id 
@@ -700,7 +707,7 @@ PMUtil.getParentPaymentMethod = function (body) {
             const pm = PMUtil.RequestsIndex;
             for (var transactionType in pm) {
                 if (pm[transactionType].transaction_id === pid) {
-                    // console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
+                    // // console.log('found it in ' + paymentMethod + ' -> ' + transactionType)
                     return paymentMethod;
                 }
             }
@@ -728,7 +735,7 @@ PMUtil.readPaymentMethod = function (body) {
     if (paymentMethod === undefined) {
         paymentMethod = PMUtil.getParentPaymentMethod(body);
     }
-    return paymentMethod;
+    return paymentMethod.trim();
 };
 
 /**
@@ -752,8 +759,8 @@ PMUtil.bodyHasElement = function (body, elementName) {
         case MIMETYPE_NVP:
             return (new URLSearchParams(body).get(elementName) !== null);
         default:
-            console.log('bodyHasElement: unknown content-type');
-            console.log(body);
+            // console.log('bodyHasElement: unknown content-type');
+            // console.log(body);
             break;
     }
     return (typeof obj[elementName] !== 'undefined');
@@ -780,7 +787,7 @@ PMUtil.getContentType = function (body, short = false) {
         return true;
     };
     const isNVP = (body) => {
-        return (new URLSearchParams(body).get('request_id') !== null) ? true : false;
+        return ([...new URLSearchParams(body)].length > 0);
     };
 
     const isXML = (body) => {
@@ -980,27 +987,29 @@ PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
  * 
  * @return {array} Array of path elements, e.g. ["Klarna", "SE", "Utils"]
  */
-PMUtil.getFolderInfo = function (body, requestName) {
+PMUtil.getFolderInfo = function (body, requestName, requestPMID) {
     var itemPath = [];
     var folderDescription;
-    var getFolderInfo = (i, body, path = []) => {
+    var folderInfo = (i, body, path, requestPMID) => {
         for (var key in i) {
             var folder = i[key];
             if (folder.item !== undefined) {
                 var _path = path.slice();
                 _path.push(folder.name);
                 if (folder.description !== undefined) folderDescription = folder.description;
-                getFolderInfo(folder.item, body, _path);
+                folderInfo(folder.item, body, _path);
             }
             else {
-                if (folder.name == requestName && folder.request.body.raw == body) {
+                if (folder.name == requestName
+                    && folder.request.body.raw == body
+                    && PMUtil.getElementByPath(['event', 0, 'script', 'id']) == requestPMID) {
                     itemPath = path;
                     return true;
                 }
             }
         }
     };
-    getFolderInfo(PMUtil.Collection.item, body);
+    folderInfo(PMUtil.Collection.item, body, [], requestPMID);
     return {
         path_array: itemPath,
         folder_description: folderDescription
@@ -1018,32 +1027,39 @@ newman.run({
         }
     }
 }).on('start', function (err, args) { // on start of run, log to console
-    console.log('Testing ' + postmanCollectionFile + '...');
+    // console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
     const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
     const transactionType = PMUtil.getTransactionType(args.request.body.raw);
-    const consoleString = paymentMethod + ' -> ' + transactionType + ' (' + args.item.name + ')';
+    const consoleString = paymentMethod + ' -> ' + transactionType;
     process.stderr.write('[  WAIT  ] ' + consoleString + "\r");
 
 }).on('request', function (err, args) {
     const item = args.item;
     const requestSource = item.request;
     const requestName = item.name;
+    const requestPMID = PMUtil.getElementByPath(['event', 0, 'script', 'id']);
     const requestSent = args.request;
     const requestMethod = requestSource.method;
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
-    const requestFolderInfo = PMUtil.getFolderInfo(requestBodySource, requestName);
+    const requestFolderInfo = PMUtil.getFolderInfo(requestBodySource, requestName, requestPMID);
     const requestFolderDescription = requestFolderInfo.folder_description;
     const requestFolderPathArray = requestFolderInfo.path_array;
     const requestFolderPathString = camelCase(requestFolderPathArray.join('_'));
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
+
+    if (requestBodySent.trim() == '') {
+        process.stderr.write('[' + styleText('EMPTYREQ', 'cyan') + '] Error in ' + requestName + ': empty request body' + "\n");
+        return false;
+    }
+
     const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);  // body that has no vars in them (for web display) except request id
     const requestContentType = PMUtil.getContentType(requestBodySent);
     const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
     const paymentMethodName = requestFolderPathArray.join(' ');
     const transactionType = PMUtil.getTransactionType(requestBodySent);
-    const TransactionKey = requestFolderPathString + '_' + camelCase(requestName);
+    const transactionKey = requestFolderPathString + '_' + camelCase(requestName);
     const parentTransactionID = PMUtil.getParentTransactionID(requestBodySent);
     const merchantAccountID = PMUtil.getMerchantAccountID(requestBodySent);
     const requestEndpoint = 'https://' + requestSent.url.host.join('.') + '/' + requestSent.url.path.join('/');
@@ -1051,10 +1067,6 @@ newman.run({
     const requestUsername = PMUtil.getAuth(requestSent).username;
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
-    // no longer used per item but read description from folder as asciidoc   const AdditionalTestCredentials = PMUtil.parseAdditionalTestCredentials(item.request.description);
-    // no conversion. just use directly in asciidoc const AdditionalTestCredentials = PMUtil.markdown2adoc(requestFolderDescription);
-    const AdditionalTestCredentials = requestFolderDescription;
-
     const consoleString = paymentMethodName + ' -> ' + transactionType + ' (' + requestName + ')';
 
     // if a server is not reachable or there is some other network related issue and no response could be received
@@ -1062,7 +1074,7 @@ newman.run({
     // do not write anything for this request because we do not know if the request failed because of server issue
     // or client network connectivity is bad
     if (args.response === undefined) {
-        process.stderr.write('[' + styleText('  FAIL  ', 'red') + ']' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+        process.stderr.write('[' + styleText('  FAIL  ', 'red') + '] ' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
         return false;
     }
 
@@ -1071,32 +1083,51 @@ newman.run({
     var transactionID;
     const responseBody = PMUtil.formatResponse(args.response.stream.toString());
     const responseCodeHTTP = args.response.code;
+
+
+
+    /* REWRITE FROM HERE */
+
     const engineStatusResponses = PMUtil.readEngineStatusResponses(responseBody);
+    if (engineStatusResponses[0] === undefined) {
+        console.log("\n\n")
+        console.log('engine status responses')
+        console.log(engineStatusResponses)
+        console.log(responseBody)
+    }
     var firstResponseCodeOfEngine = engineStatusResponses[0].code.toString();
+    if (firstResponseCodeOfEngine.toString() == '600.0000') {
+        process.stderr.write('[' + styleText(firstResponseCodeOfEngine.toString(), 'yellow') + '] ' + requestFolderPathArray.join(' ') + ' -> ' + requestName + ' (invalid response: no status)' + "\n");
+        return false;
+    }
     if (firstResponseCodeOfEngine.length == 3) firstResponseCodeOfEngine = 'HTTP ' + firstResponseCodeOfEngine;
     const requestSuccessful = (responses) => {
         for (var i in responses) {
             var responseCode = parseInt(responses[i].code.toString().replace(/\./, ''));
             responseCode = responseCode < 999 ? responseCode * 10000 : responseCode; // bad request gives html and an integer like 400, not 400.0000 like engine
-            if (responseCode / 10000 >= 400) {
+            if (responseCode === -1 || responseCode / 10000 >= 400) {
                 return false;
             }
         }
         return true;
     };
+
+
     process.stderr.write('[' + (requestSuccessful(engineStatusResponses) ? styleText(firstResponseCodeOfEngine, 'green') : styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
 
-    //if (responseCodeHTTP < 400) { // else there is no response element parsing possible
+    /* ... TO HERE */
+
+
+
     responseContentType = PMUtil.getContentType(responseBody);
     responseContentTypeAbbr = PMUtil.getContentType(responseBody, true);
     transactionID = PMUtil.getTransactionID(responseBody);
-    //}
 
     if (typeof PMUtil.RequestsIndex === 'undefined') {
         PMUtil.RequestsIndex = [];
     }
 
-    PMUtil.RequestsIndex[TransactionKey] = {
+    PMUtil.RequestsIndex[transactionKey] = {
         response_code: responseCodeHTTP,
         transaction_id: transactionID,
         parent_transaction_id: parentTransactionID
@@ -1105,10 +1136,10 @@ newman.run({
     if (typeof PMUtil.RequestResponseIndex === 'undefined') {
         PMUtil.RequestResponseIndex = {}; // array for sort order
     }
-    if (typeof PMUtil.RequestResponseIndex[TransactionKey] === 'undefined') {
-        PMUtil.RequestResponseIndex[TransactionKey] = {};
+    if (typeof PMUtil.RequestResponseIndex[transactionKey] === 'undefined') {
+        PMUtil.RequestResponseIndex[transactionKey] = {};
     }
-    Object.assign(PMUtil.RequestResponseIndex[TransactionKey],
+    Object.assign(PMUtil.RequestResponseIndex[transactionKey],
         {
             name: requestName, // name of req in postman collection
             folder_path_string: requestFolderPathArray,
@@ -1117,10 +1148,10 @@ newman.run({
             payment_method: paymentMethod,
             payment_method_name: paymentMethodName, // folders in postman coll.
         });
-    if (typeof PMUtil.RequestResponseIndex[TransactionKey].content_types === 'undefined') {
-        PMUtil.RequestResponseIndex[TransactionKey].content_types = {};
+    if (typeof PMUtil.RequestResponseIndex[transactionKey].content_types === 'undefined') {
+        PMUtil.RequestResponseIndex[transactionKey].content_types = {};
     }
-    Object.assign(PMUtil.RequestResponseIndex[TransactionKey].content_types,
+    Object.assign(PMUtil.RequestResponseIndex[transactionKey].content_types,
         {
             [requestContentTypeAbbr]: {
                 request: {
@@ -1163,20 +1194,19 @@ newman.run({
     if (PMUtil.Endpoints[paymentMethod][requestEndpoint] === undefined) PMUtil.Endpoints[paymentMethod][requestEndpoint] = [];
     PMUtil.Endpoints[paymentMethod][requestEndpoint].push(transactionType); // add e.g. get-url to endpoint object
     PMUtil.Endpoints[paymentMethod][requestEndpoint] = [...new Set(PMUtil.Endpoints[paymentMethod][requestEndpoint].sort())]; // remove duplicate entries of sorted array
-
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
     }
     else {
-        console.log('collection run completed.');
+        // console.log('collection run completed.');
 
     }
-    console.log('writing test credentials tables');
+    // console.log('writing test credentials tables');
     process.stderr.write('writing test credentials tables...' + "\r");
     var _numTCT = PMUtil.createTestCredentialsTables(PMUtil.RequestResponseIndex).length;
     process.stderr.write('writing test credentials tables: ' + _numTCT + "\n");
 
-    console.log('writing adoc request/response and sample files (' + Object.keys(PMUtil.RequestResponseIndex).length + ' items)');
+    // console.log('writing adoc request/response and sample files (' + Object.keys(PMUtil.RequestResponseIndex).length + ' items)');
     PMUtil.writeAdocSummary(PMUtil.RequestResponseIndex);
 });
