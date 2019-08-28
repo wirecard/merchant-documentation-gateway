@@ -245,23 +245,36 @@ PMUtil.createTestCredentialsTables = function (RequestResponseIndex) {
     var _done = []; // array contains payment methods that already have a tc table written
     var _writtenFiles = [];
     for (var k in RequestResponseIndex) {
-        const transactionKey = RequestResponseIndex[k];
-        const paymentMethod = transactionKey.payment_method;
-        const basename = camelCase(paymentMethod); // e.g. "klarna-install"
-
-        if (_done.includes(paymentMethod)) continue; // skip if we already have a table for this payment method
-
-        FirstTransaction = RequestResponseIndex[k].content_types[Object.keys(RequestResponseIndex[k].content_types)[0]]; // we only need one transaction for credentials, e.g. XML
+        const Transaction = RequestResponseIndex[k];
+        const paymentMethod = Transaction.payment_method;
+        const folderPathString = Transaction.folder_path_array.join('_'); // e.g. CreditCard_3D
+        const basename = camelCase(folderPathString); // e.g. "klarna-install"
+        /*
+                if (_done.includes(paymentMethod)) continue; // skip if we already have a table for this payment method
+                FirstTransaction = Transaction.content_types[Object.keys(RequestResponseIndex[k].content_types)[0]]; // we only need one transaction for credentials, e.g. XML
+                const TestCredentials = {
+                    maid: FirstTransaction.maid,
+                    ba_username: FirstTransaction.request.username, // ba_ because there can additional "usernames" for web interfaces
+                    ba_password: FirstTransaction.request.password,
+                    endpoints: PMUtil.Endpoints[Transaction.payment_method],
+                    http_method: FirstTransaction.request.method,
+                    additional_test_credentials: FirstTransaction.additional_test_credentials,
+                    folder_description: RequestResponseIndex[k].folder_description
+                };
+                _done.push(paymentMethod);
+        */
+        if (_done.includes(basename)) continue; // skip if we already have a table for this payment method
+        FirstTransaction = Transaction.content_types[Object.keys(RequestResponseIndex[k].content_types)[0]]; // we only need one transaction for credentials, e.g. XML
         const TestCredentials = {
             maid: FirstTransaction.maid,
             ba_username: FirstTransaction.request.username, // ba_ because there can additional "usernames" for web interfaces
             ba_password: FirstTransaction.request.password,
-            endpoints: PMUtil.Endpoints[transactionKey.payment_method],
+            endpoints: PMUtil.Endpoints[Transaction.payment_method],
             http_method: FirstTransaction.request.method,
             additional_test_credentials: FirstTransaction.additional_test_credentials,
             folder_description: RequestResponseIndex[k].folder_description
         };
-        _done.push(paymentMethod);
+        _done.push(basename);
         //// console.log(TestCredentials);
         _writtenFiles.push(PMUtil.writeTestCredentialsAdocTableFile(basename, path, TestCredentials));
     }
@@ -299,7 +312,9 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
     /*
     Additional Test Credentials
     */
-    const additionalTestCredentialsAdoc = TestCredentials.folder_description + "\n";
+    var additionalTestCredentialsAdoc = '';
+    if (TestCredentials.folder_description !== undefined)
+        additionalTestCredentialsAdoc += TestCredentials.folder_description + "\n";
     /*
         const AdditionalTestCredentials = TestCredentials.additional_test_credentials;
         var additionalTestCredentialsAdoc = '';
@@ -1065,6 +1080,7 @@ newman.run({
     const requestPassword = PMUtil.getAuth(requestSent).password;
     const acceptHeader = PMUtil.getAcceptHeader(requestSource);
     const consoleString = paymentMethodName + ' -> ' + transactionType + ' (' + requestName + ')';
+    const AdditionalTestCredentials = requestFolderDescription; // to create per folder test credentials pages
 
     // if a server is not reachable or there is some other network related issue and no response could be received
     // then do not pursue this request any further
@@ -1139,11 +1155,12 @@ newman.run({
     Object.assign(PMUtil.RequestResponseIndex[transactionKey],
         {
             name: requestName, // name of req in postman collection
-            folder_path_string: requestFolderPathArray,
+            folder_path_array: requestFolderPathArray,
             folder_description: requestFolderDescription,
             transaction_type: transactionType,
             payment_method: paymentMethod,
             payment_method_name: paymentMethodName, // folders in postman coll.
+            additional_test_credentials: AdditionalTestCredentials // for now same as folder_description
         });
     if (typeof PMUtil.RequestResponseIndex[transactionKey].content_types === 'undefined') {
         PMUtil.RequestResponseIndex[transactionKey].content_types = {};
