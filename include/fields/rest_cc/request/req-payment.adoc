@@ -7,7 +7,7 @@
 |String 
 |36 
 |A unique identifier assigned to every merchant account.
-//KKS: MAID is conditional, even though above we state that we have M, O and M/O.
+
 |merchant-account-resolver-category 
 |M/O 
 |String 
@@ -56,7 +56,12 @@ a|``currency``(attribute of ``requested-amount``)
 |String 
 |32 
 |The order number provided by the merchant. Allowed characters: ASCII characters Code 32-38 and 40-126.
-| parent-transaction-id | M/O | String | 36 | This is the unique identifier of the referenced transaction. This is mandatory if 
+
+|parent-transaction-id 
+|M/O 
+|String 
+|36 
+a|This is the unique identifier of the referenced transaction. This is mandatory if 
 
 - ``merchant-account-id`` or ``merchant-account-resolver-category`` are not used.
 - the transaction refers to a previously processed transaction (e.g. a _refund_ refers to a _purchase_).
@@ -66,27 +71,65 @@ a|``currency``(attribute of ``requested-amount``)
 |String 
 |36 
 |A unique ID assigned to a group of related transactions. For example, an _authorization_, _capture_, and _refund_ will all share the same ``group-transaction-id``.
-| authorization-code | C | String | 36 | The authorization-code can be
 
-. input for a _capture_ without reference to _authorization_
-. output for _authorization_
+|authorization-code 
+|M/O 
+|String 
+|36 
+a|The authorization-code can be
+
+- input for a _capture_ without reference to _authorization_
+- output for _authorization_
 //-
 //KKS: Follow up task: clarify use of field. output for or of authorization?
-| ip-address | O | String | 45 | The global (internet) IP address of the consumer's device.
-| non-gambling-oct-type | O | String | 7 | A transfer type of non-gambling Original Credit Transaction (OCT).
+
+|ip-address 
+|O 
+|String 
+|45 
+|The global (internet) IP address of the consumer's device.
+
+|non-gambling-oct-type 
+|O 
+|String 
+|7 
+|A transfer type of non-gambling Original Credit Transaction (OCT).
 Allowed values: ``p2p``, ``md``, ``acc2acc``, ``ccBill`` and ``fd``.
 //KKS: Follow up task: Provide a brief description for each of these values.
 //vhauss: According to line 103 "non-gambling-oct-type"'s data type should be "Enumeration"!
-| processing-redirect-url | O | String | 256 | The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page
-on the merchant's website.
-| success-redirect-url | M | String | 256 | The URL to which the consumer will be re-directed after a successful payment. This is normally a success
-confirmation page on the merchant's website.
-| cancel-redirect-url | M | String | 256 | The URL to which the consumer will be re-directed after he has cancelled a payment. This is normally a page on the merchant's website.
-| locale | M | String | 6 | Code of the language. Can be ``CZ``, ``DA``, ``EN``, ``DE``,
+
+|processing-redirect-url 
+|O 
+|String 
+|256 
+|The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page on the merchant's website.
+
+|success-redirect-url 
+|M 
+|String 
+|256 
+|The URL to which the consumer will be redirected after a successful payment. This is normally a success confirmation page on the merchant's website.
+
+|cancel-redirect-url 
+|M 
+|String 
+|256 
+|The URL to which the consumer will be redirected after he has canceled a payment. This is normally a page on the merchant's website.
+
+|locale 
+|M 
+|String 
+|6 
+|Code of the language. Can be ``CZ``, ``DA``, ``EN``, ``DE``,
 ``ES``, ``FI``, ``FR``, ``IT``, ``NL``, ``PL``, ``GR``, ``RO``, ``RU``, ``SV``, and ``TR``.
-Can be sent in the format ``language`` or in the format ``language_country``.
-//KKS: Follow up task > Pattern for language/language_country.
-| entry-mode | O | String | 24 | This is information about the channel used for this transaction.
+Can be sent in the format ``language`` or in the format ``language_country``, e.g. ``EN`` or ``EN_US``
+//KKS: Follow up task > Pattern for language/language_country. Check veracity of example!
+
+|entry-mode 
+|O 
+|String 
+|24 
+|This is information about the channel used for this transaction.
 Can be one of the following: +
 empty: unknown source +
 ``mail-order``: collected over mail order +
@@ -95,17 +138,13 @@ empty: unknown source +
 ``mcommerce``: collected over mobile devices +
 ``pos``: collected by the primary payment instrument
 //vhauss: According to line 103 "entry-mode"'s data type should be "Enumeration"!
-| periodic | O | String | 24 | Indicates how and why a payment occurs more than once. Can be one of the following: +
-``installment``: one in a set that completes a financial transaction +
-``recurring``: one in a set that occurs repeatedly, such as a subscription
-``ci``.
-//KKS: for 3DS2 this can be ``ci`` as well. Follow up task: Provide a brief description for each of these values. 
-//vhauss: Now we have additional fields for "periodic" in the 3DS2 context.
-//vhauss: What do we do? Install a new "periodic" table? > see line 316 and lines 914 to 937!
-//| periodic.recurring-expire-date| C| Date| 10| For recurring payments. Date after which no further recurring payments using this card are allowed. {date-pattern}
-//| periodic.recurring-frequency| C| Number| 4| For recurring payments. The minimum number of days between individual payments.
-//vhauss: According to line 103 "periodic"'s data type should be "Enumeration"!
-| iso-transaction-type | O | String | 2 | ``iso-transaction-type`` is a 3DS2 field. It identifies the transaction type. The values are derived from ISO 8583.
+//KKS: not necessarily; the definition of "String" applies as well!
+
+|iso-transaction-type 
+|O 
+|String 
+|2 
+| ``iso-transaction-type`` is a 3DS2 field. It identifies the transaction type. The values are derived from ISO 8583.
  Accepted values are: +
  ``01`` = Goods/ Service Purchase +
  ``03`` = Check Acceptance +
@@ -115,21 +154,54 @@ empty: unknown source +
 // Are we aware that we use "transaction type" here in a different context as we use it generally? This requires a more detailed explanation!
 //vhauss: According to line 103 "iso-transaction-type"'s data type should be "Enumeration"!
 
-4+| account-holder | <<CC_Fields_xmlelements_request_accountholder, ``account-holder``>> is a child element of ``payment``.
-4+| airline-industry | <<CC_Fields_xmlelements_request_airlineindustry, ``airline-industry``>> is a child element of ``payment``.
-4+| browser | <<CC_Fields_xmlelements_request_browser, ``browser``>> is a child element of ``payment``.
-4+| card | Used with the first request of card use only. <<CC_Fields_xmlelements_request_card, ``card``>> is a child element of ``payment``.
-4+| card-token | Returned by the first payment response and used for further operations. <<CC_Fields_xmlelements_request_cardtoken, ``card-token``>> is a child element of ``payment``.
-4+| credit-sender-data | <<CC_Fields_xmlelements_request_creditsenderdata, ``credit-sender-data``>> is a child element of ``payment``.
-4+| cruise-industry | <<CC_Fields_xmlelements_request_cruiseindustry, ``cruise-industry``>> is a child element of ``payment``.
-4+| custom-fields | ``custom-fields`` is the parent element of <<CC_Fields_xmlelements_request_customfield, ``custom-field``>>
-4+| device | <<CC_Fields_xmlelements_request_device, ``device``>> is a child element of ``payment``.
-4+| notifications | ``notifications`` is the parent element of <<CC_Fields_xmlelements_request_notification, ``notification``>>
-4+| order-items | ``order-items`` is the parent element of <<CC_Fields_xmlelements_request_orderitem, ``order-item``>>
-4+| payment-methods | ``payment-methods`` is the parent element of <<CC_Fields_xmlelements_request_paymentmethod, ``payment-method``>>
-//4+| periodic | <<CC_Fields_xmlelements_request_periodic, periodic>> is a child element of ``payment``.
-4+| risk-info | <<CC_Fields_xmlelements_request_riskinfo, ``risk-info``>> is a child element of ``payment``.
-4+| shipping | <<CC_Fields_xmlelements_request_shipping, ``shipping``>> is a child element of ``payment``.
-4+| sub-merchant-info | <<CC_Fields_xmlelements_request_submerchantinfo, ``sub-merchant-info``>> is a child element of ``payment``.
-4+| three-d | <<CC_Fields_xmlelements_request_threed, ``three-d``>> is a child element of ``payment``.
+4+|account-holder 
+| <<CC_Fields_xmlelements_request_accountholder, ``account-holder``>> is a child element of ``payment``.
+
+4+|airline-industry 
+| <<CC_Fields_xmlelements_request_airlineindustry, ``airline-industry``>> is a child element of ``payment``.
+
+4+|browser 
+|<<CC_Fields_xmlelements_request_browser, ``browser``>> is a child element of ``payment``.
+
+4+|card 
+|Used with the first request of card use only. <<CC_Fields_xmlelements_request_card, ``card``>> is a child element of ``payment``.
+
+4+|card-token 
+|Returned by the first payment response and used for further operations. <<CC_Fields_xmlelements_request_cardtoken, ``card-token``>> is a child element of ``payment``.
+
+4+|credit-sender-data 
+|<<CC_Fields_xmlelements_request_creditsenderdata, ``credit-sender-data``>> is a child element of ``payment``.
+
+4+|cruise-industry 
+|<<CC_Fields_xmlelements_request_cruiseindustry, ``cruise-industry``>> is a child element of ``payment``.
+
+4+|custom-fields 
+|``custom-fields`` is the parent element of <<CC_Fields_xmlelements_request_customfield, ``custom-field``>>
+
+4+|device 
+| <<CC_Fields_xmlelements_request_device, ``device``>> is a child element of ``payment``.
+
+4+|notifications 
+|``notifications`` is the parent element of <<CC_Fields_xmlelements_request_notification, ``notification``>>
+
+4+|order-items 
+|``order-items`` is the parent element of <<CC_Fields_xmlelements_request_orderitem, ``order-item``>>
+
+4+|payment-methods 
+| ``payment-methods`` is the parent element of <<CC_Fields_xmlelements_request_paymentmethod, ``payment-method``>>
+
+4+|periodic 
+| <<CC_Fields_xmlelements_request_periodic, periodic>> is a child element of ``payment``.
+
+4+|risk-info 
+| <<CC_Fields_xmlelements_request_riskinfo, ``risk-info``>> is a child element of ``payment``.
+
+4+|shipping 
+| <<CC_Fields_xmlelements_request_shipping, ``shipping``>> is a child element of ``payment``.
+
+4+|sub-merchant-info 
+| <<CC_Fields_xmlelements_request_submerchantinfo, ``sub-merchant-info``>> is a child element of ``payment``.
+
+4+|three-d 
+| <<CC_Fields_xmlelements_request_threed, ``three-d``>> is a child element of ``payment``.
 |===
