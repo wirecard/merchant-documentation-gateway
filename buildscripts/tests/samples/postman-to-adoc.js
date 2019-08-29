@@ -37,11 +37,16 @@ const ELEMENT_MERCHANT_ACCOUNT_ID = 'merchant_account_id';
 const GENERIC_ROOT_ELEMENT = 'generic_root_element'; // used in elements map. bc some responses do not have 'payment' as root element
 
 const PM_GUID_VARIABLE = '{{$guid}}';
-const postmanCollectionFile = (argv.file === undefined) ? '00DOC.postman_collection.json' : argv.file;
-if (fs.existsSync(postmanCollectionFile) === false) {
-    // console.log('could not read postman collection file. specify with --file <postman_collection.json>');
+if (argv.file === undefined) {
+    console.error("Please specify a collection with --file <collection>");
     process.exit(1);
 }
+const postmanCollectionFile = argv.file;
+if (fs.existsSync(postmanCollectionFile) === false) {
+    console.log("Could not read postman collection file '" + postmanCollectionFile + "'.");
+    process.exit(1);
+}
+
 const postmanEnvironmentFile = argv.env;
 var pmEnv = postmanEnvironmentFile ? stfuGetJsonFromFile(postmanEnvironmentFile) : { parent_transaction_id: '' };
 
@@ -223,7 +228,10 @@ PMUtil.writeSampleFile = function (rType, contentTypeAbbr, basename, path, body)
     const fileExtension = '.' + contentTypeAbbr;
     const filename = basename + '_' + rType; // e.g. Creditcard_CaptureAuthorizationForVoidCapture_request
 
-    fs.existsSync(path + dirname) || fs.mkdirSync(path + dirname, { recursive: true });
+    // create directory to hold the sample files
+    if (!fs.existsSync(path + dirname)) {
+        fs.mkdirSync(path + dirname, { recursive: true });
+    }
     try {
         fs.writeFileSync(path + dirname + filename + fileExtension, body);
     }
@@ -389,9 +397,19 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
         const transactionType = transactionKey.transaction_type;
         const basename = camelCase(t);
         const adocFilename = basename + adocFileExtension;
-        if (fs.existsSync(path + adocFilename)) {
-            //// console.log(adocFilename + ' already exists. overwriting');
-        }
+        const countExistingRequests = (file) => {
+            var fileContents;
+            if (fs.existsSync(file) === false) { // if adoc doesn't exist at all
+                return 0;
+            }
+            try {
+                fileContents = fs.readFileSync(file);
+            } catch (err) {
+                throw err;
+            }
+            const _num = (fileContents.toString().match(/\[\.r-details\]/g) || []).length / 2;
+            return _num;
+        };
 
         var fileContent = `[.sample-tabs]
 
@@ -464,11 +482,12 @@ include::` + responseFile + `[]
         fileContent += "\n";
         try {
             _writtenFiles.push(t);
-            if (numSuccessfulRequests > 0) {
+            const numExistingRequests = countExistingRequests(path + adocFilename);
+            if (numSuccessfulRequests > 0 && numSuccessfulRequests >= numExistingRequests) { // if in a previous run there were more successful requests thant in the current, do not write the adoc
                 fs.writeFileSync(path + adocFilename, fileContent);
-                // console.log(styleText('WRITTEN: ', 'green') + adocFilename);
+                console.log(styleText('WRITTEN: ', 'green') + adocFilename + ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')');
             } else {
-                // console.log(styleText('SKIPPED: ', 'red') + adocFilename + ' (no successful request)');
+                console.log(styleText('SKIPPED: ', 'red') + adocFilename + ' (' + numSuccessfulRequests + ' ' + (numSuccessfulRequests === numExistingRequests) ? '===' : '<' + ' ' + numExistingRequests + ')');
             }
         }
         catch (err) {
@@ -551,9 +570,9 @@ PMUtil.readEngineStatusResponses = function (body) {
                 }];
             }
             catch (e) {
-                // console.log('readEngineStatusResponses failed.');
-                // console.log(body);
-                // console.log(statusResponse);
+                console.log('readEngineStatusResponses<HTML> failed.');
+                console.log(body);
+                console.log(statusResponse);
             }
             break;
         case MIMETYPE_XML:
@@ -573,9 +592,9 @@ PMUtil.readEngineStatusResponses = function (body) {
             }
             catch (e) {
                 // console.log('isXML');
-                //// console.log(body)
-                // console.log('readEngineStatusResponses failed.');
-                // console.log(obj);
+                console.log(body);
+                console.log('readEngineStatusResponses<XML> failed.');
+                console.log(obj);
             }
             break;
         case MIMETYPE_JSON:
@@ -591,21 +610,21 @@ PMUtil.readEngineStatusResponses = function (body) {
                 });
             }
             catch (e) {
-                // console.log(body);
-                // console.log('readEngineStatusResponses failed.');
-                // console.log(obj);
+                console.log(body);
+                console.log('readEngineStatusResponses<JSON> failed.');
+                console.log(obj);
             }
             break;
         case MIMETYPE_NVP:
             const Params = new URLSearchParams(body);
             for (var [k, v] of Params.entries()) {
                 const matches = k.match(/status_code(_[0-9]+)?/);
+                const ext = (matches && matches[1]) ? matches[1] : "";
                 if (matches) {
-                    const needle = matches[1].trim();
                     statusResponse.push({
                         code: Params.get(matches[0]),
-                        description: Params.get('status_description' + needle),
-                        severity: Params.get('status_severity' + needle)
+                        description: Params.get('status_description' + ext),
+                        severity: Params.get('status_severity' + ext)
                     });
                 }
             }
@@ -618,8 +637,8 @@ PMUtil.readEngineStatusResponses = function (body) {
             }
             break;
         default:
-            // console.log(body);
-            // console.log('in readEngineStatusResponses: unknown content type');
+            console.log(body);
+            console.log('in readEngineStatusResponses: unknown content type');
             break;
     }
     return statusResponse;
@@ -682,8 +701,8 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
                 e = PMUtil.ElementNamesMap[elementName].nvp.slice();
             }
             catch (err) {
-                // console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
-                // console.log(PMUtil.ElementNamesMap);
+                console.log('NVP element ' + elementName + ' not found in ElementNamesMap');
+                console.log(PMUtil.ElementNamesMap);
                 return elementValue;
             }
             if (obj.get(e) !== null)
@@ -693,7 +712,7 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
             elementValue = undefined; // explicitly set to undefined (not really necessary, already is undefined)
             break;
         default:
-            // console.log('in readElement: ' + elementName + ' + unknown content type');
+            console.log('in readElement: ' + elementName + ' + unknown content type');
             break;
     }
     return elementValue;
@@ -744,7 +763,6 @@ PMUtil.readPaymentMethod = function (body) {
     }
     paymentMethod = PMUtil.getPaymentMethod(body);
     if (paymentMethod === undefined) {
-        //console.log("\n undefined payment method. looking for parent")
         paymentMethod = PMUtil.getParentPaymentMethod(body);
     }
     return paymentMethod.trim();
@@ -771,8 +789,8 @@ PMUtil.bodyHasElement = function (body, elementName) {
         case MIMETYPE_NVP:
             return (new URLSearchParams(body).get(elementName) !== null);
         default:
-            // console.log('bodyHasElement: unknown content-type');
-            // console.log(body);
+            console.log('bodyHasElement: unknown content-type');
+            console.log(body);
             break;
     }
     return (typeof obj[elementName] !== 'undefined');
@@ -824,7 +842,7 @@ PMUtil.getContentType = function (body, short = false) {
     else if (isJSON(body) === true) {
         contentType = MIMETYPE_JSON;
     }
-    else if (isNVP(body) === true) {
+    else /* if (isNVP(body) === true) */ {
         contentType = MIMETYPE_NVP;
     }
 
@@ -1039,14 +1057,20 @@ newman.run({
         }
     }
 }).on('start', function (err, args) { // on start of run, log to console
-    // console.log('Testing ' + postmanCollectionFile + '...');
+    if (err)
+        throw err;
+    console.log('Testing ' + postmanCollectionFile + '...');
 }).on('beforeRequest', function (err, args) {
+    if (err)
+        throw err;
     const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
     const transactionType = PMUtil.getTransactionType(args.request.body.raw);
     const consoleString = paymentMethod + ' -> ' + transactionType;
     process.stderr.write('[  WAIT  ] ' + consoleString + "\r");
 
 }).on('request', function (err, args) {
+    if (err)
+        throw err;
     const item = args.item;
     const requestSource = item.request;
     const requestName = item.name;
@@ -1096,11 +1120,6 @@ newman.run({
     var transactionID;
     const responseBody = PMUtil.formatResponse(args.response.stream.toString());
     const responseCodeHTTP = args.response.code;
-
-
-
-    /* REWRITE FROM HERE */
-
     const engineStatusResponses = PMUtil.readEngineStatusResponses(responseBody);
     if (engineStatusResponses[0] === undefined) {
         console.log("\n\n")
@@ -1109,7 +1128,7 @@ newman.run({
         console.log(responseBody)
     }
     var firstResponseCodeOfEngine = engineStatusResponses[0].code.toString();
-    if (firstResponseCodeOfEngine.toString() == '600.0000') {
+    if (firstResponseCodeOfEngine.toString() === '600.0000') {
         process.stderr.write('[' + styleText(firstResponseCodeOfEngine.toString(), 'yellow') + '] ' + requestFolderPathArray.join(' ') + ' -> ' + requestName + ' (invalid response: no status)' + "\n");
         return false;
     }
@@ -1213,7 +1232,7 @@ newman.run({
         console.error('collection run encountered an error.');
     }
     else {
-        // console.log('collection run completed.');
+        console.log('collection run completed.');
 
     }
     // console.log('writing test credentials tables');
