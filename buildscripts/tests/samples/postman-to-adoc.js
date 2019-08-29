@@ -485,9 +485,9 @@ include::` + responseFile + `[]
             const numExistingRequests = countExistingRequests(path + adocFilename);
             if (numSuccessfulRequests > 0 && numSuccessfulRequests >= numExistingRequests) { // if in a previous run there were more successful requests thant in the current, do not write the adoc
                 fs.writeFileSync(path + adocFilename, fileContent);
-                process.stderr.write(styleText('WRITTEN: ', 'green') + adocFilename + ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')');
+                process.stderr.write(styleText('WRITTEN: ', 'green') + adocFilename + ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')'  + "\n");
             } else {
-                process.stderr.write(styleText('SKIPPED: ', 'red') + adocFilename + ' (' + numSuccessfulRequests + ' ' + ((numSuccessfulRequests === numExistingRequests) ? '===' : '<') + ' ' + numExistingRequests + ')');
+                process.stderr.write(styleText('SKIPPED: ', 'red') + adocFilename + ' (' + numSuccessfulRequests + ' ' + ((numSuccessfulRequests === numExistingRequests) ? '===' : '<') + ' ' + numExistingRequests + ')' + "\n");
             }
         }
         catch (err) {
@@ -696,7 +696,7 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
             elementValue = PMUtil.getElementByPath(e, obj, key);
             break;
         case MIMETYPE_NVP:
-            obj = new URLSearchParams(body);
+            obj = [...new URLSearchParams(body)].map(arr => { return [ arr[0], arr[1] ]; }).reduce((arr, item) => (arr[item[0]] = item[1], arr) ,{})
             try {
                 e = PMUtil.ElementNamesMap[elementName].nvp.slice();
             }
@@ -705,8 +705,8 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
                 console.log(PMUtil.ElementNamesMap);
                 return elementValue;
             }
-            if (obj.get(e) !== null)
-                elementValue = obj.get(e).trim();
+            if(obj[e] !== undefined)
+                elementValue = obj[e].trim();
             break;
         case MIMETYPE_HTML:
             elementValue = undefined; // explicitly set to undefined (not really necessary, already is undefined)
