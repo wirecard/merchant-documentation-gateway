@@ -485,9 +485,9 @@ include::` + responseFile + `[]
             const numExistingRequests = countExistingRequests(path + adocFilename);
             if (numSuccessfulRequests > 0 && numSuccessfulRequests >= numExistingRequests) { // if in a previous run there were more successful requests thant in the current, do not write the adoc
                 fs.writeFileSync(path + adocFilename, fileContent);
-                console.log(styleText('WRITTEN: ', 'green') + adocFilename + ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')');
+                process.stderr.write(styleText('WRITTEN: ', 'green') + adocFilename + ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')');
             } else {
-                console.log(styleText('SKIPPED: ', 'red') + adocFilename + ' (' + numSuccessfulRequests + ' ' + (numSuccessfulRequests === numExistingRequests) ? '===' : '<' + ' ' + numExistingRequests + ')');
+                process.stderr.write(styleText('SKIPPED: ', 'red') + adocFilename + ' (' + numSuccessfulRequests + ' ' + ((numSuccessfulRequests === numExistingRequests) ? '===' : '<') + ' ' + numExistingRequests + ')');
             }
         }
         catch (err) {
@@ -1017,36 +1017,36 @@ PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
  * 
  * @return {array} Array of path elements, e.g. ["Klarna", "SE", "Utils"]
  */
-PMUtil.getFolderInfo = function (body, requestName, requestPMID) {
+PMUtil.getFolderInfo = function (itemNumber) {
     var itemPath = [];
     var folderDescription;
-    var folderInfo = (i, body, path, requestPMID) => {
+    var _cnt = 0;
+    var folderInfo = (i, path) => {
         for (var key in i) {
             var folder = i[key];
             if (folder.item !== undefined) {
                 var _path = path.slice();
                 _path.push(folder.name);
                 if (folder.description !== undefined) folderDescription = folder.description;
-                folderInfo(folder.item, body, _path);
+                folderInfo(folder.item, _path);
             }
             else {
-                if (folder.name == requestName
-                    && folder.request.body.raw == body
-                    && PMUtil.getElementByPath(['event', 0, 'script', 'id']) == requestPMID) {
-                    itemPath = path;
-                    return true;
+                _cnt++
+                if (_cnt == itemNumber) {
+                        itemPath = path;
+                        return true;
                 }
             }
         }
     };
-    folderInfo(PMUtil.Collection.item, body, [], requestPMID);
+    folderInfo(PMUtil.Collection.item, [], itemNumber);
     return {
         path_array: itemPath,
         folder_description: folderDescription
     };
 };
 
-
+var _itemCounter = 0;
 newman.run({
     collection: postmanCollectionFile,
     environment: pmEnv, // set notification_endpoint, etc
@@ -1071,6 +1071,7 @@ newman.run({
 }).on('request', function (err, args) {
     if (err)
         throw err;
+    _itemCounter++;
     const item = args.item;
     const requestSource = item.request;
     const requestName = item.name;
@@ -1078,14 +1079,14 @@ newman.run({
     const requestSent = args.request;
     const requestMethod = requestSource.method;
     const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
-    const requestFolderInfo = PMUtil.getFolderInfo(requestBodySource, requestName, requestPMID);
+    const requestFolderInfo = PMUtil.getFolderInfo(_itemCounter);
     const requestFolderDescription = requestFolderInfo.folder_description;
     const requestFolderPathArray = requestFolderInfo.path_array;
     const requestFolderPathString = camelCase(requestFolderPathArray.join('_'));
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
 
     if (requestBodySent.trim() == '') {
-        process.stderr.write('[' + styleText('EMPTYREQ', 'cyan') + '] Error in ' + requestName + ': empty request body' + "\n");
+        process.stderr.write('[' + styleText('EMPTYREQ', 'cyan') + '] ' + requestFolderPathArray.join(' ') + ' -> ' + requestName + ': empty request body' + "\n");
         return false;
     }
 
@@ -1209,7 +1210,8 @@ newman.run({
                 maid: merchantAccountID,
                 transaction_id: transactionID,
                 parent_transaction_id: parentTransactionID,
-                success: requestSuccessful(engineStatusResponses)
+                success: requestSuccessful(engineStatusResponses),
+                item_number: _itemCounter
             }
         });
 
