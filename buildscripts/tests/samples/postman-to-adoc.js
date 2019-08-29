@@ -1146,14 +1146,18 @@ newman.run({
     };
 
 
+    responseContentType = PMUtil.getContentType(responseBody);
+    responseContentTypeAbbr = PMUtil.getContentType(responseBody, true);
+
+    if (responseContentTypeAbbr !== requestContentTypeAbbr) {
+        process.stderr.write('[' + styleText('WRONG-CT', 'magenta') + '] ' + consoleString + ': Response has different content-type than request' + "\n");
+        return false;
+    }
+
     process.stderr.write('[' + (requestSuccessful(engineStatusResponses) ? styleText(firstResponseCodeOfEngine, 'green') : styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
 
     /* ... TO HERE */
 
-
-
-    responseContentType = PMUtil.getContentType(responseBody);
-    responseContentTypeAbbr = PMUtil.getContentType(responseBody, true);
     transactionID = PMUtil.getTransactionID(responseBody);
 
     if (typeof PMUtil.RequestsIndex === 'undefined') {
