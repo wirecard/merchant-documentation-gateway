@@ -977,10 +977,8 @@ VISA offers a loyalty platform called _VISA Offers Program_. VISA consumers can 
 [#CreditCard_PaymentFeatures_VOP_TransactionTypes]
 ====== Transaction Types
 
-_VISA Offers Platform_ uses the transaction type <<Glossary_TransactionType, _enrollment_>> only. 
-It is needed to enroll a card in the _VISA Offers_ program.
-
-For further information on the individual transaction types, go to <<AppendixB, Appendix B: Transaction Types>>.
+_VISA Offers Platform_ uses the transaction type _enrollment_ only. 
+It is needed to enroll a card in the _VISA Offers Platform._
 
 [#CreditCard_PaymentFeatures_VOP_TestCredentials]
 ====== Test Credentials
@@ -999,7 +997,7 @@ h|Secret Key | d40ec430-89eb-4c52-ba2c-98d9e8910fb3
 .Enroll Card
 
 . Merchant sends enrollment request.
-. {payment-gateway} returns enroll response.
+. {payment-gateway} returns enrollment response.
 
 //-
 
@@ -1013,9 +1011,15 @@ h|Secret Key | d40ec430-89eb-4c52-ba2c-98d9e8910fb3
 [#CreditCard_PaymentFeatures_VOP_Fields]
 ====== Fields
 
-The following elements are either mandatory (M), optional (O) or conditional (M/O) in a transaction process.
+A field can either be *mandatory* (M) or *optional* (O).
 
-.Enroll Request Fields
+- If a field is *mandatory,* it must be included in the request and contain a value. Without this field, the request will fail.
+- If a field is *optional,* it can, but does not have to be included in the request. Including optional fields can have certain advantages.
+- Some optional fields can be mandatory for individual requests, depending on merchant account settings for additional features. We list them as *M/O.*
+
+//-
+
+.Enrollment Request
 [%autowidth]
 
 |===
@@ -1033,33 +1037,34 @@ The following elements are either mandatory (M), optional (O) or conditional (M/
 | M
 | String
 | 36
-| This is the identification number of the request. It has to be unique for each request.
+| Identification number of the request. It has to be unique for each request.
 
 | transaction-type
 | M
 | String
 | 22
-| This is the type for a transaction. Must be ``enrollment``.
+| Type of the transaction. Must be ``enrollment``.
 
 | payment-methods/payment-method[@name]
 | M
 | String
 | 9
-| The name of the payment method is ``creditcard``.
+| Name of the payment method. Must be ``creditcard``.
 
 | api-id
 | O
 | String
 | 36
-| The api-id is always returned in the notification.
+| The _api-id_ is always returned in the notification.
 
 | consumer-id
 | M/O
 | String
 | 50
-| This is the end-consumer's identifier. +
-At least one of the following must be present: consumer-id, email or phone. +
-NOTE: The consumer-id is mandatory for Enroll Card with Token.
+a| Identifier for the consumer. +
+At least one of the following must be present: _consumer-id, email_ or _phone._ +
+
+NOTE: The _consumer-id_ is mandatory for Enroll Card with Token.
 
 5+h| card
 
@@ -1067,31 +1072,31 @@ NOTE: The consumer-id is mandatory for Enroll Card with Token.
 | M
 | String
 | 15
-| This is the card's type of the end-consumer. Must be ``visa`` or ``mastercard``.
+| Card type of the consumer. Must be ``visa`` or ``mastercard``.
 
 | account-number
 | M
 | String
 | 36
-| This is the card account number of the end-consumer.
+| Card account number of the consumer.
 
 | expiration-year
 | M
 | Numeric
 | 4
-| This is the card's expiration year of the end-consumer.
+| Expiration year of the consumer's card.
 
 | expiration-month
 | M
 | Numeric
 | 2
-| This is the card's expiration month of the end-consumer.
+| Expiration month of the consumer's card.
 
 | security-code
 | O
 | String
 | 4
-| This is the card's security code of the end-consumer.
+| Security code of the consumer's card.
 
 5+h| account-holder
 
@@ -1099,21 +1104,25 @@ NOTE: The consumer-id is mandatory for Enroll Card with Token.
 | M/O
 | String
 | 64
-| This is the end-consumer's email address. At least one of the following must be present: consumer-id, email or phone.
+| Email address of the consumer. +
+At least one of the following must be present: _consumer-id, email_ or _phone._
 
 // | phone
 // | M/O
 // | String
 // | 32
-// | This is the phone number of the end-consumer. At least one of the following must be present: consumer-id, email or phone. +
-// NOTE: If +1 999 555 0100 is phone number in international format, then 1 is value of country code field. 
+// | This is the phone number of the consumer. At least one of the following must be present: consumer-id, email or phone. +
+
+// NOTE: If +1 999 555 0100 is the phone number in international format, then ``9995550100`` is the value of the _phone_ field. 
 
 | phone-country-code
 | M/O
 | String
 | 64
-| This is the country identifying information for the contact. Must be present if phone number is used. +
-NOTE: If +1 999 555 0100 is phone number in international format, then 1 is value of country code field.
+a| Country identifying information for the contact. +
+Must be present if phone number is used. +
+
+NOTE: If +1 999 555 0100 is the phone number in international format, then ``1`` is the value of the _phone country code_ field.
 
 5+h| card-token
 
@@ -1121,13 +1130,13 @@ NOTE: If +1 999 555 0100 is phone number in international format, then 1 is valu
 | O
 | String
 | 36
-| This is the token corresponding to "card.account-number" of the end-consumer.
+| Token corresponding to _card.account-number_ of the consumer.
 
 | masked-account-number
 | O
 | String
 | 36
-| This is the masked version of "card.account-number" of the end-consumer, e.g. 440804+++******+++7893.
+| Masked version of _card.account-number_ of the consumer, e.g. ``440804+++******+++7893``.
 
 5+h| loyality-card
 
@@ -1136,11 +1145,10 @@ NOTE: If +1 999 555 0100 is phone number in international format, then 1 is valu
 | Numeric
 | 36
 | Promotional code associated with the enrollment of the user. +
-_Visa Offers Platform_ sets the PromoCode to upper case upon receipt. +
-Alphanumeric. No special characters.
+_Visa Offers Platform_ sets the PromoCode to upper case upon receipt. Alphanumeric. No special characters.
 |===
 
-.Enroll Response Fields
+.Enrollment Response
 [%autowidth]
 
 |===
@@ -1150,50 +1158,52 @@ Alphanumeric. No special characters.
 
 | transaction-id
 | String 
-| The transaction ID is the unique identifier for a transaction. It is generated by {payment-provider-name}.
+| Unique identifier for a transaction. It is generated by {payment-provider-name}.
 
 | instrument-country
 | String 
-| Country code of the card issuer. +
+a| Country code of the card issuer. +
+
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
 
 3+h| statuses
 
 | status  
 | String 
-| This is the status of a transaction.
+| Status of a transaction.
 
 | status@code 
 | String 
-| This is the code of the status of a transaction.
+| Code of the status of a transaction.
 
 | status@description 
 | String 
-| This is the description to the status code of a transaction.
+| Description of the status code of a transaction.
 
 | status@severity 
 | String 
-| This field gives information if a status is a warning, an error or an information.
+| Provides information if a status is a ``warning``, an ``error`` or an ``information``.
 
 3+h| card-data
 
 | issuer-name  
 | String 
-| Name of the card issuer. +
+a| Name of the card issuer. +
+
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
 
 3+h| loyalty
 
 | user-id
 | String 
-| This is the unique _Visa Offers Platform_ user ID generated by the _VOP_ system upon successful enrollment.
+| Unique _VOP_ user ID generated by the _VOP_ system upon successful enrollment.
 
 | card-id
 | String 
-| This is the unique _Visa Offers Platform_ card ID generated by the _VOP_ system upon successful enrollment.
+| Unique _VOP_ card ID generated by the _VOP_ system upon successful enrollment.
 |===
 
-.Add Card Request Fields
+.Add Card Request
 [%autowidth]
 
 |===
@@ -1211,25 +1221,25 @@ NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Togg
 | M
 | String
 | 36
-| This is the identification number of the request. It has to be unique for each request.
+| Identification number of the request. It has to be unique for each request.
 
 | transaction-type
 | M
 | String
 | 22
-| This is the type for a transaction. Must be ``enrollment``.
+| Type of the transaction. Must be ``enrollment``.
 
 | payment-methods/payment-method[@name]
 | M
 | String
 | 9
-| The name of the payment method is ``creditcard``.
+| Name of the payment method. Must be ``creditcard``.
 
 | api-id
 | O
 | String
 | 36
-| The api-id is always returned in the notification.
+| The _api-id_ is always returned in the notification.
 
 5+h| card
 
@@ -1237,31 +1247,31 @@ NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Togg
 | M
 | String
 | 15
-| This is the card's type of the end-consumer. Must be ``visa`` or ``mastercard``.
+| Card type of the consumer. Must be ``visa`` or ``mastercard``.
 
 | account-number
 | M
 | String
 | 36
-| This is the card account number of the end-consumer.
+| Card account number of the consumer.
 
 | expiration-year
 | M
 | Numeric
 | 4
-| This is the card's expiration year of the end-consumer.
+| Expiration year of the consumer's card.
 
 | expiration-month
 | M
 | Numeric
 | 2
-| This is the card's expiration month of the end-consumer.
+| Expiration month of the consumer's card.
 
 | security-code
 | O
 | String
 | 4
-| This is the card's security code of the end-consumer.
+| Security code of the consumer's card.
 
 5+h| card-token
 
@@ -1269,13 +1279,13 @@ NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Togg
 | O
 | String
 | 36
-| This is the token corresponding to "card.account-number" of the end-consumer.
+| Token corresponding to _card.account-number_ of the consumer.
 
 | masked-account-number
 | O
 | String
 | 36
-| This is the masked version of "card.account-number" of the end-consumer, e.g. 440804+++******+++7893.
+| Masked version of _card.account-number_ of the consumer, e.g. ``440804+++******+++7893``.
 
 5+h| loyality-card
 
@@ -1284,8 +1294,7 @@ NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Togg
 | Numeric
 | 36
 | Promotional code associated with the enrollment of the user. +
-_Visa Offers Platform_ sets the PromoCode to upper case upon receipt. +
-Alphanumeric. No special characters.
+_Visa Offers Platform_ sets the PromoCode to upper case upon receipt. Alphanumeric. No special characters.
 
 5+h| loyalty
 
@@ -1293,16 +1302,16 @@ Alphanumeric. No special characters.
 | M
 | String 
 | 36
-| This is the unique _Visa Offers Platform_ user ID generated by the _VOP_ system upon successful enrollment.
+| Unique _Visa Offers Platform_ user ID generated by the _VOP_ system upon successful enrollment.
 
 | card-id
 | O
 | String 
 | 36
-| This is the unique _Visa Offers Platform_ card ID generated by the _VOP_ system upon successful enrollment.
+| Unique _Visa Offers Platform_ card ID generated by the _VOP_ system upon successful enrollment.
 |===
 
-.Add Card Response Fields
+.Add Card Response
 [%autowidth]
 
 |===
@@ -1312,49 +1321,41 @@ Alphanumeric. No special characters.
 
 | transaction-id
 | String 
-| The transaction ID is the unique identifier for a transaction. It is generated by {payment-provider-name}.
+| Unique identifier for a transaction. It is generated by {payment-provider-name}.
 
 | instrument-country
 | String 
-| Country code of the card issuer. +
+a| Country code of the card issuer. +
+
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
 
 3+h| statuses
 
 | status  
 | String 
-| This is the status of a transaction.
+| Status of a transaction.
 
 | status@code 
 | String 
-| This is the code of the status of a transaction.
+| Code of the status of a transaction.
 
 | status@description 
 | String 
-| This is the description to the status code of a transaction.
+| Description of the status code of a transaction.
 
 | status@severity 
 | String 
-| This field gives information if a status is a warning, an error or an information.
+| Provides information if a status is a ``warning``, an ``error`` or an ``information``.
 
 3+h| card-data
 
 | issuer-name  
 | String 
-| Name of the card issuer. +
+a| Name of the card issuer. +
+
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
 |===
 
-// | consumer-id | X/O | O |  |  | String | 50 | This is the end-consumer's identifier. At least one of following must be present: consumer-id, email or phone. The consumer-id is mandatory for Enroll Card With Token.
-//// 
-1) "At least one of following must be present": To do what?
-2) Is "Enroll Card With Token" the same as "tokenized-enrollment" (see samples below)?
-////
-
-// | transaction-type | X | X | X | X | String | 22 | This is the type for a transaction. Must be enrollment.
-//// 
-Is it "enrollment" also, when I want to add a card?
-////
 
 [#CreditCard_PaymentFeatures_VOP_Samples]
 ====== Samples
