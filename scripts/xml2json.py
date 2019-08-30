@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 # these keywords will be converted from "KEYWORD": "VALUE" to
 # "KEYWORD": { "value": "VALUE" }
-MOVE_TO_VALUE_KEYWORDS = "merchant-account-id".split()
+MOVE_TO_VALUE_KEYWORDS = "surcharge-amount".split()
 # the value item below keys that contain any word in this list
 # will be converted to float, e.g. "request-amount"
 CONVERT_VALUE_KEYWORDS = "amount".split()
@@ -64,7 +64,7 @@ def walk(dict_ref, dict_working, last_key=None):
                 dict_working[key] = OrderedDict()
             walk(value, dict_working[key], last_key=key)
         # certain words have a key { "value": value } ordering
-        elif key in MOVE_TO_VALUE_KEYWORDS:
+        elif key in MOVE_TO_VALUE_KEYWORDS or (key == "merchant-account-id" and last_key == "payment"):
             dict_working[key] = OrderedDict({"value": value})
         # handle the rest
         else:
@@ -89,6 +89,7 @@ def post_process_json(info_dict):
     """
     # next(iter(info_dict)) gets first key in dict
     info_dict[next(iter(info_dict))].pop("@xmlns", None)
+    info_dict[next(iter(info_dict))].pop("@xmlns:xsi", None)
     new_dict = OrderedDict()
     walk(info_dict, new_dict)
     return new_dict
