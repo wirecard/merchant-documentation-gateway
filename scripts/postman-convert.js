@@ -9,12 +9,14 @@
 * --script <script.py> Convertion script, used to convert XML to whatever the target language is.
 * --accept <content-type> Specify Accept header.
 * --content-type <content-type> Specify ContentType of request.
+* --mode <mode> Specify mode, e.g. urlencoded.
 */
 /*jshint esversion: 6 */
 
 const child_process = require('child_process');
 const argv = require('minimist')(process.argv.slice(2));
 const fs = require('fs');
+const URLSearchParams = require('url').URLSearchParams;
 
 // ############################################################################
 // PARSE ALL COMMAND LINE OPTIONS
@@ -49,8 +51,9 @@ if (script === undefined) {
 }
 
 const content_type = argv['content-type'];
-if (content_type === undefined) {
-    console.error('ContentType missing. Specify with --content-type <content-type>.');
+const mode = argv['mode'];
+if (content_type === undefined && mode === undefined) {
+    console.error('ContentType missing. Specify with --content-type <content-type> or use --mode <mode>, e.g. --mode urlencoded.');
     process.exit(1);
 }
 const accept_header = argv.accept;
@@ -105,10 +108,29 @@ function replaceXMLRequests(folder) {
         try {
             process.stdout.write('.');
             // Item.request.name += " " + newName;
-            Item.request.body.raw = convert(Item.request.body.raw);
-            for (var h in Item.request.header) {
-                if (Item.request.header[h].key == 'Content-Type') {
-                    Item.request.header[h].value = content_type;
+            const convertedBody = convert(Item.request.body.raw);
+            if (mode === 'urlencoded') {
+                Item.request.header = [];
+                Item.request.body = {};
+                Item.request.body.mode = 'urlencoded';
+                Item.request.body.urlencoded = [];
+                const obj = [...new URLSearchParams(convertedBody)]
+                    .map(arr => { return [arr[0], arr[1]]; })
+                    .reduce((arr, item) => (arr[item[0]] = item[1], arr), {});
+                for (var i in obj) {
+                    Item.request.body.urlencoded.push({
+                        key: i.trim(),
+                        value: obj[i].trim(),
+                        type: 'text'
+                    });
+                }
+            }
+            else {
+                Item.request.body.raw = convertedBody;
+                for (var h in Item.request.header) {
+                    if (Item.request.header[h].key == 'Content-Type') {
+                        Item.request.header[h].value = content_type;
+                    }
                 }
             }
             Item.request.header.push({
@@ -121,7 +143,7 @@ function replaceXMLRequests(folder) {
         catch (err) {
             if (Item.request === undefined)
                 continue;
-            console.log(Item.request.body.raw);
+            console.log(Item.request.body);
             throw err;
         }
     }
@@ -138,9 +160,6 @@ function convert(body) {
         const content = child_process.spawnSync('python3', [script], { input: body }).stdout.toString('utf8');
         if (content_type === "application/json") {
             const jsonObject = JSON.parse(content);
-            if (jsonObject[Object.keys(jsonObject)[0]]['xmlns:xsi'] !== undefined) {
-                delete jsonObject[Object.keys(jsonObject)[0]]['xmlns:xsi'];
-            }
             return JSON.stringify(jsonObject, null, 2);
         }
         return content;
