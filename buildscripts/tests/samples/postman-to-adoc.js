@@ -102,7 +102,9 @@ PMUtil.getTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_TRANSACTI
 PMUtil.getRequestID = (body) => PMUtil.readElementFromBody(ELEMENT_REQUEST_ID, body);
 PMUtil.getParentTransactionID = (body) => PMUtil.readElementFromBody(ELEMENT_PARENT_TRANSACTION_ID, body);
 PMUtil.getPaymentMethod = (body) => {
-    return PMUtil.bodyHasElement(body, 'payment') ? PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body) : PMUtil.readElementFromBody(ELEMENT_FLAT_PAYMENT_METHOD, body);
+    return PMUtil.bodyHasElement(body, 'payment') ?
+        PMUtil.readElementFromBody(ELEMENT_PAYMENT_METHOD, body) :
+        PMUtil.readElementFromBody(ELEMENT_FLAT_PAYMENT_METHOD, body);
 };
 PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
 PMUtil.getTransactionType = (body) => { // returns value of transaction type. or parent element name for sonderfälle like get-address-request
@@ -315,7 +317,8 @@ PMUtil.writeTestCredentialsAdocTableFile = function (basename, path, TestCredent
     for (var ep in Endpoints) {
         endpointsAdoc += '[cols="1v,3"]' + "\n";
         endpointsAdoc += '|===' + "\n";
-        endpointsAdoc += 's| Transaction Type' + ((Endpoints[ep].length > 1) ? 's' : '') + ' | ' + Endpoints[ep].map(e => `\`${e}\``).join(', ') + "\n"; // wrap in `` for monospace
+        endpointsAdoc += 's| Transaction Type' + ((Endpoints[ep].length > 1) ? 's' : '') +
+            ' | ' + Endpoints[ep].map(e => `\`${e}\``).join(', ') + "\n"; // wrap in `` for monospace
         endpointsAdoc += 's| URI | \\' + ep + "\n";
         endpointsAdoc += '|===' + "\n\n";
     }
@@ -428,8 +431,10 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
             }
             numSuccessfulRequests++;
 
-            const requestFile = PMUtil.writeSampleFile('request', transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
-            const responseFile = PMUtil.writeSampleFile('response', transaction.response.content_type_abbr, basename, path, transaction.response.body);
+            const requestFile = PMUtil.writeSampleFile('request',
+                transaction.request.content_type_abbr, basename, path, transaction.request.body_web);
+            const responseFile = PMUtil.writeSampleFile('response',
+                transaction.response.content_type_abbr, basename, path, transaction.response.body);
 
             var statusesAdocTableCells = '';
             transaction.response.engine_status.forEach(function (s, i) {
@@ -437,7 +442,8 @@ PMUtil.writeAdocSummary = function (RequestResponseIndex) {
 e| Severity    | ` + '``' + s.severity + '``' + `
 e| Description | ` + '``' + s.description + '``' + `
 `;                  // add divider between different status messages in response
-                if (transaction.response.engine_status.length > 1 && i < (transaction.response.engine_status.length - 1)) {
+                if (transaction.response.engine_status.length > 1 &&
+                    i < (transaction.response.engine_status.length - 1)) {
                     statusesAdocTableCells += '2+|' + "\n";
                 }
             });
@@ -459,7 +465,8 @@ e| Content-Type | \`` + transaction.request.content_type + `\`
 e| Accept       | \`` + transaction.request.accept + `\`
 |===
 
-//.Request ` + paymentMethodBrandName + `: ` + transactionName + ` (` + transaction.request.content_type_abbr.toUpperCase() + `)
+//.Request ` + paymentMethodBrandName + `: ` + transactionName + ` (` +
+                transaction.request.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.request.content_type_abbr + `]
 ----
 include::` + requestFile + `[]
@@ -476,7 +483,8 @@ e| Content-Type | \`` + transaction.response.content_type + `\`
 ` + statusesAdocTableCells + `
 |===
 
-//.Response ` + paymentMethodBrandName + `: ` + transactionName + ` (` + transaction.response.content_type_abbr.toUpperCase() + `)
+//.Response ` + paymentMethodBrandName + `: ` + transactionName + ` (` +
+                transaction.response.content_type_abbr.toUpperCase() + `)
 [source,` + transaction.response.content_type_abbr + `]
 ----
 include::` + responseFile + `[]
@@ -489,9 +497,12 @@ include::` + responseFile + `[]
             const numExistingRequests = countExistingRequests(path + adocFilename);
             if (numSuccessfulRequests > 0 && numSuccessfulRequests >= numExistingRequests) { // if in a previous run there were more successful requests thant in the current, do not write the adoc
                 fs.writeFileSync(path + adocFilename, fileContent);
-                process.stderr.write(styleText('WRITTEN: ', 'green') + adocFilename + ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')'  + "\n");
+                process.stderr.write(styleText('WRITTEN: ', 'green') + adocFilename +
+                    ' (' + numSuccessfulRequests + ' >= ' + numExistingRequests + ')' + "\n");
             } else {
-                process.stderr.write(styleText('SKIPPED: ', 'red') + adocFilename + ' (' + numSuccessfulRequests + ' ' + ((numSuccessfulRequests === numExistingRequests) ? '===' : '<') + ' ' + numExistingRequests + ')' + "\n");
+                process.stderr.write(styleText('SKIPPED: ', 'red') + adocFilename + ' (' +
+                    numSuccessfulRequests + ' ' + ((numSuccessfulRequests === numExistingRequests) ? '===' : '<') +
+                    ' ' + numExistingRequests + ')' + "\n");
             }
         }
         catch (err) {
@@ -700,7 +711,9 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
             elementValue = PMUtil.getElementByPath(e, obj, key);
             break;
         case MIMETYPE_NVP:
-            obj = [...new URLSearchParams(body)].map(arr => { return [ arr[0], arr[1] ]; }).reduce((arr, item) => (arr[item[0]] = item[1], arr) ,{})
+            obj = [...new URLSearchParams(body)]
+                .map(arr => { return [arr[0], arr[1]]; })
+                .reduce((arr, item) => (arr[item[0]] = item[1], arr), {});
             try {
                 e = PMUtil.ElementNamesMap[elementName].nvp.slice();
             }
@@ -709,7 +722,7 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
                 console.log(PMUtil.ElementNamesMap);
                 return elementValue;
             }
-            if(obj[e] !== undefined)
+            if (obj[e] !== undefined)
                 elementValue = obj[e].trim();
             break;
         case MIMETYPE_HTML:
@@ -926,7 +939,8 @@ const ConsoleColors = {
 };
 
 const styleText = function (text, style, type = 'fg') {
-    return (ConsoleColors[type] === undefined || ConsoleColors[type][style] === undefined) ? text : ConsoleColors[type][style] + text + ConsoleColors.ctrl.reset;
+    return (ConsoleColors[type] === undefined || ConsoleColors[type][style] === undefined) ?
+        text : ConsoleColors[type][style] + text + ConsoleColors.ctrl.reset;
 };
 
 // removes non-chars, remove empty array elements, capitalize, concatenate for CamelCase and add extension
@@ -945,7 +959,8 @@ const camelCase = function (str) {
  */
 PMUtil.markdown2adoc = function (txtMarkdown) {
     var txtAdoc;
-    //const _tmpfile = child_process.spawnSync('mktemp').stdout.toString('utf8'); // Error: ENOENT: no such file or directory, open 'C:\tmp\tmp.DCGQiKZehy
+    // Error: ENOENT: no such file or directory, open 'C:\tmp\tmp.DCGQiKZehy
+    //const _tmpfile = child_process.spawnSync('mktemp').stdout.toString('utf8'); 
     const _tmpfile = '_' + PMUtil.uuidv4() + '.tmp';
     try {
         fs.writeFileSync(_tmpfile, txtMarkdown);
@@ -1037,8 +1052,8 @@ PMUtil.getFolderInfo = function (itemNumber) {
             else {
                 _cnt++
                 if (_cnt == itemNumber) {
-                        itemPath = path;
-                        return true;
+                    itemPath = path;
+                    return true;
                 }
             }
         }
@@ -1090,11 +1105,12 @@ newman.run({
     const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
 
     if (requestBodySent.trim() == '') {
-        process.stderr.write('[' + styleText('EMPTYREQ', 'cyan') + '] ' + requestFolderPathArray.join(' ') + ' -> ' + requestName + ': empty request body' + "\n");
+        process.stderr.write('[' + styleText('EMPTYREQ', 'cyan') + '] ' +
+            requestFolderPathArray.join(' ') + ' -> ' + requestName + ': empty request body' + "\n");
         return false;
     }
-
-    const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);  // body that has no vars in them (for web display) except request id
+    // body that has no vars in them (for web display) except request id
+    const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);
     const requestContentType = PMUtil.getContentType(requestBodySent);
     const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
@@ -1116,7 +1132,8 @@ newman.run({
     // do not write anything for this request because we do not know if the request failed because of server issue
     // or client network connectivity is bad
     if (args.response === undefined) {
-        process.stderr.write('[' + styleText('  FAIL  ', 'red') + '] ' + consoleString + ' FAILED. CONNECTION FAILED' + "\n");
+        process.stderr.write('[' + styleText('  FAIL  ', 'red') + '] ' + consoleString +
+            ' FAILED. CONNECTION FAILED' + "\n");
         return false;
     }
 
@@ -1134,14 +1151,16 @@ newman.run({
     }
     var firstResponseCodeOfEngine = engineStatusResponses[0].code.toString();
     if (firstResponseCodeOfEngine.toString() === '600.0000') {
-        process.stderr.write('[' + styleText(firstResponseCodeOfEngine.toString(), 'yellow') + '] ' + requestFolderPathArray.join(' ') + ' -> ' + requestName + ' (invalid response: no status)' + "\n");
+        process.stderr.write('[' + styleText(firstResponseCodeOfEngine.toString(), 'yellow') + '] ' +
+            requestFolderPathArray.join(' ') + ' -> ' + requestName + ' (invalid response: no status)' + "\n");
         return false;
     }
     if (firstResponseCodeOfEngine.length === 3) firstResponseCodeOfEngine = 'HTTP ' + firstResponseCodeOfEngine;
     const requestSuccessful = (responses) => {
         for (var i in responses) {
             var responseCode = parseInt(responses[i].code.toString().replace(/\./, ''));
-            responseCode = responseCode < 999 ? responseCode * 10000 : responseCode; // bad request gives html and an integer like 400, not 400.0000 like engine
+            // bad request gives html and an integer like 400, not 400.0000 like engine
+            responseCode = responseCode < 999 ? responseCode * 10000 : responseCode;
             if (responseCode === -1 || responseCode / 10000 >= 400) {
                 return false;
             }
@@ -1154,11 +1173,14 @@ newman.run({
     responseContentTypeAbbr = PMUtil.getContentType(responseBody, true);
 
     if (responseContentTypeAbbr !== requestContentTypeAbbr) {
-        process.stderr.write('[' + styleText('WRONG-CT', 'magenta') + '] ' + consoleString + ': Response has different content-type than request' + "\n");
+        process.stderr.write('[' + styleText('WRONG-CT', 'magenta') + '] ' + consoleString +
+            ': Response has different content-type than request' + "\n");
         return false;
     }
 
-    process.stderr.write('[' + (requestSuccessful(engineStatusResponses) ? styleText(firstResponseCodeOfEngine, 'green') : styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
+    process.stderr.write('[' + (requestSuccessful(engineStatusResponses) ?
+        styleText(firstResponseCodeOfEngine, 'green') :
+        styleText(firstResponseCodeOfEngine, 'red')) + '] ' + consoleString + "\n");
 
     /* ... TO HERE */
 
