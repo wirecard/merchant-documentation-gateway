@@ -1038,7 +1038,7 @@ PMUtil.getBody = function (Body) {
     if (Body.raw !== undefined)
         return Body.raw;
     if (Body.urlencoded !== undefined) {
-        return Body.urlencoded.map((obj) => { return [obj.key, obj.value].join('=') }).join('&');
+        return Body.urlencoded.map((obj) => { return [obj.key,encodeURIComponent(obj.value).replace(/%7B/g,'{').replace(/%7D/g,'}')].join('=') }).join('&');
     }
     return '';
 };
