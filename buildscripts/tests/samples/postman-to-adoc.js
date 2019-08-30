@@ -106,7 +106,9 @@ PMUtil.getPaymentMethod = (body) => {
 };
 PMUtil.getMerchantAccountID = (body) => PMUtil.readElementFromBody(ELEMENT_MERCHANT_ACCOUNT_ID, body);
 PMUtil.getTransactionType = (body) => { // returns value of transaction type. or parent element name for sonderfälle like get-address-request
-    return (PMUtil.bodyHasElement(body, 'payment') || PMUtil.getContentType(body) == MIMETYPE_NVP) ? PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body) : PMUtil.readElementFromBody(GENERIC_ROOT_ELEMENT, body, true);
+    return (PMUtil.bodyHasElement(body, 'payment') || PMUtil.getContentType(body) == MIMETYPE_NVP) ?
+        PMUtil.readElementFromBody(ELEMENT_TRANSACTION_TYPE, body) :
+        PMUtil.readElementFromBody(GENERIC_ROOT_ELEMENT, body, true);
 };
 
 /**
@@ -184,7 +186,8 @@ PMUtil.ContentTypeAbbr = {
  * Gives the actual brand name for a payment-method id string.
  *
  * Creates table with general info on the request (is to be hidden by default in frontend)
- * Creates two source blocks, request and response with titles according to Payment Method, Transaction Type and Content Type
+ * Creates two source blocks, request and response with titles according to Payment Method,
+ * Transaction Type and Content Type
  * Request contains all Postman variables unsubstituted for integrators to copy&paste.
  *
  * @param {string} pm String that is found in the request or response body indicating the Payment Method.
@@ -218,7 +221,8 @@ PMUtil.brandNameOfPaymentMethod = function (pm) {
  * @param {string} rType Request type. Either 'request' or 'response'
  * @param {string} contentTypeAbbr Content type in short form, i.e. xml, json, nvp.
  * @param {string} basename e.g. Creditcard_CaptureAuthorizationForVoidCapture
- * @param {string} path Global path of directory where the subfolders for xml, json, nvp are created in. E.g. 'samples/adoc/'
+ * @param {string} path Global path of directory where the subfolders for xml, json, nvp are created in.
+ * E.g. 'samples/adoc/'
  * @param {string} body Request or response body to write into the file.
  * 
  * @return {string} Path to file for use in include:: statement
@@ -519,10 +523,10 @@ PMUtil.getAcceptHeader = function (request) {
  */
 PMUtil.formatResponse = function (body) {
     const contentType = PMUtil.getContentType(body);
-    if (contentType == MIMETYPE_XML) {
+    if (contentType === MIMETYPE_XML) {
         return PMUtil.formatXML(body);
     }
-    if (contentType == MIMETYPE_JSON) {
+    if (contentType === MIMETYPE_JSON) {
         return PMUtil.formatJSON(body);
     }
     return body;
@@ -659,7 +663,7 @@ PMUtil.uuidv4 = function () {
 
 
 PMUtil.getElementByPath = function (e, obj, key = false) {
-    if (e[0] == GENERIC_ROOT_ELEMENT) {
+    if (e[0] === GENERIC_ROOT_ELEMENT) {
         e[0] = Object.keys(obj)[0];
     }
     return e.reduce((x, i) => (x && x[i]) ? (key ? i : x[i]) : undefined, obj);
@@ -1123,17 +1127,17 @@ newman.run({
     const responseCodeHTTP = args.response.code;
     const engineStatusResponses = PMUtil.readEngineStatusResponses(responseBody);
     if (engineStatusResponses[0] === undefined) {
-        console.log("\n\n")
-        console.log('engine status responses')
-        console.log(engineStatusResponses)
-        console.log(responseBody)
+        console.log("\n\n");
+        console.log('engine status responses');
+        console.log(engineStatusResponses);
+        console.log(responseBody);
     }
     var firstResponseCodeOfEngine = engineStatusResponses[0].code.toString();
     if (firstResponseCodeOfEngine.toString() === '600.0000') {
         process.stderr.write('[' + styleText(firstResponseCodeOfEngine.toString(), 'yellow') + '] ' + requestFolderPathArray.join(' ') + ' -> ' + requestName + ' (invalid response: no status)' + "\n");
         return false;
     }
-    if (firstResponseCodeOfEngine.length == 3) firstResponseCodeOfEngine = 'HTTP ' + firstResponseCodeOfEngine;
+    if (firstResponseCodeOfEngine.length === 3) firstResponseCodeOfEngine = 'HTTP ' + firstResponseCodeOfEngine;
     const requestSuccessful = (responses) => {
         for (var i in responses) {
             var responseCode = parseInt(responses[i].code.toString().replace(/\./, ''));
@@ -1229,10 +1233,13 @@ newman.run({
     */
 
     // add transaction types to endpoint index later used in creating test credentials tables
-    if (PMUtil.Endpoints[paymentMethod] === undefined) PMUtil.Endpoints[paymentMethod] = {};
-    if (PMUtil.Endpoints[paymentMethod][requestEndpoint] === undefined) PMUtil.Endpoints[paymentMethod][requestEndpoint] = [];
+    if (PMUtil.Endpoints[paymentMethod] === undefined)
+        PMUtil.Endpoints[paymentMethod] = {};
+    if (PMUtil.Endpoints[paymentMethod][requestEndpoint] === undefined)
+        PMUtil.Endpoints[paymentMethod][requestEndpoint] = [];
     PMUtil.Endpoints[paymentMethod][requestEndpoint].push(transactionType); // add e.g. get-url to endpoint object
-    PMUtil.Endpoints[paymentMethod][requestEndpoint] = [...new Set(PMUtil.Endpoints[paymentMethod][requestEndpoint].sort())]; // remove duplicate entries of sorted array
+    PMUtil.Endpoints[paymentMethod][requestEndpoint] =
+        [...new Set(PMUtil.Endpoints[paymentMethod][requestEndpoint].sort())]; // remove duplicate entries of sorted array
 }).on('done', function (err, summary) {
     if (err || summary.error) {
         console.error('collection run encountered an error.');
