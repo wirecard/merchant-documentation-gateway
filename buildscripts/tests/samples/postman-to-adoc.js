@@ -1025,6 +1025,23 @@ PMUtil.parseAdditionalTestCredentials = function (itemDescription) {
     return AdditionalTestCredentials;
 };
 
+/**
+ * Get raw body from Postman body Object as string
+ *
+ * Either raw xml/json or decodes NVP key value pairs
+ * 
+ * @param {Object} Body The body Object.
+ * 
+ * @return {string} Request body as string.
+ */
+PMUtil.getBody = function (Body) {
+    if (Body.raw !== undefined)
+        return Body.raw;
+    if (Body.urlencoded !== undefined) {
+        return Body.urlencoded.map((obj) => { return [obj.key, obj.value].join('=') }).join('&');
+    }
+    return '';
+};
 
 /**
  * Get folders info: structure/path of a given request body and folder description
@@ -1082,8 +1099,9 @@ newman.run({
 }).on('beforeRequest', function (err, args) {
     if (err)
         throw err;
-    const paymentMethod = PMUtil.readPaymentMethod(args.request.body.raw);
-    const transactionType = PMUtil.getTransactionType(args.request.body.raw);
+    const requestBodySource = PMUtil.getBody(args.request.body);
+    const paymentMethod = PMUtil.readPaymentMethod(requestBodySource);
+    const transactionType = PMUtil.getTransactionType(requestBodySource);
     const consoleString = paymentMethod + ' -> ' + transactionType;
     process.stderr.write('[  WAIT  ] ' + consoleString + "\r");
 
@@ -1097,12 +1115,12 @@ newman.run({
     const requestPMID = PMUtil.getElementByPath(['event', 0, 'script', 'id']);
     const requestSent = args.request;
     const requestMethod = requestSource.method;
-    const requestBodySource = requestSource.body.raw; // body including unresolved {{variables}}
+    const requestBodySource = PMUtil.getBody(requestSource.body); // body including unresolved {{variables}}
     const requestFolderInfo = PMUtil.getFolderInfo(_itemCounter);
     const requestFolderDescription = requestFolderInfo.folder_description;
     const requestFolderPathArray = requestFolderInfo.path_array;
     const requestFolderPathString = camelCase(requestFolderPathArray.join('_'));
-    const requestBodySent = requestSent.body.raw;  // body that's actually sent with variables replaced
+    const requestBodySent = PMUtil.getBody(requestSent.body);  // body that's actually sent with variables replaced
 
     if (requestBodySent.trim() == '') {
         process.stderr.write('[' + styleText('EMPTYREQ', 'cyan') + '] ' +
@@ -1110,7 +1128,7 @@ newman.run({
         return false;
     }
     // body that has no vars in them (for web display) except request id
-    const requestBodyWeb = PMUtil.formatRequestForWeb(requestSent.body.raw);
+    const requestBodyWeb = PMUtil.formatRequestForWeb(requestBodySent);
     const requestContentType = PMUtil.getContentType(requestBodySent);
     const requestContentTypeAbbr = PMUtil.getContentType(requestBodySent, true);
     const paymentMethod = PMUtil.readPaymentMethod(requestBodySent);
@@ -1174,7 +1192,7 @@ newman.run({
 
     if (responseContentTypeAbbr !== requestContentTypeAbbr) {
         process.stderr.write('[' + styleText('WRONG-CT', 'magenta') + '] ' + consoleString +
-            ': Response has different content-type than request' + "\n");
+            ': Wrong Content-Type! Expected ' + requestContentTypeAbbr.toUpperCase() + ', got ' + responseContentTypeAbbr.toUpperCase() + "\n");
         return false;
     }
 
