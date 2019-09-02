@@ -2,6 +2,8 @@
 ==== 3D Secure 2 Use Cases
 
 The following list covers the most typical use cases and business scenarios. Please keep in mind that other transaction workflows are possible.
+For standard *check-enrollment* request and response samples, head to our <<CreditCard_Samples_CheckEnrollment_3DS2, Credit Card Samples>> section.
+You can find more details on the implementation of these use cases in our <<API_CC_3DS2_PaymentFlows, 3D Secure 2 Payment Flows>>.
 
 [#CreditCard_3DS2_UseCase_OneTimePurchase]
 ===== One-time Purchase
@@ -10,7 +12,8 @@ One-time purchase is one of the most common scenarios: a consumer places an orde
 
 [#CreditCard_3DS2_UseCase_OneTimePurchase_tx]
 ====== For a successful transaction:
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._ +
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
 . *Authorization* (full amount): Send a second request with transaction type ``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
 +
 _When ready to ship..._
@@ -141,7 +144,7 @@ _Per recurring payment (MIT)_
 
 '''
 [#CreditCard_3DS2_UseCase_Recurring_Variable]
-===== Recurring Payments – Variable Amount (MIT Unscheduled Credential on File - UCOF)
+===== Recurring Payments - Variable Amount (MIT Unscheduled Credential on File - UCOF)
 
 For recurring payments with a variable amount, the consumer agrees that the merchant may initiate one or more transactions in the future. These merchant-initiated _UCOF_ (Unscheduled Credential on File) transactions use stored credentials. The transactions are unscheduled and happen in irregular intervals. The payment amount is either fixed or variable. UCOF _merchant-initiated transaction_ agreements have to be set up with Strong Customer Authentication.
 Examples include automatic top-up transactions, e.g. for mobile phones and online gaming.
@@ -152,13 +155,13 @@ WARNING: Consumers must be clearly informed about the terms of the unscheduled c
 
 _Setting up the agreement (consumer-initiated)_
 
-. *Check-enrollment* (amount due at sign-up): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization* (amount due at sign-up): Send a request with transaction type ``authorization``. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment._
+. *Check-enrollment* (amount due at sign-up): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (amount due at sign-up): Send a request with transaction type ``authorization``. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment._
 . *Capture* (amount due at sign-up): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
 +
 _Per UCOF payment (MIT)_
 +
-. *Authorization* (UCOF amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the *first* _authorization_ response in the ``parent-transaction-id`` field (see step 2).
+. *Authorization* (UCOF amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the *first* _authorization_ response in the ``parent-transaction-id`` field (see step 2).
 . *Capture* (UCOF amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the UCOF _authorization_ response in the ``parent-transaction-id`` field.
 
 //-
@@ -167,12 +170,12 @@ _Per UCOF payment (MIT)_
 
 _Setting up the agreement (consumer-initiated)_
 
-. *Check-enrollment* (zero amount): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Check-enrollment* (zero amount): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the payment agreement. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 +
 _Per UCOF payment (MIT)_
 +
-. *Authorization* (UCOF amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the _authorization-only_ response in the ``parent-transaction-id`` field (see step 2).
+. *Authorization* (UCOF amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the _authorization-only_ response in the ``parent-transaction-id`` field (see step 2).
 . *Capture* (UCOF amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _UCOF_ *authorization* response in the ``parent-transaction-id`` field.
 
 //-
@@ -370,8 +373,8 @@ WARNING: Before storing credentials on file, consumers must be clearly informed 
 
 .Independent of purchase (standard scenario)
 
-. *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 
 //-
 
@@ -379,18 +382,22 @@ NOTE: Zero-amount processing is not supported by all acquirers. If you experienc
 
 .Independent of purchase (alternative scenario)
 
-. *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 . *Void-authorization* (_authorization_ amount): Send a third request with transaction type ``void-authorization``. The agreement has been signed by means of the ``authorization`` transaction. Void the amount provided in the _authorization_ request to conclude the workflow.
 
 .During purchase
 
-. *Check-enrollment* (payment amount): This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Check-enrollment* (payment amount): This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
 +
 NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
 +
 
-. *Authorization* (payment amount): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Authorization* (payment amount): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
 . *Capture* (payment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+====
+WARNING: For subsequent transactions that use stored card details, use ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``.
+====
 
 //-

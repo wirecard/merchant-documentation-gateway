@@ -516,9 +516,11 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
   // Gather information
-  if( empty(getenv( 'SLACK_TOKEN' )) ) {
-    echo "Environment Var SLACK_TOKEN not set -> output to console";
-  }  
+  if( !empty(getenv('DEBUG')) )
+    echo "DEBUG for messaging is ".getenv('DEBUG')."\n";
+  if( empty(getenv( 'SLACK_TOKEN' )) )
+    echo "Environment Var SLACK_TOKEN not set -> output to console\n";
+
   $partner = getenv( 'PARTNER' );
   $currentBranch = GitInfo::getInstance()->getBranch();
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
@@ -534,16 +536,37 @@ function sendNotifications ( $results ) {
                       array("type" => "divider"),
                       );
   $msgContent = null;
+  $msgsContent = array();
+  $sectionTemplate = array("type" => "section",
+                           "fields" => array());
   if( testNoErrorPath && sizeof( $results ) > 0 ) {
-    $msgContent = array("type" => "section",
-                        "fields" => array());
+    $msgContent = $sectionTemplate;
+    $msgCount = 0;
     foreach( $results as $filename => $result ) {
+      if( getenv('DEBUG') === "TRUE" || getenv('DEBUG') === "YES" || getenv('DEBUG') === "1" ) {
+        echo "*** ".$filename."\n";
+        echo json_encode($result, JSON_PRETTY_PRINT)."\n";
+      }
+      if(!isset($result['filename']))
+        $result['filename'] = $filename;
+      if(!isset($result['branch']))
+        $result['branch'] = "whitelabel";
+      if(!isset($result['author']))
+        $result['author'] = "redacted";
       $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
+      $msgCount++;
+      if($msgCount % 10 === 0) {
+        $msgsContent[] = $msgContent;
+        $msgContent = $sectionTemplate;
+      }
     }
+    // add missing content if msgCount % 10
+    if($msgCount % 10)
+      $msgsContent[] = $msgContent;
   }
   else {
     // empty error array creates "success" msg in createSlackMessageFromErrors
-    $msgContent = createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor, $commitHash );
+    $msgsContent = array(createSlackMessageFromErrors( array(), $partner, $currentBranch, $commitAuthor, $commitHash ));
   }
 
   $msgClosing = array(array("type" => "divider"),
@@ -556,7 +579,9 @@ function sendNotifications ( $results ) {
 
 
   $slackMessage = $msgOpening;
-  array_push($slackMessage, $msgContent);
+  // TODO: change this to iterate over msgContents in array since we need to split sections with 10+ fields
+  foreach($msgsContent as $msgContent)
+    array_push($slackMessage, $msgContent);
   foreach($msgClosing as $closingItem)
     array_push($slackMessage, $closingItem);
   $status = postToSlack( $slackWebhookUrl, array("blocks" => $slackMessage) );
@@ -626,10 +651,12 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
 
 function postToSlack( $slackWebhookUrl, $slackMessage ) {
   $messageString = str_replace('PHP_EOL', '\n', json_encode( $slackMessage, JSON_PRETTY_PRINT ) );
-  if( empty(getenv( 'SLACK_TOKEN' )) || !empty(getenv('SKIP_SLACK_MESSAGE')) ) {
+  if( empty(getenv( 'SLACK_TOKEN' ))) {
     echo $messageString."\n";
-    return true;
   }
+
+  if(!empty(getenv('SKIP_SLACK_MESSAGE')))
+    return true;
 
   $descriptorspec = array(
       0 => array('pipe', 'r'),  // stdin
