@@ -37,6 +37,79 @@ describe('getTransactionType from requests and responses', function () {
     })
 });
 
+describe('stfuGetJsonFromFile', function () {
+    describe('stfuGetJsonFromFile from non existing file', function () {
+        it('stfuGetJsonFromFile("non existing file") should return empty Object', function () {
+            assert.deepEqual(PMUtil.stfuGetJsonFromFile('nonExistingFile'), {});
+        })
+    })
+    describe('stfuGetJsonFromFile(\'info-files.json\')', function () {
+        it('stfuGetJsonFromFile("info-files.json")[\'anchor-index-file\'] should return "anchor-index.json"', function () {
+            assert.deepEqual(PMUtil.stfuGetJsonFromFile("../info-files.json")['anchor-index-file'], "anchor-index.json");
+        })
+    })
+});
+
+describe('readEngineStatusResponses', function () {
+    describe('readEngineStatusResponses from XML', function () {
+        it('stfuGetJsonFromFile("non existing file") should return empty Object', function () {
+            assert.deepEqual(PMUtil.readEngineStatusResponses(bodyResponseXML)[0].code, "400.1023");
+        })
+    })
+    describe('readEngineStatusResponses from JSON', function () {
+        it('stfuGetJsonFromFile("info-files.json")[\'anchor-index-file\'] should return "anchor-index.json"', function () {
+            assert.deepEqual(PMUtil.readEngineStatusResponses(bodyResponseJSON)[0].code, "400.1023");
+        })
+    })
+    describe('readEngineStatusResponses from NVP', function () {
+        it('stfuGetJsonFromFile("info-files.json")[\'anchor-index-file\'] should return "anchor-index.json"', function () {
+            assert.deepEqual(PMUtil.readEngineStatusResponses(bodyResponseNVP)[0].code, "201.0000");
+        })
+    })
+});
+
+describe('getElementByPath', function () {
+    const _obj = {
+        level_1: {
+            level_2: ['one', 2]
+        }
+    };
+    describe('getElementByPath get value', function () {
+        it('getElementByPath(e, _obj) should return 2', function () {
+            assert.deepEqual(PMUtil.getElementByPath(['level_1', 'level_2', 1], _obj), 2);
+        })
+    })
+    describe('getElementByPath get key name of root element', function () {
+        const GENERIC_ROOT_ELEMENT = 'generic_root_element';
+        it('getElementByPath(GENERIC_ROOT_ELEMENT, _obj, true) should return level_1', function () {
+            assert.deepEqual(PMUtil.getElementByPath(GENERIC_ROOT_ELEMENT, _obj, true), 'level_1');
+        })
+    })
+});
+
+describe('getContentType from requests or responses', function () {
+    describe('getTransactionType from XML body', function () {
+        it('getTransactionType(bodyResponseXML) should equal application/xml', function () {
+            assert.deepEqual(PMUtil.getContentType(bodyResponseXML), 'application/xml');
+        })
+    })
+    describe('getTransactionType from JSON body', function () {
+        it('getTransactionType(bodyResponseJSON) should equal application/json', function () {
+            assert.deepEqual(PMUtil.getContentType(bodyResponseJSON), 'application/json');
+        })
+    })
+    describe('getTransactionType from NVP body', function () {
+        it('getTransactionType(bodyResponseNVP) should equal application/x-www-form-urlencoded;charset=UTF-8', function () {
+            assert.deepEqual(PMUtil.getContentType(bodyResponseNVP), 'application/x-www-form-urlencoded;charset=UTF-8');
+        })
+    })
+    describe('getTransactionType from HTML body', function () {
+        it('getTransactionType(bodyResponseHTML) should equal text/html', function () {
+            assert.deepEqual(PMUtil.getContentType(bodyResponseHTML), 'text/html');
+        })
+    })  
+});
+
 const bodyResponseXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" self="https://api-test.wirecard.com:443/engine/rest/merchants/47cd4edf-b13c-4298-9344-53119ab8b9df/payments/6738403b-b234-40a3-ae54-7f32e425ade7">
     <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/47cd4edf-b13c-4298-9344-53119ab8b9df">47cd4edf-b13c-4298-9344-53119ab8b9df</merchant-account-id>
@@ -127,3 +200,12 @@ const bodyResponseJSON = `{
 }`;
 
 const bodyResponseNVP = `order_number=180528105918955&order_detail=Test+product+001&payment_method_url=https%3A%2F%2Fopenapi.alipaydev.com%2Fgateway.do%3F_input_charset%3Dutf-8%26body%3DTest%2Bproduct%2B001%26currency%3DUSD%26notify_url%3Dhttps%253A%252F%252Fapi-test.wirecard.com%253A443%252Fengine%252Fnotification%252Falipay-xborder%252F%26order_gmt_create%3D2019-09-02%2B19%253A32%253A43%26order_valid_time%3D21600%26out_trade_no%3D5699de97-3be1-4f66-8edc-71cbfffaa53d%26partner%3D2088101122136241%26return_url%3Dhttps%253A%252F%252Fapi-test.wirecard.com%253A443%252Fengine%252Fnotification%252Falipay-xborder%252Fredirect%252F5699de97-3be1-4f66-8edc-71cbfffaa53d%252F%26secondary_merchant_id%3D0000003173B0F907%26secondary_merchant_industry%3D4555%26secondary_merchant_name%3Dtesting-merchant%26service%3Dcreate_forex_trade%26sign%3Dfff83061f981e5b4ef098904465b1a51%26sign_type%3DMD5%26subject%3D180528105918955%26timeout_rule%3D12h%26total_fee%3D2.22&locale=en&requested_amount=2.22&completion_time_stamp=20190902113243&merchant_account_id=47cd4edf-b13c-4298-9344-53119ab8b9df&fail_redirect_url=https%3A%2F%2Fdemoshop-test.wirecard.com%2Fdemoshop%2F%23%2Ferror&first_name=Max&email=max.cavalera%40wirecard.com&payment_method=alipay-xborder&transaction_id=5699de97-3be1-4f66-8edc-71cbfffaa53d&status_severity_1=information&last_name=Cavalera&ip_address=127.0.0.1&transaction_type=get-url&status_code_1=201.0000&status_description_1=The+resource+was+successfully+created.&cancel_redirect_url=https%3A%2F%2Fdemoshop-test.wirecard.com%2Fdemoshop%2F%23%2Fcancel&success_redirect_url=https%3A%2F%2Fdemoshop-test.wirecard.com%2Fdemoshop%2F%23%2Fsuccess&transaction_state=success&requested_amount_currency=USD&request_id=38724342-6ce1-41dc-bc5a-5006176e7aec-get-url&`;
+
+const bodyResponseHTML = `<html>
+  <head>
+    <title>Some Title</title>
+  </head>
+  <body>
+    text
+  </body>
+</html>`;
