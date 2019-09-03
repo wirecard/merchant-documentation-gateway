@@ -661,6 +661,7 @@ PMUtil.uuidv4 = function () {
 
 
 PMUtil.getElementByPath = function (e, obj, key = false) {
+    if (!Array.isArray(e)) e = [e];
     if (e[0] === GENERIC_ROOT_ELEMENT) {
         e[0] = Object.keys(obj)[0];
     }
@@ -686,15 +687,12 @@ PMUtil.readElementFromBody = function (elementName, body, key = false) {
         case MIMETYPE_XML:
             obj = xmlparser.parse(body, { ignoreAttributes: false });
             e = PMUtil.ElementNamesMap[elementName].xml.slice();
-            if (!Array.isArray(e))
-                e = [e];
+
             elementValue = PMUtil.getElementByPath(e, obj, key);
             break;
         case MIMETYPE_JSON:
             obj = JSON.parse(body);
             e = PMUtil.ElementNamesMap[elementName].json.slice();
-            if (!Array.isArray(e))
-                e = [e];
             elementValue = PMUtil.getElementByPath(e, obj, key);
             break;
         case MIMETYPE_NVP:
