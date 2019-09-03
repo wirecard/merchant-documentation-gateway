@@ -19,6 +19,24 @@ describe('getTransactionID from requests and responses', function () {
     })
 });
 
+describe('getTransactionType from requests and responses', function () {
+    describe('getTransactionType from XML response', function () {
+        it('getTransactionType(bodyResponseXML) should equal refund-debit', function () {
+            assert.deepEqual(PMUtil.getTransactionType(bodyResponseXML), 'refund-debit');
+        })
+    })
+    describe('getTransactionType from JSON response', function () {
+        it('getTransactionType(bodyResponseJSON) should equal refund-debit', function () {
+            assert.deepEqual(PMUtil.getTransactionType(bodyResponseJSON), 'refund-debit');
+        })
+    })
+    describe('getTransactionType from NVP response', function () {
+        it('getTransactionType(bodyResponseNVP) should equal get-url', function () {
+            assert.deepEqual(PMUtil.getTransactionType(bodyResponseNVP), 'get-url');
+        })
+    })
+});
+
 const bodyResponseXML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <payment xmlns="http://www.elastic-payments.com/schema/payment" self="https://api-test.wirecard.com:443/engine/rest/merchants/47cd4edf-b13c-4298-9344-53119ab8b9df/payments/6738403b-b234-40a3-ae54-7f32e425ade7">
     <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/47cd4edf-b13c-4298-9344-53119ab8b9df">47cd4edf-b13c-4298-9344-53119ab8b9df</merchant-account-id>
