@@ -74,32 +74,25 @@ function documentReady() {
   }
   var scrollTimer;
   var scrollDelay = 200;
-  var contentHeight = 0;
   $(window).on('scroll', function () {
     window.clearTimeout(scrollTimer);
     scrollTimer = setTimeout(function () {
-      contentHeight = $('#content').height;
       window.requestAnimationFrame(highlightTOC);
     }, scrollDelay);
   });
 
-  
+  /*
   var resizeTimer;
   var resizeDelay = 1000;
   $(window).on('resize', function () {
     if (getUrlHash()) {
       window.cancelIdleCallback(resizeTimer);
-      const oldHeight = contentHeight;
       resizeTimer = requestIdleCallback(function () {
-  //      window.location.href = '#' + getUrlHash();
-        const newHeight = $('#content').height;
-        const resizeFactor = oldHeight / newHeight;
-        const scrollPos = $('#content').scrollTop();
-        $('#content').scrollTop(scrollPos * resizeFactor);
+        window.location.href = '#' + getUrlHash();
       }, { timeout: resizeDelay });
     }
   });
-  
+  */
   // clipboard functions
   $(function () {
     var pre = document.getElementsByTagName('pre');
