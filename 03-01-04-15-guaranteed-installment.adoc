@@ -1,10 +1,10 @@
 include::shortcuts.adoc[]
-:payment-method-name: Guaranteed Installment
+:payment-method-name: Guaranteed Installment by {payment-provider-name}
 
 [#PPv2_GuaranteedInstallment]
 ===== {payment-method-name}
 
-_{payment-method-name}_ allows the consumer to pay directly from their bank account, while providing the possibility for payment in a customised number of installments. The invoicing, direct debit, collection process (dunning), as well as calculation of possible installments, is handled by {payment-provider-name}. Guaranteed Direct Debit ensures that merchants receive the payment amount from {payment-provider-name} prior to settlement with consumers.
+_{payment-method-name}_ allows the consumer to pay directly from their bank account, while providing the option for payment in a customized number of installments. The invoicing, direct debit, collection process (dunning), as well as calculation of possible installments, is handled by {payment-provider-name}. {payment-method-name} ensures that merchants receive the payment amount from {payment-provider-name} prior to settlement with consumers.
 
 _{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
@@ -32,6 +32,8 @@ include::include/ppv2-general-information-2.adoc[]
 [#PPv2_GuaranteedInstallment_TransactionType_authorization]
 ====== Transaction Type _authorization_
 
+With _{payment-method-name}_ you can use the transaction type <<PPv2_GuaranteedInstallment_TransactionType_debitauth_Create, _authorization_>>.
+
 An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer.
 
 
@@ -57,7 +59,7 @@ a|09df96e0-6364-472c-a26a-4be32bfe1902
 |===
 
 [#PPv2_{payment-method-name}_TestCredentials_Additional]
-.Test Credentials for the _{payment-method-name}_ Environment
+.Additional Test Credentials 
 
 [cols="20h,80"]
 |===
@@ -75,10 +77,9 @@ a|09df96e0-6364-472c-a26a-4be32bfe1902
 
 . Create a payment session (initial request).
 +
-NOTE: You can set the ``country`` field only to ``DE``, as _{payment-method-name}_ is currently available for Germany.
+NOTE: Set the ``country`` field to ``DE``, as _{payment-method-name}_ is currently available for Germany only.
 
 . Redirect the consumer to the payment page (initial response URL).
-. The payment page displays a form where the consumer can select the preferred installment plan. 
 . Highly recommended: Parse and process the payment response.
 
 //-
@@ -89,7 +90,7 @@ We provide JSON examples for each step of this process. You can find them below.
 [cols="20h,80"]
 |===
 |Authorization
-|"Authorization"="Basic" + base64 (“username:password”). Use username and password as given in your Wirecard contract to base64-encode the authorization.
+|"Authorization"="Basic" + base64 (“username:password”). Use username and password as given in your {payment-provider-name} contract to base64-encode the authorization.
 |Content-Type
 |application/json
 |===
@@ -114,24 +115,20 @@ m|value
 |String
 |Required
 |36
-|A unique identifier assigned to every merchant account (by {payment-provider}).
+|A unique identifier assigned to every merchant account (by {payment-provider-name}).
 
 4+|request-id
 |String
 |Required
 |64
 |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random request-id. +
-Allowed characters: `[a-z0-9-_ ]`
+Allowed characters: `[a-z0-9-_ ]`.
 
 4+|transaction-type
 |String
 |Required
 |36
-a|The requested transaction type. Available transaction types for _{payment-method-name}_:
-
-- `authorization`
-
-//-
+|The requested transaction type. The available transaction type for _{payment-method-name}_ is `authorization`.
 
 .2+|requested-amount
 3+m|currency
@@ -144,7 +141,7 @@ Format: 3-character abbreviation according to ISO 4217.
 3+m|value
 |Numeric
 |Required
-|11
+|18
 |The full amount that is requested/contested in a transaction. 2 decimal places allowed. +
 Use `.` (decimal point) as the separator.
 
@@ -350,7 +347,7 @@ form. Sent as a response to the initial request.
 
 include::include/ppv2-redirect-instructions.adoc[]
 
-.3. The payment page displays a form where the consumer can select the preferred installment plan.
+.The payment page displays a form where the consumer can select the preferred installment plan.
 
 After clicking Pay Now on the payment page, the payment form window opens and the consumers can select the payment method. An Installment Calculator is then displayed. Here, the consumers can select one of the available installment plans (consisting of number of installments (monthly rates) and the preferred payment day), automatically calculated according to the total sum.
 
@@ -361,7 +358,7 @@ After selecting the installment plan, the consumers then enter their personal da
 NOTE: You are not required to create a request for this step, as the installment calculation is performed automatically.
 
 [#PPv2_GuaranteedInstallment_TransactionType_debitauth_DecodedResponse]
-.4. Parse and Process the Payment Response (Decoded Payment Response)
+.3. Parse and Process the Payment Response (Decoded Payment Response)
 
 [source,json]
 ----
@@ -372,73 +369,10 @@ include::samples/json/PPv2_GuaranteedInstallment_TransactionTypeAuthorization_De
 |===
 4+|Field (JSON) |Data Type |Description
 
-.3+m|payment
-3+m|country
-|
-|
-
-3+m|locale
-|String
-|A 2-letter code which indicates the language that the payment page is rendered in (ISO 639-1).
-
-m|merchant-account-id
-2+m|value
-|String
-|A unique identifier assigned to every merchant account (by {payment-provider}).
-
-.10+m|account-holder
-.5+m|address
-2+m|country
-|Token
-|The Country Id of the address of the consumer.
-
-2+m|street1
-|String
-|The first line of the street address of the consumer.
-
-2+m|city
-|String
-|The city of the address of the consumer.
-
-2+m|postal-code
-|String
-|The postal code or ZIP of the address of the consumer.
-
-2+m|state
-|String
-|The state or province of the address of the consumer.
-
-3+m|first-name
-|String
-|The first name of the consumer.
-
-3+m|last-name
-|String
-|The last name of the consumer.
-
-3+m|email
-|String
-|The email address of the consumer.
-
-3+m|phone
-|String
-|The phone number of the consumer.
-
 3+m|account-info
 |
 |The value of account-info depends on the payment method.
 Empty when the account-info field is not used in the request.
-
-4+m|transaction-type
-|String
-a|The requested transaction type. Available transaction types for {payment-method-name}:
-
-- ``authorization``
-//-
-
-4+m|ip-address
-|String
-|The internet protocol address of the consumer as recorded by the entity receiving the transaction attempt from the consumer.
 
 .4+m|statuses
 .4+m|status
@@ -472,11 +406,6 @@ a|The requested transaction type. Available transaction types for {payment-metho
 |String
 |A unique identifier assigned to every transaction. This information is returned in the response only.
 
-4+m|request-id
-|String
-|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. {{$guid}} serves as a placeholder for a random request-id.
-Allowed characters: [a-z0-9-_ ].
-
 4+m|transaction-state
 |Token
 a|The current transaction state. Possible values:
@@ -493,16 +422,6 @@ Typically, a transaction starts with an "in-progress" state and finishes with ei
 |The UTC/ISO time-stamp documents the time & date when the transaction was executed.
 Format: ``YYYY-MM-DDThh:mm:ss (ISO)``.
 
-.2+m|requested-amount
-3+m|currency
-|String
-|The currency of the requested/contested transaction amount. For {payment-method-name} payments, the currency must be set to ``EUR``. Format: 3-character abbreviation according to ISO 4217.
-
-3+m|value
-|Numeric
-|The full amount that is requested/contested in a transaction. 2 decimal places allowed.
-Use ``.`` (decimal point) as the separator.
-
 .2+m|payment-methods
 .2+m|payment-method
 2+m|payload
@@ -513,24 +432,6 @@ Always empty for {payment-method-name}.
 2+m|name
 |String
 |The name of the payment method used. Set this value to ``guaranteedinstallment``.
-
-.7+m|order-items
-.7+m|order-item
-2+m|description
-|String
-|Description of the item in the basket.
-
-2+m|article-number
-|String
-|EAN or other article identifier for merchant.
-
-2+m|tax-rate
-|Numeric
-|The item tax rate per unit.
-
-2+m|quantity
-|Numeric
-|The total count of items in the order.
 
 .2+m|amount
 m|currency
@@ -545,19 +446,6 @@ m|value
 |Alphanumeric
 |Name of the item in the basket.
 
-.2+m|mandate
-3+m|mandate-id
-|String
-|The ID of the mandate generated between the consumer and the merchant allowing the merchant to debit the consumer’s bank account.
-
-3+m|signed-date
-|String
-|The date that the mandate was signed.
-
-4+m|creditor-id
-|String
-|The creditor ID of the merchant, allowing processing of {payment-method-name} transactions.
-
 4+m|api-id
 |Token
 |A unique identifier assigned to every API.
@@ -566,10 +454,6 @@ m|device
 3+m|fingerprint
 |String
 |A device fingerprint is information about a remote computing device, collected by the merchant for identification purposes. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
-
-4+m|order-number
-|String
-|String provided by the merchant, to store the 'Order Number' for the transaction.
 
 .2+m|bank-account
 3+m|bic
@@ -581,18 +465,6 @@ Allowed characters and format: ``([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-
 |String
 |The international bank account number (IBAN) of the account owner (consumer). 
 Allowed characters and format: ``[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}``.
-
-4+m|success-redirect-url
-|String
-|The URL to which the consumer is redirected after a successful payment, e.g. https://demoshop-test.wirecard.com/demoshop/#/success.
-
-4+m|cancel-redirect-url
-|String
-|The URL to which the consumer is redirected after having canceled a payment, e.g. https://demoshop-test.wirecard.com/demoshop/#/cancel.
-
-4+m|fail-redirect-url
-|String
-|The URL to which the consumer is redirected after an unsuccessful payment, e.g. https://demoshop-test.wirecard.com/demoshop/#/error.
 
 4+m|descriptor
 |String
