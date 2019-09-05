@@ -1854,6 +1854,7 @@ depending on region, card type indicator, card type, and payment method.
 
 //-
 
+
 [#GeneralPlatformFeatures_Surcharging_Setup]
 ==== Merchant Account Setup
 
@@ -1863,8 +1864,6 @@ Your account must be set up as follows:
 - Your merchant account must be configured to enable surcharging.
 - Your country must be defined in your merchant account.
 - Surcharging rates must be configured by region, card type indicator, card type, and payment method.
-+
-NOTE: Configuring surcharging rates allows to auto calculate and query the surcharge amount. If you prefer to calculate the surcharge amount yourself, add the calculated  ``<surcharge-amount>`` in the payment request directly. It overwrites your merchant account configruation. Adding the calculated ``<surcharge-amount>`` in the payment request is limited to fixed rate surcharge.
 //-
 
 ////
@@ -1875,24 +1874,32 @@ NOTE: The ``<surcharge-amount>`` in the request is limited to fixed
 rate surcharge.
 ////
 
+[#GeneralPlatformFeatures_Surcharging_SurchargeAmount]
+==== Surcharge Amount
+
+The surcharge amount can be determined in two ways:
+
+. Auto calculate the surcharge amount based on surcharging rates configured.
+. Calculate the surcharge amount yourself and include the value directly as part of the purchase request.
++
+NOTE: Including the ``<surcharge-amount>`` as part of the purchase request overwrites your merchant account configuration. It is limited to fixed rate surcharge.
+//-
+
 [#GeneralPlatformFeatures_Surcharging_Workflow]
 ==== Workflow
 
-The worklflow of a surcharged transaction varies whether you decide to auto calculate and query the surcharge amount based on configured surcharging rates or to calculate the surcharge amount yourself and add it to the purchase request directly.
 
-If you decide to auto calculate and query the surcharge amount based on configured surcharging rates, a two step procedure is required:
+Depending on the option selected, the workflow of a surcharged transaction varies.
 
-**Step 1:**
+If you decide to auto calculate the surcharge amount based on surcharging rates configured (calculate-fee surcharge)
 
-. The merchant sends an calculate-fee request to WPG.
-. WPG retrieves the surcharge information form  the merchant account setup, calucaltes the surcharge amount and sends the response to WPG.
+- send a calculate-fee request and retrieve the surcharge amount from the response first, and 
+- insert the retrieved value in and send the purchase request thereafter.
+//-
 
-**Step 2:**
-. The merchants sends a purchase request to WPG
+If you decide to cacluclate the surcharge amount yourself, include the value directly as part of the purchase request (pass-through surcharge). 
 
-
-
-
+Below, you can find samples for both, the <<GeneralPlatformFeatures_Surcharging_Samples_CalculateFee, calculate-fee request>> and the <<GeneralPlatformFeatures_Surcharging_Samples_Purchase, purchase request>>.
 
 [#GeneralPlatformFeatures_Surcharging_SupportedIntegration]
 ==== Supported Integration Options
@@ -1981,6 +1988,22 @@ Possible values:
 [#GeneralPlatformFeatures_Surcharging_Samples]
 ==== Samples
 
+[#GeneralPlatformFeatures_Surcharging_Samples_CalculateFee]
+===== Calculate-Fee
+
+.XML Request
+----
+include::samples/xml/GeneralPlatformFeatures_Surcharging_CalculateFee_request.xml[]
+----
+
+.XML Response
+[source,xml,subs=attributes+]
+----
+include::samples/xml/GeneralPlatformFeatures_Surcharging_CalculateFee_response.xml[]
+----
+
+[#GeneralPlatformFeatures_Surcharging_Samples_Purchase]
+===== Purchase
 .XML Request
 [source,xml,subs=attributes+]
 ----
