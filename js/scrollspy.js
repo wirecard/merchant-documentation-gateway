@@ -16,12 +16,12 @@ function highlightTOC() {
     else {
       hashToSet = hID;
     }
-
+/*
     window.clearTimeout(hashChangeTimer);
     hashChangeTimer = setTimeout(function () {
       replaceHash(hashToSet);
     }, 100);
-
+*/
     var hasMinitoc = $('#minitoc > ul').has('li').length ?
       $('#minitoc-title').html() == subsectionTitleElement.text() : true ? false
         : false;
@@ -59,9 +59,11 @@ function highlightTOC() {
 }
 
 function documentReady() {
-  var docTitle = $('h1').html();
-  var pageTitle = $('#content h2 > a.link, #content h3 > a.link').first().text();
-  document.title = pageTitle + ' - ' + docTitle;
+  // set title of page
+  const docTitle = $('h1').html();
+  const pageTitle = $('#content h2 > a.link, #content h3 > a.link').first().text();
+  document.title = pageTitle ? (pageTitle + ' - ' + docTitle) : docTitle;
+  
   $("div.sect3 > table.tableblock, div.sect2 > table.tableblock").wrap("<div class='tablewrapper'></div>");
   $('#content').addClass('scene_element--fadeinup');
   if (getUrlHash() !== false) {
@@ -79,6 +81,7 @@ function documentReady() {
     }, scrollDelay);
   });
 
+  /*
   var resizeTimer;
   var resizeDelay = 1000;
   $(window).on('resize', function () {
@@ -89,6 +92,7 @@ function documentReady() {
       }, { timeout: resizeDelay });
     }
   });
+  */
   // clipboard functions
   $(function () {
     var pre = document.getElementsByTagName('pre');
@@ -143,6 +147,10 @@ function documentReady() {
   if(isInternetExplorer) {
     swapSVGandPNG();
   }
+  addZoomToLargeImages();
+  // ENABLE:TABS
+  // enableRequestDetailsHideShow();
+  // createSampleTabs();
 }
 
 $(document).ready(function () {
