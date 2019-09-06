@@ -1826,11 +1826,11 @@ ifdef::env-wirecard[]
 Surcharging is a feature for <<PP, {payment-page-v1}>> (HPP and EPP) and
 <<RestApi, REST API>>.
 Aimed at merchants who would like to charge additional fees for certain types of
-payments, this feature guarantees transparency about surcharging rates for
+payments, this feature guarantees transparency about surcharge rates for
 consumers. In Australia it complies with the
 link:https://www.rba.gov.au/payments-and-infrastructure/review-of-card-payments-regulation/q-and-a/card-payments-regulation-qa-conclusions-paper.html[RBA's surcharging standards].
 
-Surcharging rates (calculated as either a fixed amount or a percentage) vary
+Surcharge rates (given as either a fixed amount or a percentage) vary
 depending on region, card type indicator, card type, and payment method.
 
 - Region:
@@ -1863,7 +1863,7 @@ Your account must be set up as follows:
 
 - Your merchant account must be configured to enable surcharging.
 - Your country must be defined in your merchant account.
-- Surcharging rates must be configured by region, card type indicator, card type, and payment method.
+- Surcharge rates must be configured by region, card type indicator, card type, and payment method.
 //-
 
 ////
@@ -1877,9 +1877,12 @@ rate surcharge.
 [#GeneralPlatformFeatures_Surcharging_SurchargeAmount]
 ==== Surcharge Amount
 
+The surcharge amount is the amount added to the original transaction amount (actual price of a good or a service). It is calculated based on respective surcharge rates. Depending on the hight of the originial transaction amount, the surcharge amount varies. The sum of the surcharge amount and the original transaction amount results in the final amount payable.
+
+
 The surcharge amount can be determined in two ways:
 
-. Auto calculate the surcharge amount based on surcharging rates configured.
+. Auto calculate the surcharge amount based on surcharge rates configured.
 . Calculate the surcharge amount yourself and include the value directly as part of the purchase request.
 +
 NOTE: Including the ``<surcharge-amount>`` as part of the purchase request overwrites your merchant account configuration. It is limited to fixed rate surcharge.
@@ -1889,17 +1892,18 @@ NOTE: Including the ``<surcharge-amount>`` as part of the purchase request overw
 ==== Workflow
 
 
-Depending on the option selected, the workflow of a surcharged transaction varies.
+Depending on how the surcharge amount is determined, the workflow of a surcharged transaction varies.
 
-If you decide to auto calculate the surcharge amount based on surcharging rates configured (calculate-fee surcharge)
+If you decide to auto calculate the surcharge amount based on surcharge rates configured 
 
 - send a calculate-fee request and retrieve the surcharge amount from the response first, and 
 - insert the retrieved value in and send the purchase request thereafter.
 //-
 
-If you decide to cacluclate the surcharge amount yourself, include the value directly as part of the purchase request (pass-through surcharge). 
+If you decide to cacluclate the surcharge amount yourself, include the value directly as part of the purchase request. 
 
-Below, you can find samples for both, the <<GeneralPlatformFeatures_Surcharging_Samples_CalculateFee, calculate-fee request>> and the <<GeneralPlatformFeatures_Surcharging_Samples_Purchase, purchase request>>.
+Below, we provide  <<GeneralPlatformFeatures_Surcharging_Samples_CalculateFee, calculate-fee>> and <<GeneralPlatformFeatures_Surcharging_Samples_Purchase, purchase>> samples.
+
 
 [#GeneralPlatformFeatures_Surcharging_SupportedIntegration]
 ==== Supported Integration Options
@@ -1944,7 +1948,7 @@ a - z +
 |card/expiration-year |M - Or Card Token  |Number |4  |The 4-digit representation of the expiration year of the account-number.
 |card/card-security-code  |Depending on merchant account settings |String |4  |A security feature for credit or debit card transactions, providing increased protection against credit card or debit card fraud. The card security code is located on the back of Mastercard, Visa and Discover credit or debit cards and is typically a se parate group of 3 digits to the right of the signature strip. On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right.
 |card/card-type |M |String  |15 |A card scheme accepted by the processing system. This includes physically issued cards.
-|surcharge/surcharge-amount | O   | Decimal | 18,6 | This is the surcharge rate of a transaction. The number of decimals depends on the currency.
+|surcharge/surcharge-amount | O   | Decimal | 18,6 | This is the amount added to the original transaction amount (actual price of a good or a service) based on respective surcharge rates. The number of decimals depends on the currency.
 |payment-methods/payment-method@name  |O  |String  |256  |The name of the payment method.
 |descriptor |O |String | n/a |Description of the transaction for account holder's
 bank statement purposes.
@@ -1981,15 +1985,15 @@ Possible values:
 |authorization-code |O  |String |24 |A code generated by the card issuing bank as proof that the transaction request was acknowledged or declined. This information is returned in the response only.
 |api-id |O  |String |36 |Identifier of the currently used API. This information is returned in the response only.
 
-|original-requested-amount | O  | Decimal | 18,6 | The full amount that is requested/contested in the original transaction. The number of decimals depends on the currency. This information is returned in the response only.
-|original-requested-amount@currency |O |String |3 |This is the currency in which the original transaction is received and processed. This information is returend in the response only.
+|original-requested-amount | O  | Decimal | 18,6 | The full amount that is requested/contested in the original transaction to be surcharged. The number of decimals depends on the currency. This information is returned in the response only.
+|original-requested-amount@currency |O |String |3 |This is the currency in which the original transaction to be surcharged is received and processed. This information is returend in the response only.
 |===
 
 [#GeneralPlatformFeatures_Surcharging_Samples]
 ==== Samples
 
 [#GeneralPlatformFeatures_Surcharging_Samples_CalculateFee]
-===== Calculate-Fee
+===== calculate-fee
 
 .XML Request
 [source,xml,subs=attributes+]
@@ -2004,7 +2008,7 @@ include::samples/xml/GeneralPlatformFeatures_Surcharging_CalculateFee_response.x
 ----
 
 [#GeneralPlatformFeatures_Surcharging_Samples_Purchase]
-===== Purchase
+===== purchase
 .XML Request
 [source,xml,subs=attributes+]
 ----
