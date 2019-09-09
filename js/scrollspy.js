@@ -16,12 +16,12 @@ function highlightTOC() {
     else {
       hashToSet = hID;
     }
-
+/*
     window.clearTimeout(hashChangeTimer);
     hashChangeTimer = setTimeout(function () {
       replaceHash(hashToSet);
     }, 100);
-
+*/
     var hasMinitoc = $('#minitoc > ul').has('li').length ?
       $('#minitoc-title').html() == subsectionTitleElement.text() : true ? false
         : false;
@@ -81,6 +81,7 @@ function documentReady() {
     }, scrollDelay);
   });
 
+  /*
   var resizeTimer;
   var resizeDelay = 1000;
   $(window).on('resize', function () {
@@ -91,6 +92,7 @@ function documentReady() {
       }, { timeout: resizeDelay });
     }
   });
+  */
   // clipboard functions
   $(function () {
     var pre = document.getElementsByTagName('pre');
