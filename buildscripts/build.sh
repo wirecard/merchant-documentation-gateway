@@ -33,7 +33,7 @@ bash buildscripts/asciidoc/create-mermaid-config.sh
 timed_log "check mermaid CSS hash"
 # svg mermaid diagrams are stored in mermaid/.
 # changes need to be created, moved there and committed.
-cp mermaid/*.svg .
+cp mermaid/*.svg mermaid/*.png .
 
 # calculate the checksum for mermaid.css.
 # mermaid.css is used for the creation of the mermaid diagrams,
@@ -47,7 +47,7 @@ echo "Reference: $(cat ${checksum_ref})"
 echo "Current:   $(cat ${checksum_new})"
 if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
     timed_log "delete all *.svg to force re-creation"
-    rm ./*.svg
+    rm ./*.svg ./*.png
 fi
 
 timed_log "run basic tests"
@@ -87,5 +87,5 @@ timed_log "post process svg files"
 sed -i 's/<foreignObject/<foreignObject style="overflow: visible;"/g' ./*.svg
 
 # create correct document structure
-mv ./*.svg toc.json searchIndex.json ./*.html build/html/
+mv ./*.svg ./*.png toc.json searchIndex.json ./*.html build/html/
 timed_log "build complete"
