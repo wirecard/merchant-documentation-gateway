@@ -264,7 +264,10 @@ function main() {
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [-m|--update-mermaid] copy back all generated *.svg and their respective hashes, in order to update them in a commit"
       ;;
-    *) ;;
+    *)
+      echo >&2 "Unknown option: $1"
+      exit 1
+      ;;
 
     esac
     shift
@@ -298,12 +301,17 @@ function main() {
     # workaround to get Travis to recognize the ENV vars
     echo "${PARTNER}:${BUILDFOLDER_PATH}/${PARTNER}/html/" >>"${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}"
     SUCCESSFUL_BUILDS+=("${PARTNER}") # add to list of successfully built partners
+
+    # TODO: adapt for whitelabel partners to support updating their mermaid diagrams.
     if [[ "${PARTNER}" == "WD" ]] && [[ -n $UPDATE_MERMAID ]]; then
-      debugMsg "Copying back *.svg and their hashes"
-      pwd
+      debugMsg "Copying back *.svg and their hashes and creating fallback *.png"
       cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg "${INITDIR}/mermaid/"
       cp -r "${BUILDFOLDER_PATH}/${PARTNER}/.asciidoctor" "${INITDIR}"
+      pushd "${INITIDR}"
+      python buildscripts/asciidoc/mermaid-to-png.py -d mermaid/ $(grep -l "\[mermaid" *.adoc)
+      popd
     fi
+
   else # if error occurred continue w next in list
     debugMsg "Failed! Could not build partner ${PARTNER}"
     FAILED_BUILDS+=("${PARTNER}") # and add partner to list of failed builds
