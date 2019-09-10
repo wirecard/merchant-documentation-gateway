@@ -8,21 +8,41 @@ _{payment-method-name}_ allows the consumer to pay directly from their bank acco
 
 _{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
+.Countries and Currencies
+
+[cols="20h,80"]
+|===
+|Countries    
+|Germany
+
+|Currencies   
+|EUR
+|===
+
 [#PPv2_GuaranteedInstallment_GeneralInformation]
 ====== General Information
 
 include::include/ppv2-general-information.adoc[]
 
-<<PPv2_GuaranteedInstallment_Samples, Below>> you find sample requests for the available transaction type <<PPv2_GuaranteedInstallment_TransactionType_authorization, authorization>>, including a field list with short descriptions.
+Below, we provide samples for the available transaction type <<PPv2_GuaranteedInstallment_TransactionType_authorization, authorization>>, including a field list with short descriptions.
 
 include::include/ppv2-general-information-2.adoc[]
+
+[#PPv2_GuaranteedInstallment_TransactionType_authorization]
+====== Transaction Type _authorization_
+
+//// 
+With _{payment-method-name}_ you can use the transaction type <<PPv2_GuaranteedInstallment_TransactionType_debitauth_Create, _authorization_>>.
+////
+
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer.
 
 [#PPv2_GuaranteedInstallment_TestCredentials]
 ====== Test Credentials
 
 [cols="20h,80"]
 |===
-|URI (Endpoint)
+|URL (Endpoint)
 |``\https://{pp-test-endpoint}``
 
 |Merchant Account ID (MAID)
@@ -50,31 +70,11 @@ a|09df96e0-6364-472c-a26a-4be32bfe1902
 |WIREDEMMXXX
 |===
 
+[#PPv2_GuaranteedInstallment_Samples]
+====== Sample Workflow
 
-====== Countries and Currencies
-
-[cols="20h,80"]
-|===
-|Countries    
-|Germany
-
-|Currencies   
-|EUR
-|===
-
-[#PPv2_GuaranteedInstallment_TransactionType_authorization]
-====== Transaction Type _authorization_
-
-//// 
-With _{payment-method-name}_ you can use the transaction type <<PPv2_GuaranteedInstallment_TransactionType_debitauth_Create, _authorization_>>.
-////
-
-An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer.
-
-////
 ====
-////
-For a successful transaction:
+*For a successful transaction:*
 
 . Create a payment session (initial request).
 +
@@ -84,12 +84,7 @@ NOTE: Set the ``country`` field to ``DE``, as _{payment-method-name}_ is current
 . Highly recommended: Parse and process the payment response.
 
 //-
-////
 ====
-////
-
-[#PPv2_GuaranteedInstallment_Samples]
-====== Sample Workflow
 
 We provide JSON examples for each step of this process. You can find them below.
 
@@ -135,7 +130,10 @@ Allowed characters: `[a-z0-9-_ ]`.
 |String
 |Required
 |36
-|The requested transaction type. The available transaction type for _{payment-method-name}_ is `authorization`.
+a|The requested transaction type. Available transaction type for _{payment-method-name}:_
+
+- ``authorization``
+//-
 
 .2+|requested-amount
 3+m|currency
@@ -310,7 +308,7 @@ m|payment-method
 |String
 |Optional
 |15
-|The name of the payment method used. Set this value to ``guaranteedinstallment``.
+|The name of the payment method used.
 
 .2+|mandate
 3+m|mandate-id
@@ -330,7 +328,7 @@ the merchant to debit the consumer’s bank account.
 |String
 |Optional
 |256
-|The creditor ID of the merchant, allowing processing of {payment-method-name} transactions.
+|The creditor ID of the merchant, allowing processing of _{payment-method-name}_ transactions.
 |===
 
 [#PPv2_GuaranteedInstallment_TransactionType_debitauth_Redirect]
@@ -339,7 +337,7 @@ the merchant to debit the consumer’s bank account.
 [source,json,subs=attributes+]
 ----
 {
-"payment-redirect-url": "https://{pp-test-instance-hostname}/?wPaymentToken=rhNg8LV9jfUk1Xtq7NEGU1QI2em4YuA-zyPrxmHNdY0
+"payment-redirect-url": "https://{pp-test-instance-hostname}/?wPaymentToken=rhNg8LV9jfUk1Xtq7NEGU1QI2em4YuA-zyPrxmHNdY0"
 }
 ----
 
@@ -357,14 +355,22 @@ include::include/ppv2-redirect-instructions.adoc[]
 
 .The payment page displays a form where the consumer can select the preferred installment plan.
 
-After clicking Pay Now on the payment page, the payment form window opens and the consumers can select the payment method. An Installment Calculator is then displayed. Here, the consumers can select one of the available installment plans (consisting of number of installments (monthly rates) and the preferred payment day), automatically calculated according to the total sum.
+- The consumers click *Pay Now* on the payment page. + 
+    The payment form window opens.
 
+- The consumers select _{payment-method-name}._ +
+    An Installment Calculator is displayed.
+
+- The consumers select one of the available installment plans (number of installments (monthly rates) and the preferred payment day), automatically calculated according to the total sum .
++
 WARNING: The minimum amount required for a payment in installments is 60 EUR.
-
-After selecting the installment plan, the consumers then enter their personal data, shipping and bank information (IBAN and BIC), and receive a confirmation of payment.
-
++
+- After selecting the installment plan, the consumers need to enter their personal data, shipping and bank information (IBAN and BIC), and send the payment. +
+The payment is confirmed.
++
 NOTE: You are not required to create a request for this step, as the installment calculation is performed automatically.
 
+//-
 [#PPv2_GuaranteedInstallment_TransactionType_debitauth_DecodedResponse]
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
@@ -377,7 +383,7 @@ include::samples/json/PPv2_GuaranteedInstallment_TransactionTypeAuthorization_De
 |===
 4+|Field (JSON) |Data Type |Description
 
-3+m|account-info
+4+m|account-info
 |
 |The value of account-info depends on the payment method.
 Empty when the account-info field is not used in the request.
@@ -430,29 +436,12 @@ Typically, a transaction starts with an "in-progress" state and finishes with ei
 |The UTC/ISO time-stamp documents the time & date when the transaction was executed.
 Format: ``YYYY-MM-DDThh:mm:ss (ISO)``.
 
-.2+m|payment-methods
-.2+m|payment-method
+m|payment-methods
+m|payment-method
 2+m|payload
 |String
 |The value of ``payload`` depends on the payment method.
 Always empty for {payment-method-name}.
-
-2+m|name
-|String
-|The name of the payment method used. Set this value to ``guaranteedinstallment``.
-
-.2+m|amount
-m|currency
-|String
-|The currency of the item price per unit.
-
-m|value
-|Numeric
-|The item price per unit.
-
-2+m|name
-|Alphanumeric
-|Name of the item in the basket.
 
 4+m|api-id
 |Token
