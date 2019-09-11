@@ -12,51 +12,64 @@ const jsBlobFile = 'js/blob-footer.js';
 const dirCont = fs.readdirSync('.');
 const jsFiles = dirCont.filter((elm) => /.*\.js$/gi.test(elm));
 
-for (var i in jsFiles) {
-    const jsFile = jsFiles[i];
-    var minifiedJS;
-    process.stderr.write('minifying ' + jsFile + "\r");
+function minifyJSFiles() {
+    for (var i in jsFiles) {
+        const jsFile = jsFiles[i];
+        var minifiedJS;
+        process.stderr.write('minifying ' + jsFile + "\r");
+        try {
+            const js = fs.readFileSync(jsFile);
+            minifiedJS = UglifyJS.minify(js);
+        } catch (err) {
+            throw err;
+        }
+        try {
+            fs.writeFileSync(jsFile, minifiedJS);
+        } catch (err) {
+            throw err;
+        }
+        process.stderr.write('minified ' + jsFile + " \n");
+    }
+}
+
+function combineJS(htmlFile, jsBlobFile, top=false) {
     try {
-        const js = fs.readFileSync(jsFile);
-        minifiedJS = UglifyJS.minify(js);
+        var html = fs.readFileSync(htmlFile);
+    } catch (err) {
+        throw err;
+    }
+
+    var jsBundle = [];
+    var $ = cheerio.load(html, {
+        xmlMode: true // to avoid wrapping html head tags
+    });
+    process.stderr.write('combining js files to ' + jsBlobFile + ':');
+    $('script[src]').each(function () {
+        const scriptFilename = $(this).attr('src');
+        if (scriptFilename == jsBlobFile) return false;
+        const scriptContent = fs.readFileSync(scriptFilename);
+        jsBundle.push(scriptContent);
+        process.stderr.write(' ' + scriptFilename);
+        $(this).remove();
+    });
+    process.stderr.write("\n");
+    try {
+        fs.writeFileSync(jsBlobFile, jsBundle.join("\n\n"));
     } catch (err) {
         throw err;
     }
     try {
-        fs.writeFileSync(jsFile, minifiedJS);
+        if(top) {
+            fs.writeFileSync(htmlFile, '<script src="' + jsBlobFile + '"></script>' + "\n" + $.html());
+        }
+        else {
+            fs.writeFileSync(htmlFile, $.html() + "\n" + '<script src="' + jsBlobFile + '"></script>');
+        }
     } catch (err) {
         throw err;
     }
-    process.stderr.write('minified ' + jsFile + " \n");
 }
 
-try {
-    var html = fs.readFileSync(htmlFile);
-} catch (err) {
-    throw err;
-}
-
-var jsBundle = [];
-var $ = cheerio.load(html, {
-    xmlMode: true // to avoid wrapping html head tags
-});
-process.stderr.write('combining js files to ' + jsBlobFile + ':');
-$('script[src]').each(function () {
-    const scriptFilename = $(this).attr('src');
-    if (scriptFilename == jsBlobFile) return false;
-    const scriptContent = fs.readFileSync(scriptFilename);
-    jsBundle.push(scriptContent);
-    process.stderr.write(' ' + scriptFilename);
-    $(this).remove();
-});
-process.stderr.write("\n");
-try {
-    fs.writeFileSync(jsBlobFile, jsBundle.join("\n\n"));
-} catch (err) {
-    throw err;
-}
-try {
-    fs.writeFileSync(htmlFile, $.html() + "\n" + '<script src="' + jsBlobFile + '"></script>');
-} catch (err) {
-    throw err;
-}
+minifyJSFiles();
+combineJS('docinfo.html', 'blob-header.js', true);
+combineJS('docinfo-footer.html', 'blob-footer.js', false);
