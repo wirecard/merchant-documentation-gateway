@@ -66,6 +66,6 @@ function combineJS(htmlFile, jsBlobFile, top=false) {
     }
 }
 
-minifyJSFiles('js');
+minifyJSFiles('js/');
 combineJS('docinfo.html', 'js/blob-header.js', true);
 combineJS('docinfo-footer.html', 'js/blob-footer.js', false);
