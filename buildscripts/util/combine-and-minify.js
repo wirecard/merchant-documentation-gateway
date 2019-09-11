@@ -1,6 +1,6 @@
 const fs = require('fs');
 const cheerio = require('cheerio');
-const UglifyJS = require('uglify-js');
+const minify = require("babel-minify");
 
 /**
  * get all js files and minify them
@@ -14,8 +14,14 @@ function minifyJSFiles(path) {
         var minifiedJS;
         process.stderr.write('minifying ' + jsFile + "\r");
         try {
-            const js = fs.readFileSync(path + jsFile);
-            minifiedJS = UglifyJS.minify(js);
+            const js = fs.readFileSync(path + jsFile).toString();
+            _minJS = minify(js);
+            if (_minJS.code === undefined) {
+                process.stderr.write('skipped ' + jsFile + " \n");
+                console.log(_minJS);
+                continue;
+            }
+            minifiedJS = _minJS.code;
         } catch (err) {
             throw err;
         }
@@ -28,7 +34,7 @@ function minifyJSFiles(path) {
     }
 }
 
-function combineJS(htmlFile, jsBlobFile, top=false) {
+function combineJS(htmlFile, jsBlobFile, top = false) {
     try {
         var html = fs.readFileSync(htmlFile);
     } catch (err) {
@@ -55,7 +61,7 @@ function combineJS(htmlFile, jsBlobFile, top=false) {
         throw err;
     }
     try {
-        if(top) {
+        if (top) {
             fs.writeFileSync(htmlFile, '<script src="' + jsBlobFile + '"></script>' + "\n" + $.html());
         }
         else {
