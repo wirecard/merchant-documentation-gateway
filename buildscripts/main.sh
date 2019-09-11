@@ -263,11 +263,14 @@ function main() {
     --pdf)
       debugMsg "Creating PDF..."
       bash buildscripts/asciidoc/create-mermaid-config.sh
+      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
+      # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
       RUBYOPT="-E utf-8" asciidoctor-pdf \
         -a pdf-theme=config/pdf-theme.yml \
         -a pdf-fontsdir=fonts-pdf \
         -r asciidoctor-diagram \
         index.adoc
+      debugMsg "DONE!"
       exit 0
       ;;
     *) ;;
