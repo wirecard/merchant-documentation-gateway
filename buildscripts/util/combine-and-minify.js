@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const cheerio = require('cheerio');
 const UglifyJS = require('uglify-js');
 
@@ -7,12 +6,9 @@ const UglifyJS = require('uglify-js');
  * get all js files and minify them
  * then combine those included in docinfo-footer.html
  */
-const htmlFile = 'docinfo-footer.html';
-const jsBlobFile = 'js/blob-footer.js';
-const dirCont = fs.readdirSync('.');
-const jsFiles = dirCont.filter((elm) => /.*\.js$/gi.test(elm));
-
-function minifyJSFiles() {
+function minifyJSFiles(path) {
+    const dirCont = fs.readdirSync(path);
+    const jsFiles = dirCont.filter((elm) => /.*\.js$/gi.test(elm));
     for (var i in jsFiles) {
         const jsFile = jsFiles[i];
         var minifiedJS;
@@ -70,6 +66,6 @@ function combineJS(htmlFile, jsBlobFile, top=false) {
     }
 }
 
-minifyJSFiles();
+minifyJSFiles('js');
 combineJS('docinfo.html', 'js/blob-header.js', true);
 combineJS('docinfo-footer.html', 'js/blob-footer.js', false);
