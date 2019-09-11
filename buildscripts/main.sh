@@ -259,6 +259,14 @@ function main() {
         echo "Options:"
         echo "* [-s|--skip] skip basic tests, only build"
         echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
+        echo "* [--pdf] build pdf"
+      ;;
+      --pdf)
+        debugMsg "Creating PDF..."
+        bash buildscripts/asciidoc/create-mermaid-config.sh
+        # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
+        asciidoctor-pdf -r asciidoctor-diagram index.adoc
+        exit 0
       ;;
       *)
       ;;
