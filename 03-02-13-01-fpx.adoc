@@ -14,11 +14,11 @@ _FPX_ (Financial Process Exchange) is an online Internet Banking debit payment m
 FPX service is suitable for all businesses that offer products or services via the internet. With FPX, all payments are concluded online in real-time basis, making the service as good as cash. Plus, it generates payment records, simplifies reconciliation and reduces risk, thereby encouraging more shoppers to shop online. 
 //to here
 
-All consumers have to do is to choose their bank before they are re-directed out to their respective bank's internet banking pages to confirm the purchase. 
+All consumers have to do, is to choose their bank before they are sent to their respective bank's internet banking pages to confirm the purchase. 
 
 ====== Transaction Types
 
-{payment-page-v1} supports _purchase_ only.
+{payment-page-v1} supports the transaction type _purchase_ only.
 
 [#PPv1_FPX_TestCredentials]
 ====== Test Credentials
@@ -31,8 +31,8 @@ h| URL (Endpoint)
 h| Merchant Account ID (MAID)
 | 5f544f9f-c56a-4242-8ce7-d6422ca3599d
 .2+h| Banks to use for Bank Selection 
-| SBI BANK A: (to obtain a positive test case)
-| SBI BANK B/C: (to obtain negative test case)
+| SBI BANK A (to obtain a positive test case)
+| SBI BANK B/C (to obtain negative test case)
 h| Username (on Bank side)
 | 1234
 h| Password (on Bank side)
@@ -49,21 +49,33 @@ h| Secret Key
 sequenceDiagram
     participant Consumer
     participant Merchant
-    participant WPG
+    participant {payment-gateway-abbr}
     participant FPX
 Consumer->>Consumer: adds shopping items to basket.
 Consumer->>Merchant: proceeds to checkout.
-Merchant->>WPG: sends payment request to WPG.
-WPG ->> Consumer: shows WPP v1 with available banks for FPX.
-Consumer->>WPG: selects bank.
-WPG->>FPX: initiates the transaction.
+Merchant->>{payment-gateway-abbr}: sends payment request to {payment-gateway-abbr}.
+{payment-gateway-abbr} ->> Consumer: shows {payment-page-v1-abbr} with available banks for FPX.
+Consumer->>{payment-gateway-abbr}: selects bank.
+{payment-gateway-abbr}->>FPX: initiates the transaction.
 FPX->>Consumer: redirects consumer to bank page.
 Consumer->>Consumer: logs in on bank page.
 Consumer->>FPX: completes payment on bank page.
-FPX->>WPG: sends transcation status to WPG.
-WPG->>Merchant: sends notification to merchant.
+FPX->>{payment-gateway-abbr}: sends transcation status to {payment-gateway-abbr}.
+{payment-gateway-abbr}->>Merchant: sends notification to merchant.
 Merchant->>Consumer: redirects consumer to merchant's status page.
 ----
+
+. Consumer adds items to shopping basket.
+. Merchant redirects consumer to {payment-gateway-abbr} for payment.
+. Consumer selects Payment Method _FPX_.
+. {payment-gateway-abbr} displays list of available banks for consumer to select.
+. Consumer select desired bank from available banks.
+. {payment-gateway-abbr} redirects consumer to _FPX_ page, showing the details of consumer desired bank.
+. FPX redirects consumer to desired bank page.
+. Consumer logs in and proceeds with payment.
+. {payment-gateway-abbr} receives transaction status from _FPX_.
+. {payment-gateway-abbr} sends transaction status to merchant.
+. Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
 
 [#PPv1_FPX_Fields]
 ====== Fields
