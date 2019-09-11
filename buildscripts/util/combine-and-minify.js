@@ -14,13 +14,13 @@ function minifyJSFiles(path) {
         var minifiedJS;
         process.stderr.write('minifying ' + jsFile + "\r");
         try {
-            const js = fs.readFileSync(jsFile);
+            const js = fs.readFileSync(path + jsFile);
             minifiedJS = UglifyJS.minify(js);
         } catch (err) {
             throw err;
         }
         try {
-            fs.writeFileSync(jsFile, minifiedJS);
+            fs.writeFileSync(path + jsFile, minifiedJS);
         } catch (err) {
             throw err;
         }
