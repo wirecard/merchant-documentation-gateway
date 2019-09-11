@@ -71,5 +71,5 @@ function combineJS(htmlFile, jsBlobFile, top=false) {
 }
 
 minifyJSFiles();
-combineJS('docinfo.html', 'blob-header.js', true);
-combineJS('docinfo-footer.html', 'blob-footer.js', false);
+combineJS('docinfo.html', 'js/blob-header.js', true);
+combineJS('docinfo-footer.html', 'js/blob-footer.js', false);
