@@ -1,37 +1,37 @@
 include::shortcuts.adoc[]
 :timestamp-pattern: YYYY-MM-DDThh:mm:ssZ
 
-[#PPv1_FPX]
-===== FPX
+[#PPv1_eNETS]
+===== eNETS
 
-[#PPv1_FPX_Introduction]
+[#PPv1_eNETS_Introduction]
 ====== Introduction
 
-image::images/03-02-13-02-enets/logo_enets.png[fpx logo, 200]
+image::images/03-02-13-02-enets/logo_enets.png[eNETS logo, 200]
 
 
 
-[#FPX_GeneralInformation]
+[#eNETS_GeneralInformation]
 ====== General Information
 
-[#FPX_GeneralInformation_PaymentMode]
+[#eNETS_GeneralInformation_PaymentMode]
 .Payment Mode, Countries, and Currencies
 
-This table illustrates which payment mode _FPX_ belongs to. It
+This table illustrates which payment mode _eNETS_ belongs to. It
 also provides detailed information about the countries and currencies
-which are relevant for _FPX._
+which are relevant for _eNETS._
 
 [cols="20h, 80"]
 |===
 | Payment Mode | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
-| Countries | Malaysia 
-| Currencies | MYR
+| Countries | Singapore 
+| Currencies | SGD
 |===
 
-[#FPX_GeneralInformation_CommunicationFormats]
+[#eNETS_GeneralInformation_CommunicationFormats]
 .Communication Formats
 
-This table illustrates how _FPX_ notifications are encoded and
+This table illustrates how _eNETS_ notifications are encoded and
 which formats and methods can be used for requests and responses.
 
 |===
@@ -42,12 +42,12 @@ which formats and methods can be used for requests and responses.
 <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
-[#PPv1_FPX_TransactionTypes]
+[#PPv1_eNETS_TransactionTypes]
 ====== Transaction Types
 
 {payment-page-v1} supports the transaction type _purchase_ only.
 
-[#PPv1_FPX_TestCredentials]
+[#PPv1_eNETS_TestCredentials]
 ====== Test Credentials
 
 [cols="35,65"]
@@ -68,7 +68,7 @@ h| Secret Key
 | 0fbb1b24-6082-42d4-891e-cf9202083dcf
 |===
 
-[#PPv1_FPX_Workflow]
+[#PPv1_eNETS_Workflow]
 ====== Workflow
 
 [mermaid, CC_Fields_intro_elements_parentchild,svg,subs=attributes+]
@@ -77,36 +77,36 @@ sequenceDiagram
     participant Consumer
     participant Merchant
     participant {payment-gateway-abbr}
-    participant FPX
+    participant eNETS
 Consumer->>Consumer: adds shopping items to basket.
 Consumer->>Merchant: proceeds to checkout.
 Merchant->>{payment-gateway-abbr}: sends payment request to {payment-gateway-abbr}.
 {payment-gateway-abbr}->>Consumer: asks consumer to select a payment method.
-Consumer->>{payment-gateway-abbr}: selects FPX.
-{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for FPX.
+Consumer->>{payment-gateway-abbr}: selects eNETS.
+{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for eNETS.
 Consumer->>{payment-gateway-abbr}: selects bank.
-{payment-gateway-abbr}->>FPX: initiates the transaction.
-FPX->>Consumer: redirects consumer to bank page.
+{payment-gateway-abbr}->>eNETS: initiates the transaction.
+eNETS->>Consumer: redirects consumer to bank page.
 Consumer->>Consumer: logs in on bank page.
-Consumer->>FPX: completes payment on bank page.
-FPX->>{payment-gateway-abbr}: sends transcation status to {payment-gateway-abbr}.
+Consumer->>eNETS: completes payment on bank page.
+eNETS->>{payment-gateway-abbr}: sends transcation status to {payment-gateway-abbr}.
 {payment-gateway-abbr}->>Merchant: sends notification to merchant.
 Merchant->>Consumer: redirects consumer to merchant's status page.
 ----
 
 . Consumer adds items to shopping basket.
 . Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
-. Consumer selects Payment Method _FPX_.
+. Consumer selects Payment Method _eNETS_.
 . {payment-gateway-abbr} displays list of available banks for consumer to select.
 . Consumer selects desired bank.
-. {payment-gateway-abbr} sends consumer to _FPX_ page, showing the details of the bank the consumer has selected.
-. FPX sends consumer to desired bank page.
+. {payment-gateway-abbr} sends consumer to _eNETS_ page, showing the details of the bank the consumer has selected.
+. eNETS sends consumer to desired bank page.
 . Consumer logs in and proceeds with payment.
-. {payment-gateway-abbr} receives transaction status from _FPX_.
+. {payment-gateway-abbr} receives transaction status from _eNETS_.
 . {payment-gateway-abbr} sends transaction status to merchant.
 . Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
 
-[#PPv1_FPX_Fields]
+[#PPv1_eNETS_Fields]
 ====== Fields
 
 [%autowidth]
@@ -142,7 +142,7 @@ Allowed characters: `[a-z0-9-_ ]`
 | String
 | Required
 | n/a
-| The requested transaction type. Available transaction type for _FPX_ is _purchase_.
+| The requested transaction type. Available transaction type for _eNETS_ is _debit_.
 
 | requested_amount
 // vhauss: please check, taken from paylib
@@ -158,7 +158,7 @@ Use `.` (decimal point) as the separator.
 | Required
 | 3
 a| The currency of the requested/contested
-transaction amount. For _FPX_ payments, the currency must be set to ``MYR``.
+transaction amount. For _eNETS_ payments, the currency must be set to ``SGD``.
 
 Format: 3-character abbreviation according to ISO 4217.
 
@@ -227,9 +227,22 @@ a| The URL to which the consumer is redirected after an unsuccessful payment, e.
 | 
 | 
 
+| payment_method
+| 
+| 
+| 
+| 
+
+| order_number
+| 
+| 
+| 
+| 
+
+
 |===
 
-[#PPv1_FPX_Samples]
+[#PPv1_eNETS_Samples]
 ====== Sample
 
 NOTE: The order of the fields given below must be followed. Details are given <<PP_Security_RequestSignature, here>>.
@@ -244,25 +257,30 @@ NOTE: The order of the fields given below must be followed. Details are given <<
 ----
  var requestedData = {
     "request_time_stamp": getTimeStamp(), //get current timepstamp
-    "request_id": generateUid(), //generate unique ID
-    "merchant_account_id": "5f544f9f-c56a-4242-8ce7-d6422ca3599d",
-    "transaction_type": "purchase",
-    "requested_amount": "100.00",
-    "requested_amount_currency" : "MYR",
+    "request_id":generateUid(), //generate unique ID
+    "merchant_account_id": "dd4ec05b-3d4e-46c3-a32c-d3bb6aa69c82",
+    "transaction_type":"debit",
+    "requested_amount":"1000",
+    "requested_amount_currency":"SGD",
     "success_redirect_url": "https://{pp-redirect-url-success}",
     "cancel_redirect_url": "https://{pp-redirect-url-cancel}",
     "fail_redirect_url": "https://{pp-redirect-url-error}",
     "ip_address" : "127.0.0.1",
-    "secret_key": "0fbb1b24-6082-42d4-891e-cf9202083dcf",
+    "secret_key":"f8de5ff0-1539-4a24-922e-9cfe9fe675a1",
     "psp_name": "demo",
-    "first_name": "Test",
-    "last_name": "User",
+    "first_name":"test_user",
+    "last_name":"test_user",
     "attempt_three_d" : "false",
     "request_signature": "" //generate according to description on <<PP_Security_SecretKeyExchange, {payment-page-v1-abbr} page>>.
+    "payment_method":"enets",
+    "order_number":"123445",
+    "order-number": "Test Description",
 }
 {payment-page-function}.hostedPay(requestData);
 ----
 
+//vhauss: the sample in Confluence contains "payment_method" twice...
+//vhauss: "order_number" as well appears twice, with different values
 //vhauss: how can we dissolve the link to "PP_Security_SecretKeyExchange" inside the sample?
 
 //-
