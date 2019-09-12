@@ -123,15 +123,7 @@ function createPartnerFolder() {
   fi
 }
 
-# builds the doc for the individual wl partner (and WD herself)
-function buildPartner() {
-  PARTNER=${1}
-
-  debugMsg " "
-  debugMsg "::: Building ${PARTNER}"
-  createPartnerFolder "${PARTNER}"
-  cd "${BUILDFOLDER_PATH}/${PARTNER}"
-
+function setUpMermaid() {
   debugMsg "Create mermaid config from CSS"
   bash buildscripts/asciidoc/create-mermaid-config.sh
 
@@ -165,6 +157,18 @@ function buildPartner() {
     rm -f ./*.svg
     NEW_MERMAID="true"
   fi
+}
+
+# builds the doc for the individual wl partner (and WD herself)
+function buildPartner() {
+  PARTNER=${1}
+
+  debugMsg " "
+  debugMsg "::: Building ${PARTNER}"
+  createPartnerFolder "${PARTNER}"
+  cd "${BUILDFOLDER_PATH}/${PARTNER}"
+
+  setUpMermaid
 
   if [[ ${PARTNER} != 'WD' ]]; then
 
@@ -261,8 +265,8 @@ function main() {
       echo "* [--pdf] build pdf"
       ;;
     --pdf)
+      setUpMermaid
       debugMsg "Creating PDF..."
-      bash buildscripts/asciidoc/create-mermaid-config.sh
       # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
       RUBYOPT="-E utf-8" asciidoctor-pdf \
