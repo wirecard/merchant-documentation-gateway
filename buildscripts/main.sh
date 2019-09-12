@@ -271,7 +271,7 @@ function main() {
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
       RUBYOPT="-E utf-8" asciidoctor-pdf \
         -a pdf-theme=config/pdf-theme.yml \
-        -a pdf-fontsdir=fonts-pdf \
+        -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
         -r asciidoctor-diagram \
         index.adoc
       debugMsg "DONE!"
