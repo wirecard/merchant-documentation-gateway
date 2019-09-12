@@ -1,0 +1,25 @@
+stages:
+  - build
+  - compress
+
+build:
+  stage: build
+  before_script:
+    - gem install asciidoctor -v 1.5.8
+    - gem install asciidoctor-pdf
+    - gem install rouge
+  script:
+    - bash buildscript/main.sh --pdf
+
+compress:
+  stage: compress
+  dependencies:
+    - build
+  before_script:
+    - gem install hexapdf
+  script:
+    - hexapdf index.pdf documentation.pdf
+  artifacts:
+    paths:
+      - documentation.pdf
+    expire_in: 1 mos
