@@ -1,0 +1,268 @@
+include::shortcuts.adoc[]
+:timestamp-pattern: YYYY-MM-DDThh:mm:ssZ
+
+[#PPv1_FPX]
+===== FPX
+
+[#PPv1_FPX_Introduction]
+====== Introduction
+
+image::images/03-02-13-02-enets/logo_enets.png[fpx logo, 200]
+
+
+
+[#FPX_GeneralInformation]
+====== General Information
+
+[#FPX_GeneralInformation_PaymentMode]
+.Payment Mode, Countries, and Currencies
+
+This table illustrates which payment mode _FPX_ belongs to. It
+also provides detailed information about the countries and currencies
+which are relevant for _FPX._
+
+[cols="20h, 80"]
+|===
+| Payment Mode | <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>
+| Countries | Malaysia 
+| Currencies | MYR
+|===
+
+[#FPX_GeneralInformation_CommunicationFormats]
+.Communication Formats
+
+This table illustrates how _FPX_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+
+|===
+.2+| *Requests/Responses* | Format  | XML
+//vhauss: Is the format really XML? I thought WPP uses JSON.
+                          | Methods | POST
+| *IPN Encodement*      2+| Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#PPv1_FPX_TransactionTypes]
+====== Transaction Types
+
+{payment-page-v1} supports the transaction type _purchase_ only.
+
+[#PPv1_FPX_TestCredentials]
+====== Test Credentials
+
+[cols="35,65"]
+|===
+h| URL (Endpoint)
+|``\https://test.wirecard.com.sg/engine/hpp/``
+// this URL needs to be verified, as it points to SG.
+h| Merchant Account ID (MAID)
+| 5f544f9f-c56a-4242-8ce7-d6422ca3599d
+.2+h| Banks to use for Bank Selection 
+| SBI BANK A (to obtain a positive test case)
+| SBI BANK B/C (to obtain negative test case)
+h| Username (to log in to Bank)
+| 1234
+h| Password (to log in to Bank)
+| 1234
+h| Secret Key 
+| 0fbb1b24-6082-42d4-891e-cf9202083dcf
+|===
+
+[#PPv1_FPX_Workflow]
+====== Workflow
+
+[mermaid, CC_Fields_intro_elements_parentchild,svg,subs=attributes+]
+----
+sequenceDiagram
+    participant Consumer
+    participant Merchant
+    participant {payment-gateway-abbr}
+    participant FPX
+Consumer->>Consumer: adds shopping items to basket.
+Consumer->>Merchant: proceeds to checkout.
+Merchant->>{payment-gateway-abbr}: sends payment request to {payment-gateway-abbr}.
+{payment-gateway-abbr}->>Consumer: asks consumer to select a payment method.
+Consumer->>{payment-gateway-abbr}: selects FPX.
+{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for FPX.
+Consumer->>{payment-gateway-abbr}: selects bank.
+{payment-gateway-abbr}->>FPX: initiates the transaction.
+FPX->>Consumer: redirects consumer to bank page.
+Consumer->>Consumer: logs in on bank page.
+Consumer->>FPX: completes payment on bank page.
+FPX->>{payment-gateway-abbr}: sends transcation status to {payment-gateway-abbr}.
+{payment-gateway-abbr}->>Merchant: sends notification to merchant.
+Merchant->>Consumer: redirects consumer to merchant's status page.
+----
+
+. Consumer adds items to shopping basket.
+. Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
+. Consumer selects Payment Method _FPX_.
+. {payment-gateway-abbr} displays list of available banks for consumer to select.
+. Consumer selects desired bank.
+. {payment-gateway-abbr} sends consumer to _FPX_ page, showing the details of the bank the consumer has selected.
+. FPX sends consumer to desired bank page.
+. Consumer logs in and proceeds with payment.
+. {payment-gateway-abbr} receives transaction status from _FPX_.
+. {payment-gateway-abbr} sends transaction status to merchant.
+. Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
+
+[#PPv1_FPX_Fields]
+====== Fields
+
+[%autowidth]
+|===
+|Field (JSON) |Data Type |Cardinality |Size |Description
+
+| request_time_stamp
+// vhauss: please check, taken from cc
+| Timestamp
+| Required
+| 
+a| A moment in time defined by a system. +
+Format (according to ISO 8601): ``{timestamp-pattern}`` +
+This pattern cannot be customized.
+
+| request_id
+// vhauss: please check, taken from paylib
+| String
+| Required
+| 64
+| A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random request-id. +
+Allowed characters: `[a-z0-9-_ ]`
+
+| merchant_account_id
+// vhauss: please check, taken from paylib
+| String
+| Required
+| 36
+| A unique identifier assigned to every merchant account (by {payment-provider-name}).
+
+| transaction_type
+// vhauss: please check, taken from paylib
+| String
+| Required
+| n/a
+| The requested transaction type. Available transaction type for _FPX_ is _purchase_.
+
+| requested_amount
+// vhauss: please check, taken from paylib
+| Numeric
+| Required
+| 18.2
+| The full amount that is requested/contested in a transaction. 2 decimal places allowed. +
+Use `.` (decimal point) as the separator.
+
+| requested_amount_currency
+// vhauss: please check, taken from paylib
+| String
+| Required
+| 3
+a| The currency of the requested/contested
+transaction amount. For _FPX_ payments, the currency must be set to ``MYR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+| success_redirect_url
+// vhauss: please check, taken from paylib
+| String
+| Required
+| 2000
+a| The URL to which the consumer is redirected after a successful payment, e.g. ``\https://{pp-redirect-url-success}``
+
+| cancel_redirect_url
+// vhauss: please check, taken from paylib
+| String
+| Required
+| 2000
+a| The URL to which the consumer is redirected after having canceled a payment, e.g. ``\https://{pp-redirect-url-cancel}``
+
+| fail_redirect_url
+// vhauss: please check, taken from paylib
+| String
+| Required
+| 2000
+a| The URL to which the consumer is redirected after an unsuccessful payment, e.g. ``\https://{pp-redirect-url-error}``
+
+| ip_address
+| 
+| 
+| 
+| 
+
+| secret_key
+| 
+| 
+| 
+| 
+
+| psp_name
+| 
+| 
+| 
+| 
+
+| first_name
+// vhauss: please check, taken from paylib
+| String
+| Optional
+| 32
+| The first name of the account holder???.
+
+| last_name
+// vhauss: please check, taken from paylib
+| String
+| Optional
+| 32
+| The last name of the account holder???.
+
+| attempt_three_d
+| Boolean???
+| 
+| 
+| 
+
+| request_signature
+| 
+| 
+| 
+| 
+
+|===
+
+[#PPv1_FPX_Samples]
+====== Sample
+
+NOTE: The order of the fields given below must be followed. Details are given <<PP_Security_RequestSignature, here>>.
+
+.JSON _purchase_ Request (Successful)
+
+[source,json,subs=attributes+]
+
+// vhauss: Is this really a JSON sample?
+// vhauss: check field order according to PP_Security_SecretKeyExchange
+
+----
+ var requestedData = {
+    "request_time_stamp": getTimeStamp(), //get current timepstamp
+    "request_id": generateUid(), //generate unique ID
+    "merchant_account_id": "5f544f9f-c56a-4242-8ce7-d6422ca3599d",
+    "transaction_type": "purchase",
+    "requested_amount": "100.00",
+    "requested_amount_currency" : "MYR",
+    "success_redirect_url": "https://{pp-redirect-url-success}",
+    "cancel_redirect_url": "https://{pp-redirect-url-cancel}",
+    "fail_redirect_url": "https://{pp-redirect-url-error}",
+    "ip_address" : "127.0.0.1",
+    "secret_key": "0fbb1b24-6082-42d4-891e-cf9202083dcf",
+    "psp_name": "demo",
+    "first_name": "Test",
+    "last_name": "User",
+    "attempt_three_d" : "false",
+    "request_signature": "" //generate according to description on <<PP_Security_SecretKeyExchange, {payment-page-v1-abbr} page>>.
+}
+{payment-page-function}.hostedPay(requestData);
+----
+
+//vhauss: how can we dissolve the link to "PP_Security_SecretKeyExchange" inside the sample?
+
+//-
