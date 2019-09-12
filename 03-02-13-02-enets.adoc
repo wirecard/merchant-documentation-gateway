@@ -9,7 +9,9 @@ include::shortcuts.adoc[]
 
 image::images/03-02-13-02-enets/logo_enets.png[eNETS logo, 200]
 
+_eNETS_ is an online payment gateway hosted in Singapore, which provides consumers and businesses with a revolutionized way to shop and transact. _eNETS_ accepts direct debit in Singapore and all major credit cards and currencies. It does support 3D secure (Verified, MasterCard Secure Code and American Express Safekey) feature as well. eENTS has two variants which are _eNETS Credit_ and _eNETS Direct Debit_. 
 
+_eNETS Direct Debit_ enables internet banking users to make payment in real-time manner from their bank accounts. Currently _eNETS Direct Debit_ is participated by DBS/POSB, OCBC, and UOB. Implementation can be done via API spelled out in Direct HTTPS and UMAPI.
 
 [#eNETS_GeneralInformation]
 ====== General Information
@@ -40,6 +42,7 @@ which formats and methods can be used for requests and responses.
                           | Methods | POST
 | *IPN Encodement*      2+| Please follow the instructions given at
 <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+//vhauss: Do we need IPN for eNETS?
 |===
 
 [#PPv1_eNETS_TransactionTypes]
@@ -56,16 +59,15 @@ h| URL (Endpoint)
 |``\https://test.wirecard.com.sg/engine/hpp/``
 // this URL needs to be verified, as it points to SG.
 h| Merchant Account ID (MAID)
-| 5f544f9f-c56a-4242-8ce7-d6422ca3599d
-.2+h| Banks to use for Bank Selection 
-| SBI BANK A (to obtain a positive test case)
-| SBI BANK B/C (to obtain negative test case)
+| dd4ec05b-3d4e-46c3-a32c-d3bb6aa69c82
+h| Banks to use for Bank Selection 
+| UAT BankSim (E3 UAT only)
 h| Username (to log in to Bank)
 | 1234
 h| Password (to log in to Bank)
 | 1234
 h| Secret Key 
-| 0fbb1b24-6082-42d4-891e-cf9202083dcf
+| f8de5ff0-1539-4a24-922e-9cfe9fe675a1
 |===
 
 [#PPv1_eNETS_Workflow]
@@ -97,10 +99,9 @@ Merchant->>Consumer: redirects consumer to merchant's status page.
 . Consumer adds items to shopping basket.
 . Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
 . Consumer selects Payment Method _eNETS_.
-. {payment-gateway-abbr} displays list of available banks for consumer to select.
-. Consumer selects desired bank.
-. {payment-gateway-abbr} sends consumer to _eNETS_ page, showing the details of the bank the consumer has selected.
-. eNETS sends consumer to desired bank page.
+. {payment-gateway-abbr} sends consumer to _eNETS_ page, providing the participating banks.
+. Consumer selects the preferred bank.
+. _eNETS_ sends consumer to desired bank page.
 . Consumer logs in and proceeds with payment.
 . {payment-gateway-abbr} receives transaction status from _eNETS_.
 . {payment-gateway-abbr} sends transaction status to merchant.
@@ -279,8 +280,8 @@ NOTE: The order of the fields given below must be followed. Details are given <<
 {payment-page-function}.hostedPay(requestData);
 ----
 
-//vhauss: the sample in Confluence contains "payment_method" twice...
-//vhauss: "order_number" as well appears twice, with different values
+//vhauss: the sample in Confluence contains "payment_method" twice... I removed one.
+//vhauss: "order_number" as well appears twice, with different values.
 //vhauss: how can we dissolve the link to "PP_Security_SecretKeyExchange" inside the sample?
 
 //-
