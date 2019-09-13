@@ -1,17 +1,27 @@
-function markKeyword(keyword) {
+function markKeyword(keyword, scroll = false) {
+  console.log('markscroll: ' + scroll)
   var markInstance = new Mark('#content');
   markInstance.unmark({
     done: function () {
-      //console.log('keyword: ' + keyword);
       markInstance.mark(keyword);
-      var firstResultElement = $('#content mark[data-markjs="true"]').first();
-      if (firstResultElement.length) {
-        $('html, body').animate({
-          'scrollTop': $(firstResultElement).offset().top - 200
-        }, 900, 'swing');
+      if (scroll !== false) {
+        scrollToFirstMark();
       }
     }
   });
+}
+
+function scrollToFirstMark() {
+  var firstResultElement = $('#content mark[data-markjs="true"]').first();
+  const hash = getUrlHash();
+  if (hash) {
+    firstResultElement = $('#' + hash).siblings().find('mark[data-markjs="true"]').first();
+  }
+  if (firstResultElement.length) {
+    $('html, body').animate({
+      'scrollTop': $(firstResultElement).offset().top - 200
+    }, 900, 'swing');
+  }
 }
 
 /*!***************************************************
