@@ -126,7 +126,7 @@ function documentReady() {
   });
   setBuildDate();
   requestIdleCallback(function () {
-    markKeyword($('#searchterm').val(), true);
+    markKeyword($('#searchterm').val(), false);
   }, { timeout: 5000 });
 
   $('#content a').filter(function () {

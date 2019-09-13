@@ -169,6 +169,8 @@ function keepClickedSearchResultsBold() {
             scrollToFirstMark();
           }, 1000);
         });
+      } else {
+        scrollToFirstMark();
       }
     });
     tocItem.trigger('mouseenter');
