@@ -274,6 +274,9 @@ function main() {
         -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
         -r asciidoctor-diagram \
         index.adoc
+      if [[ -z $CI ]]; then
+        mv index.pdf "docu-$(date +%Y%m%d-%H%M%S).pdf"
+      fi
       debugMsg "DONE!"
       exit 0
       ;;
