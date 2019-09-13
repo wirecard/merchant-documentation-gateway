@@ -4,6 +4,8 @@ function markKeyword(keyword) {
     done: function () {
       //console.log('keyword: ' + keyword);
       markInstance.mark(keyword);
+      var firstResultElement = $('mark[data-markjs="true"]').first();
+      $.smoothScroll({ speed: 700 }, firstResultElement.offsetTop);
     }
   });
 }
