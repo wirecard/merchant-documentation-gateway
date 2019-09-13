@@ -193,6 +193,9 @@ function buildPartner() {
     php buildscripts/tests/basic-tests.php || true
   fi
 
+  debugMsg "Minifying and combining js files"
+  node buildscripts/util/combine-and-minify.js
+
   debugMsg "Building blob html"
   # build html for toc and index
   # TODO: replace with asciidoctor.js api calls inside these scripts to avoid costly building of html
