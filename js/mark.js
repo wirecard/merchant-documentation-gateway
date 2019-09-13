@@ -4,10 +4,12 @@ function markKeyword(keyword) {
     done: function () {
       //console.log('keyword: ' + keyword);
       markInstance.mark(keyword);
-      var firstResultElement = $('mark[data-markjs="true"]').first();
-      $('html, body').animate({
-        'scrollTop': $(firstResultElement).offset().top
-      }, 900, 'swing');
+      var firstResultElement = $('#content mark[data-markjs="true"]').first();
+      if (firstResultElement.length) {
+        $('html, body').animate({
+          'scrollTop': $(firstResultElement).offset().top - 200
+        }, 900, 'swing');
+      }
     }
   });
 }
