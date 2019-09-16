@@ -1,16 +1,16 @@
 include::shortcuts.adoc[]
-:timestamp-pattern: YYYY-MM-DDThh:mm:ssZ
 
 [#eNETS]
 === eNETS
 
 _eNETS Direct Debit_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
-This payment method is available for integration with <<PP, {payment-page-v1}>> only.  
+
+NOTE: This payment method is available for integration with <<PP, {payment-page-v1}>> only.  
 
 [#eNETS_GeneralInformation]
 ==== General Information
 
-[#eNETS_GeneralInformation_PaymentMode]
+[#eNETS_GeneralInformation_Countries]
 .Countries and Currencies
 
 [cols="20h, 80"]
@@ -42,17 +42,17 @@ which formats can be used for requests and responses.
 [cols="35h,65"]
 |===
 | URL (Endpoint)
-|``\https://test.wirecard.com.sg/engine/hpp/``
+|``\https://test.{domain}.sg/engine/hpp/``
 | Merchant Account ID (MAID)
 | dd4ec05b-3d4e-46c3-a32c-d3bb6aa69c82
 | Secret Key 
 | f8de5ff0-1539-4a24-922e-9cfe9fe675a1
 |===
 
-.Banking Credentials
+===== Additional Test Credentials on eNETS Environment 
 [cols="35h,65"]
 |===
-|Use for bank selection 
+|Bank Selection 
 |UAT BankSim (E3 UAT only)
 |===
 
@@ -75,35 +75,37 @@ Consumer->>{payment-gateway-abbr}: selects bank
 {payment-gateway-abbr}->>eNETS: initiates the transaction
 eNETS->>Consumer: redirects consumer to bank page
 Consumer->>eNETS: logs in on bank page and completes payment on bank page
-eNETS->>{payment-gateway-abbr}: sends transcation status to {payment-gateway-abbr}
+eNETS->>{payment-gateway-abbr}: sends transaction status to {payment-gateway-abbr}
 {payment-gateway-abbr}->>Merchant: sends notification to merchant
 Merchant->>Consumer: redirects to status page
 ----
 
 . Consumer adds items to shopping basket and proceeds to checkout.
 . Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
-. Consumer selects Payment Method _eNETS_.
+. Consumer selects payment method _eNETS_.
 . {payment-gateway-abbr} sends consumer to _eNETS_ page, providing the participating banks.
 . Consumer selects the preferred bank.
+. {payment-gateway-abbr} initiates the transaction.
 . _eNETS_ sends consumer to desired bank page.
-. Consumer logs in and proceeds with payment.
+. Consumer logs in and completes payment.
 . {payment-gateway-abbr} receives transaction status from _eNETS_.
 . {payment-gateway-abbr} sends transaction status to merchant.
 . Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
 
+//-
+
 [#eNETS_Fields]
 ==== Fields
 
-The fields used for BCMC requests, responses and notifications are the
-same as the REST API Fields resp. Payment Page. Please refer to: <<RestApi_Fields, ReST API Fields>>
-or <<PaymentPageSolutions_Fields, Payment Page>>.
+The fields used for eNETS requests, responses and notifications are the
+same as for REST API and Payment Page. Please refer to: <<RestApi_Fields, REST API Fields>> or <<PaymentPageSolutions_Fields, Payment Page>>.
 
 [#eNETS_Samples]
 ==== Sample
 
 To test eNETS, use the following JavaScript snippet.
 
-NOTE: For details on hash-generation, go to our {payment-page-v1-abbr} Security section. See <<PP_Security_RequestSignature, Request Signature>> and <<PP_Security_SecretKeyExchange, Secret Key Exchange>>.
+NOTE: For details on hash-generation, go to our *{payment-page-v1-abbr} Security* section, see <<PP_Security_RequestSignature, Request Signature>> and <<PP_Security_SecretKeyExchange, Secret Key Exchange>>.
 
 
 .debit Request (successful)
@@ -111,24 +113,24 @@ NOTE: For details on hash-generation, go to our {payment-page-v1-abbr} Security 
 [source,javascript,subs=attributes+]
 ----
  var requestedData = {
-    "request_time_stamp": getTimeStamp(), //get current timestamp
-    "request_id":generateUid(), //generate unique ID
-    "merchant_account_id": "dd4ec05b-3d4e-46c3-a32c-d3bb6aa69c82",
-    "transaction_type":"debit",
-    "requested_amount":"1000",
-    "requested_amount_currency":"SGD",
-    "success_redirect_url": "https://{pp-redirect-url-success}",
-    "cancel_redirect_url": "https://{pp-redirect-url-cancel}",
-    "fail_redirect_url": "https://{pp-redirect-url-error}",
+    "request_time_stamp" : getTimeStamp(), //get current timestamp
+    "request_id" : generateUid(), //generate unique ID
+    "merchant_account_id" : "dd4ec05b-3d4e-46c3-a32c-d3bb6aa69c82",
+    "transaction_type" : "debit",
+    "requested_amount" : "1000",
+    "requested_amount_currency" : "SGD",
+    "success_redirect_url" : "https://{pp-redirect-url-success}",
+    "cancel_redirect_url" : "https://{pp-redirect-url-cancel}",
+    "fail_redirect_url" : "https://{pp-redirect-url-error}",
     "ip_address" : "127.0.0.1",
-    "secret_key":"f8de5ff0-1539-4a24-922e-9cfe9fe675a1",
-    "psp_name": "demo",
-    "first_name":"test_user",
-    "last_name":"test_user",
+    "secret_key" : "f8de5ff0-1539-4a24-922e-9cfe9fe675a1",
+    "psp_name" : "demo",
+    "first_name" : "test_user",
+    "last_name" : "test_user",
     "attempt_three_d" : "false",
-    "request_signature": "", //generate request signature, see link. 
-    "payment_method":"enets",
-    "order_number":"123445"
+    "request_signature" : "", //generate request signature 
+    "payment_method" : "enets",
+    "order_number" : "123445"
 }
 {payment-page-function}.hostedPay(requestData);
 ----
