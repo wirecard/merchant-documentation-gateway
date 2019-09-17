@@ -2,12 +2,12 @@ include::shortcuts.adoc[]
 :timestamp-pattern: YYYY-MM-DDThh:mm:ssZ
 
 [#FPX]
-===== FPX
+=== FPX
 
 [#PPv1_FPX_Introduction]
-====== Introduction
+==== Introduction
 
-image::images/03-02-13-01-fpx/fpx_logo.png[fpx logo, 200]
+image::images/11-47-fpx/fpx_logo.png[fpx logo, 200]
 
 _FPX_ (Financial Process Exchange) is an online Internet Banking debit payment method that is offered by MyClear (Malaysia Electronic Clearing Corporation Sdn Bhd), which is a subsidiary under Bank Negara Malaysia (i.e. Malaysia's central bank). 
 
@@ -22,14 +22,10 @@ FPX service is suitable for all businesses that offer products or services via t
 All consumers have to do, is to choose their bank before they are sent to their respective bank's internet banking pages to confirm the purchase. 
 
 [#FPX_GeneralInformation]
-====== General Information
+==== General Information
 
 [#FPX_GeneralInformation_PaymentMode]
 .Payment Mode, Countries, and Currencies
-
-This table illustrates which payment mode _FPX_ belongs to. It
-also provides detailed information about the countries and currencies
-which are relevant for _FPX._
 
 [cols="20h, 80"]
 |===
@@ -45,31 +41,26 @@ This table illustrates how _FPX_ notifications are encoded and
 which formats and methods can be used for requests and responses.
 
 |===
-.2+| *Requests/Responses* | Format  | XML
-//vhauss: Is the format really XML? I thought WPP uses JSON.
-                          | Methods | POST
-| *IPN Encodement*      2+| Please follow the instructions given at
+| *Requests/Responses* | NVP Format
+| *IPN Encodement*     | Please follow the instructions given at
 <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
 [#FPX_TransactionTypes]
-====== Transaction Types
+==== Transaction Types
 
 {payment-page-v1} supports the transaction type _purchase_ only.
 
 [#FPX_TestCredentials]
-====== Test Credentials
+==== Test Credentials
 
 [cols="35,65"]
 |===
 h| URL (Endpoint)
-|``\https://test.wirecard.com.sg/engine/hpp/``
-// this URL needs to be verified, as it points to SG.
+|``\https://test.{domain}.sg/engine/hpp/``
 h| Merchant Account ID (MAID)
 | 5f544f9f-c56a-4242-8ce7-d6422ca3599d
-.2+h| Banks to use for Bank Selection 
-| SBI BANK A (to obtain a positive test case)
-| SBI BANK B/C (to obtain negative test case)
+
 h| Username (to log in to Bank)
 | 1234
 h| Password (to log in to Bank)
@@ -78,8 +69,16 @@ h| Secret Key
 | 0fbb1b24-6082-42d4-891e-cf9202083dcf
 |===
 
+===== Additional Test Credentials on _FPX_ Environment 
+[cols="35,65"]
+|===
+.2+h| Banks to use for Bank Selection 
+| SBI BANK A (to obtain a positive test case)
+| SBI BANK B/C (to obtain negative test case)
+|===
+
 [#FPX_Workflow]
-====== Workflow
+==== Workflow
 
 [mermaid, CC_Fields_intro_elements_parentchild,svg,subs=attributes+]
 ----
@@ -117,148 +116,21 @@ Merchant->>Consumer: redirects consumer to merchant's status page.
 . Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
 
 [#FPX_Fields]
-====== Fields
+==== Fields
 
-[%autowidth]
-|===
-|Field (JSON) |Data Type |Cardinality |Size |Description
-
-| request_time_stamp
-// vhauss: please check, taken from cc
-| Timestamp
-| Required
-| 
-a| A moment in time defined by a system. +
-Format (according to ISO 8601): ``{timestamp-pattern}`` +
-This pattern cannot be customized.
-
-| request_id
-// vhauss: please check, taken from paylib
-| String
-| Required
-| 64
-| A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random request-id. +
-Allowed characters: `[a-z0-9-_ ]`
-
-| merchant_account_id
-// vhauss: please check, taken from paylib
-| String
-| Required
-| 36
-| A unique identifier assigned to every merchant account (by {payment-provider-name}).
-
-| transaction_type
-// vhauss: please check, taken from paylib
-| String
-| Required
-| n/a
-| The requested transaction type. Available transaction type for _FPX_ is _purchase_.
-
-| requested_amount
-// vhauss: please check, taken from paylib
-| Numeric
-| Required
-| 18.2
-| The full amount that is requested/contested in a transaction. 2 decimal places allowed. +
-Use `.` (decimal point) as the separator.
-
-| requested_amount_currency
-// vhauss: please check, taken from paylib
-| String
-| Required
-| 3
-a| The currency of the requested/contested
-transaction amount. For _FPX_ payments, the currency must be set to ``MYR``.
-
-Format: 3-character abbreviation according to ISO 4217.
-
-| success_redirect_url
-// vhauss: please check, taken from paylib
-| String
-| Required
-| 2000
-a| The URL to which the consumer is redirected after a successful payment, e.g. ``\https://{pp-redirect-url-success}``
-
-| cancel_redirect_url
-// vhauss: please check, taken from paylib
-| String
-| Required
-| 2000
-a| The URL to which the consumer is redirected after having canceled a payment, e.g. ``\https://{pp-redirect-url-cancel}``
-
-| fail_redirect_url
-// vhauss: please check, taken from paylib
-| String
-| Required
-| 2000
-a| The URL to which the consumer is redirected after an unsuccessful payment, e.g. ``\https://{pp-redirect-url-error}``
-
-| ip_address
-// vhauss: please check, taken from the general PP field table
-| String
-| Optional
-| 15
-| The IP address of the cardholder as recorded by the entity receiving the transaction attempt from the cardholder.
-
-| secret_key
-//vhauss: now information found for WPPv1.
-| 
-| 
-| 
-| 
-
-| psp_name
-// vhauss: please check, taken from the general PP field table
-| String
-| Optional
-| 256
-| The assigned skin name for a merchant’s customized HPP skin. This will display the merchant’s skin instead of the default skin.
-
-| first_name
-// vhauss: please check, taken from paylib
-| String
-| Optional
-| 32
-| The first name of the account holder.
-// vhauss: clarify: Whose first name is it?
-
-| last_name
-// vhauss: please check, taken from paylib
-| String
-| Optional
-| 32
-| The last name of the account holder.
-// vhauss: clarify: Whose last name is it?
-
-| attempt_three_d
-// vhauss: please check, taken from WPP V1 > 3D Secure > Preconditions
-| Boolean
-| Optional
-| true/false
-| Indicates that the transaction request should proceed with the 3D Secure workflow, if the card holder is enrolled. Otherwise, the transaction proceeds without 3D Secure.
-//vhauss: Better?: If "true", WPG checks card holders 3D enrollment. If card holder is enrolled, payment process follows 3D Secure workflow. If not, process follows non-3D workflow.
-
-| request_signature
-// vhauss: please check, taken from the general PP field table
-| String
-| Mandatory
-| 64
-| Refer to <<https://doc.wirecard.com/PP.html#PP_Security, SHA-256>> request signature.
-
-|===
+The fields used for eNETS requests, responses and notifications are the
+same as for REST API and Payment Page. Please refer to: <<RestApi_Fields, REST API Fields>> or <<PaymentPageSolutions_Fields, Payment Page>>.
 
 [#FPX_Samples]
-====== Sample
+==== Sample
 
-NOTE: The order of the fields given below must be followed. Details are given <<PP_Security_RequestSignature, here>>.
+To test _FPX_, use the following JavaScript snippet.
 
-.JSON _purchase_ Request (Successful)
+NOTE: For details on hash-generation, go to our *{payment-page-v1-abbr} Security* section, see <<PP_Security_RequestSignature, Request Signature>> and <<PP_Security_SecretKeyExchange, Secret Key Exchange>>.
 
-[source,json,subs=attributes+]
+._purchase_ Request (Successful)
 
-// vhauss: Is this really a JSON sample?
-// vhauss: check field order according to PP_Security_SecretKeyExchange
-// vhauss: the sample has no "payment_method" value
+[source,javascript,subs=attributes+]
 
 ----
  var requestedData = {
@@ -277,11 +149,9 @@ NOTE: The order of the fields given below must be followed. Details are given <<
     "first_name": "Test",
     "last_name": "User",
     "attempt_three_d" : "false",
-    "request_signature": "" //generate according to description on <<PP_Security_SecretKeyExchange, {payment-page-v1-abbr} page>>.
+    "request_signature": "" //generate request signature.
 }
 {payment-page-function}.hostedPay(requestData);
 ----
-
-//vhauss: how can we dissolve the link to "PP_Security_SecretKeyExchange" inside the sample?
 
 //-
