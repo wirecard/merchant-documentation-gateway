@@ -941,7 +941,9 @@ function initPagePreloading() {
     var preloadPage = preloadQueue.shift();
     if (typeof smoothState.cache[preloadPage] === 'undefined') {
       requestIdleCallback(function () {
-        smoothState.fetch(preloadPage, initPagePreloading);
+        setTimeout(function () {
+          smoothState.fetch(preloadPage, initPagePreloading);
+        }, serverResponseTime * 2);
       });
     }
   }
