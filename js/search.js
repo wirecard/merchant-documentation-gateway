@@ -103,7 +103,7 @@ if (!editorMode) {
   $("#searchterm").on("mouseup", function (event) {
     typingTimer = setTimeout(function () {
       executeSearch($("#searchterm").val());
-      markKeyword($("#searchterm").val());
+      //markKeyword($("#searchterm").val(), true);
     }, searchDelay);
   });
 
@@ -137,7 +137,7 @@ if (!editorMode) {
 
     window.clearTimeout(markingTimer);
     markingTimer = setTimeout(function () {
-      markKeyword((st.length > 3) ? st : '');
+      markKeyword((st.length > 3) ? st : '', true);
     }, markDelay);
   });
 }
@@ -159,7 +159,6 @@ function keepClickedSearchResultsBold() {
         window.location.href = tocItem[0].href;
         return true;
       }
-
       if (pageID != tocref) {
         window.requestAnimationFrame(function () {
           setTimeout(function () {
@@ -167,8 +166,11 @@ function keepClickedSearchResultsBold() {
           }, 200);
           setTimeout(function () {
             window.location.href = '#' + tocref;
+            scrollToFirstMark();
           }, 1000);
         });
+      } else {
+        scrollToFirstMark();
       }
     });
     tocItem.trigger('mouseenter');

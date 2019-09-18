@@ -97,7 +97,7 @@ function documentReady() {
   $(function () {
     var pre = document.getElementsByTagName('pre');
     for (var i = 0; i < pre.length; i++) {
-      if ($(pre[i]).has('button.clipboard').length) {
+      if ($(pre[i]).has('button.clipboard').length || $(pre[i]).not(':has(code)').length) {
         continue;
       }
       var b = document.createElement('button');
@@ -126,7 +126,7 @@ function documentReady() {
   });
   setBuildDate();
   requestIdleCallback(function () {
-    markKeyword($('#searchterm').val());
+    markKeyword($('#searchterm').val(), false);
   }, { timeout: 5000 });
 
   $('#content a').filter(function () {
