@@ -12,7 +12,7 @@ NOTE: This payment method is available for integration with <<PP, {payment-page-
 ==== General Information
 
 [#FPX_GeneralInformation_Countries]
-.Countries, and Currencies
+.Countries and Currencies
 
 [cols="20h, 80"]
 |===
@@ -46,11 +46,6 @@ h| URL (Endpoint)
 |``\https://test.{domain}.sg/engine/hpp/``
 h| Merchant Account ID (MAID)
 | 5f544f9f-c56a-4242-8ce7-d6422ca3599d
-
-h| Username (to log in to Bank)
-| 1234
-h| Password (to log in to Bank)
-| 1234
 h| Secret Key 
 | 0fbb1b24-6082-42d4-891e-cf9202083dcf
 |===
@@ -58,9 +53,11 @@ h| Secret Key
 ===== Additional Test Credentials on _FPX_ Environment 
 [cols="35,65"]
 |===
-.2+h| Banks to use for Bank Selection 
+.2+h| Bank Selection 
 | SBI BANK A (to obtain a positive test case)
 | SBI BANK B/C (to obtain negative test case)
+h| Username | 1234
+h| Password | 1234
 |===
 
 [#FPX_Workflow]
@@ -73,33 +70,36 @@ sequenceDiagram
     participant Merchant
     participant {payment-gateway-abbr}
     participant FPX
-Consumer->>Consumer: adds shopping items to basket.
-Consumer->>Merchant: proceeds to checkout.
-Merchant->>{payment-gateway-abbr}: sends payment request to {payment-gateway-abbr}.
-{payment-gateway-abbr}->>Consumer: asks consumer to select a payment method.
-Consumer->>{payment-gateway-abbr}: selects FPX.
-{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for FPX.
-Consumer->>{payment-gateway-abbr}: selects bank.
-{payment-gateway-abbr}->>FPX: initiates the transaction.
-FPX->>Consumer: redirects consumer to bank page.
-Consumer->>Consumer: logs in on bank page.
-Consumer->>FPX: completes payment on bank page.
-FPX->>{payment-gateway-abbr}: sends transcation status to {payment-gateway-abbr}.
-{payment-gateway-abbr}->>Merchant: sends notification to merchant.
-Merchant->>Consumer: redirects consumer to merchant's status page.
+Consumer->>Consumer: adds shopping items to basket
+Consumer->>Merchant: proceeds to checkout
+Merchant->>{payment-gateway-abbr}: sends payment request to {payment-gateway-abbr}
+{payment-gateway-abbr}->>Consumer: asks consumer to select a payment method
+Consumer->>{payment-gateway-abbr}: selects FPX
+{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for FPX
+Consumer->>{payment-gateway-abbr}: selects bank
+{payment-gateway-abbr}->>FPX: initiates the transaction
+FPX->>Consumer: redirects consumer to bank page
+Consumer->>Consumer: logs in on bank page
+Consumer->>FPX: completes payment on bank page
+FPX->>{payment-gateway-abbr}: sends transaction status to {payment-gateway-abbr}
+{payment-gateway-abbr}->>Merchant: sends notification to merchant
+Merchant->>Consumer: redirects to status page
 ----
 
-. Consumer adds items to shopping basket.
+. Consumer adds items to shopping basket and proceeds to checkout.
 . Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
-. Consumer selects Payment Method _FPX_.
+. Consumer selects payment method _FPX_.
 . {payment-gateway-abbr} displays list of available banks for consumer to select.
-. Consumer selects desired bank.
+. Consumer selects the preferred bank.
+. {payment-gateway-abbr} initiates the transaction.
 . {payment-gateway-abbr} sends consumer to _FPX_ page, showing the details of the bank the consumer has selected.
 . _FPX_ sends consumer to desired bank page.
-. Consumer logs in and proceeds with payment.
+. Consumer logs in and completes payment.
 . {payment-gateway-abbr} receives transaction status from _FPX_.
 . {payment-gateway-abbr} sends transaction status to merchant.
 . Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
+
+//-
 
 [#FPX_Fields]
 ==== Fields
@@ -114,28 +114,28 @@ To test _FPX_, use the following JavaScript snippet.
 
 NOTE: For details on hash-generation, go to our *{payment-page-v1-abbr} Security* section, see <<PP_Security_RequestSignature, Request Signature>> and <<PP_Security_SecretKeyExchange, Secret Key Exchange>>.
 
-._purchase_ Request (Successful)
+._purchase_ Request (successful)
 
 [source,javascript,subs=attributes+]
 
 ----
  var requestedData = {
-    "request_time_stamp": getTimeStamp(), //get current timepstamp
-    "request_id": generateUid(), //generate unique ID
-    "merchant_account_id": "5f544f9f-c56a-4242-8ce7-d6422ca3599d",
-    "transaction_type": "purchase",
-    "requested_amount": "100.00",
+    "request_time_stamp" : getTimeStamp(), //get current timestamp
+    "request_id" : generateUid(), //generate unique ID
+    "merchant_account_id" : "5f544f9f-c56a-4242-8ce7-d6422ca3599d",
+    "transaction_type" : "purchase",
+    "requested_amount" : "100.00",
     "requested_amount_currency" : "MYR",
-    "success_redirect_url": "https://{pp-redirect-url-success}",
-    "cancel_redirect_url": "https://{pp-redirect-url-cancel}",
-    "fail_redirect_url": "https://{pp-redirect-url-error}",
+    "success_redirect_url" : "https://{pp-redirect-url-success}",
+    "cancel_redirect_url" : "https://{pp-redirect-url-cancel}",
+    "fail_redirect_url" : "https://{pp-redirect-url-error}",
     "ip_address" : "127.0.0.1",
-    "secret_key": "0fbb1b24-6082-42d4-891e-cf9202083dcf",
-    "psp_name": "demo",
-    "first_name": "Test",
-    "last_name": "User",
+    "secret_key" : "0fbb1b24-6082-42d4-891e-cf9202083dcf",
+    "psp_name" : "demo",
+    "first_name" : "Test",
+    "last_name" : "User",
     "attempt_three_d" : "false",
-    "request_signature": "" //generate request signature.
+    "request_signature" : "" //generate request signature
 }
 {payment-page-function}.hostedPay(requestData);
 ----
