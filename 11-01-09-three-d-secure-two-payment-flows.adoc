@@ -59,6 +59,8 @@ m| 2.1
 +
 As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
 +
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
++
 . _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
 +
 --
@@ -205,6 +207,8 @@ m| 2.1
 
 +
 As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
 +
 . _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
 +
@@ -355,7 +359,7 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated).
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -463,13 +467,13 @@ NOTE: It is not required to set the *check-payer-response* to ``ci`` (consumer-i
     <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
 </three-d>
 ----
-m| <<CreditCard_TransactionTypes, transaction-type>>
-m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+m|<<CreditCard_TransactionTypes, transaction-type>>
+m|<<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
 
-m| <<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
+m|<<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
 |
 
-m| <<CreditCard_Fields_ThreeD_Pares, three-d/pares>>
+m|<<CreditCard_Fields_ThreeD_Pares, three-d/pares>>
 |
 |===
 
@@ -546,7 +550,7 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
 +
 
 NOTE: It is not required to include the ``parent-transaction-id`` or set ``challenge-indicator`` to ``04``.
@@ -555,18 +559,34 @@ NOTE: It is not required to include the ``parent-transaction-id`` or set ``chall
 |===
 |XML 2+|Fields
 
-.2+a|
+.5+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <three-d>
     <version>2.1</version>
 </three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
 ----
 m| <<CreditCard_TransactionTypes, transaction-type>>
 m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
 
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
 |===
 
 +
@@ -719,7 +739,7 @@ the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>> and are included in
 the <<Appendix_Xml, REST API payment XSD>>.
 +
 
-CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
 +
 
 NOTE: It is not required to include the ``parent-transaction-id`` or set ``challenge-indicator`` to ``04``.
@@ -729,18 +749,34 @@ NOTE: It is not required to include the ``parent-transaction-id`` or set ``chall
 |===
 |XML 2+|Fields
 
-.2+a|
+.5+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <three-d>
     <version>2.1</version>
 </three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
 ----
 m| <<CreditCard_TransactionTypes, transaction-type>>
 m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
 
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
 |===
 +
 As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
@@ -872,6 +908,8 @@ m| true
 
 +
 . *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+NOTE: It is not required to set the *capture-authorization* to ``ci`` (consumer-initiated) and ``recurring``.
 
 +
 [%autowidth]
@@ -919,7 +957,7 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated).
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -1113,7 +1151,7 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated).
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -1334,7 +1372,7 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
 
 +
 NOTE: The ``token-id`` can be used instead of the ``account-number``. It is
@@ -1346,7 +1384,7 @@ not required to include the ``parent-transaction-id`` or set ``challenge-indicat
 |===
 |XML 2+|Fields
 
-.3+a|
+.6+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <card-token>
@@ -1355,6 +1393,13 @@ not required to include the ``parent-transaction-id`` or set ``challenge-indicat
 <three-d>
     <version>2.1</version>
 </three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
 ----
 m| <<CreditCard_TransactionTypes, transaction-type>>
 m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
@@ -1364,6 +1409,15 @@ m| <<CreditCard_Fields_CardToken_TokenId, card-token/token-id>>
 
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
 |===
 
 +
@@ -1527,14 +1581,14 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring`` and the ``sequence-type`` to ``first``. Include the ``recurring-expire-date`` and ``recurring-frequency``.
 
 +
 [%autowidth]
 |===
 |XML 2+|Fields
 
-.6+a|
+.8+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <account-holder>
@@ -1548,6 +1602,8 @@ CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include th
 <periodic>
     <periodic-type>recurring</periodic-type>
     <sequence-type>first</sequence-type>
+    <recurring-expire-date>YYYY-MM-DD</recurring-expire-date>
+    <recurring-frequency>xxxx</recurring-frequency>
 </periodic>
 <card>
     <merchant-tokenization-flag>true</merchant-tokenization-flag>
@@ -1567,6 +1623,12 @@ m| recurring
 
 m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
 m| first
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringExpireDate, periodic/recurring-expire-date>>
+m| YYYY-MM-DD
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringFrequency, periodic/recurring-frequency>>
+m| xxxx
 
 m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
 m| true
@@ -1658,8 +1720,7 @@ If the *check-payer-response* was not executed, instead use the
 *PARes* received via TermURL as part of the response to the ACS HTTP POST request.
 
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set
-``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``recurring``.
 
 +
 [%autowidth]
@@ -1842,14 +1903,14 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring``.
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring`` and the ``sequence-type`` to ``first``. Include the ``recurring-expire-date`` and ``recurring-frequency``.
 
 +
 [%autowidth]
 |===
 |XML 2+|Fields
 
-.6+a|
+.8+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <account-holder>
@@ -1863,6 +1924,8 @@ CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the
 <periodic>
     <periodic-type>recurring</periodic-type>
     <sequence-type>first</sequence-type>
+    <recurring-expire-date>YYYY-MM-DD</recurring-expire-date>
+    <recurring-frequency>xxxx</recurring-frequency>
 </periodic>
 <card>
     <merchant-tokenization-flag>true</merchant-tokenization-flag>
@@ -1883,6 +1946,12 @@ m| recurring
 
 m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
 m| first
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringExpireDate, periodic/recurring-expire-date>>
+m| YYYY-MM-DD
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringFrequency, periodic/recurring-frequency>>
+m| xxxx
 
 m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
 m| true
@@ -2184,14 +2253,14 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``installment``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``installment``  and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
 |===
 |XML 2+|Fields
 
-.6+a|
+.7+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <account-holder>
@@ -2205,6 +2274,7 @@ CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include th
 <periodic>
     <periodic-type>installment</periodic-type>
     <sequence-type>first</sequence-type>
+    <number-of-installments>xxx</number-of-installments>
 </periodic>
 <card>
     <merchant-tokenization-flag>true</merchant-tokenization-flag>
@@ -2224,6 +2294,9 @@ m| installment
 
 m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
 m| first
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringNumber, periodic/number-of-installments>>
+m| xxx
 
 m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
 m| true
@@ -2500,14 +2573,14 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``.
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ucof`` and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
 |===
 |XML 2+|Fields
 
-.3+a|
+.6+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <account-holder>
@@ -2515,9 +2588,16 @@ CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include th
         <challenge-indicator>04</challenge-indicator>
     </account-info>
 </account-holder>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
 <three-d>
     <version>2.1</version>
 </three-d>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
 ----
 m| <<CreditCard_TransactionTypes, transaction-type>>
 m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
@@ -2525,8 +2605,17 @@ m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
 m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
 m| 04
 
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m|first
+
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
 |===
 
 +
@@ -2613,7 +2702,7 @@ If the *check-payer-response* was not executed, instead use the
 *PARes* received via TermURL as part of the response to the ACS HTTP POST request.
 
 +
-CAUTION: Set the ``periodic-type`` to ``ucof``.
+CAUTION: Set the ``periodic-type`` to ``ucof`` and the ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -2801,14 +2890,14 @@ ifdef::env-wirecard[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 endif::[]
 +
-CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``.
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ucof`` and ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
 |===
 |XML 2+|Fields
 
-.3+a|
+.6+a|
 ----
 <transaction-type>check-enrollment</transaction-type>
 <account-holder>
@@ -2816,9 +2905,16 @@ CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the
         <challenge-indicator>04</challenge-indicator>
     </account-info>
 </account-holder>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
 <three-d>
     <version>2.1</version>
 </three-d>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
 ----
 
 m| <<CreditCard_TransactionTypes, transaction-type>>
@@ -2827,8 +2923,17 @@ m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
 m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
 m| 04
 
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
 m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
 m| 2.1
+
+m| <<CreditCard_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
 |===
 
 +
@@ -2880,7 +2985,7 @@ Once the consumer has been redirected, they receive an authentication prompt. Th
  * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
 --
 +
-NOTE: It is not required to set the *check-payer-response* to ``ucof`` and ``recurring``.
+NOTE: It is not required to include ``periodic`` in the *check-payer-response*.
 
 +
 [%autowidth]
@@ -2921,7 +3026,7 @@ If the *check-payer-response* was not executed, instead use the
 *PARes* received via TermURL as part of the response to the ACS HTTP POST request.
 
 +
-CAUTION: Set the ``periodic-type`` to ``ucof``.
+CAUTION: Set the ``periodic-type`` to ``ucof`` and to ``sequence-type`` to ``first``.
 
 +
 [%autowidth]
@@ -2991,7 +3096,7 @@ m| <<CreditCard_Fields_Payment_ParentTransactionId, parent-transaction-id>>
 [#API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_OneStepMIT]
 ====== Option 1: One-Step Merchant Initiated Transaction (MIT)
 
-. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring``.
+. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring`` (or ``final`` for the last recurring transaction).
 +
 CAUTION: Set the ``periodic-type`` to ``ucof``.
 
