@@ -868,11 +868,11 @@ var smoothState = $('#content').smoothState({
     if (isEdgeBrowser || isInternetExplorer) {
       return true;
     }
-    if (getUrlHash() != '') {
+    /*if (getUrlHash() != '') {
       setTimeout(function () {
         window.location.href = '#' + getUrlHash();
       }, 2000);
-    }
+    }*/
     // trigger Matomo on instant page switch
     _paq.push(['setCustomUrl', window.location.href]);
     _paq.push(['trackPageView']);
@@ -941,7 +941,9 @@ function initPagePreloading() {
     var preloadPage = preloadQueue.shift();
     if (typeof smoothState.cache[preloadPage] === 'undefined') {
       requestIdleCallback(function () {
-        smoothState.fetch(preloadPage, initPagePreloading);
+        setTimeout(function () {
+          smoothState.fetch(preloadPage, initPagePreloading);
+        }, serverResponseTime * 2);
       });
     }
   }
