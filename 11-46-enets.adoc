@@ -49,8 +49,9 @@ which formats can be used for requests and responses.
 | f8de5ff0-1539-4a24-922e-9cfe9fe675a1
 |===
 
-[#eNETS_TestCredentials_Additional]
-===== Additional Test Credentials on _eNETS_ Environment 
+[#eNETS_TestCredentials_AdditionalTestCredentials]
+===== Additional Test Credentials on _eNETS_ Environment
+
 [cols="35h,65"]
 |===
 |Bank Selection 
@@ -60,7 +61,7 @@ which formats can be used for requests and responses.
 [#eNETS_Workflow]
 ==== Workflow
 
-[mermaid, CC_Fields_intro_elements_parentchild,svg,subs=attributes+]
+[mermaid, eNETS_workflow,svg,subs=attributes+]
 ----
 sequenceDiagram
     participant Consumer
@@ -68,30 +69,28 @@ sequenceDiagram
     participant {payment-gateway-abbr}
     participant eNETS
 Consumer->>Merchant: proceeds to checkout
-Merchant->>{payment-gateway-abbr}: sends payment request to {payment-gateway-abbr}
+Merchant->>{payment-gateway-abbr}: sends payment request
 {payment-gateway-abbr}->>Consumer: asks consumer to select a payment method
 Consumer->>{payment-gateway-abbr}: selects eNETS
-{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for eNETS
-Consumer->>{payment-gateway-abbr}: selects bank
-{payment-gateway-abbr}->>eNETS: initiates the transaction
+{payment-gateway-abbr}->>Consumer: redirects consumer to eNETS page
+Consumer->>eNETS: selects bank
 eNETS->>Consumer: redirects consumer to bank page
-Consumer->>eNETS: logs in on bank page and completes payment on bank page
-eNETS->>{payment-gateway-abbr}: sends transaction status to {payment-gateway-abbr}
-{payment-gateway-abbr}->>Merchant: sends notification to merchant
-Merchant->>Consumer: redirects to status page
+Consumer->>eNETS: logs in on bank page and completes payment
+eNETS->>{payment-gateway-abbr}: sends transaction status
+{payment-gateway-abbr}->>Merchant: sends notification
+{payment-gateway-abbr}->>Consumer: redirects to status page
 ----
 
 . Consumer adds items to shopping basket and proceeds to checkout.
 . Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
 . Consumer selects payment method _eNETS_.
-. {payment-gateway-abbr} sends consumer to _eNETS_ page, providing the participating banks.
-. Consumer selects the preferred bank.
-. {payment-gateway-abbr} initiates the transaction.
-. _eNETS_ sends consumer to desired bank page.
-. Consumer logs in and completes payment.
+. {payment-gateway-abbr} redirects consumer to _eNETS_ page.
+. Consumer selects the preferred bank on _eNETS_ page.
+. _eNETS_ sends consumer to bank page.
+. Consumer logs in and completes payment on bank page.
 . {payment-gateway-abbr} receives transaction status from _eNETS_.
-. {payment-gateway-abbr} sends transaction status to merchant.
-. Merchant receives the transaction's status and redirects the consumer to the status page of the payment process.
+. {payment-gateway-abbr} sends notification with transaction status to the merchant.
+. {payment-gateway-abbr} redirects consumer back to the shop where the merchant displays the status of the payment process.
 
 //-
 
