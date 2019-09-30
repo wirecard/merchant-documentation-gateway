@@ -1,0 +1,32 @@
+stages:
+  - build
+  - compress
+
+build:
+  stage: build
+  artifacts:
+    paths:
+      - index.pdf
+    expire_in: 1 hrs
+  before_script:
+    - echo $PATH
+    - ruby25 --version
+    - gem25 install asciidoctor -v 1.5.8
+    - gem25 install asciidoctor-pdf --pre
+    - gem25 install asciidoctor-diagram
+    - gem25 install rouge
+  script:
+    - alias ruby=ruby25; bash buildscripts/main.sh --pdf
+
+compress:
+  stage: compress
+  dependencies:
+    - build
+  before_script:
+    - gem25 install hexapdf
+  script:
+    - hexapdf optimize --compress-pages index.pdf documentation.pdf
+  artifacts:
+    paths:
+      - documentation.pdf
+    expire_in: 1 mos
