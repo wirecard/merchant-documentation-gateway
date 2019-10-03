@@ -190,8 +190,10 @@ function setUpMermaid() {
 function buildPartner() {
   PARTNER=${1}
 
-  BPATH="${PARTNER}"
+  echo
+  debugMsg "::: Building ${PARTNER} ${NOVA}"
 
+  BPATH="${PARTNER}"
   if [[ "${2}" == "NOVA" ]]; then
     debugMsg "[NOVA] build started"
     NOVA="NOVA"
@@ -199,8 +201,6 @@ function buildPartner() {
     BPATH="${BPATH}/NOVA"
   fi
 
-  echo
-  debugMsg "::: Building ${PARTNER} ${NOVA}"
   createPartnerFolder "${PARTNER}" "${NOVA}"
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
