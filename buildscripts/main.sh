@@ -178,7 +178,7 @@ function buildPartner() {
 
   setUpMermaid
 
-  if [[ ${PARTNER} != 'WD' ]]; then
+  if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
 
     debugMsg "Executing custom scripts.."
     # execute all custom scripts of the partner
@@ -320,7 +320,7 @@ function main() {
     exitWithError "Line ${LINENO}: Failed to create template."
 
   ERRORS=0
-  if buildPartner "${PARTNER}" && ( "${PARTNER} != WD" || buildPartner "${PARTNER}" "NOVA" ); then
+  if buildPartner "${PARTNER}" && ( [[ "${PARTNER}" != "WD" ]] || buildPartner "${PARTNER}" "NOVA" ); then
     # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
