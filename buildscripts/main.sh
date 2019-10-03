@@ -80,6 +80,19 @@ function abortCurrentBuild() {
   exit 1
 }
 
+function executeCustomScripts() {
+    PARTNER="${1}"
+    debugMsg "Executing custom scripts.."
+    # execute all custom scripts of the partner
+    # IMPORTANT: script MUST NOT use exit, only return!
+    for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
+      debugMsg "$(basename ${script}):"
+      source "${script}" || scriptError "$(basename ${script})"
+    done
+    debugMsg "Custom scripts done. Errors: ${ERRORS}"
+}
+
+
 # writeRepoKey takes WL_REPO_SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64 | tr -d '\n')
 function writeRepoKey() {
   debugMsg "inside writeRepoKey()"
@@ -193,17 +206,9 @@ function buildPartner() {
 
   if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
 
-    debugMsg "Executing custom scripts.."
-    # execute all custom scripts of the partner
-    # IMPORTANT: script MUST NOT use exit, only return!
-    for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
-      debugMsg "$(basename ${script}):"
-      source "${script}" || scriptError "$(basename ${script})"
-    done
-    debugMsg "Custom scripts done. Errors: ${ERRORS}"
+    executeCustomScripts "${PARTNER}" || abortCurrentBuild " for WL partner ${PARTNER}."
 
     # if any script failed, abort right here the build of this WL-partner
-    [[ ${ERRORS} -gt 0 ]] && abortCurrentBuild " for WL partner ${PARTNER}." && return 1
     # if any test or script that comes later (common build instructions for all partners) fails
     # then the loop that called buildPartner() will handle the error message
   fi
@@ -291,7 +296,10 @@ function main() {
       echo "* [--pdf] build pdf"
       ;;
     --pdf)
+      createPartnerFolder "${PARTNER}"
+      cd "${BUILDFOLDER_PATH}/${PARTNER}"
       setUpMermaid
+      executeCustomScripts "${PARTNER}"
       debugMsg "Creating PDF..."
       # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
