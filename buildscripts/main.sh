@@ -186,11 +186,7 @@ function buildPartner() {
 
   echo
   debugMsg "::: Building ${PARTNER} ${NOVA}"
-  createPartnerFolder "${PARTNER}"
-  if [[ -n ${NOVA} ]]; then
-    debugMsg "creating ${BUILDFOLDER_PATH}/${BPATH}"
-    mkdir -p "${BUILDFOLDER_PATH}/${BPATH}"
-  fi
+  createPartnerFolder "${PARTNER}" "${NOVA}"
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
   setUpMermaid
