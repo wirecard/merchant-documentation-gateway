@@ -127,13 +127,15 @@ function cloneWhitelabelRepository() {
 # takes partner name == folder name as argument
 function createPartnerFolder() {
   PARTNER=${1}
-  if [[ "${2}" == "NOVA" ]]; then
-    NOVA="NOVA"
-  fi
 
   # create folder where we will build the documentation
   mkdir -p "${BUILDFOLDER_PATH}"
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
+
+  if [[ "${2}" == "NOVA" ]]; then
+    NOVA="NOVA"
+    mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}"
+  fi
 
   # copy the master template to the build directory and name it after the partner
   if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}" ]]; then
