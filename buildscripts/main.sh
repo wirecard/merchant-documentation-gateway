@@ -196,7 +196,7 @@ function buildPartner() {
     debugMsg "[NOVA] build started"
     NOVA="NOVA"
     NOVA_INDEX="nova.adoc"
-    BPATH="${BPATH}/nova"
+    BPATH="${BPATH}/NOVA"
   fi
 
   echo
