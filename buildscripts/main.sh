@@ -163,10 +163,18 @@ function setUpMermaid() {
 function buildPartner() {
   PARTNER=${1}
 
+  BPATH="${PARTNER}"
+
+  if [[ "$2" == "NOVA" ]]; then
+    NOVA="NOVA"
+    NOVA_INDEX="nova.adoc"
+    BPATH="${BPATH}/nova"
+  fi
+
   debugMsg " "
-  debugMsg "::: Building ${PARTNER}"
-  createPartnerFolder "${PARTNER}"
-  cd "${BUILDFOLDER_PATH}/${PARTNER}"
+  debugMsg "::: Building ${PARTNER} ${NOVA}"
+  createPartnerFolder "${BPATH}"
+  cd "${BUILDFOLDER_PATH}/${BPATH}"
 
   setUpMermaid
 
@@ -200,7 +208,7 @@ function buildPartner() {
   debugMsg "Building blob html"
   # build html for toc and index
   # TODO: replace with asciidoctor.js api calls inside these scripts to avoid costly building of html
-  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html ||
+  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
   debugMsg "Creating TOC json"
@@ -212,7 +220,8 @@ function buildPartner() {
     scriptError "lunr-index-builder.js in line $((LINENO - 1))"
 
   debugMsg "Building split page docs"
-  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 -r ./buildscripts/asciidoc/multipage-html5-converter.rb ||
+  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 \
+  -r ./buildscripts/asciidoc/multipage-html5-converter.rb ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
   if [[ -n $NEW_MERMAID ]]; then
@@ -227,17 +236,17 @@ function buildPartner() {
   HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
 
   debugMsg "Moving created web resources to deploy html folder"
-  mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}/html"
+  mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
 
-  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" ||
+  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html" ||
     increaseErrorCount
 
   # fallback png's for IE
-  cp mermaid/*.png "${BUILDFOLDER_PATH}/${PARTNER}/html/"
+  cp mermaid/*.png "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
-  cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
+  cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
 
-  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" ||
+  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/" ||
     increaseErrorCount
 
   return ${ERRORS}
@@ -311,7 +320,8 @@ function main() {
     exitWithError "Line ${LINENO}: Failed to create template."
 
   ERRORS=0
-  if buildPartner "${PARTNER}"; then # if everything built well then
+  if buildPartner "${PARTNER}" && ( "${PARTNER} != WD" || buildPartner "${PARTNER}" "NOVA" ); then
+    # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
