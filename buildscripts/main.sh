@@ -189,7 +189,8 @@ function buildPartner() {
 
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
-  if [[ -z $SKIP ]] && [[ "${PARTNER}" != "MS" ]]; then
+  TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
+  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -P '^'${PARTNER}'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
   fi
 
