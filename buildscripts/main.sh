@@ -22,6 +22,7 @@
 ###############################################################################
 
 set -e
+set -o pipefail
 
 LC_ALL=C
 
@@ -45,6 +46,7 @@ WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
 ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
+
 function increaseErrorCount() {
   ERRORS=$((ERRORS++))
 }
@@ -56,8 +58,15 @@ function debugMsg() {
 function scriptError() {
   echo >&2 "Error executing: ${1}"
   increaseErrorCount
-  return 1
+  exitWithError "${1}"
 }
+
+if command -v travis_wait >/dev/null 2>&1; then
+  debugMsg "travis_wait found! updating command..."
+  ASCIIDOCTOR_CMD_COMMON="travis_wait ${ASCIIDOCTOR_CMD_COMMON}"
+else
+  debugMsg "travis_wait not found!"
+fi
 
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
@@ -68,7 +77,7 @@ function exitWithError() {
 
 function abortCurrentBuild() {
   echo >&2 "Aborting current build ${1}."
-  return 0
+  exit 1
 }
 
 # writeRepoKey takes WL_REPO_SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64 | tr -d '\n')
@@ -105,21 +114,24 @@ function cloneWhitelabelRepository() {
 # takes partner name == folder name as argument
 function createPartnerFolder() {
   PARTNER=${1}
+  if [[ "${2}" == "NOVA" ]]; then
+    NOVA="NOVA"
+  fi
 
   # create folder where we will build the documentation
   mkdir -p "${BUILDFOLDER_PATH}"
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
   # copy the master template to the build directory and name it after the partner
-  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}" ]]; then
-    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}"
+  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}" ]]; then
+    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}"
   fi
-  cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}"
-  cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/"
+  cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA}"
+  cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
 
-  if [[ ${PARTNER} != 'WD' ]]; then
+  if [[ "${PARTNER}" != 'WD' ]]; then
     # fill the partner dir with whitelabel content
-    cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/"
+    cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
 }
 
@@ -165,15 +177,20 @@ function buildPartner() {
 
   BPATH="${PARTNER}"
 
-  if [[ "$2" == "NOVA" ]]; then
+  if [[ "${2}" == "NOVA" ]]; then
+    debugMsg "[NOVA] build started"
     NOVA="NOVA"
     NOVA_INDEX="nova.adoc"
     BPATH="${BPATH}/nova"
   fi
 
-  debugMsg " "
+  echo
   debugMsg "::: Building ${PARTNER} ${NOVA}"
-  createPartnerFolder "${BPATH}"
+  createPartnerFolder "${PARTNER}"
+  if [[ -n ${NOVA} ]]; then
+    debugMsg "creating ${BUILDFOLDER_PATH}/${BPATH}"
+    mkdir -p "${BUILDFOLDER_PATH}/${BPATH}"
+  fi
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
   setUpMermaid
@@ -200,6 +217,8 @@ function buildPartner() {
   TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
   if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -P '^'${PARTNER}'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
+  else
+    debugMsg "[SKIP] basic tests"
   fi
 
   debugMsg "Minifying and combining js files"
@@ -238,16 +257,14 @@ function buildPartner() {
   debugMsg "Moving created web resources to deploy html folder"
   mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
 
-  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html" ||
-    increaseErrorCount
+  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html"
 
   # fallback png's for IE
   cp mermaid/*.png "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
   cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
 
-  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/" ||
-    increaseErrorCount
+  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
   return ${ERRORS}
 }
@@ -320,7 +337,7 @@ function main() {
     exitWithError "Line ${LINENO}: Failed to create template."
 
   ERRORS=0
-  if buildPartner "${PARTNER}" && ( [[ "${PARTNER}" != "WD" ]] || buildPartner "${PARTNER}" "NOVA" ); then
+  if buildPartner "${PARTNER}"; then
     # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
@@ -333,6 +350,17 @@ function main() {
     FAILED_BUILDS+=("${PARTNER}") # and add partner to list of failed builds
     return 1
   fi
+
+  if [[ "${PARTNER}" != "WD" ]]; then
+    debugMsg "Partner does not support NOVA"
+  elif buildPartner "${PARTNER}" "NOVA"; then
+    debugMsg "SUCCESS! NOVA for ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/"
+    debugMsg "export DEPLOY_${PARTNER}_${NOVA}=TRUE"
+    export DEPLOY_${PARTNER}_${NOVA}=TRUE
+  else
+    debugMsg "Failed! Could not build NOVA ${PARTNER}"
+  fi
+
   echo
   return 0
 }
