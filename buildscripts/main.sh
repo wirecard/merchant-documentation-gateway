@@ -22,6 +22,7 @@
 ###############################################################################
 
 set -e
+set -o pipefail
 
 LC_ALL=C
 
@@ -45,6 +46,7 @@ WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
 ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
+
 function increaseErrorCount() {
   ERRORS=$((ERRORS++))
 }
@@ -56,8 +58,15 @@ function debugMsg() {
 function scriptError() {
   echo >&2 "Error executing: ${1}"
   increaseErrorCount
-  return 1
+  exitWithError "${1}"
 }
+
+if command -v travis_wait >/dev/null 2>&1; then
+  debugMsg "travis_wait found! updating command..."
+  ASCIIDOCTOR_CMD_COMMON="travis_wait ${ASCIIDOCTOR_CMD_COMMON}"
+else
+  debugMsg "travis_wait not found!"
+fi
 
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
@@ -68,8 +77,21 @@ function exitWithError() {
 
 function abortCurrentBuild() {
   echo >&2 "Aborting current build ${1}."
-  return 0
+  exit 1
 }
+
+function executeCustomScripts() {
+    PARTNER="${1}"
+    debugMsg "Executing custom scripts.."
+    # execute all custom scripts of the partner
+    # IMPORTANT: script MUST NOT use exit, only return!
+    for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
+      debugMsg "$(basename ${script}):"
+      source "${script}" || scriptError "$(basename ${script})"
+    done
+    debugMsg "Custom scripts done. Errors: ${ERRORS}"
+}
+
 
 # writeRepoKey takes WL_REPO_SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64 | tr -d '\n')
 function writeRepoKey() {
@@ -110,16 +132,21 @@ function createPartnerFolder() {
   mkdir -p "${BUILDFOLDER_PATH}"
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
-  # copy the master template to the build directory and name it after the partner
-  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}" ]]; then
-    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}"
+  if [[ "${2}" == "NOVA" ]]; then
+    NOVA="NOVA"
+    mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}"
   fi
-  cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}"
-  cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/"
 
-  if [[ ${PARTNER} != 'WD' ]]; then
+  # copy the master template to the build directory and name it after the partner
+  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}" ]]; then
+    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}"
+  fi
+  cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA}"
+  cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
+
+  if [[ "${PARTNER}" != 'WD' ]]; then
     # fill the partner dir with whitelabel content
-    cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/"
+    cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
 }
 
@@ -163,34 +190,38 @@ function setUpMermaid() {
 function buildPartner() {
   PARTNER=${1}
 
-  debugMsg " "
-  debugMsg "::: Building ${PARTNER}"
-  createPartnerFolder "${PARTNER}"
-  cd "${BUILDFOLDER_PATH}/${PARTNER}"
+  echo
+  debugMsg "::: Building ${PARTNER} ${NOVA}"
+
+  BPATH="${PARTNER}"
+  if [[ "${2}" == "NOVA" ]]; then
+    debugMsg "[NOVA] build started"
+    NOVA="NOVA"
+    NOVA_INDEX="nova.adoc"
+    BPATH="${BPATH}/NOVA"
+  fi
+
+  createPartnerFolder "${PARTNER}" "${NOVA}"
+  cd "${BUILDFOLDER_PATH}/${BPATH}"
 
   setUpMermaid
 
-  if [[ ${PARTNER} != 'WD' ]]; then
+  if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
 
-    debugMsg "Executing custom scripts.."
-    # execute all custom scripts of the partner
-    # IMPORTANT: script MUST NOT use exit, only return!
-    for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
-      debugMsg "$(basename ${script}):"
-      source "${script}" || scriptError "$(basename ${script})"
-    done
-    debugMsg "Custom scripts done. Errors: ${ERRORS}"
+    executeCustomScripts "${PARTNER}" || abortCurrentBuild " for WL partner ${PARTNER}."
 
     # if any script failed, abort right here the build of this WL-partner
-    [[ ${ERRORS} -gt 0 ]] && abortCurrentBuild " for WL partner ${PARTNER}." && return 1
     # if any test or script that comes later (common build instructions for all partners) fails
     # then the loop that called buildPartner() will handle the error message
   fi
 
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
-  if [[ -z $SKIP ]] && [[ "${PARTNER}" != "MS" ]]; then
+  TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
+  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -P '^'${PARTNER}'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
+  else
+    debugMsg "[SKIP] basic tests"
   fi
 
   debugMsg "Minifying and combining js files"
@@ -199,7 +230,7 @@ function buildPartner() {
   debugMsg "Building blob html"
   # build html for toc and index
   # TODO: replace with asciidoctor.js api calls inside these scripts to avoid costly building of html
-  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html ||
+  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
   debugMsg "Creating TOC json"
@@ -211,7 +242,8 @@ function buildPartner() {
     scriptError "lunr-index-builder.js in line $((LINENO - 1))"
 
   debugMsg "Building split page docs"
-  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 -r ./buildscripts/asciidoc/multipage-html5-converter.rb ||
+  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 \
+  -r ./buildscripts/asciidoc/multipage-html5-converter.rb ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
   if [[ -n $NEW_MERMAID ]]; then
@@ -226,18 +258,16 @@ function buildPartner() {
   HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
 
   debugMsg "Moving created web resources to deploy html folder"
-  mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}/html"
+  mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
 
-  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" ||
-    increaseErrorCount
+  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html"
 
   # fallback png's for IE
-  cp mermaid/*.png "${BUILDFOLDER_PATH}/${PARTNER}/html/"
+  cp mermaid/*.png "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
-  cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
+  cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
 
-  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" ||
-    increaseErrorCount
+  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
   return ${ERRORS}
 }
@@ -268,7 +298,10 @@ function main() {
       echo "* [--pdf] build pdf"
       ;;
     --pdf)
+      createPartnerFolder "${PARTNER}"
+      cd "${BUILDFOLDER_PATH}/${PARTNER}"
       setUpMermaid
+      executeCustomScripts "${PARTNER}"
       debugMsg "Creating PDF..."
       # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
@@ -310,7 +343,8 @@ function main() {
     exitWithError "Line ${LINENO}: Failed to create template."
 
   ERRORS=0
-  if buildPartner "${PARTNER}"; then # if everything built well then
+  if buildPartner "${PARTNER}"; then
+    # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
@@ -322,6 +356,18 @@ function main() {
     FAILED_BUILDS+=("${PARTNER}") # and add partner to list of failed builds
     return 1
   fi
+
+  if [[ "${PARTNER}" != "WD" ]]; then
+    debugMsg "Partner does not support NOVA"
+  elif buildPartner "${PARTNER}" "NOVA"; then
+    debugMsg "SUCCESS! NOVA for ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/"
+    debugMsg "export DEPLOY_${PARTNER}_${NOVA}=TRUE"
+    export DEPLOY_${PARTNER}_${NOVA}=TRUE
+    echo "${PARTNER}_${NOVA}:${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/" >>"${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}_nova"
+  else
+    debugMsg "Failed! Could not build NOVA ${PARTNER}"
+  fi
+
   echo
   return 0
 }
