@@ -1,3 +1,5 @@
+include::shortcuts.adoc[]
+
 [#CreditCard_PaymentFeatures]
 ==== Payment Features
 
@@ -968,6 +970,258 @@ been referenced by _{payment-gateway}_ can be processed. Cases
 like this will be handled a non-referenced ``capture-authorization``
 transaction type. In that case all fields must be supplied with the
 _capture-authorization_ request.
+
+ifdef::env-wirecard[]
+[#CreditCard_PaymentFeatures_AccountUpdater]
+===== Account Updater
+
+Account Updater is a feature facilitating recurring credit card payments. It informs the merchant about changes of cardholder's credit card details.
+
+It saves the cardholders the hassle of manually updating credit card details for each individual subscription. All types of recurring credit card payments can continue seamlessly even if
+
+- the cardholder's credit card has expired.
+- the cardholder has a new credit card.
+//-
+
+Furthermore, Account Updater informs the merchant when
+
+- a credit card is reported as lost or stolen.
+- the cardholder withdraws the authorization for their credit card to be charged.
+//-
+
+NOTE: The merchant is required to have an existing commercial agreement with the cardholder to receive these updates.
+
+.Currently supported credit card brands:
+
+- Visa
+- Mastercard
+//-
+
+.What is updated by Account Updater?
+
+Recurring payments need a ``transaction-id`` of a preceding transaction to refer to (i.e. ``parent-transaction-id``). If credit card details change, the corresponding ``transaction-id`` changes.
+
+Account updater checks if a ``transaction-id`` has changed and returns the updated ``transaction-id`` to the merchant. 
+
+---
+
+To activate Account Updater, contact <<ContactUs, merchant support>>.
+
+---
+
+[#CreditCard_PaymentFeatures_AccountUpdater_Workflow]
+====== Workflow
+
+Updating account information requires action on the merchant side. What you need to do is highlighted in [aqua]#blue# in the diagram below.
+
+[mermaid, AccountUpdater_workflow,svg,subs=attributes+]
+----
+sequenceDiagram
+rect rgb(0, 255, 255)
+    Merchant->>SFTP Server: 1. Upload request file
+end
+rect rgb(90, 255, 90)
+    SFTP Server->>Account Updater: 2. Forward request 
+end
+    participant A as Schemes <br/> (Mastercard/Visa)
+rect rgb(90, 255, 90)
+   Account Updater->>+A:  3. Request scheme data
+end
+Note over Issuers: <--    populate<br/> <-- schemes<br/> <--   continuously
+rect rgb(90, 255, 90)
+   A->>-Account Updater:  4. Update credit card details
+end
+rect rgb(90, 255, 90)
+   Account Updater->>SFTP Server:  5a. Send response file
+end
+rect rgb(90, 255, 90)
+    Account Updater->>Merchant:  5b. Send notification email
+end
+rect rgb(0, 255, 255)
+    SFTP Server->>Merchant:  6. Retrieve response file
+end
+----
+
+. Upload <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>>:
+.. Log in to the SFTP server with your Account Updater credentials. If you do not have the appropriate URL or credentials, contact <<ContactUs, merchant support>>. +
+.. Open folder ``FLIX``. If there is no ``FLIX`` folder, contact <<ContactUs, merchant support>>. +
+The ``FLIX`` folder contains two customized subfolders: ``from ...`` and ``to ...``.
+.. Open subfolder ``from ...``.
+.. Open subfolder ``new``.
+.. Upload the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>> to the SFTP server.
+. - 4. Account Updater retrieves the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>> from the SFTP server and updates it with scheme data, which are continuously updated by the issuers. This may take up to 3 days.
+//-
+
+[start=5]
+. Account Updater exports the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>> to the ``FLIX``/``to ...``/``new`` subfolder and sends a notification email to the merchant.
+. Log in to the SFTP server with your Account Updater credentials. Open subfolder ``FLIX``/``to ...``/``new`` to download the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>>.
+ 
+
+[#CreditCard_PaymentFeatures_AccountUpdater_Files]
+====== Files
+
+Both the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>> and the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>> are plain text files without extension. 
+The fields within the files are seperated by ``;``. All fields are mandatory, unless otherwise indicated.
+Default encoding is UTF-8.
+
+[#CreditCard_PaymentFeatures_AccountUpdater_Files_Request]
+.Request File
+
+The request file contains original ``transaction-id`` information. 
+The request file name must have a specific format:
+
+image::images/11-01-03-credit-card_payment-features/Account_Updater_request_file_name.png[Create_TokenID_Workflow]
+
+[CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax]
+*Request File Syntax:*
+
+[underline]#Header line (line 1):#
+
+* indicated by ``H``
+* *Header syntax:* +
+``H;MAID;Batch-ID;email;Merchant Proprietary Info``
+* ``batch-ID``: +
+Internal merchant file ID used to match request and response files.
+* ``email``: +
+Once the data have been updated, or if there is any error, Account Updater sends a notification email to the address entered here. +
+The email address in the request file can differ from the default email address configured at Account Updater setup.
+* ``Merchant Proprietary Info``: +
+Optional field. Contains any information you want to be included in the request header. It will be mirrored in the response.
+//-
+
+
+[underline]#Detail lines:#
+
+* indicated by ``D``
+* *Details syntax:* +
+``D;rfu;rfu;rfu;transacion-id;rfu;Merchant Proprietary Info Detail``
+* ``transaction-id``: +
+Retrieved from an existing transaction. This ``transaction-id`` will be checked by Account Updater and updated if credit card details have changed.
+* ``Merchant Proprietary Info Detail``: +
+Optional field. Contains any information you want to be included in the record. It will be mirrored in the response.
+* ``rfu:`` +
+Reserved for future use. Must be left blank.
+//-
+
+[underline]#Footer line (last line):#
+
+* indicated by ``F``
+* *Footer syntax:* +
+``F;n``
+* ``n`` total number of lines (including header and footer)
+//-
+
+*Sample Request File (Success):*
+[source,txt,subs=attributes+]
+----
+H;000000317588D017;123;notification.address@merchant.com;ProprietaryInformation for this batch
+D;;;;C020929259567753216841;;proprietaryInfoa7e94047e4494f0698b4
+D;;;;C057225169441625488387;;proprietaryInfodf2cfd1ce8c84b08bf25
+D;;;;C073152725565823862026;;proprietaryInfo3ea5484f848f451488fc
+D;;;;C081533725758083421254;;proprietaryInfo96d19d4010d14aabbc94
+D;;;;C077647318514033592579;;proprietaryInfo2a5936061c984e14834c
+F;7
+----
+
+*Sample Request File (Error):*
+[source,txt,subs=attributes+]
+----
+H;6787AD3256EA;1234;notification.address@merchant.com;ProprietaryInformation for this batch
+D;;;;;;ProprietaryInformation for this record
+D;;;;C0992801501001007160912;;ProprietaryInformation for this record
+F;4
+----
+
+
+[#CreditCard_PaymentFeatures_AccountUpdater_Files_Response]
+.Response File
+
+The response file has the same name as the corresponding request file with "REQ" replaced by "RES":
+[.text-center]
+*AU.[red]#RES#.ID<MAID>.D<YYMMDD>.S<3-digit seq #>*
+
+It contains 
+
+* updated ``transaction-id`` information (i.e. information on credit card details changes) in case of success.
+* response codes, describing the credit card details changes in case of success.
+* error messages, describing the error reason (e.g. missing transaction-id) in case of failure.
+//-
+
+*Response File Syntax:*
+
+Header and footer have the same syntax as in the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax, request file>>.
+
+[underline]#Detail lines:#
+
+* *Details syntax:* +
+``D;rfu;rfu;rfu;rfu;transacion-id;rfu;rfu;rfu;rfu;new-transaction-id;response-code;rfu;Merchant Proprietary-Info``
+* ``transaction-id``: + 
+Retrieved from an existing transaction. This ``transaction-id`` will be checked by Account Updater and updated if credit card details have changed.
+* ``new-transaction-id``: +
+New ``transaction-id`` retrieved from updated credit card details. Use this ``transaction-id`` to reference to in recurring payments.
+* ``response-code``: +
+  ** ``V``: Valid credit card. No changes.
+  ** ``A``: Update: Match made, credit card replaced.
+  ** ``C``: Contact: Match made, credit card canceled.
+  ** ``E``: Expiry: Match made, expiration date updated.
+  ** ``P``: Unknown credit card number - participating BIN/issuer.
+  ** ``N``: Unknown credit card number - non-participating BIN/issuer.
+  ** ``U``: Unknown credit card number.
+  ** ``Q``: Contact the cardholder for additional account information.
+* ``Merchant Proprietary Info:`` +
+Optional field.
+Contains any information you want to be included in the record.
+Mirrored from request.
+* ``rfu``: +
+Reserved for future use. Must be left blank.
+* If a record is invalid (e.g. missing ``transaction-id``), Account Updater does not return a ``response-code``. Instead, an ``error message`` is appended to the end of the line.
+
+//-
+
+*Sample Response File (Success):*
+[source,txt,subs=attributes+]
+----
+H;000000317588D017;123;notification.address@merchant.com;ProprietaryInformation for this batch
+D;;;;;C073152725565823862026;;;;C074539155801779830647;AP;;proprietaryInfo3ea5484f848f451488fc
+D;;;;;C020929259567753216841;;;;C074539155801779830647;AR;;proprietaryInfoa7e94047e4494f0698b4
+D;;;;;C081533725758083421254;;;;C074539155801779830647;EE;;proprietaryInfo96d19d4010d14aabbc94
+D;;;;;C077647318514033592579;;;;C074539155801779830647;CC;;proprietaryInfo2a5936061c984e14834c
+D;;;;;C057225169441625488387;;;;C074539155801779830647;AB;;proprietaryInfodf2cfd1ce8c84b08bf25
+F;7
+----
+
+*Sample Response File (Error):*
+[source,txt,subs=attributes+]
+----
+H;6787AD3256EA;1234;notification.address@merchant.com;ProprietaryInformation for this batch
+D;;;;;;ProprietaryInformation for this record;Missing transaction id
+F;3
+----
+
+[#CreditCard_PaymentFeatures_AccountUpdater_ErrorHandling]
+====== Error Handling
+. **Invalid request file:** +
++
+--
+Invalid request files can not be processed. Account Updater copies invalid request files to the subfolder
+/``FLIX``/``fromMerchant``/``error`` and sends an email notification to the email adress configured by merchant support or given in the request file header. +
+ Possible reasons: +
+
+  * invalid format
+  * invalid header
+  * invalid footer
+  * invalid file name +
+
+Click <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax, here>> for correct <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax, request file syntax>>.
+--
+
+. **Invalid or missing ``transaction-id``:** +
++
+A ``transaction-id`` is invalid if it cannot be matched with a credit card number. +
+If one or more ``transaction-id``s are invalid or missing, Account Updater saves the response file in /``FLIX``/``toMerchant``/``error`` and sends an email notification to the email adress configured by merchant support or given in the request file header.
+Invalid records are marked accordingly in the response file. 
+
+endif::[]
 
 [#CreditCard_PaymentFeatures_VOP]
 ===== Visa Offers Platform
