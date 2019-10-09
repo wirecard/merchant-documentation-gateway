@@ -61,7 +61,7 @@ function scriptError() {
   exitWithError "${1}"
 }
 
-if command -v travis_wait >/dev/null 2>&1; then
+if [[ -n ${TRAVIS} ]]; then
   debugMsg "travis_wait found! updating command..."
   ASCIIDOCTOR_CMD_COMMON="travis_wait 35 ${ASCIIDOCTOR_CMD_COMMON}"
 else
