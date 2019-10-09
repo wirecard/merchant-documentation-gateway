@@ -61,13 +61,6 @@ function scriptError() {
   exitWithError "${1}"
 }
 
-if [[ -n ${TRAVIS} ]]; then
-  debugMsg "travis_wait found! updating command..."
-  ASCIIDOCTOR_CMD_COMMON="travis_wait 35 ${ASCIIDOCTOR_CMD_COMMON}"
-else
-  debugMsg "travis_wait not found!"
-fi
-
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
   echo >&2 "Build aborted."
