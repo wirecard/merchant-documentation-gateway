@@ -39,9 +39,10 @@ install:
 - npm install -g mermaid.cli
 - pip3 install xmltodict
 script:
-- travis_wait bash buildscripts/main.sh
+- bash buildscripts/build-wrapper.sh
 # - echo "TRAVIS_ENVSET_FILE=${TRAVIS_ENVSET_FILE}"
 - if [[ -f "${TRAVIS_ENVSET_FILE}" ]]; then export DEPLOY_${PARTNER}=TRUE; fi
+- if [[ -f "${TRAVIS_ENVSET_FILE}_nova" ]]; then export DEPLOY_${PARTNER}_NOVA=TRUE; fi
 # before_deploy:
 # - echo "in before_deploy section beginning " ${DEPLOY_PO}
 deploy:
@@ -60,7 +61,7 @@ deploy:
   secret_access_key: $S3ACCESSKEY
   bucket: wirecard-docs
   region: eu-central-1
-  skip_cleanup: true
+  skip_cleanup: false
   local-dir: /tmp/build/WD/html
   on:
     branch: master
@@ -76,6 +77,17 @@ deploy:
   on:
     all_branches: true
     condition: $DEPLOY_WD = TRUE
+
+- provider: s3
+  access_key_id: $S3ACCESSID
+  secret_access_key: $S3ACCESSKEY
+  bucket: n-bckt-internal
+  region: eu-central-1
+  skip_cleanup: true
+  local-dir: /tmp/build/WD/NOVA/html
+  on:
+    all_branches: true
+    condition: $DEPLOY_WD_NOVA = TRUE
 
 - provider: s3
   access_key_id: $S3ACCESSID
