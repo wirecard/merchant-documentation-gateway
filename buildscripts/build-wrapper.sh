@@ -3,7 +3,7 @@
 #### CONFIG #####
 
 BUILDSCRIPT="./buildscripts/main.sh"
-TIMEOUT_MINUTES=30
+TIMEOUT_MINUTES=60
 
 ## END CONFIG ##
 
