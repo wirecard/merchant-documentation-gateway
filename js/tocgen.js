@@ -23,14 +23,24 @@ $('<div id="minitoc"><ul></ul></div>').insertAfter("header");
 $('<span id="console"></span>').insertAfter("header");
 $('header').prepend('<button class="hamburger hamburger--arrow is-active" type="button" id="tocbtn"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button>');
 
+function hideNav() {
+  $('#toc').addClass('hidden-toc');
+  $('#tocbtn').removeClass('is-active');
+  $('header').addClass('blue');
+}
+
+function showNav() {
+  $('#toc').removeClass('hidden-toc');
+  $('#tocbtn').addClass('is-active');
+  $('header').removeClass('blue');
+}
+
 function initializeForScreenSize() {
   if (window.matchMedia('(max-width: ' + mobileLayoutCutoffWidth + 'px)').matches) {
-    $('#toc').addClass('hidden-toc');
-    $('#tocbtn').removeClass('is-active');
+    hideNav();
   }
   else {
-    $('#toc').removeClass('hidden-toc');
-    $('#tocbtn').addClass('is-active');
+    showNav();
   }
 }
 initializeForScreenSize();
@@ -40,22 +50,21 @@ $(window).on('resize', function () {
 
 $('#content').on("click touch", function () {
   if ($('#toc').width() > 0 && $(window).width() < mobileLayoutCutoffWidth) {
-    $('#toc').addClass('hidden-toc');
-    $('#tocbtn').removeClass('is-active');
+    hideNav();
   }
 });
 
 $('#tocbtn').on("click touch", function () {
   $('#toc').toggleClass('hidden-toc');
   $(this).toggleClass('is-active');
+  $('header').toggleClass('blue');
   $(window).scrollLeft(0);
   $('#resultslist').empty();
 });
 
 $('#resultslist, #toc').on("click touch", function () {
   if ($(window).width() < mobileLayoutCutoffWidth) {
-    $('#toc').addClass('hidden-toc');
-    $('#tocbtn').removeClass('is-active');
+    hideNav();
   }
 });
 
