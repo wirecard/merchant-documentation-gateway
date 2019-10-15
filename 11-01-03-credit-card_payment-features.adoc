@@ -1045,7 +1045,7 @@ Suggestion:
 ////
 
 . Upload <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>>:
-.. Log in to the SFTP server with your Account Updater credentials. If you do not have the appropriate URL or credentials, contact <<ContactUs, merchant support>>. +
+.. Log in to the SFTP server with your SFTP credentials. If you do not have the appropriate URL or credentials, contact <<ContactUs, merchant support>>. +
 .. Open folder ``FLIX``. If there is no ``FLIX`` folder, contact <<ContactUs, merchant support>>. +
 The ``FLIX`` folder contains two customized subfolders: ``from ...`` and ``to ...``.
 .. Open subfolder ``from ...``.
@@ -1056,7 +1056,7 @@ The ``FLIX`` folder contains two customized subfolders: ``from ...`` and ``to ..
 
 [start=5]
 . Account Updater exports the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>> to the ``FLIX``/``to ...``/``new`` subfolder and sends a notification email to the merchant.
-. Log in to the SFTP server with your Account Updater credentials. Open subfolder ``FLIX``/``to ...``/``new`` to download the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>>.
+. Log in to the SFTP server with your SFTP credentials. Open subfolder ``FLIX``/``to ...``/``new`` to download the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>>.
 
 //-
 
@@ -1112,6 +1112,7 @@ Retrieved from an existing transaction. This ``transaction-id`` will be checked 
 Optional field. Contains any information you want to be included in the record. It will be mirrored in the response.
 //-
 
+[#CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax_Footer]
 [underline]#Footer line syntax (last line):#
 
 ``F;n``
@@ -1119,7 +1120,7 @@ Optional field. Contains any information you want to be included in the record. 
 * ``F``: +
 Indicates a footer line.
 * ``n``: +
-Total number of lines (including header and footer).
+Total number of lines (including header, details and footer).
 //-
 
 *Sample Request File (Success):*
@@ -1160,7 +1161,27 @@ It contains
 
 *Response File Syntax:*
 
-Header and footer have the same syntax as in the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax, request file>>.
+[underline]#Header line syntax (line 1):#
+
+``H;MAID;Batch-ID;email;Merchant Proprietary Info``
+
+* ``H``: +
+Indicates a header line.
+* ``MAID``: +
+Merchant Account ID
+* ``batch-ID``: +
+Internal merchant file ID used to match request and response files. +
+Specified only in case of success.
+* ``error-code``: +
+Indicates that one or more records could not be processed, e.g. due to ``MissingTrxId``: Missing transaction ID. +
+Specified only in case of an error.
+* ``email``: +
+Once the response file is ready to be downloaded, or if the request file is invalid, Account Updater sends a notification email to the address entered here. +
+Specified only in case of an error. +
+The email address in the request file can differ from the default email address configured at Account Updater setup.
+* ``Merchant Proprietary Info``: +
+Optional field. Contains any information you want to be included in the request header. It will be mirrored in the response.
+//-
 
 [underline]#Detail lines syntax (records):#
 
@@ -1191,10 +1212,12 @@ Mirrored from request.
 
 NOTE: If a record is invalid (e.g. missing ``transaction-id``), Account Updater does not return a ``response-code``. Instead, an ``error message`` is appended to the end of the line.
 
+The footer has the same syntax as in the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request_Syntax_Footer, request file>>.
+
 *Sample Response File (Success):*
 [source,txt,subs=attributes+]
 ----
-H;000000317588D017;123;notification.address@merchant.com;ProprietaryInformation for this batch
+H;000000317588D017;123;ProprietaryInformation for this batch
 D;;;;;C073152725565823862026;;;;C074539155801779830647;A;;proprietaryInfo3ea5484f848f451488fc
 D;;;;;C020929259567753216841;;;;C074539155801779830647;A;;proprietaryInfoa7e94047e4494f0698b4
 D;;;;;C081533725758083421254;;;;C074539155801779830647;E;;proprietaryInfo96d19d4010d14aabbc94
