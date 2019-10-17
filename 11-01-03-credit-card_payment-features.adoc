@@ -1163,10 +1163,11 @@ Merchant Account ID
 Internal merchant file ID used to match request and response files.
 * ``email``: +
 Specified only in case of an error. +
-If there are invalid or missing ``transaction-id``s in the request file, Account Updater sends a notification email to this email address. +
 * ``Merchant Proprietary Info``: +
 Optional field. Contains any information you want to be included in the request header. It will be mirrored in the response.
 //-
+
+NOTE: If a record is invalid (e.g. invalid or missing ``transaction-id``), Account Updater creates a response error file that contains all invalid records (see <<#CreditCard_PaymentFeatures_AccountUpdater_ErrorHandling, error handling>>). In this case, the response error file header contains also the email address to which Account Updater sent the  notification that an error occured. +
 
 [underline]#Detail lines syntax (records):#
 
@@ -1238,10 +1239,18 @@ Invalid request files can not be processed. Account Updater copies invalid reque
 
 . **Invalid or missing ``transaction-id``:** +
 +
+--
 A ``transaction-id`` is invalid if it cannot be matched with a credit card number. +
-If one or more ``transaction-id``s are invalid or missing, Account Updater saves the response file in /``FLIX``/``toMerchant``/``error`` and sends an email notification to the email adress configured by merchant support or given in the request file header.
-Invalid records are marked accordingly in the response file. 
+If one or more ``transaction-id``s are invalid or missing, Account Updater 
 
+  * creates a response error file that contains all invalid records
+  * saves it in /``FLIX``/``toMerchant``/``error``
+  * sends an email notification to the email adress configured by merchant support or given in the request file header. +
+
+Invalid records are marked accordingly in the response error file. 
+
+NOTE: Even if a request file contains invalid or missing ``transaction-id``s, records with valid ``transaction-id``s  are processed as normal, and you can retrieve a response success file from ``FLIX``/``to …​``/``new``.
+--
 //endif::[]
 
 [#CreditCard_PaymentFeatures_VOP]
