@@ -4,42 +4,47 @@ include::shortcuts.adoc[]
 [#PPv2_Klarna]
 ===== {payment-method-name}.
 
-[.clearfix]
---
-[.right]
-image::images/11-13-klarna/klarna_logo_black.png[Klarna Logo,width=200]
+include::include/ppv2-general-information.adoc[]
+
+//Below, we provide a sample request/sample requests for the available transaction type <<PPv2_Klarna_TransactionType_authorization, authorization>>, including a field list with short descriptions.
+
+Below, we provide a field list with short descriptions.
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> 
+section.
+
+For response verification examples, see
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+
+//include::include/ppv2-general-information-2.adoc[]
+
+[#PPv2_Klarna_About]
+====== About _{payment-method-name}_
 
 _{payment-method-name}_ offers 3 payment options for consumers to pay when and how they prefer to: 
 
-* **Pay now**: +
+* **Pay now:** +
     - Quick and easy direct payments (direct debit, bank transfer, credit card).
     - Support for recurring payments and subscriptions.
     - Type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
-* **Pay later**:
+* **Pay later:**
     - Payment on invoice. Consumers pay for goods or services 14 - 60 days after receipt. 
     - Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
-* **Slice it**: +
+* **Slice it:** +
     - Consumers pay for received goods or services in equal monthly installments.
     - Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
+//-
+
 _{payment-method-name}_ takes full credit and fraud risk and guarantees payments.
---
 
+[#PPv2_Klarna_Countries]
 .Countries
-////
-[cols="20h,80"]
-|===
-|Countries    
-|Sweden, Norway, Finland, Denmark, UK, Germany, Austria, Netherlands, Switzerland
-
-|Currencies   
-|CHF, DKK, EUR, GBP, NOK, SEK
-|===
-////
 [%autowidth]
 [cols=","]
 |===
-|Country |Payment Option Availability
+|Country |Available Payment Options
 
 |Austria
 |Pay now, Pay later
@@ -62,13 +67,12 @@ _{payment-method-name}_ takes full credit and fraud risk and guarantees payments
 |===
 
 [#PPv2_Klarna_Currencies]
-.Supported locale/country/currency combinations:
+.Supported locale/country/currency combinations
 
 [%autowidth]
 [cols=",,"]
 |===
-s|Locale s|Purchase Country +
-(country of consumer's address) s|Purchase Currency
+s|Locale s|Country of Consumer's Address s|Currency
 
 |da-dk
 |DK
@@ -96,20 +100,10 @@ s|Locale s|Purchase Country +
 |SEK
 |===
 
-[#PPv2_Klarna_GeneralInformation]
-====== General Information
-
-include::include/ppv2-general-information.adoc[]
-
-Below, we provide a sample request/sample requests for the available transaction type <<PPv2_Klarna_TransactionType_authorization, authorization>>, including a field list with short descriptions.
-
-include::include/ppv2-general-information-2.adoc[]
-
-
 [#PPv2_Klarna_TransactionType_authorization]
 ====== Transaction Type _authorization_
 
-With _{payment-method-name}_ you can use the transaction types _authorization_ and _auto-sale_, which both trigger an _authorization_.
+With _{payment-method-name}_ you can use the transaction types _authorization_ and _auto-sale_ which both trigger an _authorization_.
 
 An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer. It performs an order risk check and an order reservation. Once an order is reserved, the payment is guaranteed.
 
@@ -151,7 +145,6 @@ INCLUDE THIS SECTION IF REQUIRED
 |===
 ////
 
-
 [#PPv2_Klarna_Samples]
 ====== Sample Workflow
 ====
@@ -163,13 +156,13 @@ INCLUDE THIS SECTION IF REQUIRED
 
 //-
 ====
-We provide JSON examples for each step of this process. You can find them below.
+// We provide JSON examples for each step of this process. You can find them below.
 
 .Request Headers
 [cols="20h,80"]
 |===
 |Authorization
-a| Use username and password as given in your {payment-provider-name} contract to _Base64_ encode the authorization.
+a| Use username and password as given in your {payment-provider-name} contract to base64-encode the authorization.
 
 For example for `user:password` the authorization header is:
 [source]
@@ -178,7 +171,7 @@ Authorization: Basic dXNlcjpwYXNzd29yZA==
 ----
 |Content-Type
 a|
-For _JSON_ requests the content type header is:
+For JSON requests the content type header is:
 [source]
 ----
 Content-Type: application/json;charset=UTF-8
@@ -189,7 +182,7 @@ Content-Type: application/json;charset=UTF-8
 [#PPv2_Klarna_TransactionType_auth_Create]
 .1. Create a Payment Session (Initial Request)
 
-You can use the following sample for transaction type ``authorization`` or ``auto-sale``.
+// You can use the following sample for transaction type ``authorization`` or ``auto-sale``.
 
 ////
 [source,json]
@@ -220,8 +213,6 @@ to every merchant account (by {payment-provider-name}).
 4+|request-id |String |Required |150 a|A unique identifier assigned by the merchant
 to each request. Used when searching for or referencing it later.
 
-You may enter any ``request-id`` that has never been used before.
-
 As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
 uses it to generate a random ``request-id`` for testing.
 
@@ -232,7 +223,7 @@ Allowed characters:  ``[a-z0-9-\_]``.
 - `authorization`
 - `auto-sale`
 
-Both trigger `authorization`.
+Both trigger an `authorization`.
 //-
 
 .2+|requested-amount  
@@ -245,7 +236,8 @@ The requested amount must be equal to the amount sum of all order items.
 Use ``.`` (decimal point) as separator.
 
 .11+|account-holder 3+m|date-of-birth |String |Optional |n/a |Consumer's date of birth. +
-Format: Klarna accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
+Format: Klarna accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. + 
+If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
 
 3+m|first-name |String |Optional |32 |Consumer's first name.
 
@@ -255,7 +247,8 @@ Format: Klarna accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. If you provide a d
 
 3+m|gender |String |Optional |1 |Consumer's gender.
 
-3+m|phone |String |Required |32 |Consumer's phone number. Phone numbers need to be validated. Click <<PPv2_Klarna_phoneNumberValidation, here>> for details.
+3+m|phone |String |Required |32 |Consumer's phone number. +
+Phone numbers need to be validated. Click <<PPv2_Klarna_phoneNumberValidation, here>> for details.
 
 .5+m|address 2+m|street1 |String |Optional |128 |Street of the consumer's address.
 
@@ -272,7 +265,8 @@ Format: Klarna accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. If you provide a d
 
 3+|email |String |Optional |64 | Email address of the recipient.	
 
-3+|phone |String |Required |32 |The phone number of the recipient. Phone numbers need to be validated. Click <<PPv2_Klarna_phoneNumberValidation, here>> for details.
+3+|phone |String |Required |32 |The phone number of the recipient. +
+Phone numbers need to be validated. Click <<PPv2_Klarna_phoneNumberValidation, here>> for details.
 
 .6+m|address 2+m|street1 |String |Optional |128 |Street of the recipient's address.
 
@@ -286,13 +280,16 @@ Format: Klarna accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. If you provide a d
 
 2+|postal-code |String |Optional |16 |Postal/ZIP code of the recipient's address.
 
-4+|order-number	|String |Optional |255 |Order number of the merchant. If set, it shows as "order number" on Klarna's confirmation page.
+4+|order-number	|String |Optional |255 |Order number of the merchant. +
+If set, it shows as "order number" on Klarna's confirmation page.
 
-4+|locale	|String |Required |5 |Customer's locale according to RFC 1766.	E.g. ``en-us`` for US English, ``en-gb`` for British English and ``sv-se`` for Swedish (in Sweden).
+4+|locale	|String |Required |5 |Consumer's locale according to RFC 1766.	E.g. ``en-us`` for US English, ``en-gb`` for British English and ``sv-se`` for Swedish (in Sweden).
 
-.9+|order-items .9+m|order-item 2+m|quantity |Numeric |Required |n/a  |Total number of this item in the shopping basket.
+.10+|order-items .10+m|order-item 2+m|quantity |Numeric |Required |n/a  |Total number of this item in the shopping basket.
 
-2+m|article-number |String |Optional |256 |EAN or other merchant side article identifier.
+2+m|description |String |Optional |1024 |Description of the item in the shopping basket.
+
+2+m|article-number |String |Optional |256 |EAN or other merchant-side article identifier.
 
 2+m|name |String |Required |256 |Name of the item in the shopping basket.
 
@@ -304,17 +301,15 @@ Use ``.`` (decimal point) as separator.
 Format: 3-character abbreviation according to ISO 4217.
 
 2+|tax-rate |Numeric |Optional |5.2 a|Item’s tax rate per unit in percent. +
-*Required* if tax-amount is specified.
+*Required* if ``tax-amount`` is specified.
 
 2+|tax-amount |Numeric |Optional |5.2 a|Item’s tax value per unit. +
-*Required* if tax-rate is specified.
+*Required* if ``tax-rate`` is specified.
 
 2+|discount	|Numeric |Optional	|18.3 |The discount value for one order item.  +
-
 Use ``.`` (decimal point) as separator.
 
-2+|type	|String |Optional |n/a a|Order item type.
-
+2+|type	|String |Optional |n/a a|Order item type. +
 Possible values: 
 
   - ``shipment_fee``
@@ -347,9 +342,9 @@ e.g. ``\https://{pp-redirect-url-cancel}``
 Possible values: 
 
   - ``klarna-sliceit`` for payment in installments (Pay later)
-  - ``klarna-debit`` for Klarna direct debit (Pay now). 
-  - ``klarna-transfer`` for Klarna bank transfer (Pay now).
-  - ``klarna-later`` for Klarna payment on invoive (Pay later).
+  - ``klarna-debit`` for Klarna direct debit (Pay now) 
+  - ``klarna-transfer`` for Klarna bank transfer (Pay now)
+  - ``klarna-later`` for Klarna payment on invoive (Pay later)
 //-
 
 |===
@@ -380,7 +375,32 @@ insert redirect-url here
 form. Sent as a response to the initial request.
 |===
 
-include::include/ppv2-redirect-instructions.adoc[]
+// include::include/ppv2-redirect-instructions.adoc[]
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. + 
+_Possible transaction results_:
+
+- Successful (``transaction-state: success``)
+- Failed (``transaction-state: failed``)
+- Canceled (``transaction-state: failed``)
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the ``statuses`` object of the payment response. Canceled
+payments are returned as ``failed``, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3^rd^ party provider page), a base64-encoded response containing payment information is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more details on redirection targets after payment and transaction status
+notifications.
 
 [#PPv2_Klarna_TransactionType_auth_Response]
 .3. Parse and Process the Payment Response (Decoded Payment Response)
@@ -404,15 +424,15 @@ NOTE: It's not necessary to include Cardinality and Size in the response table.
 
 In addition to the request fields, the response returns the following fields:
 
-[%autowidth, cols="m,,,"]
+[%autowidth, cols="m,,,,"]
 |===
-2+| Field (JSON) | Data Type | Description
+3+| Field (JSON) | Data Type | Description
 
-2+|transaction-id 
+3+|transaction-id 
 |String 
 |A unique identifier assigned for every transaction. Used when searching for or referencing it later.
 
-2+|transaction-state 
+3+|transaction-state 
 |String 
 a|The current transaction state. +
 Possible values:
@@ -425,12 +445,12 @@ Possible values:
 
 Typically, a transaction starts with state ``in-progress`` and finishes with state either ``success`` or ``failed``. This information is returned in the response only.
 
-2+m|completion-time-stamp
+3+m|completion-time-stamp
 |Timestamp
-|The UTC/ISO time-stamp documents the time & date when the transaction was executed. +
+|The UTC/ISO timestamp documents the time and date when the transaction was executed. +
 Format: ``YYYY-MM-DDThh:mm:ss`` (ISO).
 
-.6+|status 
+.6+|statuses .6+m|status 
 m|description 
 |String 
 |The description of the transaction status message.
@@ -455,13 +475,13 @@ a|The definition of the status message. Possible values:
 
 |provider-message 
 |String 
-|Error message to be shown to the end-consumer as required by Klarna.
+|Error message to be shown to the consumer as required by Klarna.
 
 |provider-transaction-id 
 |String 
 |Klarna reservation number.
 
-2+|api-id       
+3+|api-id       
 |String 
 |Identifier of the currently used API.
 |===
