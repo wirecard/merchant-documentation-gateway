@@ -220,7 +220,7 @@ function buildPartner() {
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
   TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
-  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -P '^'${PARTNER}'$' >&/dev/null; then
+  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -E '^'${PARTNER}'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
   else
     debugMsg "[SKIP] basic tests"
@@ -257,7 +257,7 @@ function buildPartner() {
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
 
-  HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
+  HTMLFILES="$(ls ./*.html | grep -vE 'docinfo(-footer)?.html')"
 
   debugMsg "Moving created web resources to deploy html folder"
   mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
