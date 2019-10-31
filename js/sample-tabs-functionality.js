@@ -1,10 +1,11 @@
 function enableRequestDetailsHideShow() {
     console.log("enableRequestDetailsHideShow");
     $('table.r-details > caption').each(function () {
-        if($(this).hasClass('hide-show-enabled'))
+        if ($(this).hasClass('hide-show-enabled')) {
             return;
+        }
+        $(this).addClass('hide-show-enabled');
         $(this).on('click touch', function () {
-            $(this).addClass('hide-show-enabled');
             $(this).toggleClass('r-details-expanded');
             $(this).siblings('tbody').toggle();
             $(this).siblings('thead').toggle();
@@ -16,7 +17,7 @@ function createSampleTabs() {
     console.log("createSampleTabs");
     var sampleTabs = $('div.sample-tabs');
     sampleTabs.each(function () {
-        if($(this).hasClass('tabs-enabled'))
+        if ($(this).hasClass('tabs-enabled'))
             return;
         $(this).addClass('tabs-enabled');
         const headlineElement = $(this).children('h3,h4,h5').first();
@@ -34,8 +35,8 @@ function createSampleTabs() {
         };
         Object.keys(Tabs).forEach(function (key) {
             return Tabs[key] == null && delete Tabs[key];
-          });
-        var _btnrow = $('<div/>', { class: 'btn-samples-row'});
+        });
+        var _btnrow = $('<div/>', { class: 'btn-samples-row' });
         for (var contentType in Tabs) {
             const _tab_self = Tabs[contentType];
             var _btn = $('<button/>', {
