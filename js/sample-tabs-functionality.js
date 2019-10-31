@@ -56,4 +56,5 @@ function createSampleTabs() {
         _btnrow.insertAfter(headlineElement);
         $(_btnrow).children('button').first().click();
     });
+    enableRequestDetailsHideShow();
 }

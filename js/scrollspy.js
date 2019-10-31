@@ -151,6 +151,7 @@ function documentReady() {
   // ENABLE:TABS
   // enableRequestDetailsHideShow();
   // createSampleTabs();
+  createSampleTabs();
 }
 
 $(document).ready(function () {
