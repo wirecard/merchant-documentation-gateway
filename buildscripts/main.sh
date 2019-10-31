@@ -290,12 +290,16 @@ function main() {
     -s | --skip)
       SKIP="true"
       ;;
+    -sn | --skip-nova)
+      SKIP_NOVA="true"
+      ;;
     -f | --force)
       FORCE="true"
       ;;
     -h | --help)
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
+      echo "* [-sn|--skip-nova] skip NOVA docs build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
       ;;
@@ -361,6 +365,8 @@ function main() {
 
   if [[ "${PARTNER}" != "WD" ]]; then
     debugMsg "Partner does not support NOVA"
+  elif [[ -n $SKIP_NOVA ]]; then
+    debugMsg "Skipping NOVA for ${PARTNER}"
   elif buildPartner "${PARTNER}" "NOVA"; then
     debugMsg "SUCCESS! NOVA for ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/"
     debugMsg "export DEPLOY_${PARTNER}_${NOVA}=TRUE"
