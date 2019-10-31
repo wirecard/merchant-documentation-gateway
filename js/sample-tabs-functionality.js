@@ -3,6 +3,7 @@ function enableRequestDetailsHideShow() {
     $('table.r-details > caption').each(function () {
         if($(this).hasClass('hide-show-enabled'))
             return;
+        $(this).addClass('hide-show-enabled');
         $(this).on('click touch', function () {
             $(this).addClass('hide-show-enabled');
             $(this).toggleClass('r-details-expanded');
