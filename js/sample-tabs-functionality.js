@@ -5,7 +5,8 @@ function enableRequestDetailsHideShow() {
             return;
         }
         $(this).addClass('hide-show-enabled');
-        $(this).on('click touch', function () {
+        $(this).on('click touch', function (e) {
+            e.preventDefault();
             $(this).toggleClass('r-details-expanded');
             $(this).siblings('tbody').toggle();
             $(this).siblings('thead').toggle();
