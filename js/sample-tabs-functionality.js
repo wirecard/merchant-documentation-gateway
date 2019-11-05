@@ -76,9 +76,6 @@ function createSampleTabs() {
             _btn.appendTo(_btnrow);
         }
         _btnrow.insertAfter(headlineElement);
-        console.log('btnrow:')
-        console.log(_btnrow)
-        console.log(headlineElement);
         $(_btnrow).children('button').first().click();
     });
 }
