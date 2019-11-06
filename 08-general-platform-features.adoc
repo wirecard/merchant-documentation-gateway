@@ -1,7 +1,7 @@
 include::shortcuts.adoc[]
 
-//:env-wirecard:
-//:env-nova:
+:env-wirecard:
+:env-nova:
 
 [#GeneralPlatformFeatures]
 == General Platform Features
@@ -459,15 +459,21 @@ final status of a transaction.
 There are two types of notifications:
 
 - *HTTP(S)* (Web Server POST)
+ifndef::env-nova[] 
 - *SMTP* (Email prefixed with 'mailto')
+endif::[]
 //-
 
 The following formats are currently supported:
 
+ifndef::env-nova[] 
 - application/x-www-form-urlencoded
+endif::[]
 - application/xml
 - application/json
+ifndef::env-nova[] 
 - application/json-signed
+endif::[]
 //-
 
 [#GeneralPlatformFeatures_IPN_Configuration]
@@ -475,7 +481,9 @@ The following formats are currently supported:
 
 When the merchant wants to receive a notification, he can either
 
+ifndef::env-nova[] 
 - specify a URL as part the merchant account setup; or
+endif::[]
 - include either an email address or a URL as part of each transaction
 request
 //-
@@ -556,6 +564,7 @@ The notification will look like this:
 include::samples/json/GeneralPlatformFeatures_IPN_Json_JSON_Notification.json[]
 ----
 
+ifndef::env-nova[] 
 .application/JSON-signed Notification Example
 [source,json,subs=attributes+]
 ----
@@ -590,6 +599,7 @@ public boolean isValidSignature(String responseBase64, String responseBase64Sign
 ``<notifications format="application/html">``
 
 image:images/08-general-platform-features/HTML-Notification.png[HTML Notification]
+endif::[]
 
 [#GeneralPlatformFeatures_IPN_Xml]
 ===== Request a Notification in XML Format
@@ -612,10 +622,11 @@ to only occur on 'failed' or 'successful' transactions.
 |Notification Type  | Notification Tag in Request     | Possible Extensions of URL  | Ports         | Possible Extensions of ``transaction-state``
 
 |HTTP(S)            | ``URL``, ``transaction-state``  | any configured URL          | 80, 443, 5500 | if _URL_ <> empty and _`transaction-state`_ = empty all notifications go to that URL or if _URL_ <> empty and _`transaction-state`_ <> empty depending on the _transaction-state_ (success, failed, in-progress, etc) the notification goes to the corresponding _URL_.
+
+ifndef::env-nova[]
 |SMTP               | ``URL``, ``transaction-state``  |                             |               | if _URL_ <> empty and ``transaction-state`` = empty all notifications go to that URL (Email address prefixed with 'mailto'). OR if _URL_ <> empty and ``transaction-state`` <> empty depending on the ``transaction-state`` (success, failed, in-progress, etc) the notification goes to the corresponding _URL_ (Email address prefixed with 'mailto').
+endif::[]
 |===
-
-
 
 A request, which defines a URL to be used, when the payment process will fail:
 
@@ -916,6 +927,7 @@ endif::[]
 With the _{payment-gateway}_ a payment process can reference two
 subsequent transactions.
 
+ifndef::env-nova[] 
 This reference can be accomplished in two different ways:
 
 - For 
@@ -926,8 +938,14 @@ _credit card_ the merchant can reference transactions via the
 transaction ID.
 - For _credit card_ payments the merchant can also
  <<CreditCard_PaymentFeatures_Tokenization, use a token>>.
+endif::[]
 
 //-
+
+ifdef::env-nova[]
+This reference can be accomplished for all payment methods via the
+transaction ID.
+endif::[]
 
 [#GeneralPlatformFeatures_ReferencingTransaction_byID]
 ===== Referencing by Transaction ID
@@ -1095,7 +1113,13 @@ notification was sent the status is final.
 |===
 |URL
 
+ifndef::env-nova[] 
 |``\https://{test-instance-hostname}/engine/rest/merchants/{merchant-account-id}/payments/{transaction-id}``
+endif::[]
+
+ifdef::env-nova[] 
+|``\https://{test-instance-hostname}/engine/rest/merchants/{merchant-account-id}/payments/{transaction-id}``
+endif::[]
 |===
 
 [#GeneralPlatformFeatures_RetrieveTransaction_TransactionID_Fields]
