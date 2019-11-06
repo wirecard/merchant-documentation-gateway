@@ -45,8 +45,6 @@ function createSampleTabs() {
         nvpTabWrap.append(nvpTabElements);
         nvpTab.prepend(nvpTabWrap);
 
-        $(nvpTabWrap).append($(nvpTabElements));
-        
         var Tabs = {
             xml: (xmlTabElements.length ? xmlTabWrap : undefined),
             json: (jsonTabElements.length ? jsonTabWrap : undefined),
@@ -68,7 +66,7 @@ function createSampleTabs() {
                 //hide all. show yourself
                 for (var t in Tabs) {
                     $(Tabs[t]).hide();
-                };
+                }
                 $(this).addClass('active');
                 $(this).siblings('.btn-samples-tab').removeClass('active');
                 $(_tab_self).show();
