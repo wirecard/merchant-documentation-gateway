@@ -1,5 +1,4 @@
 function enableRequestDetailsHideShow() {
-    console.log("enableRequestDetailsHideShow");
     $('table.r-details > caption').each(function () {
         if ($(this).hasClass('hide-show-enabled')) {
             return;
@@ -16,7 +15,6 @@ function enableRequestDetailsHideShow() {
 }
 
 function createSampleTabs() {
-    console.log("createSampleTabs");
     var sampleTabs = $('div.sample-tabs');
     sampleTabs.each(function () {
         if ($(this).hasClass('tabs-enabled'))
