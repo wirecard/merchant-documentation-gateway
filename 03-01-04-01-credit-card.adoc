@@ -93,7 +93,7 @@ image:images/03-01-04-01-credit-card/cc_entercarddata.jpg[Credit Card Payment Fo
 endif::[]
 
 [#PPv2_CC_TransactionType_purchase]
-=== Transaction Type _purchase_
+=== _purchase_
 
 A _purchase_ transaction charges the account holder's card and immediately
 transfers the reserved amount.
@@ -299,7 +299,7 @@ bank statement purposes.
 |===
 
 [#PPv2_CC_TransactionType_authorization]
-=== Transaction Type _authorization_
+=== _authorization_
 
 An _authorization_ transaction places the account holder's funds on hold,
 pending future capture, re-authorization or void transaction.
@@ -508,7 +508,7 @@ bank statement purposes.
 |===
 
 [#PPv2_CC_TransactionType_authorizationonly]
-=== Transaction Type _authorization-only_
+=== _authorization-only_
 
 An _authorization-only_ transaction verifies the validity of account
 holder's card, but does not leave an authorized amount.
@@ -719,6 +719,112 @@ Possible values:
 2+e|descriptor |String |Description of the transaction for account holder's
 bank statement purposes.
 |===
+
+[#PPv2_CC_PostProcessing]
+=== Post-Processing Operations 
+
+{payment-page-v2-abbr} is best used to deal with "one-off" payments (e.g. regular,
+independent _debit_ transactions) or the initial transaction in a chain of
+them (e.g. a first _authorization_ in a chain of recurring transactions).
+However, when it comes to referencing a transaction for any kind of
+post processing operations - like a refund of one of your _debit_ transactions 
+- use our <<RestApi, REST API>> directly. Check the REST API
+<<CreditCard, _Credit Card_ specification>> for details on _Credit Card_
+specific post processing operations.
+
+There are multiple post processing operations available for _Credit Card_:
+
+- _capture_ operations for both _authorization_ and _authorization-only_,
+- recurring transactions,
+- _void_ transactions,
+- refunds,
+- and more.
+
+//-
+
+For examples and more information, see the REST
+API <<CreditCard, _Credit Card_ specification>>.
+
+[#PPv2_CC_JSONNVPField]
+=== JSON/NVP Field Reference
+
+Here you can
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+.JSON Structure for _Credit Card_ Requests
+
+[source,json,subs=attributes+]
+----
+include::samples/json/WPP_CC_JSONNVPField_JSON_StructureForCreditCardRequests.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|requested_amount |value |requested-amount ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|email |email |account-holder ({ })
+|phone |phone |account-holder ({ })
+|street1 |address ({ })/ street1 |account-holder ({ })
+|street2 |address ({ })/ street2 |account-holder ({ })
+|city |address ({ })/ city |account-holder ({ })
+|state |address ({ })/ state |account-holder ({ })
+|country |address ({ })/ country |account-holder ({ })
+|postal_code |address ({ })/ postal-code |account-holder ({ })
+|shipping_first_name |first-name |shipping ({ })
+|shipping_last_name |last-name |shipping ({ })
+|shipping_phone |phone |shipping ({ })
+|shipping_street1 |address ({ })/ street1 |shipping ({ })
+|shipping_street2 |address ({ })/ street2 |shipping ({ })
+|shipping_city |address ({ })/ city |shipping ({ })
+|shipping_state |address ({ })/ state |shipping ({ })
+|shipping_country |address ({ })/ country |shipping ({ })
+|shipping_postal_code |address ({ })/ postal-code |shipping ({ })
+|order_number |order-number |payment ({ })
+|order_detail |order-detail |payment ({ })
+|ip_address |ip-address |payment ({ })
+|attempt_three_d |attempt-three-d |payment ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|descriptor |descriptor |payment ({ })
+|===
+
+[#PPv2_CC_JSONNVPField_Responseonly]
+=== Response-only Fields
+
+[source,json,subs=attributes+]
+----
+include::samples/json/WPP_CC_JSONNVPFieldResponseonly.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|api_id |api-id |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|masked_account_number |masked-account-number |card-token ({ })
+|transaction_id |transaction-id |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
+|authorization_code |authorization-code |payment ({ })
+|===
+
+//-
 
 [#PPv2_CC_3DSecure]
 == _Credit Card_ with 3D Secure
@@ -1440,106 +1546,5 @@ Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
 ``05`` = Account
 |===
 
-[#PPv2_CC_PostProcessing]
-=== Post-Processing Operations 
-
-{payment-page-v2-abbr} is best used to deal with "one-off" payments (e.g. regular,
-independent _debit_ transactions) or the initial transaction in a chain of
-them (e.g. a first _authorization_ in a chain of recurring transactions).
-However, when it comes to referencing a transaction for any kind of
-post processing operations - like a refund of one of your _debit_ transactions 
-- use our <<RestApi, REST API>> directly. Check the REST API
-<<CreditCard, _Credit Card_ specification>> for details on _Credit Card_
-specific post processing operations.
-
-There are multiple post processing operations available for _Credit Card_:
-
-- _capture_ operations for both _authorization_ and _authorization-only_,
-- recurring transactions,
-- _void_ transactions,
-- refunds,
-- and more.
-
 //-
 
-For examples and more information, see the REST
-API <<CreditCard, _Credit Card_ specification>>.
-
-[#PPv2_CC_JSONNVPField]
-=== JSON/NVP Field Reference
-
-Here you can
-
-- find the NVP equivalents for JSON fields (for migrating merchants),
-- see the structure of a full request (optional fields included).
-
-//-
-
-.JSON Structure for _Credit Card_ Requests
-
-[source,json,subs=attributes+]
-----
-include::samples/json/WPP_CC_JSONNVPField_JSON_StructureForCreditCardRequests.json[]
-----
-
-[cols="e,e,e"]
-|===
-|Field (NVP) |Field (JSON) |JSON Parent
-
-|merchant_account_id |value |merchant-account-id ({ })
-|request_id |request-id |payment ({ })
-|transaction_type |transaction-type |payment ({ })
-|requested_amount_currency |currency |requested-amount ({ })
-|requested_amount |value |requested-amount ({ })
-|payment_method |payment-method ([ ])/name |payment-methods ({ })
-|first_name |first-name |account-holder ({ })
-|last_name |last-name |account-holder ({ })
-|email |email |account-holder ({ })
-|phone |phone |account-holder ({ })
-|street1 |address ({ })/ street1 |account-holder ({ })
-|street2 |address ({ })/ street2 |account-holder ({ })
-|city |address ({ })/ city |account-holder ({ })
-|state |address ({ })/ state |account-holder ({ })
-|country |address ({ })/ country |account-holder ({ })
-|postal_code |address ({ })/ postal-code |account-holder ({ })
-|shipping_first_name |first-name |shipping ({ })
-|shipping_last_name |last-name |shipping ({ })
-|shipping_phone |phone |shipping ({ })
-|shipping_street1 |address ({ })/ street1 |shipping ({ })
-|shipping_street2 |address ({ })/ street2 |shipping ({ })
-|shipping_city |address ({ })/ city |shipping ({ })
-|shipping_state |address ({ })/ state |shipping ({ })
-|shipping_country |address ({ })/ country |shipping ({ })
-|shipping_postal_code |address ({ })/ postal-code |shipping ({ })
-|order_number |order-number |payment ({ })
-|order_detail |order-detail |payment ({ })
-|ip_address |ip-address |payment ({ })
-|attempt_three_d |attempt-three-d |payment ({ })
-|success_redirect_url |success-redirect-url |payment ({ })
-|fail_redirect_url |fail-redirect-url |payment ({ })
-|cancel_redirect_url |cancel-redirect-url |payment ({ })
-|descriptor |descriptor |payment ({ })
-|===
-
-[#PPv2_CC_JSONNVPField_Responseonly]
-=== Response-only Fields
-
-[source,json,subs=attributes+]
-----
-include::samples/json/WPP_CC_JSONNVPFieldResponseonly.json[]
-----
-
-[cols="e,e,e"]
-|===
-|Field (NVP) |Field (JSON) |JSON Parent
-
-|api_id |api-id |payment ({ })
-|transaction_state |transaction-state |payment ({ })
-|masked_account_number |masked-account-number |card-token ({ })
-|transaction_id |transaction-id |payment ({ })
-|completion_time_stamp |completion-time-stamp |payment ({ })
-|status_description_n |status ([ {} ])/ description |statuses ({ })
-|status_severity_n |status ([ {} ])/ severity |statuses ({ })
-|status_code_n |status ([ {} ])/ code |statuses ({ })
-|authorization_code |authorization-code |payment ({ })
-|===
