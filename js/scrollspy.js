@@ -70,7 +70,7 @@ function documentReady() {
     highlightTOCelement(getUrlHash());
   } else {
     // no hash. highlight first h2
-    highlightTOCelement($('#content h2, #content h3').first().attr('id'));
+    highlightTOCelement($('#content h2, #content h3').first().attr('id'), false);
   }
   var scrollTimer;
   var scrollDelay = 200;
@@ -157,7 +157,7 @@ $(document).ready(function () {
   documentReady();
 });
 
-function highlightTOCelement(id) {
+function highlightTOCelement(id, clicked=true) {
   id = (typeof id !== 'undefined') ? id : 'none';
   if (id == 'none') {
     $('ul.tocify-subheader').hide();
@@ -169,10 +169,19 @@ function highlightTOCelement(id) {
     var tocElementUL = tocElement.next('ul.tocify-subheader');
     var tocElementParentUL = tocElement.parents('ul.tocify-subheader');
     var childElements = tocElementUL.children('li.tocify-item');
+    var isExpanded = tocElement.hasClass('toc-item-expanded');
+    console.log('isexpanded: ' + isExpanded);
 
     $('li.tocify-item[data-unique]').removeClass('toc-hl');
-    $('li.tocify-item[data-unique], ul.tocify-subheader').removeClass('toc-item-expanded');
     tocElement.addClass('toc-hl');
+
+
+    $('li.tocify-item[data-unique], ul.tocify-subheader').removeClass('toc-item-expanded');
+
+    if(isExpanded && clicked == true) {
+      tocElement.toggleClass('toc-item-expanded');
+    }
+
     tocElementParentUL.toggleClass('toc-item-expanded');
     tocElementParentUL.prev('li.tocify-item[data-unique]').toggleClass('toc-item-expanded');
 
