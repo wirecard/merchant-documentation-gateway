@@ -39,7 +39,7 @@ function createSampleTabs() {
 
         var nvpTab = $(this).children('div.tab-nvp').first();
         var nvpTabWrap = $('<div class="nvpTabWrap">');
-        var nvpTabElements = $(this).children('div.tab-nvp').children(':nth-child(-n+5)');
+        var nvpTabElements = $(this).children('div.tab-nvp').children(':nth-child(-n+7)');
         nvpTabWrap.append(nvpTabElements);
         nvpTab.prepend(nvpTabWrap);
 
@@ -58,7 +58,7 @@ function createSampleTabs() {
             const _tab_self = Tabs[contentType];
             var _btn = $('<button/>', {
                 text: contentType.toUpperCase(),
-                class: 'btn-samples-tab'
+                class: 'btn-samples-tab ' + contentType
             });
             _btn.on('click touch', function () {
                 //hide all. show yourself
