@@ -20,7 +20,7 @@ function createSampleTabs() {
         if ($(this).hasClass('tabs-enabled'))
             return;
         $(this).addClass('tabs-enabled');
-        var headlineElement = $(this).children('h3,h4,h5').first();
+        const headlineElement = $(this).children('h3,h4,h5').first();
         if (headlineElement.length == 0) {
             return false;
         }
@@ -55,7 +55,7 @@ function createSampleTabs() {
 
         var _btnrow = $('<div/>', { class: 'btn-samples-row' });
         for (var contentType in Tabs) {
-            var _tab_self = Tabs[contentType];
+            const _tab_self = Tabs[contentType];
             var _btn = $('<button/>', {
                 text: contentType.toUpperCase(),
                 class: 'btn-samples-tab'
