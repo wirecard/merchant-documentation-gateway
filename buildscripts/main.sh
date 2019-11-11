@@ -213,7 +213,7 @@ function buildPartner() {
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
   TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
-  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -P '^'${PARTNER}'$' >&/dev/null; then
+  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -E '^'${PARTNER}'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
   else
     debugMsg "[SKIP] basic tests"
@@ -250,7 +250,7 @@ function buildPartner() {
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
 
-  HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
+  HTMLFILES="$(ls ./*.html | grep -vE 'docinfo(-footer)?.html')"
 
   debugMsg "Moving created web resources to deploy html folder"
   mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
@@ -283,12 +283,16 @@ function main() {
     -s | --skip)
       SKIP="true"
       ;;
+    -sn | --skip-nova)
+      SKIP_NOVA="true"
+      ;;
     -f | --force)
       FORCE="true"
       ;;
     -h | --help)
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
+      echo "* [-sn|--skip-nova] skip NOVA docs build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
       ;;
@@ -354,6 +358,8 @@ function main() {
 
   if [[ "${PARTNER}" != "WD" ]]; then
     debugMsg "Partner does not support NOVA"
+  elif [[ -n $SKIP_NOVA ]]; then
+    debugMsg "Skipping NOVA for ${PARTNER}"
   elif buildPartner "${PARTNER}" "NOVA"; then
     debugMsg "SUCCESS! NOVA for ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/"
     debugMsg "export DEPLOY_${PARTNER}_${NOVA}=TRUE"
