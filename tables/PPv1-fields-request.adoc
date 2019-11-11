@@ -1,0 +1,705 @@
+[#PaymentPageSolutions_Fields_Request]
+.Request Fields
+[.field-table]
+|===
+|Field Information |Description
+
+|`` Field``  Size ** Cardinality**
+__ Datatype__
+a| Description
+
+|``request_time_stamp`` 14 **Mandatory**
+__yyyyMMddHHmmss__
+a|The UTC time-stamp that represents the request.
+|``request_signature`` 64 **Mandatory**
+__Alphanumeric__
+a|Refer to <<PP_Security, SHA-256>> request signature.
+|``merchant_account_id`` 36 **Mandatory**
+__Alphanumeric__
+a|A unique identifier assigned for every Merchant Account.
+|``request_id`` 64 **Mandatory**
+__Alphanumeric__
+a|The unique string that the merchant sends with every transaction in order to uniquely identify it.
+The merchant system can subsequently request the status or existence of a transaction using this identifier.
+|``entry_mode`` n/a **Optional**
+__Alphanumeric__
+a|The method in which the account holder information was collected. Possible
+values are:
+
+[cols="1,2"]
+!===
+! Value ! Meaning
+
+! empty ! unknown source
+! ecommerce ! collected over the internet
+! mcommerce ! collected over mobile devices
+! mail-order ! collected over mail order
+! telephone-order ! collected over telephone
+! pos ! collected by the primary payment instrument
+!===
+
+|``periodic_type`` n/a **Optional**
+__Alphanumeric__
+a|Indicates how and why a
+payment occurs more than once. Possible values include ``installment``:
+one in a set that completes a financial transaction and ``recurring``: one
+in a set that occurs repeatedly, such as a subscription.
+|``sequence_type`` n/a **Optional**
+__Alphanumeric__
+a|Used in conjunction with
+periodic_type to indicate the sequence. Possible values include ``first``:
+first transaction in a set, ``recurring``: subsequent transactions in the
+set, ``final``: the last transaction in the set.
+|``transaction_type`` 30 **Mandatory**
+__Alphanumeric__
+a|A unique identifier assigned for every transaction type.
+|``requested_amount`` 11,2 **Mandatory**
+__Decimal__
+a|The only amount that accompanies the transaction when it is created and/or requested. In the
+case of a sale or refund, this is what the merchant requests. In the case of a chargeback, this is the amount that is being contested.
+|``requested_amount_currency`` 3 **Mandatory**
+__Alphanumeric__
+a|The currency in which a transaction is originally completed.
+|``first_name`` 32 **Optional**
+__Alphanumeric__
+a|The first name of the account holder.
+|``last_name`` 32 **Mandatory**
+__Alphanumeric__
+a|The last name of the account holder.
+|``token_id`` 36 **Optional   - Or Card Number**
+__Numeric__
+a|A unique identifier assigned for every card token. This is a surrogate value for the primary account number.
+|``card_type`` 15 **Mandatory   - Or Card Token**
+__Alphanumeric__
+a|A card scheme accepted by the processing system. This includes physically issued cards.
+|``account_number`` 36 **Mandatory   - Or Card Token**
+__Numeric__
+a|The  embossed or encoded number that identifies the card issuer to which a transaction
+is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In the case of a credit card,
+this is the primary account number.
+|``expiration_month`` 2 **Mandatory   - Or Card Token**
+__Numeric__
+a|The 2-digit representation of the expiration month of the card account.
+|``expiration_year`` 4 **Mandatory   - Or Card Token**
+__Numeric__
+a|The 4-digit representation of the expiration year of the card account.
+|``card_security_code`` 4 **Optional   - Depending on merchant account settings**
+__Numeric__
+a|A security feature for credit or debit card transactions,
+providing increased protection against credit card fraud. The Card
+Security Code is located on the back of Mastercard, Visa and Discover
+credit or debit cards and is typically a separate group of 3 digits to
+the right of the signature strip. On American Express cards, the Card
+Security Code is a printed, not embossed,  group of four digits on the
+front towards the right.
+|``redirect_url`` 256 **Optional**
+__Alphanumeric__
+a|The URL where the account holder will be redirected to following transaction completion.
+|``ip_address`` 15 **Optional**
+__Alphanumeric__
+a|The IP address of the cardholder as recorded by the entity receiving the transaction attempt from the cardholder.
+|``email`` 64 **Optional**
+__Alphanumeric__
+a|The email address of the account holder.
+|``phone`` 32 **Optional**
+__Alphanumeric__
+a|The phone number of the account holder.
+|``order_detail`` 256 **Optional**
+__Alphanumeric__
+a|Merchant-provided string to store the order detail for the transaction.
+|``order_number`` 64 **Optional**
+__Alphanumeric__
+a|Merchant-provided string to store the order detail for the transaction.
+|``merchant_crm_id`` 64 **Optional**
+__Alphanumeric__
+a|The merchant CRM ID for the account holder.
+|``field_name_n[1-10]`` 36 **Optional**
+__Alphanumeric__
+a|Text used to name the transaction custom field. Possible values for n can be in the range from 1 to 10.
+|``field_value_n[1-10]`` 256 **Optional**
+__Alphanumeric__
+a|Used with a key, the content used to define the value of the transaction custom field.
+Possible values for n can be in the range from 1 to 10.
+|``notification_url_n[1-3]`` 256 **Optional**
+__Alphanumeric__
+a|{payment-gateway-abbr} uses the notification URL to inform the merchant about the outcome of the payment
+process. Usually the merchant provides one URL, to which {payment-gateway-abbr} will send the notification to. If required, the merchant can define more than one
+notification URL.
+|``notification_transaction_state_n[1-3]`` 12 **Optional**
+__Alphanumeric__
+a| The merchants can provide notification URLs which correspond to the
+transaction state. The merchants define one URL for success and one for failure. +
+If the merchants want to do that, they must use both fields in parallel:
+``notification_url_n[1-3]`` and ``notification_transaction_state_n[1-3]``.
+|``descriptor`` 64 **Optional**
+__Alphanumeric__
+a|The field which is shown on the customer's card statement. This feature is not supported by all the
+acquirers. The size of this field depends on the acquirer. Please contact technical support for further clarification.
+|``parent_transaction_id`` 36 **Optional**
+__Alphanumeric__
+a|A  unique identifier assigned for every parent transaction.
+|``payment_method`` 15 **Optional**
+__Alphanumeric__
+a|Text used to name the payment method.
+|``locale`` 6 **Optional**
+__Alphanumeric__
+a|Code to indicate which default language the payment page should be rendered in.
+|``device_fingerprint`` 4096 **Optional**
+__Alphanumeric__
+a|A device fingerprint is information collected about a remote computing device for the purpose
+of identification. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
+|``processing_redirect_url`` 2000 **Optional**
+__Alphanumeric__
+a|The URL to which the Account Holder will be re-directed during payment processing. This
+is normally a page on the Merchant's website.
+|``cancel_redirect_url`` 2000 **Optional**
+__Alphanumeric__
+a|The URL to which the Account Holder will be re-directed after he has cancelled a payment.
+This is normally a page on the Merchant's website.
+|``fail_redirect_url`` 2000 **Optional**
+__Alphanumeric__
+a|The URL to which the
+Account Holder will be re-directed after an unsuccessful payment. This
+is normally a page on the Merchant's website notifying the Account
+Holder of a failed payment often with the option to try another Payment
+Method.
+|``success_redirect_url`` 2000 **Optional**
+__Alphanumeric__
+a|The URL to which the Account Holder will be re-directed after a successful payment. This
+is normally a success confirmation page on the Merchant's website.
+|``merchant_account_resolver_category`` 32 **Mandatory**
+__Alphanumeric__
+a|Configuration specific category name for automatic merchant account
+resolving based on logged in user or "super merchant account".
+|``notification_transaction_url`` 2000 **Mandatory**
+__Alphanumeric__
+a|This field
+has been replaced by ``notification_url_n[1-3]`` (see above). It can still be used but it can only provide a single URL for notifications.
+|``cryptogram_type`` 11 **Optional**
+__Alphanumeric__
+a|Cryptogram type enumeration – ``android-pay`` or ``apple-pay``.
+|``cryptogram_value``  **Optional**
+__Alphanumeric__
+a|Cryptogram value for android or apple creditcard payments.
+|``mandate_signature_image``  **Optional**
+__Alphanumeric__
+a|The signature of the Mandate Transaction.
+|``mandate_signed_city`` 36 **Optional**
+__Alphanumeric__
+a|The city that the Mandate was signed in.
+|``mandate_signed_date`` 16 **Optional**
+__YYYY-MM-DD__
+a|The date that the Mandate was signed.
+|``mandate_due_date``  **Optional**
+__Alphanumeric__
+a|The date that the Mandate Transaction is due.
+|``mandate_mandate_id`` 35 **Optional**
+__Alphanumeric__
+a|The Mandate ID for the Mandate Transaction.
+|``capture_date``  **Optional**
+__Alphanumeric__
+a| <<SEPADirectDebit_Fields_SpecificFields_DelayedProcessing, Date when transaction should be processed (SEPA)>>.
+|``bank_account_bank_code`` 15 **Optional**
+__Alphanumeric__
+a|The national bank sorting code for national bank transfers.
+|``bank_account_bank_name`` 100 **Optional**
+__Alphanumeric__
+a|The name of the consumer's bank.
+|``bank_account_account_number`` 34 **Mandatory**
+__Alphanumeric__
+a|The number designating a bank account used nationally.
+|``bank_account_account_owner``  ****
+a|Bank account owner name (not used anymore - ``last_name`` and ``first_name`` used instead).
+|``bank_account_iban`` 34 **Optional**
+__Alphanumeric__
+a|The International Bank Account Number required in a Bank Transfer. It is an international
+standard for identifying bank accounts across national borders. The current standard is ISO 13616:2007, which indicates SWIFT as the formal
+registrar.
+|``bank_account_bic`` 15 **Optional**
+__Alphanumeric__
+a|The Bank Identifier Code information required in a Bank Transfer.
+|``bank_account_branch_city`` 64 **Optional**
+__Alphanumeric__
+a|The city that the bank is located in. Typically required for Chinese Bank Transfers.
+|``bank_account_branch_state`` 64 **Optional**
+__Alphanumeric__
+a|The state that the bank is located in. Typically required for Chinese Bank Transfers.
+|``bank_account_branch_address`` 64 **Optional**
+__Alphanumeric__
+a|The address of the bank. Typically required for Chinese Bank Transfers.
+|``postal_code`` 16 **Optional**
+__Alphanumeric__
+a|ZIP postal Code
+|``country`` 3 **Mandatory**
+__Alphanumeric__
+a|Account holder country code.
+|``payment_country`` 3 **Optional**
+__Alphanumeric__
+a|Payment related country code – usually used for payment method specific validation (country
+restrictions)
+|``state`` 32 **Optional**
+__Alphanumeric__
+a|State
+|``city`` 32 **Mandatory**
+__Alphanumeric__
+a|City
+|``street1`` 128 **Mandatory**
+__Alphanumeric__
+a|Primary Street Address
+|``street2`` 128 **Optional**
+__Alphanumeric__
+a|Secondary Street Address
+|``social_security_number`` 14 **Optional**
+__Alphanumeric__
+a|The Social Security
+number of the Account Holder.
+|``payment_method_url``  **Optional**
+__Alphanumeric__
+a|URL of payment method
+provider that user should be redirected to so payment can be finished.
+(not needed and ignored in request.)
+|``attempt_three_d``  **Optional**
+__TRUE/FALSE__
+a|Indicates that the
+Transaction Request should proceed with the 3D Secure workflow if the
+Card Holder is enrolled. Otherwise, the transaction proceeds without
+3D Secure. This field is used in conjunction with Hosted Payment Page.
+|``psp_name`` 256 **Optional**
+__Alphanumeric__
+a|The assigned skin name for a
+merchant's customized HPP skin. This will display the merchant's skin
+instead of the default skin.
+|``psp_id`` 36 **Optional**
+__Alphanumeric__
+a|Not needed in request. EE internal Payment Service Provider ID.
+|``file_name`` 255 **Optional**
+__Alphanumeric__
+a|_Batch payment…_
+|``record_number`` 11 **Optional**
+__Numeric__
+a|_Batch payment…_
+|``consumer_id`` 50 **Optional**
+__Alphanumeric__
+a|The Identifier of the Consumer.
+|``consumer_email`` 64 **Optional**
+__Alphanumeric__
+a|Consumer email address.
+|``risk_reference_id`` 24 **Optional**
+__Alphanumeric__
+a|
+|``api_id`` 36 **Optional**
+__Alphanumeric__
+a|Reserved for future use.
+|``group_transaction_id`` 36 **Optional**
+__Alphanumeric__
+a|Common ID for all
+referenced transactions. It is usually transaction ID of the first
+transaction in chain.
+|``notifications_format`` 256 **Optional**
+__Alphanumeric__
+a|Content type of the
+IPN (application/xml, application/json,
+application/x-www-form-urlencoded).
+|``date_of_birth``  **Optional**
+__YYYY-MM-DD__
+a|Account holder birth date.
+|``creditor_id`` 35 **Optional**
+__Alphanumeric__
+a|The Creditor Id for the
+Merchant Account SEPA.
+|``gender`` 1 **Optional**
+__Alphanumeric__
+a|Enumeration – ``m `` or ``f``
+|``shipping_country`` 3 **Mandatory**
+__Alphanumeric__
+a|The Country ID portion of
+the address of the Shipping Address.
+|``shipping_state`` 32 **Optional**
+__Alphanumeric__
+a|The state or province
+portion of the address of the Shipping Address.
+|``shipping_city`` 32 **Mandatory**
+__Alphanumeric__
+a|The city of the address of
+the Shipping Address.
+|``shipping_postal_code`` 16 **Optional**
+__Alphanumeric__
+a|The postal code or
+ZIP of the address of the Shipping Address.
+|``shipping_street1`` 128 **Mandatory**
+__Alphanumeric__
+a|The first line of the
+street address of the Shipping Address.
+|``shipping_street2`` 128 **Optional**
+__Alphanumeric__
+a|The second line of the
+street address of the Shipping Address.
+|``shipping_first_name`` 32 **Mandatory**
+__Alphanumeric__
+a|The first name of the
+Shipping Address.
+|``shipping_last_name`` 32 **Mandatory**
+__Alphanumeric__
+a|The last name of the
+Shipping Address.
+|``shipping_block_no``  **Optional**
+__Alphanumeric__
+a|Additional shipping
+information (paylah).
+|``shipping_level``  **Optional**
+__Alphanumeric__
+a|Additional shipping
+information (paylah).
+|``shipping_unit``  **Optional**
+__Alphanumeric__
+a|Additional shipping
+information (paylah).
+|``shipping_phone`` 32 **Optional**
+__Alphanumeric__
+a|The phone number of the
+Shipping Address.
+|``pares``  **Optional**
+__Alphanumeric__
+a|Digitally signed, base64-encoded
+authentication response message received from the issuer (3D Secure
+transaction).
+|``custom_css_url`` 2000 **Optional**
+__Alphanumeric__
+a|URL specified by merchant
+pointing to the CSS resource customizing HPP/EPP.
+|``item_name_1``  256 **O/Mandatory**
+__ Alphanumeric__
+a| Order item name.
+|`` item_id_1``  256 ** Optional**
+__ Alphanumeric__
+a| Order item article identifier.
+|`` item_amount_1``  18,6 ** O/Mandatory**
+__ Numeric__
+a| Order item amount.
+|`` item_quantity_1``  5 ** O/Mandatory**
+__ Numeric__
+a| Order item quantity.
+|`` item_description_1``  1024 ** Optional**
+__ Alphanumeric__
+a| Order item description.
+|``otp``  **Optional**
+__Alphanumeric__
+a|One time password (icashcard).
+|``wallet_account_id`` 128 **Mandatory**
+__Alphanumeric__
+a|The unique identifier of the Account Holder's Wallet Account.
+|``browser_ip_address`` 32 **Optional**
+__Alphanumeric__
+a|IP address of consumer obtained by payment page in time of payment.
+|``browser_hostname`` 255 **Optional**
+__Alphanumeric__
+a|Consumer's web browser obtained by payment page in time of payment.
+|``browser_version`` 255 **Optional**
+__Alphanumeric__
+a|Version number of consumer's web browser obtained by payment page in time of payment.
+|``browser_os`` 255 **Optional**
+__Alphanumeric__
+a|Consumer's operating system obtained by payment page in time of payment.
+|``browser_screen_resolution`` 32 **Optional**
+__Alphanumeric__
+a|Consumer's screen resolution obtained by payment page in time of payment.
+|``browser_referrer`` 4096 **Optional**
+__Alphanumeric__
+a|URL referring to previous page consumer visited before payment page.
+|``liability_shift_indicator`` 1 **Optional**
+__Alphanumeric__
+a|
+Indicating liability shift in case of 3D Secure transactions. Possible
+values:
+
+Y - Liability Shift transferred to issuer +
+N - No Liability Shift +
+U - LI information unavailable
+
+|``consumer_date_of_birth``  **Optional**
+__Alphanumeric__
+a|Consumer date of birth.
+|``consumer_social_security_number`` 14 **Optional**
+__Alphanumeric__
+a|Social security number of the consumer.
+|``consumer_gender`` 1 **Optional**
+__Alphanumeric__
+a|Gender of consumer.
+|`` order_item_amount``  18,6 ** Mandatory**
+__ Numeric__
+a| Order item(s) price(s) per unit.
+|`` order_item_quantity``  5 ** Mandatory**
+__ Numeric__
+a| Total count(s) of the item(s) in the order.
+|`` order_item_article_number``  256 ** Optional**
+__ Alphanumeric__
+a| Item EAN(s) or other article(s) identifier(s).
+|`` order_item_name``  256 ** Mandatory**
+__ Alphanumeric__
+a| Name(s) of the item(s) in the basket.
+|`` order_item_amount_currency``  3 ** Mandatory**
+__ Alphanumeric__
+a| Currency(ies) of the order item amount(s).
+|`` order_item_tax_rate``  5,2 ** Optional**
+__ Numeric__
+a| Order item tax rate(s) in percentage already included within order item price (``order_item_amount``).
+|`` order_item_tax_amount``  18,6 ** Optional**
+__ Numeric__
+a| Order item tax(es) per unit already included within the order item price (``order_item_amount``).
+|``orderItems[n].name`` 256 **O/Mandatory**
+__Alphanumeric__
+a|Order item name.
+|``orderItems[n].articleNumber`` 256 **Optional**
+__Alphanumeric__
+a|Order item article identifier.
+|``orderItems[n].amount.value`` 18,6 **O/Mandatory**
+__Numeric__
+a|Order item price.
+|``orderItems[n].amount.currency`` 3 **O/Mandatory**
+__Alphanumeric__
+a|Currency of the order item price (``amount.value``).
+|``orderItems[n].taxRate`` 5,2 **Optional**
+__Numeric__
+a|Order item tax rate in percentage already included within order item price (``amount.value``).
+|``orderItems[n].taxAmount.value`` 18,6 **Optional**
+__Numeric__
+a|Order item tax per unit already included within the order item price (``amount.value``).
+|``orderItems[n].taxAmount.currency`` 3 **Optional**
+__Alphanumeric__
+a|Tax amount currency.
+|``orderItems[n].quantity`` 5 **O/Mandatory**
+__Numeric__
+a|Total count of the item in the order.
+|``airline_industry_airline_code`` 3 **Optional**
+__Alphanumeric__
+a|The airline code assigned by IATA.
+|``airline_industry_airline_name`` 64 **Optional**
+__Alphanumeric__
+a|Name of the airline.
+|``airline_industry_passenger_code`` 10 **Optional**
+__Alphanumeric__
+a|The file key of the Passenger Name Record (PNR). This information is mandatory
+for transactions with AirPlus UATP cards.
+|``airline_industry_passenger_name`` 10 **Optional**
+__Alphanumeric__
+a|The name of the Airline Transaction passenger.
+|``airline_industry_passenger_phone`` 32 **Optional**
+__Alphanumeric__
+a|The phone number of the Airline Transaction passenger.
+|``airline_industry_passenger_email`` 64 **Optional**
+__Alphanumeric__
+a|The Email Address of the Airline Transaction passenger.
+|``airline_industry_passenger_ip_address`` 45 **Optional**
+__Alphanumeric__
+a|The IP Address of the Airline Transaction passenger.
+|``airline_industry_ticket_issue_date``  **Optional**
+__Date__
+a|The date the ticket was issued.
+|``airline_industry_ticket_number`` 11 **Optional**
+__Alphanumeric__
+a|The airline
+ticket number, including the check digit. If no airline ticket number
+(IATA) is used, the element field must be populated with 99999999999.
+|``airline_industry_ticket_restricted_flag``  **Optional**
+__0/1__
+a|Indicates
+that the Airline Transaction is restricted. 0 = No restriction, 1 =
+Restricted (non-refundable).
+|``airline_industry_pnr_file_key``  **Optional**
+__Alphanumeric__
+a|The Passenger Name File ID for the Airline Transaction.
+|``airline_industry_ticket_check_digit``  **Optional**
+__Numeric__
+a|The airline ticket check digit.
+|``airline_industry_agent_code``  **Optional**
+__Alphanumeric__
+a|The agency code
+assigned by IATA. If no IATA code is used, the element field must be
+populated with 99999999.
+|``airline_industry_agent_name``  **Optional**
+__Alphanumeric__
+a|The agency name.
+|``airline_industry_non_taxable_net_amount``  **Optional**
+__Numeric__
+a|This
+field must contain the net amount of the purchase transaction in the
+specified currency for which the tax is levied. Two decimal places are
+implied. If this field contains a value greater than zero, the indicated
+value must differ to the content of the transaction amount.
+|``airline_industry_ticket_issuer_street1``  **Mandatory**
+__Alphanumeric__
+a|The
+Issuer Address Street for the Airline Transaction.
+|``airline_industry_ticket_issuer_street2``  **Optional**
+__Alphanumeric__
+a|The
+Issuer Address Street 2 for the Airline Transaction.
+|``airline_industry_ticket_issuer_city`` 32 **Mandatory**
+__Alphanumeric__
+a|The
+city of the address of the Airline Transaction issuer.
+|``airline_industry_ticket_issuer_state``  **Optional**
+__Alphanumeric__
+a|The
+state of the address of the Airline Transaction issuer.
+|``airline_industry_ticket_issuer_country`` 3 **Mandatory**
+__Alphanumeric__
+a|The
+Issuer Address Country ID for the Airline Transaction.
+|``airline_industry_ticket_issuer_postal_code`` 16 **Optional**
+__Alphanumeric__
+a|An alphanumeric numeric code used to represent the Airline Transaction
+issuer Postal.
+|``airline_industry_number_of_passengers`` 3 **Optional**
+__Numeric__
+a|The number
+of passengers on the Airline Transaction.
+|``airline_industry_reservation_code`` 32 **Optional**
+__Alphanumeric__
+a|The
+reservation code of the Airline Transaction passenger.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_carrier_code`` 3 **Mandatory**
+__Alphanumeric__
+a|The 2-letter airline code (e.g. LH, BA, KL) supplied
+by IATA for each leg of a flight.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_departure_airport_code`` 3 **Mandatory**
+__Alphanumeric__
+a|The departure airport code. IATA assigns
+the airport codes.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_departure_city_code`` 32 **Mandatory**
+__Alphanumeric__
+a|The departure City Code of the Itinerary
+Segment. IATA assigns the airport codes.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_arrival_airport_code`` 3 **Mandatory**
+__Alphanumeric__
+a|The arrival airport code of the Itinerary
+Segment. IATA assigns the airport codes.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_arrival_city_code`` 32 **Mandatory**
+__Alphanumeric__
+a|The arrival city code of the Itinerary
+Segment. IATA assigns the airport codes.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_departure_date``  **Mandatory**
+__Date__
+a|The departure date for a given leg.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_arrival_date``  **Mandatory**
+__Date__
+a|The arrival date of the Itinerary Segment. IATA assigns the
+airport codes.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_flight_number`` 6 **Optional**
+__Alphanumeric__
+a|The flight number of the Itinerary Segment.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_fare_class`` 6 **Optional**
+__Alphanumeric__
+a|Used to distinguish between First Class, Business
+Class and Economy Class, but also used to distinguish between different
+fares and booking codes within the same type of service.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_fare_basis`` 6 **Optional**
+__Alphanumeric__
+a|Represents a specific fare and class of service with
+letters, numbers, or a combination of both.
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_stop_over_code``  **Optional**
+__0/1__
+a|0 = allowed, 1 = not allowed
+|``airline_industry_itinerary_segment_{zwsp}n[1-10]_tax_amount`` 18,6 **Optional**
+__Numeric__
+a|The amount of the Value Added Tax levied on the
+transaction amount in the specified currency.
+|``cruise_industry_carrier_code`` 10 **Optional**
+__Alphanumeric__
+a|The airline code assigned by IATA.
+|``cruise_agent_code`` 10 **Optional**
+__Alphanumeric__
+a|The agency code assigned by IATA.
+|``cruise_industry_travel_package_type_code`` 10 **Optional**
+__Alphanumeric__
+a|This indicates if the package includes car rental, airline flight, both
+or neither. Valid entries include: ``C`` = Car rental reservation included,
+``A`` = Airline flight reservation included, ``B`` = Both car rental and airline
+flight reservations included, ``N`` = Unknown.
+|``cruise_industry_ticket_number`` 15 **Optional**
+__Alphanumeric__
+a|The ticket
+number, including the check digit.
+|``cruise_passenger_name`` 100 **Optional**
+__Alphanumeric__
+a|The name of the passenger.
+|``cruise_lodging_check_in_date``  **Optional**
+__Date__
+a|The cruise departure date also known as the sail date.
+|``cruise_lodging_check_out_date``  **Optional**
+__Date__
+a|The cruise return date also known as the sail end date.
+|``cruise_lodging_room_rate`` 18,6 **Optional**
+__Numeric__
+a|The total cost of the cruise.
+|``cruise_number_of_nights`` 3 **Optional**
+__Numeric__
+a|The length of the cruise in days.
+|``cruise_lodging_name`` 100 **Optional**
+__Alphanumeric__
+a|The ship name booked for the cruise.
+|``cruise_lodging_city_name`` 20 **Optional**
+__Alphanumeric__
+a|The name of the city where the lodging property is located.
+|``cruise_lodging_region_code`` 10 **Optional**
+__Alphanumeric__
+a|The region code where the lodging property is located.
+|``cruise_lodging_country_code`` 10 **Optional**
+__Alphanumeric__
+a|The country code where the lodging property is located.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_carrier_code`` 3 **Mandatory**
+__Alphanumeric__
+a|The 2-letter airline code (e.g. LH, BA, KL) supplied
+by IATA for each leg of a flight.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_departure_airport_code`` 3 **Mandatory**
+__Alphanumeric__
+a|The departure airport code. IATA assigns
+the airport codes.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_departure_city_code`` 32 **Mandatory**
+__Alphanumeric__
+a|The departure City Code of the Itinerary
+Segment. IATA assigns the airport codes.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_arrival_airport_code`` 3 **Mandatory**
+__Alphanumeric__
+a|The arrival airport code of the Itinerary
+Segment. IATA assigns the airport codes.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_arrival_city_code`` 32 **Mandatory**
+__Alphanumeric__
+a|The arrival city code of the Itinerary
+Segment. IATA assigns the airport codes.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_departure_date``  **Mandatory**
+__Date__
+a|The departure date for a given leg.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_arrival_date``  **Mandatory**
+__Date__
+a|The arrival date of the Itinerary Segment. IATA assigns the
+airport codes.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_flight_number`` 6 **Optional**
+__Alphanumeric__
+a|The flight number of the Itinerary Segment.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_fare_class`` 6 **Optional**
+__Alphanumeric__
+a|Used to distinguish between First Class, Business
+Class and Economy Class, but also used to distinguish between different
+fares and booking codes within the same type of service.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_fare_basis`` 6 **Optional**
+__Alphanumeric__
+a|Represents a specific fare and class of service with
+letters, numbers, or a combination of both.
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_stop_over_code``  **Optional**
+__0/1__
+a|0 = allowed, 1 = not allowed
+|``cruise_industry_itinerary_segment_{zwsp}n[1-10]_tax_amount`` 18,6 **Optional**
+__Numeric__
+a|The amount of the Value Added Tax levied on the
+transaction amount in the specified currency.
+|``hpp_processing_timeout`` 8 **Optional**
+__String (Cardinal Number)__
+a|This
+field uses cardinal numbers which are treated like a string. It
+determines the timeout of an HPP page in milliseconds when this HPP page
+uses popup. During an open popup, _{payment-gateway}_ polls query
+requests. If these poll requests are not accomplished until
+timeout, polling stops and displays a message. Default timeout is 10
+minutes (value = "600000").
+|===
