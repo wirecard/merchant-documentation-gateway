@@ -25,4 +25,5 @@ while kill -0 ${MAIN_PID} >&/dev/null; do
   sleep 1m
 done
 
-exit 0
+wait ${MAIN_PID}
+exit $?
