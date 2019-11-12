@@ -15,33 +15,26 @@ function enableRequestDetailsHideShow() {
 }
 
 function createSampleTabs() {
-    var sampleTabs = $('div.sample-tabs');
+    var sampleTabs = $('.discrete.sample-tabs');
     sampleTabs.each(function () {
         if ($(this).hasClass('tabs-enabled'))
             return;
         $(this).addClass('tabs-enabled');
-        const headlineElement = $(this).children('h3,h4,h5').first();
-        if (headlineElement.length == 0) {
-            return false;
-        }
-
-        var xmlTab = $(this).children('div.tab-xml').first();
+        const headlineElement = $(this);
         var xmlTabWrap = $('<div class="xmlTabWrap">');
-        var xmlTabElements = $(this).children('div.tab-xml').children(':nth-child(-n+5)');
+        var xmlTabElements = $(this).siblings('.tab-xml').nextAll('div:lt(4)');
         xmlTabWrap.append(xmlTabElements);
-        xmlTab.prepend(xmlTabWrap);
+        $(this).after(xmlTabWrap);
 
-        var jsonTab = $(this).children('div.tab-json').first();
         var jsonTabWrap = $('<div class="jsonTabWrap">');
-        var jsonTabElements = $(this).children('div.tab-json').children(':nth-child(-n+5)');
+        var jsonTabElements = $(this).siblings('.tab-json').nextAll('div:lt(4)');
         jsonTabWrap.append(jsonTabElements);
-        jsonTab.prepend(jsonTabWrap);
-
-        var nvpTab = $(this).children('div.tab-nvp').first();
+        $(this).after(jsonTabWrap);
+        
         var nvpTabWrap = $('<div class="nvpTabWrap">');
-        var nvpTabElements = $(this).children('div.tab-nvp').children(':nth-child(-n+7)');
+        var nvpTabElements = $(this).siblings('.tab-nvp').nextAll('div:lt(6)');
         nvpTabWrap.append(nvpTabElements);
-        nvpTab.prepend(nvpTabWrap);
+        $(this).after(nvpTabWrap);
 
         var Tabs = {
             xml: (xmlTabElements.length ? xmlTabWrap : undefined),
