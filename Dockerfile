@@ -1,3 +1,4 @@
+# Build command: docker build --build-arg GITHUB_SSH_KEY -t mdg-php .
 FROM php:7.2-zts-stretch
 
 ARG GITHUB_SSH_KEY
@@ -19,6 +20,9 @@ RUN cd pthreads \
     && cd .. && echo "extension=pthreads.so" >> \
         /usr/local/etc/php/php.ini
         # ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
+WORKDIR /home
+
 # Ruby
 RUN gem install bundler
 
@@ -26,6 +30,9 @@ RUN gem install bundler
 RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install requests
 
-WORKDIR /home
+# NodeJS
+# RUN npm install -g mermaid.cli
+
+# run.sh
 ADD docker/run.sh /home/run.sh
 RUN chmod +x /home/run.sh
