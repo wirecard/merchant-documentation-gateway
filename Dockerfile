@@ -27,5 +27,5 @@ RUN ln -s /usr/bin/pip3 /usr/bin/pip
 RUN pip install requests
 
 WORKDIR /home
-ADD docker-run.sh /home/run.sh
+ADD docker/run.sh /home/run.sh
 RUN chmod +x /home/run.sh
