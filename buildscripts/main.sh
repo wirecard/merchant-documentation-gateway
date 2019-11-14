@@ -118,6 +118,16 @@ function cloneWhitelabelRepository() {
   return $?
 }
 
+function testEnvironmentDefinition() {
+  ADOC_FILE="$1"
+  count="$(grep -oE '^:env-\w+:' ${ADOC_FILE} | wc -l)"
+  if (( count != 1 )); then
+    debugMsg "Found ${count} environments defined in ${ADOC_FILE}! Expected: 1"
+    debugMsg "Exiting..."
+    exit 1
+  fi
+}
+
 # create folder where white labeled content is stored
 # takes partner name == folder name as argument
 function createPartnerFolder() {
@@ -143,6 +153,19 @@ function createPartnerFolder() {
     # fill the partner dir with whitelabel content
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
+
+  pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
+  env_count="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc | wc -l)"
+  if (( env_count > 1 )); then
+    debugMsg "Found multiple environments defined!"
+    grep -oE '^:env-(wirecard|po|ms):' ./*.adoc
+    debugMsg "Exiting..."
+    exit 1
+  fi
+
+  testEnvironmentDefinition "shortcuts.adoc"
+  testEnvironmentDefinition "nova.adoc"
+  popd >/dev/null
 }
 
 function setUpMermaid() {
