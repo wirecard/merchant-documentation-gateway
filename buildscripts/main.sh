@@ -52,24 +52,24 @@ function increaseErrorCount() {
 }
 
 function debugMsg() {
-  [[ ${DEBUG} ]] && echo >&2 "[$(date +'%T')] ${1}"
+  [[ ${DEBUG} ]] && echo "[$(date +'%T')] ${1}" >&2
 }
 
 function scriptError() {
-  echo >&2 "Error executing: ${1}"
+  echo "Error executing: ${1}" >&2
   increaseErrorCount
   exitWithError "${1}"
 }
 
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
-  echo >&2 "Build aborted."
-  echo >&2 "${1}"
+  echo "Build aborted." >&2
+  echo "${1}" >&2
   exit 1
 }
 
 function abortCurrentBuild() {
-  echo >&2 "Aborting current build ${1}."
+  echo "Aborting current build ${1}." >&2
   exit 1
 }
 
@@ -213,7 +213,7 @@ function buildPartner() {
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
   TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
-  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -E '^'${PARTNER}'$' >&/dev/null; then
+  if [[ -z $SKIP ]] && printf '%s\n' "${TEST_PARTNER_ARRAY[@]}" | grep -E '^'"${PARTNER}"'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
   else
     debugMsg "[SKIP] basic tests"

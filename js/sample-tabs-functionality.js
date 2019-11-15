@@ -1,52 +1,63 @@
 function enableRequestDetailsHideShow() {
-    console.log("enableRequestDetailsHideShow");
     $('table.r-details > caption').each(function () {
-        if($(this).hasClass('hide-show-enabled'))
+        if ($(this).hasClass('hide-show-enabled')) {
             return;
-        $(this).on('click touch', function () {
-            $(this).addClass('hide-show-enabled');
+        }
+        $(this).addClass('hide-show-enabled');
+        $(this).unbind();
+        $(this).on('click touch', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
             $(this).toggleClass('r-details-expanded');
-            $(this).siblings('tbody').toggle();
-            $(this).siblings('thead').toggle();
+            return false;
         });
     });
 }
 
 function createSampleTabs() {
-    console.log("createSampleTabs");
-    var sampleTabs = $('div.sample-tabs');
+    var sampleTabs = $('.discrete.sample-tabs');
     sampleTabs.each(function () {
-        if($(this).hasClass('tabs-enabled'))
+        if ($(this).hasClass('tabs-enabled'))
             return;
         $(this).addClass('tabs-enabled');
-        const headlineElement = $(this).children('h3,h4,h5').first();
-        if (headlineElement.length == 0) {
-            return false;
-        }
-        const headlineAnchor = headlineElement.children('a.link').last(); // make sure this selector is not too strict
-        const xmlTab = $(this).children('div.tab-xml').first();
-        const jsonTab = $(this).children('div.tab-json').first();
-        const nvpTab = $(this).children('div.tab-nvp').first();
+        const headlineElement = $(this);
+        var xmlTabWrap = $('<div class="xmlTabWrap">');
+        var xmlTabElements = $(this).siblings('.tab-xml').nextAll('div:lt(4)');
+        xmlTabWrap.append(xmlTabElements);
+        $(this).after(xmlTabWrap);
+
+        var jsonTabWrap = $('<div class="jsonTabWrap">');
+        var jsonTabElements = $(this).siblings('.tab-json').nextAll('div:lt(4)');
+        jsonTabWrap.append(jsonTabElements);
+        $(this).after(jsonTabWrap);
+        
+        var nvpTabWrap = $('<div class="nvpTabWrap">');
+        var nvpTabElements = $(this).siblings('.tab-nvp').nextAll('div:lt(6)');
+        nvpTabWrap.append(nvpTabElements);
+        $(this).after(nvpTabWrap);
+
         var Tabs = {
-            xml: (xmlTab.length ? xmlTab : undefined),
-            json: (jsonTab.length ? jsonTab : undefined),
-            nvp: (nvpTab.length ? nvpTab : undefined)
+            xml: (xmlTabElements.length ? xmlTabWrap : undefined),
+            json: (jsonTabElements.length ? jsonTabWrap : undefined),
+            nvp: (nvpTabElements.length ? nvpTabWrap : undefined)
         };
+
         Object.keys(Tabs).forEach(function (key) {
             return Tabs[key] == null && delete Tabs[key];
-          });
-        var _btnrow = $('<div/>', { class: 'btn-samples-row'});
+        });
+
+        var _btnrow = $('<div/>', { class: 'btn-samples-row' });
         for (var contentType in Tabs) {
             const _tab_self = Tabs[contentType];
             var _btn = $('<button/>', {
                 text: contentType.toUpperCase(),
-                class: 'btn-samples-tab'
+                class: 'btn-samples-tab ' + contentType
             });
             _btn.on('click touch', function () {
                 //hide all. show yourself
                 for (var t in Tabs) {
                     $(Tabs[t]).hide();
-                };
+                }
                 $(this).addClass('active');
                 $(this).siblings('.btn-samples-tab').removeClass('active');
                 $(_tab_self).show();
