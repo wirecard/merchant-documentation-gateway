@@ -118,12 +118,27 @@ function cloneWhitelabelRepository() {
   return $?
 }
 
+function postToSlack() {
+  echo "content: $1"
+  # content="${1//\n/\\n}"
+  content="$(echo $1 | sed 's/\n/\#/g')"
+  tmpfile="$(mktemp)"
+  cat > "$tmpfile" << EOF
+{ "blocks": [{ "type": "section", "text": {
+"type": "mrkdwn", "text": "${content}"
+} }]}'
+EOF
+  python3 buildscripts/util/post-to-slack.py -f "$tmpfile"
+}
+
 function testEnvironmentDefinition() {
   ADOC_FILE="$1"
   count="$(grep -oE '^:env-\w+:' ${ADOC_FILE} | wc -l)"
   if (( count != 1 )); then
-    debugMsg "Found ${count} environments defined in ${ADOC_FILE}! Expected: 1"
+    content="Found ${count} environments defined in ${ADOC_FILE}! Expected: 1"
+    debugMsg "$content"
     debugMsg "Exiting..."
+    postToSlack "$content"
     exit 1
   fi
 }
@@ -157,9 +172,11 @@ function createPartnerFolder() {
   pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
   env_count="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc | wc -l)"
   if (( env_count > 1 )); then
-    debugMsg "Found multiple environments defined!"
+    errMsg="Found multiple environments defined!"
     grep -oE '^:env-(wirecard|po|ms):' ./*.adoc
+    debugMsg "$errMsg"
     debugMsg "Exiting..."
+    postToSlack "${errMsg}\nCheck the logs for more info."
     exit 1
   fi
 
