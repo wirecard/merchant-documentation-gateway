@@ -8,9 +8,9 @@ ENV WL_REPO_SSHKEY=${GITHUB_SSH_KEY}
 ARG SLACK_TOKEN
 ENV SLACK_TOKEN=${SLACK_TOKEN}
 
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y curl vim git
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
-RUN apt-get update && apt-get install -y curl libyaml-dev git nodejs ruby python3 python3-pip
+RUN apt-get update && apt-get install -y libyaml-dev nodejs ruby python3 python3-pip
 
 # PHP
 RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
