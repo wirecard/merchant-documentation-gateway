@@ -2,7 +2,7 @@
 
 set -e
 
-git clone https://github.com/wirecard/merchant-documentation-gateway/
+git clone --branch=Dockerfile-tmp https://github.com/wirecard/merchant-documentation-gateway/
 
 cd merchant-documentation-gateway
 
