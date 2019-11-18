@@ -186,7 +186,7 @@ function createPartnerFolder() {
   debugMsg "Checking include::shortcuts.adoc[] in all files..."
   shortcuts_count="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc | wc -l)"
   if (( shortcuts_count > 2 )); then
-    errMsg="Found more than two 'include::shortcuts[]' in the adocs."
+    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Run 'git grep \\\"include::shortcuts\\\" *.adoc' in your git bash to see where they are."
     debugMsg "$errMsg"
     grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc 
     postToSlack "${errMsg//\'/\`}"
