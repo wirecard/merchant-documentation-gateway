@@ -13,4 +13,4 @@ pip3 install requests
 
 export PATH="node_modules/.bin:${PATH}"
 
-bash buildscripts/main.sh --skip-nova
+echo "yes" | bash buildscripts/main.sh --skip-nova
