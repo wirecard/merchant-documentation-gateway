@@ -29,12 +29,12 @@ def parse_git_info(filename):
 
 def git_info_to_str(git_info, json=True):
     message = """*Branch:* {branch} (<https://github.com/wirecard/merchant-documentation-gateway/tree/{branch}|On Github>)
-    *Commit:* `{hash}` (<https://github.com/wirecard/merchant-documentation-gateway/commit/{hash}|On Github>)
-    *Commit from:* {author}
-    *Partner:* {partner}""".format(branch=git_info['branch'], hash=git_info['commit_hash'],
-                                   author=git_info['author'], partner=os.environ.get('PARTNER'))
+*Commit:* `{hash}` (<https://github.com/wirecard/merchant-documentation-gateway/commit/{hash}|On Github>)
+*Commit from:* {author}
+*Partner:* {partner}""".format(branch=git_info['branch'], hash=git_info['commit_hash'],
+                               author=git_info['author'], partner=os.environ.get('PARTNER'))
     if json:
-        return { "type": "section", "text": { "type": "mrkdwn", "text": message } }
+        return {"type": "section", "text": {"type": "mrkdwn", "text": message}}
     else:
         return message
 
@@ -85,7 +85,7 @@ def main():
     else:
         message = "".join(sys.stdin.readlines())
 
-    header=None
+    header = None
     if args.parse_git_info:
         git_info = parse_git_info(get_git_info_filename())
         try:
@@ -103,7 +103,7 @@ def main():
     if args.debug:
         print(message)
         print()
-    
+
     # print(message)
     post_to_slack(message)
 
