@@ -528,8 +528,10 @@ function sendNotifications ( $results ) {
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  $headerText = "*Branch:* ".$currentBranch." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github)>PHP_EOL"
-  ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
+  $headerText = "*Branch:* ".$currentBranch
+  ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"
+  ."*Commit:* `".$commitHash
+  ."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),

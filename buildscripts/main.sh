@@ -119,16 +119,15 @@ function cloneWhitelabelRepository() {
 }
 
 function postToSlack() {
-  echo "content: $1"
   # content="${1//\n/\\n}"
   content="$(echo $1 | sed 's/\n/\#/g')"
   tmpfile="$(mktemp)"
   cat > "$tmpfile" << EOF
 { "blocks": [{ "type": "section", "text": {
 "type": "mrkdwn", "text": "${content}"
-} }]}'
+}}]}
 EOF
-  python3 buildscripts/util/post-to-slack.py -f "$tmpfile"
+  python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
 }
 
 function testEnvironmentDefinition() {
@@ -169,6 +168,7 @@ function createPartnerFolder() {
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
 
+  debugMsg "Checking env-* definitions..."
   pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
   env_count="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc | wc -l)"
   if (( env_count > 1 )); then
@@ -182,6 +182,16 @@ function createPartnerFolder() {
 
   testEnvironmentDefinition "shortcuts.adoc"
   testEnvironmentDefinition "nova.adoc"
+  
+  debugMsg "Checking include::shortcuts.adoc[] in all files..."
+  shortcuts_count="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc | wc -l)"
+  if (( shortcuts_count > 2 )); then
+    errMsg="Found more than two 'include::shortcuts[]' in the adocs."
+    debugMsg "$errMsg"
+    grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc 
+    postToSlack "${errMsg//\'/\`}"
+    exit 1
+  fi
   popd >/dev/null
 }
 
