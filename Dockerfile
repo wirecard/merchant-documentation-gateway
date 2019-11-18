@@ -2,8 +2,11 @@
 FROM php:7.2-zts-stretch
 
 ARG GITHUB_SSH_KEY
-ENV GITHUB_SSH_KEY=$GITHUB_SSH_KEY
-ENV WL_REPO_SSHKEY=$GITHUB_SSH_KEY
+ENV GITHUB_SSH_KEY=${GITHUB_SSH_KEY}
+ENV WL_REPO_SSHKEY=${GITHUB_SSH_KEY}
+
+ARG SLACK_TOKEN
+ENV SLACK_TOKEN=${SLACK_TOKEN}
 
 RUN apt-get update && apt-get install -y curl
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
