@@ -194,6 +194,9 @@ NOTE: To retrieve all available IPP options, send a request to the WPG <<General
 . -> Send an IPPS (Installment Payment Plan Service) request to retrieve the available IPPs:
 +
 .Sample IPPS Request
+Endpoint: \http://d-ipps-app01.wirecard.sys:9000/v2/ +
+Authentication:
++
 [#PPv2_CC_IPP_option2_Samples_IPPSRequest]
 [source,js,subs=attributes+]
 ----
@@ -203,11 +206,31 @@ NOTE: To retrieve all available IPP options, send a request to the WPG <<General
   "pan": xxxxxxxxxxxxxxxxxxxxxxx
 }
 ----
++
+[#PPv2_CC_IPP_option2_IPPSRequestFields]
+[%autowidth, cols="m,,,"]
+
+|===
+|Field |Data Type |Size |Description
+
+|gatewayTransactionId
+|Integer
+|
+|
+|gatewayMerchantId
+|String
+|
+|Your unique MAID configured for IPP.
+|pan
+|String
+|
+|
+|===
 
 . IPPS returns a list of available IPP programs and tenures:
 +
 .Sample IPPS Response
-[#PPv2_CC_IPP_option2_Samples_IPPSRequest]
+[#PPv2_CC_IPP_option2_Samples_IPPSResponse]
 [source,js,subs=attributes+]
 ----
 {
@@ -230,13 +253,50 @@ NOTE: To retrieve all available IPP options, send a request to the WPG <<General
   ]
 }
 ----
++
+[#PPv2_CC_IPP_option2_IPPSResponseFields]
+[%autowidth, cols="m,,,,,"]
+
+|===
+3+|Field |Data Type |Size |Description
+
+3+|responseCode
+|Integer
+|
+|
+3+|responseMessage
+|String
+|
+|
+.5+|installmentOptions
+2+m|programId
+|String
+|36
+|This ID uniquely identifies the corresponding installment payment plan framework.
+2+|programName
+|String
+|
+|
+.3+|tenors
+m|tenor
+|Integer
+|10 
+|Installment tenure. Number of months the consumer has to pay in installments.
+|providerId
+|String
+|
+|
+|processingMerchantId
+|String
+|
+|
+|===
 
 . The consumer checks out products in your shop and selects the payment method credit card.
 
 . -> Send an <<PPv2_CC_IPP_option2_Samples_initialPaymentRequest, initial payment request>> to WPG. This request must contain
   - MAID
   - the field ``"manual-ipp" : true`` in the ``options`` JSON parent.
-  //-
 +
 .Sample Request
 [#PPv2_CC_IPP_option2_Samples_initialPaymentRequest]
@@ -334,7 +394,7 @@ WPP.seamlessSubmit({
 m|tenure
 |Integer
 |10
-|Installment tenure. Number of months the consumer has to pay in installments. +
+|Installment tenure. Number of months the consumer has to pay in installments.
 m|program-id
 |String
 |36
