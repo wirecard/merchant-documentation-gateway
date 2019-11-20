@@ -191,15 +191,52 @@ NOTE: To retrieve all available IPP options, send a request to the WPG <<General
 [discrete]
 ===== Workflow
 
-. -> Send an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to WPG to retrieve the available IPPs.
+. -> Send an IPPS (Installment Payment Plan Service) request to retrieve the available IPPs:
++
+.Sample IPPS Request
+[#PPv2_CC_IPP_option2_Samples_IPPSRequest]
+[source,js,subs=attributes+]
+----
+{
+  "gatewayTransactionId": "xxxxxxxxxxxxxxxxxxxxxxx",
+  "gatewayMerchantId": xxxxxxxxxxxxxxxxxxxxxxx,
+  "pan": xxxxxxxxxxxxxxxxxxxxxxx
+}
+----
 
-. WPG returns a list of available IPP banks, programs and tenures.
+. IPPS returns a list of available IPP programs and tenures:
++
+.Sample IPPS Response
+[#PPv2_CC_IPP_option2_Samples_IPPSRequest]
+[source,js,subs=attributes+]
+----
+{
+  "gatewayTransactionId": "xxxxxxxxxxxxxxxxxxxxxxx",
+  "gatewayMerchantId": xxxxxxxxxxxxxxxxxxxxxxx,
+  "responseCode": 0,
+  "responseMessage": "Success",
+  "installmentOptions": [
+    {
+      "programId": "12345678A",
+      "programName": "Installment Payment Plan Example",
+      "tenors": [
+        {
+          "tenor": 3,
+          "providerId": "string",
+          "processingMerchantId": xxxxxxxxxxxxxxxxxxxxxxx
+        }
+      ]
+    }
+  ]
+}
+----
 
 . The consumer checks out products in your shop and selects the payment method credit card.
 
 . -> Send an <<PPv2_CC_IPP_option2_Samples_initialPaymentRequest, initial payment request>> to WPG. This request must contain
   - MAID
   - the field ``"manual-ipp" : true`` in the ``options`` JSON parent.
+  //-
 +
 .Sample Request
 [#PPv2_CC_IPP_option2_Samples_initialPaymentRequest]
