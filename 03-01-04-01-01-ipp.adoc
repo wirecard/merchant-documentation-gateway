@@ -96,19 +96,19 @@ and sends a payment request to the issuer.
 
 There are two types of seamless IPP integration:
 
-* **default - non-customizable:** The IPPs offered to your consumers are the same for each payment. The consumer selects from different IPP options.
+* **standard - non-customizable:** The IPPs offered to your consumers are the same for each payment. The consumer selects from different IPP options.
 * **customizable:** You may preselect installment details for each payment seperately. Consumers cannot change the preselected IPP options.
 //-
 
-[#PPv2_CC_IPP_option1]
+[#PPv2_CC_IPP_seamlessStandard]
 [discrete]
-==== 1. Non-customizable IPP
+==== 1. Standard IPP
 
 Non-customizable IPPs are predefined. Consumers are prompted to choose from various installment programs. These programs are retrieved with an initial payment request. This request must contain your Merchant Account ID (MAID). With your MAID, WPG checks if "onus" and "IPP" are enabled for your merchant account, so make sure that your merchant account has been set up for IPP by <<ContactUs, merchant support>>. 
 
 NOTE: If the MAID is missing in the initial payment request (e.g. due to expected merchant account resolving), the payment page does not offer payment in installments to your consumer.
 
-[#PPv2_CC_IPP_option1_Workflow]
+[#PPv2_CC_IPP_seamlessStandard_Workflow]
 [discrete]
 ===== Workflow
 . The consumer checks out products in your shop and selects the payment method credit card.
@@ -172,28 +172,28 @@ and sends a payment request to the issuer.
 
 . -> Inform the consumer on the payment outcome.
 
-[#PPv2_CC_IPP_option2]
+[#PPv2_CC_IPP_seamlessCustomizable]
 [discrete]
 ==== 2. Customizable IPP
 
 You can customize IPPs for each payment separately. Consumers are not prompted to select from different installment plans, but an IPP is requested automatically once the consumer  selects a tenure and submits the payment. +
 For that purpose, you have to
 
- . set the field ``manual-ipp`` to ``true`` in the <<PPv2_CC_IPP_option2_Samples_initialPaymentRequest, initial payment request>>. +
- If this field is missing or set to ``false``, the payment process falls back to <<PPv2_CC_IPP_option1, non-customizable IPP>>.
+ . set the field ``manual-ipp`` to ``true`` in the <<PPv2_CC_IPP_seamlessCustomizable_Samples_initialPaymentRequest, initial payment request>>. +
+ If this field is missing or set to ``false``, the payment process falls back to <<PPv2_CC_IPP_seamlessStandard, non-customizable IPP>>.
  . provide installment details when submitting the seamless form. +
 These installment details must be part of the ``extPayment`` object of the ``WPP.seamlessSubmit`` function.
 +
 //NOTE: To retrieve all available IPP options, send a request to the WPG <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>>.
-NOTE: To retrieve all available IPP options, send a request to the <<PPv2_CC_IPP_option2_Samples_IPPSRequest, Installment Payment Plan Service (IPPS)>>.
+NOTE: To retrieve all available IPP options, send a request to the <<PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSRequest, Installment Payment Plan Service (IPPS)>>.
 
-[#PPv2_CC_IPP_option2_Workflow]
+[#PPv2_CC_IPP_seamlessCustomizable_Workflow]
 [discrete]
 ===== Workflow
 
 . -> Send an IPPS (Installment Payment Plan Service) request to retrieve the available IPPs:
 +
-[#PPv2_CC_IPP_option2_Samples_IPPSRequest]
+[#PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSRequest]
 .Sample IPPS Request
 Endpoint: \http://d-ipps-app01.wirecard.sys:9000/v2/ +
 Authentication:
@@ -207,7 +207,7 @@ Authentication:
 }
 ----
 +
-[#PPv2_CC_IPP_option2_IPPSRequestFields]
+[#PPv2_CC_IPP_seamlessCustomizable_IPPSRequestFields]
 [%autowidth, cols="m,,,"]
 
 |===
@@ -229,7 +229,7 @@ Authentication:
 
 . IPPS returns a list of available IPP programs and tenures:
 +
-[#PPv2_CC_IPP_option2_Samples_IPPSResponse]
+[#PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSResponse]
 .Sample IPPS Response
 [source,js,subs=attributes+]
 ----
@@ -254,7 +254,7 @@ Authentication:
 }
 ----
 +
-[#PPv2_CC_IPP_option2_IPPSResponseFields]
+[#PPv2_CC_IPP_seamlessCustomizable_IPPSResponseFields]
 [%autowidth, cols="m,,,,,"]
 
 |===
@@ -294,7 +294,7 @@ m|tenor
 
 . The consumer checks out products in your shop and selects the payment method credit card.
 
-. -> Send an <<PPv2_CC_IPP_option2_Samples_initialPaymentRequest, initial payment request>> to WPG. This request must contain
+. -> Send an <<PPv2_CC_IPP_seamlessCustomizable_Samples_initialPaymentRequest, initial payment request>> to WPG. This request must contain
   - MAID
   - the field ``"manual-ipp" : true`` in the ``options`` JSON parent.
 +
@@ -302,7 +302,7 @@ m|tenor
 Endpoint: \ +
 Authentication:
 +
-[#PPv2_CC_IPP_option2_Samples_initialPaymentRequest]
+[#PPv2_CC_IPP_seamlessCustomizable_Samples_initialPaymentRequest]
 [source,js,subs=attributes+,linenums,highlight=26-28]
 ----
 {
@@ -388,7 +388,7 @@ WPP.seamlessSubmit({
 
 ----
 +
-[#PPv2_CC_IPP_option2_Fields]
+[#PPv2_CC_IPP_seamlessCustomizable_Fields]
 [%autowidth]
 
 |===
@@ -411,7 +411,7 @@ m|program-id
 
 These fields are **mandatory** in the ``extPayment`` object of the ``WPP.seamlessSubmit`` function. They specify the IPP options selected by the consumer. 
 +
--> Retrieve the field values from the <<PPv2_CC_IPP_option2_Samples_IPPSResponse, IPPS response>>.
+-> Retrieve the field values from the <<PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSResponse, IPPS response>>.
 +
 The ``extPayment`` data are automatically merged with the other payment data (credit card number, payment details from the initial payment request) and sent to WPG.
 
