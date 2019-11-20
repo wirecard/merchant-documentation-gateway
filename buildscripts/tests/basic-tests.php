@@ -11,6 +11,10 @@ error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 const testNoErrorPath = true;
 
+function size_check(string $text, string $appendText, int $maxSize=2000) {
+  return (strlen($text) + strlen($appendText) <= $maxSize);
+}
+
 function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   if ( error_reporting() == 0 ) {
     return;
@@ -611,34 +615,49 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
       $content['text'] .= "• *Anchors*"."PHP_EOL";
       foreach( $result['tests']['anchors'] as $key => $test ) {
         if( $test['errorType'] == 'format')
-          $content['text'] .= "```".$test['errorMessage'].": ".$test['anchorID']."```PHP_EOL";
+          $appendTxt = "```".$test['errorMessage'].": ".$test['anchorID']."```PHP_EOL";
         else
-          $content['text'] .= "```".$test['errorMessage'].": ".$test['anchorText']."```PHP_EOL";
+          $appendTxt = "```".$test['errorMessage'].": ".$test['anchorText']."```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['anchors'] );
     }
 
-    if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0 ){
+    if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0
+      && strlen($content['text'] < 2000) ) {
       $content['text'] .= "• *Patterns*"."PHP_EOL";
       foreach( $result['tests']['patterns'] as $key => $test ) {
-        $content['text'] .= "```Line ".$test['lineNumber'].": ".$test['type'].": \"".$test['match']."\"```PHP_EOL";
+        $appendTxt = "```Line ".$test['lineNumber'].": ".$test['type'].": \"".$test['match']."\"```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['patterns'] );
     }
 
-    if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 ){
+    if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 
+      && strlen($content['text'] < 2000) ) {
       $content['text'] .= "• *Links*"."PHP_EOL";
       foreach( $result['tests']['links'] as $key => $test ) {
-        $content['text'] .= "```".$test['httpErrorMessage']." (".$test['httpStatusCode'].") for ".$test['url']."```PHP_EOL";
+        $appendTxt = "```".$test['httpErrorMessage']." (".$test['httpStatusCode'].") for ".$test['url']."```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['links'] );
     }
 
-    if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0 ){
+    if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0
+    && strlen($content['text'] < 2000) ) {
       $content['text'] .= "• *Asciidoctor Diagnosis*"."PHP_EOL";
       foreach( $result['tests']['asciidoctor'] as $key => $test ) {
         $testMessage = ucfirst( preg_replace( '/(.*:\ )(.*)$/', '$1`$2`', $test['message'] ) );
-        $content['text'] .= "```Line ".$test['lineNumber'].": ".$testMessage."```PHP_EOL";
+        $appendTxt = "```Line ".$test['lineNumber'].": ".$testMessage."```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['asciidoctor'] );
     }
