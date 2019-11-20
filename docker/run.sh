@@ -2,9 +2,14 @@
 
 set -e
 
-git clone --branch=Dockerfile-tmp https://github.com/wirecard/merchant-documentation-gateway/
-
-cd merchant-documentation-gateway
+MDG_DIR="merchant-documentation-gateway"
+if [[ -d "$MDG_DIR" ]]; then
+    git clone --branch=Dockerfile-tmp https://github.com/wirecard/merchant-documentation-gateway/
+    cd "$MDG_DIR"
+else
+    cd "$MDG_DIR"
+    git pull
+fi
 
 npm install
 gem install bundler && bundle install
