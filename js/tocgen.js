@@ -27,13 +27,13 @@ highlightTOC();
 function hideNav() {
   $('#toc').addClass('hidden-toc');
   $('#tocbtn').removeClass('is-active');
-  $('header').addClass('blue');
+  //$('header').addClass('blue');
 }
 
 function showNav() {
   $('#toc').removeClass('hidden-toc');
   $('#tocbtn').addClass('is-active');
-  $('header').removeClass('blue');
+  //$('header').removeClass('blue');
 }
 
 function initializeForScreenSize() {
