@@ -6,64 +6,129 @@ function replaceHash(hID) {
 
 var hashToSet = '';
 var hashChangeTimer;
+var inViewportElement;
+var _tmpInViewPortID = null;
+var miniTocTimer;
+var miniTocInViewportElement;
+var _tmpMiniTocInViewPortID = null;
+var miniTocSubsectionTimer;
+
 function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
-    var subsectionTitleElement = $(this).find("h4:first, h3:first");
+    inViewportElement = $(this);
+    var subsectionTitleElement = inViewportElement.find("h4:first, h3:first");
     var hID = subsectionTitleElement.attr('id');
-    if (subsectionTitleElement.length > 1) {
-      hashToSet = '';
-    }
-    else {
-      hashToSet = hID;
-    }
-/*
-    window.clearTimeout(hashChangeTimer);
-    hashChangeTimer = setTimeout(function () {
-      replaceHash(hashToSet);
-    }, 100);
-*/
-    var hasMinitoc = $('#minitoc > ul').has('li').length ?
-      $('#minitoc-title').html() == subsectionTitleElement.text() : true ? false
-        : false;
-    if (subsectionTitleElement.is('h4') && hasMinitoc === false) {
-      // Reset the MiniToc only before refilling
-      $('#minitoc > ul').stop(true, true);
-      $('#minitoc > ul').html('');
-      $('#minitoc > ul').hide(500);
-      var hasTitle = false;
-      subsectionTitleElement.nextAll('div.sect4').find('h5').each(function () {
-        // Avoid costly check of number of elements of find
-        if (hasTitle == false) {
-          hasTitle = true;
-          $('#minitoc > ul').append('<li id="minitoc-title">' + subsectionTitleElement.text() + '</li>');
-          $('#minitoc-title').on('click touch', function () { location.href = '#' + subsectionTitleElement.attr('id'); });
-        }
-        var e = $(this);
-        var title = e.text();
-        var link = "#" + e.attr("id");
-        var navPoint = "<li>" +
-          "<a href='" + link + "'>" + title + "</a>" +
-          "</li>";
-        $('#minitoc > ul').append(navPoint);
-      });
-      $('#minitoc > ul').delay(1).slideDown(300);
-    } else if (subsectionTitleElement.is('h4') === false) {
-      $('#minitoc > ul').html('');
-    }
-
     if (currentlyHighlightedElementID !== hID) {
       highlightTOCelement(hID);
       currentlyHighlightedElementID = hID;
     }
+
+    if (inViewportElement.is('div.sect3')) {
+      // if viewportElement has changed. else no redraw of minitoc.
+      window.cancelIdleCallback(miniTocTimer);
+      miniTocTimer = requestIdleCallback(function () {
+        var _currentInViewPortID = inViewportElement.find('h4').first().attr('id');
+        if (_tmpInViewPortID != _currentInViewPortID) {
+          console.log('changed section to: ' + _currentInViewPortID);
+          updateMiniTOC();
+          _tmpInViewPortID = _currentInViewPortID;
+        }
+      }, { timeout: 300 });
+    }
+  });
+
+  // separate for miniToc
+  $('div.sect4').isInViewport({ tolerance: 100 }).run(function () {
+    miniTocInViewportElement = $(this);
+    var _currentMiniTocInViewPortID = miniTocInViewportElement.find('h5').first().attr('id');
+    console.log('previous: ' + _tmpMiniTocInViewPortID + ' current:' + _currentMiniTocInViewPortID);
+
+    window.cancelIdleCallback(miniTocSubsectionTimer);
+    miniTocSubsectionTimer = requestIdleCallback(function () {
+      //if (_tmpMiniTocInViewPortID != _currentMiniTocInViewPortID) { // removed bc doesnt go into conditional.. sometimes. and not necessary bc of loose idlecallback time
+        highlightMiniToc(_currentMiniTocInViewPortID);
+        _tmpMiniTocInViewPortID = _currentMiniTocInViewPortID;
+      //}
+    }, { timeout: 220 });
   });
 }
 
+function highlightMiniToc(id) {
+  console.log('minitocid: ' + id);
+  $('#minitoc li[data-content-id]').removeClass('active');
+  $('#minitoc li[data-content-id=' + id + ']').addClass('active');
+}
+
+function updateMiniTOC() {
+  $('#minitoc li[data-content-id]').removeClass('active');
+  const sectionHeadElement = inViewportElement.find('h4').first();
+  const sectionHeadID = sectionHeadElement.attr('id');
+  const navTitle = sectionHeadElement.text();
+  //console.log('title: ' + navTitle);
+
+  // create MiniToc
+  var _tmpMiniToc = $('<ul>', {
+    id: 'minitoc'
+  });
+
+  // create head element of MiniToc
+  var _miniTocHeadAnchor = $('<a>', {
+    href: '#' + sectionHeadID,
+    text: navTitle
+  });
+  _miniTocHeadAnchor.on('click touch', function (event) {
+    miniTocClick(event, sectionHeadElement, sectionHeadID);
+  });
+  var _minitocHeadElement = $('<li>', {
+    id: 'minitoc-header'
+  });
+  _minitocHeadElement.append(_miniTocHeadAnchor);
+  _tmpMiniToc.append(_minitocHeadElement);
+
+  // add subsection elements to MiniToc
+  var subsectionTitles = sectionHeadElement.nextAll('div.sect4').find('h5');
+  if (subsectionTitles.length) {
+    subsectionTitles.each(function () {
+      const subsectionElement = $(this);
+      const subsectionTitle = subsectionElement.text();
+      //console.log('  +  ' + subsectionTitle);
+      const sectionID = subsectionElement.attr('id');
+      var miniTocElement = $('<li>');
+      miniTocElement.attr('data-content-id', sectionID);
+      var miniTocElementAnchor = $('<a>');
+      miniTocElementAnchor.text(subsectionTitle);
+      miniTocElementAnchor.attr('href', '#' + sectionID);
+      miniTocElementAnchor.on('click touch', function (event) {
+        miniTocClick(event, subsectionElement, sectionID);
+      });
+
+      // add generated elements to MiniToc
+      miniTocElement.append(miniTocElementAnchor);
+      _tmpMiniToc.append(miniTocElement);
+    });
+    $('#minitoc').replaceWith(_tmpMiniToc);
+  }
+  else {
+    $('#minitoc').empty();
+    //$('#minitoc').fadeOut(1000).promise().then(() => { $(this).empty(); });
+  }
+}
+
+function miniTocClick(event, sectionElement, sectionID, callback = () => { }) {
+  event.preventDefault();
+  $('html, body').animate({ // add smooth scrolling
+    scrollTop: sectionElement.offset().top
+  }, 500).promise().then(callback);
+  history.pushState(null, null, '#' + sectionID);
+}
+
 function documentReady() {
+  console.log('documentReady');
   // set title of page
   const docTitle = $('h1').html();
   const pageTitle = $('#content h2 > a.link, #content h3 > a.link').first().text();
   document.title = pageTitle ? (pageTitle + ' - ' + docTitle) : docTitle;
-  
+
   $("div.sect3 > table.tableblock, div.sect2 > table.tableblock").wrap("<div class='tablewrapper'></div>");
   $('#content').addClass('scene_element--fadeinup');
   if (getUrlHash() !== false) {
@@ -73,12 +138,12 @@ function documentReady() {
     highlightTOCelement($('#content h2, #content h3').first().attr('id'));
   }
   var scrollTimer;
-  var scrollDelay = 200;
+  var scrollDelay = 250;
   $(window).on('scroll', function () {
-    window.clearTimeout(scrollTimer);
-    scrollTimer = setTimeout(function () {
+    window.cancelIdleCallback(scrollTimer);
+    scrollTimer = requestIdleCallback(function () {
       window.requestAnimationFrame(highlightTOC);
-    }, scrollDelay);
+    }, { timeout: scrollDelay });
   });
 
   /*
@@ -144,13 +209,14 @@ function documentReady() {
   $('#spinner-container').fadeOut();
   // IE fixes
   // if(isInternetExplorer || isEdgeBrowser) { }
-  if(isInternetExplorer) {
+  if (isInternetExplorer) {
     swapSVGandPNG();
   }
   addZoomToLargeImages();
   // ENABLE:TABS
   enableRequestDetailsHideShow();
   createSampleTabs();
+  updateMiniTOC();
 }
 
 $(document).ready(function () {

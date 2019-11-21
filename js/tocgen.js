@@ -19,9 +19,10 @@ $('#toctitle').click(function (event) {
   location.href = _currentRoot;
 });
 
-$('<div id="minitoc"><ul></ul></div>').insertAfter("header");
+$('<nav id="minitoc-container"><ul id="minitoc"></ul></nav>').insertAfter('header');
 $('<span id="console"></span>').insertAfter("header");
 $('header').prepend('<button class="hamburger hamburger--arrow is-active" type="button" id="tocbtn"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button>');
+highlightTOC();
 
 function hideNav() {
   $('#toc').addClass('hidden-toc');
