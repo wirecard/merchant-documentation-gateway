@@ -52,31 +52,24 @@ function increaseErrorCount() {
 }
 
 function debugMsg() {
-  [[ ${DEBUG} ]] && echo >&2 "[$(date +'%T')] ${1}"
+  [[ ${DEBUG} ]] && echo "[$(date +'%T')] ${1}" >&2
 }
 
 function scriptError() {
-  echo >&2 "Error executing: ${1}"
+  echo "Error executing: ${1}" >&2
   increaseErrorCount
   exitWithError "${1}"
 }
 
-if command -v travis_wait >/dev/null 2>&1; then
-  debugMsg "travis_wait found! updating command..."
-  ASCIIDOCTOR_CMD_COMMON="travis_wait 35 ${ASCIIDOCTOR_CMD_COMMON}"
-else
-  debugMsg "travis_wait not found!"
-fi
-
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
-  echo >&2 "Build aborted."
-  echo >&2 "${1}"
+  echo "Build aborted." >&2
+  echo "${1}" >&2
   exit 1
 }
 
 function abortCurrentBuild() {
-  echo >&2 "Aborting current build ${1}."
+  echo "Aborting current build ${1}." >&2
   exit 1
 }
 
@@ -125,6 +118,30 @@ function cloneWhitelabelRepository() {
   return $?
 }
 
+function postToSlack() {
+  # content="${1//\n/\\n}"
+  content="$(echo $1 | sed 's/\n/\#/g')"
+  tmpfile="$(mktemp)"
+  cat > "$tmpfile" << EOF
+{ "blocks": [{ "type": "section", "text": {
+"type": "mrkdwn", "text": "${content}"
+}}]}
+EOF
+  python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
+}
+
+function testEnvironmentDefinition() {
+  ADOC_FILE="$1"
+  count="$(grep -oE '^:env-\w+:' ${ADOC_FILE} | wc -l)"
+  if (( count != 1 )); then
+    content="Found ${count} environments defined in ${ADOC_FILE}! Expected: 1"
+    debugMsg "$content"
+    debugMsg "Exiting..."
+    postToSlack "$content"
+    exit 1
+  fi
+}
+
 # create folder where white labeled content is stored
 # takes partner name == folder name as argument
 function createPartnerFolder() {
@@ -150,6 +167,32 @@ function createPartnerFolder() {
     # fill the partner dir with whitelabel content
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
+
+  debugMsg "Checking env-* definitions..."
+  pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
+  env_count="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc | wc -l)"
+  if (( env_count > 1 )); then
+    errMsg="Found multiple environments defined!"
+    grep -oE '^:env-(wirecard|po|ms):' ./*.adoc
+    debugMsg "$errMsg"
+    debugMsg "Exiting..."
+    postToSlack "${errMsg}\nCheck the logs for more info."
+    exit 1
+  fi
+
+  testEnvironmentDefinition "shortcuts.adoc"
+  testEnvironmentDefinition "nova.adoc"
+  
+  debugMsg "Checking include::shortcuts.adoc[] in all files..."
+  shortcuts_count="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc | wc -l)"
+  if (( shortcuts_count > 2 )); then
+    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Run 'git grep \\\"include::shortcuts\\\" *.adoc' in your git bash to see where they are."
+    debugMsg "$errMsg"
+    grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc 
+    postToSlack "${errMsg//\'/\`}"
+    exit 1
+  fi
+  popd >/dev/null
 }
 
 function setUpMermaid() {
@@ -220,7 +263,7 @@ function buildPartner() {
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
   TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
-  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -P '^'${PARTNER}'$' >&/dev/null; then
+  if [[ -z $SKIP ]] && printf '%s\n' "${TEST_PARTNER_ARRAY[@]}" | grep -E '^'"${PARTNER}"'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
   else
     debugMsg "[SKIP] basic tests"
@@ -257,7 +300,7 @@ function buildPartner() {
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
 
-  HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
+  HTMLFILES="$(ls ./*.html | grep -vE 'docinfo(-footer)?.html')"
 
   debugMsg "Moving created web resources to deploy html folder"
   mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
@@ -290,12 +333,16 @@ function main() {
     -s | --skip)
       SKIP="true"
       ;;
+    -sn | --skip-nova)
+      SKIP_NOVA="true"
+      ;;
     -f | --force)
       FORCE="true"
       ;;
     -h | --help)
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
+      echo "* [-sn|--skip-nova] skip NOVA docs build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
       ;;
@@ -361,6 +408,8 @@ function main() {
 
   if [[ "${PARTNER}" != "WD" ]]; then
     debugMsg "Partner does not support NOVA"
+  elif [[ -n $SKIP_NOVA ]]; then
+    debugMsg "Skipping NOVA for ${PARTNER}"
   elif buildPartner "${PARTNER}" "NOVA"; then
     debugMsg "SUCCESS! NOVA for ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/"
     debugMsg "export DEPLOY_${PARTNER}_${NOVA}=TRUE"
