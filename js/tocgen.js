@@ -132,6 +132,7 @@ function addTOCbindings() {
     setTimeout(function () {
       highlightTOCelement(clickedItemID);
     }, 0);
+    $('#minitoc').empty();
     var pageUrl = $(this).attr('href');
     if (pageUrl == currentPageID + '.html') {
       event.preventDefault();

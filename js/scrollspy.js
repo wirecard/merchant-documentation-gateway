@@ -146,18 +146,6 @@ function documentReady() {
     }, { timeout: scrollDelay });
   });
 
-  /*
-  var resizeTimer;
-  var resizeDelay = 1000;
-  $(window).on('resize', function () {
-    if (getUrlHash()) {
-      window.cancelIdleCallback(resizeTimer);
-      resizeTimer = requestIdleCallback(function () {
-        window.location.href = '#' + getUrlHash();
-      }, { timeout: resizeDelay });
-    }
-  });
-  */
   // clipboard functions
   $(function () {
     var pre = document.getElementsByTagName('pre');
