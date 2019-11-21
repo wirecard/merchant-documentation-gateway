@@ -149,8 +149,8 @@ function documentReady() {
   }
   addZoomToLargeImages();
   // ENABLE:TABS
-  // enableRequestDetailsHideShow();
-  // createSampleTabs();
+  enableRequestDetailsHideShow();
+  createSampleTabs();
 }
 
 $(document).ready(function () {
