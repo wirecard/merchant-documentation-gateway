@@ -273,9 +273,8 @@ function buildPartner() {
   node buildscripts/util/combine-and-minify.js
 
   debugMsg "Beautify samples"
-  find samples/{auto-generated,xml}/ -name "*.xml" -exec tidy -xml -indent -modify -wrap 120 {} \; 2>/dev/null
-  find samples/{auto-generated,json}/ -name "*.json" -exec jsonlint --in-place --quiet {} +
-
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -indent -modify -wrap 120 {} \; 2>/dev/null
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \;
 
   debugMsg "Building blob html"
   # build html for toc and index
