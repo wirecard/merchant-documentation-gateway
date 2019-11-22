@@ -119,13 +119,8 @@ function cloneWhitelabelRepository() {
 }
 
 function postToSlack() {
-  # content="${1//\n/\\n}"
-  echo "content=$1"
-  echo "secondary=$2"
-  content="$(echo $1 | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')"
-  secondary="$(echo $2 | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')"
-  echo "content=$content"
-  echo "secondary=$secondary"
+  content=$(echo "$1" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  secondary=$(echo "$2" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
   tmpfile="$(mktemp)"
   if [[ -z $2 ]]; then
     cat > "$tmpfile" << EOF
@@ -195,7 +190,7 @@ function createPartnerFolder() {
     debugMsg "$errMsg"
     debugMsg "$result"
     debugMsg "Exiting..."
-    postToSlack "${errMsg}" "\`\`\`$(echo $result | tr ' ' \\n)\`\`\`"
+    postToSlack "${errMsg}" "\`\`\`${result}\`\`\`"
     exit 1
   fi
 
@@ -205,11 +200,12 @@ function createPartnerFolder() {
   debugMsg "Checking include::shortcuts.adoc[] in all files..."
   shortcuts_count="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc | wc -l)"
   if (( shortcuts_count > 2 )); then
-    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Run 'git grep \\\"include::shortcuts\\\" *.adoc' in your git bash to see where they are."
+    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Output of 'git grep \\\"include::shortcuts\\\" *.adoc' below."
     result="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc )"
     debugMsg "$errMsg"
     debugMsg "$result"
-    postToSlack "${errMsg//\'/\`}" "\`\`\`$(echo $result | tr ' ' \\n)\`\`\`"
+    debugMsg "Exiting..."
+    postToSlack "${errMsg//\'/\`}" "\`\`\`${result}\`\`\`"
     exit 1
   fi
   popd >/dev/null
