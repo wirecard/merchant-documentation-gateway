@@ -119,14 +119,27 @@ function cloneWhitelabelRepository() {
 }
 
 function postToSlack() {
-  # content="${1//\n/\\n}"
-  content="$(echo $1 | sed 's/\n/\#/g')"
+  content=$(echo "$1" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  secondary=$(echo "$2" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
   tmpfile="$(mktemp)"
-  cat > "$tmpfile" << EOF
-{ "blocks": [{ "type": "section", "text": {
-"type": "mrkdwn", "text": "${content}"
-}}]}
+  if [[ -z $2 ]]; then
+    cat > "$tmpfile" << EOF
+  { "blocks": [{ "type": "section", "text": {
+  "type": "mrkdwn", "text": "${content}"
+  }}]}
 EOF
+else
+    cat > "$tmpfile" << EOF
+  { "blocks": [
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${content}" }
+    },
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${secondary}" }
+    }
+  ]}
+EOF
+fi
   python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
 }
 
@@ -173,10 +186,11 @@ function createPartnerFolder() {
   env_count="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc | wc -l)"
   if (( env_count > 1 )); then
     errMsg="Found multiple environments defined!"
-    grep -oE '^:env-(wirecard|po|ms):' ./*.adoc
+    result="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc)"
     debugMsg "$errMsg"
+    debugMsg "$result"
     debugMsg "Exiting..."
-    postToSlack "${errMsg}\nCheck the logs for more info."
+    postToSlack "${errMsg}" "\`\`\`${result}\`\`\`"
     exit 1
   fi
 
@@ -186,10 +200,12 @@ function createPartnerFolder() {
   debugMsg "Checking include::shortcuts.adoc[] in all files..."
   shortcuts_count="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc | wc -l)"
   if (( shortcuts_count > 2 )); then
-    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Run 'git grep \\\"include::shortcuts\\\" *.adoc' in your git bash to see where they are."
+    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Output of 'git grep \\\"include::shortcuts\\\" *.adoc' below."
+    result="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc )"
     debugMsg "$errMsg"
-    grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc 
-    postToSlack "${errMsg//\'/\`}"
+    debugMsg "$result"
+    debugMsg "Exiting..."
+    postToSlack "${errMsg//\'/\`}" "\`\`\`${result}\`\`\`"
     exit 1
   fi
   popd >/dev/null
