@@ -272,6 +272,10 @@ function buildPartner() {
   debugMsg "Minifying and combining js files"
   node buildscripts/util/combine-and-minify.js
 
+  debugMsg "Beautify samples"
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
+
   debugMsg "Building blob html"
   # build html for toc and index
   # TODO: replace with asciidoctor.js api calls inside these scripts to avoid costly building of html
