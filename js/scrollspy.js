@@ -60,6 +60,13 @@ function highlightMiniToc(id) {
 }
 
 function updateMiniTOC() {
+  $('#minitoc').empty();
+
+  if( $('div.sect3').find('h4').first().length < 1 ) {
+    console.log('no sections...')
+    return false;
+  }
+
   $('#minitoc li[data-content-id]').removeClass('active');
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
@@ -91,6 +98,9 @@ function updateMiniTOC() {
     subsectionTitles.each(function () {
       const subsectionElement = $(this);
       const subsectionTitle = subsectionElement.text();
+
+      console.log(subsectionTitle);
+
       //console.log('  +  ' + subsectionTitle);
       const sectionID = subsectionElement.attr('id');
       var miniTocElement = $('<li>');
@@ -201,10 +211,8 @@ function documentReady() {
     swapSVGandPNG();
   }
   addZoomToLargeImages();
-  // ENABLE:TABS
   enableRequestDetailsHideShow();
   createSampleTabs();
-  updateMiniTOC();
 }
 
 $(document).ready(function () {
@@ -232,10 +240,6 @@ function highlightTOCelement(id) {
 
     if (childElements.length > 0) {
       tocElement.toggleClass('toc-item-expanded');
-    }
-    // TODO: should be handled cleaner in highlightTOC()
-    if ($('#' + id).is('h4') === false) {
-      $('#minitoc > ul').html('');
     }
   }
 }

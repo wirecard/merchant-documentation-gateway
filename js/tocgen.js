@@ -125,6 +125,7 @@ function replaceRootHref() {
 
 function addTOCbindings() {
   $('li.tocify-item > a').click(function (event) {
+    $('#minitoc').empty();
     // workaround for smoothState
     // uses window.location bc body id doesn't reliably change
     var currentPageID = location.pathname.substring(location.pathname.lastIndexOf("/") + 1).replace(new RegExp("\.html.*"), '');
@@ -147,9 +148,7 @@ function addTOCbindings() {
         return true;
       }
       window.stop();
-      setTimeout(function () {
-        smoothState.load(pageUrl);
-      }, 20);
+      smoothState.load(pageUrl);
       event.preventDefault();
     }
   });
@@ -182,8 +181,8 @@ $.getJSON('toc.json', function (data) {
   buildTOC(data);
   $('#generated-toc').replaceWith(toc);
   if (maskString) applyMask(maskString);
-  if (typeof scrollSpyLoaded !== undefined) documentReady();
   addTOCbindings();
+  if (typeof scrollSpyLoaded !== undefined) documentReady();
   replaceRootHref();
   if (editorMode) initMaskEditor(data);
   if (!isEdgeBrowser && !isInternetExplorer) {
