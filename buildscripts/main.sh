@@ -274,6 +274,7 @@ function buildPartner() {
 
   debugMsg "Beautify samples"
   find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 {} \;
+  tidy -xml -quiet -indent -modify -wrap 100 auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml
   find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
 
   debugMsg "Building blob html"
