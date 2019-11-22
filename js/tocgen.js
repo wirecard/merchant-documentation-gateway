@@ -1,12 +1,4 @@
 $('header').prepend($('.closebtn'));
-function openNav() {
-  document.getElementById("toc").style.width = '0';
-}
-
-function closeNav() {
-  document.getElementById("toc").style.width = "20px";
-}
-
 $('#toctitle').click(function (event) {
   /*
   removeHash();
@@ -50,6 +42,7 @@ $(window).on('resize', function () {
 });
 
 $('#content').on("click touch", function () {
+  $('#minitoc').removeClass('minitoc-open');
   if ($('#toc').width() > 0 && $(window).width() < mobileLayoutCutoffWidth) {
     hideNav();
   }
@@ -138,7 +131,7 @@ function addTOCbindings() {
     if (pageUrl == currentPageID + '.html') {
       event.preventDefault();
       window.scrollTo(0, 0);
-      removeHash();
+      $('#minitoc').empty();
       return false;
     }
     if (pageUrl.indexOf(currentPageID + '.html') != 0) {

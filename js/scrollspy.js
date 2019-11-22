@@ -12,6 +12,7 @@ var miniTocTimer;
 var miniTocInViewportElement;
 var _tmpMiniTocInViewPortID = null;
 var miniTocSubsectionTimer;
+var miniTocCloseTimer;
 
 function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
@@ -54,14 +55,11 @@ function highlightTOC() {
 }
 
 function highlightMiniToc(id) {
-  console.log('minitocid: ' + id);
   $('#minitoc li[data-content-id]').removeClass('active');
   $('#minitoc li[data-content-id=' + id + ']').addClass('active');
 }
 
 function updateMiniTOC() {
-  $('#minitoc').empty();
-
   if( $('div.sect3').find('h4').first().length < 1 ) {
     console.log('no sections...')
     return false;
@@ -71,8 +69,6 @@ function updateMiniTOC() {
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
   const navTitle = sectionHeadElement.text();
-  //console.log('title: ' + navTitle);
-
   // create MiniToc
   var _tmpMiniToc = $('<ul>', {
     id: 'minitoc'
@@ -83,9 +79,22 @@ function updateMiniTOC() {
     href: '#' + sectionHeadID,
     text: navTitle
   });
+
   _miniTocHeadAnchor.on('click touch', function (event) {
-    miniTocClick(event, sectionHeadElement, sectionHeadID);
+    // if this hasclass open, do click, else addclass
+    if($('#minitoc').hasClass('minitoc-open')) {
+      miniTocClick(event, sectionHeadElement, sectionHeadID);
+    }
+    else {
+      event.preventDefault();
+      $('#minitoc').addClass('minitoc-open');
+      // close after timeout automatically wuthout mouseleave
+      miniTocCloseTimer = setTimeout(function () {
+        $('#minitoc').removeClass('minitoc-open');
+      }, 3800);
+    }
   });
+
   var _minitocHeadElement = $('<li>', {
     id: 'minitoc-header'
   });
@@ -98,10 +107,6 @@ function updateMiniTOC() {
     subsectionTitles.each(function () {
       const subsectionElement = $(this);
       const subsectionTitle = subsectionElement.text();
-
-      console.log(subsectionTitle);
-
-      //console.log('  +  ' + subsectionTitle);
       const sectionID = subsectionElement.attr('id');
       var miniTocElement = $('<li>');
       miniTocElement.attr('data-content-id', sectionID);
@@ -117,6 +122,12 @@ function updateMiniTOC() {
       _tmpMiniToc.append(miniTocElement);
     });
     $('#minitoc').replaceWith(_tmpMiniToc);
+    $('#minitoc').mouseenter(() => {
+      $('#minitoc').addClass('minitoc-open');
+      clearTimeout(miniTocCloseTimer);
+    }).mouseleave(() => {
+      $('#minitoc').removeClass('minitoc-open');
+    });
   }
   else {
     $('#minitoc').empty();
