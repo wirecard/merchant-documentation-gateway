@@ -120,8 +120,12 @@ function cloneWhitelabelRepository() {
 
 function postToSlack() {
   # content="${1//\n/\\n}"
-  content="$1"
-  secondary="$2"
+  echo "content=$1"
+  echo "secondary=$2"
+  content="$(echo $1 | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')"
+  secondary="$(echo $2 | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')"
+  echo "content=$content"
+  echo "secondary=$secondary"
   tmpfile="$(mktemp)"
   if [[ -z $2 ]]; then
     cat > "$tmpfile" << EOF
@@ -131,16 +135,16 @@ function postToSlack() {
 EOF
 else
     cat > "$tmpfile" << EOF
-  { "blocks": [{ "type": "section", "text": {
-  "type": "mrkdwn", "text": "${content}"
-  }},
-  {"type": "mrkdwn", "text": "${secondary}" }
+  { "blocks": [
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${content}" }
+    },
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${secondary}" }
+    }
   ]}
 EOF
 fi
-  tmpfile2="$(mktemp)"
-  cp "$tmpfile" "$tmpfile2"
-  awk '{printf "%s\\n", $0}' "${tmpfile2}" > "${tmpfile}"
   python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
 }
 
@@ -191,7 +195,7 @@ function createPartnerFolder() {
     debugMsg "$errMsg"
     debugMsg "$result"
     debugMsg "Exiting..."
-    postToSlack "${errMsg}" "${result}"
+    postToSlack "${errMsg}" "\`\`\`$(echo $result | tr ' ' \\n)\`\`\`"
     exit 1
   fi
 
@@ -205,7 +209,7 @@ function createPartnerFolder() {
     result="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc )"
     debugMsg "$errMsg"
     debugMsg "$result"
-    postToSlack "${errMsg//\'/\`}" "${result}"
+    postToSlack "${errMsg//\'/\`}" "\`\`\`$(echo $result | tr ' ' \\n)\`\`\`"
     exit 1
   fi
   popd >/dev/null
