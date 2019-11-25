@@ -3,7 +3,7 @@
 set -e
 
 MDG_DIR="merchant-documentation-gateway"
-if [[ -d "$MDG_DIR" ]]; then
+if [[ ! -d "$MDG_DIR" ]]; then
     git clone --branch=Dockerfile https://github.com/wirecard/merchant-documentation-gateway/
     cd "$MDG_DIR"
 else
