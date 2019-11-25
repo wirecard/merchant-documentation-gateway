@@ -5,67 +5,25 @@ function replaceHash(hID) {
 }
 
 var hashToSet = '';
-var hashChangeTimer;
+var hashChangeTimer, miniTocTimer, miniTocSubsectionTimer, miniTocCloseTimer;
+
 var inViewportElement;
 var _tmpInViewPortID = null;
-var miniTocTimer;
+
 var miniTocInViewportElement;
 var _tmpMiniTocInViewPortID = null;
-var miniTocSubsectionTimer;
-var miniTocCloseTimer;
-
-function highlightTOC() {
-  $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
-    inViewportElement = $(this);
-    var subsectionTitleElement = inViewportElement.find("h4:first, h3:first");
-    var hID = subsectionTitleElement.attr('id');
-    if (currentlyHighlightedElementID !== hID) {
-      highlightTOCelement(hID);
-      currentlyHighlightedElementID = hID;
-    }
-
-    if (inViewportElement.is('div.sect3')) {
-      // if viewportElement has changed. else no redraw of minitoc.
-      window.cancelIdleCallback(miniTocTimer);
-      miniTocTimer = requestIdleCallback(function () {
-        var _currentInViewPortID = inViewportElement.find('h4').first().attr('id');
-        if (_tmpInViewPortID != _currentInViewPortID) {
-          console.log('changed section to: ' + _currentInViewPortID);
-          updateMiniTOC();
-          _tmpInViewPortID = _currentInViewPortID;
-        }
-      }, { timeout: 300 });
-    }
-  });
-
-  // separate for miniToc
-  $('div.sect4').isInViewport({ tolerance: 100 }).run(function () {
-    miniTocInViewportElement = $(this);
-    var _currentMiniTocInViewPortID = miniTocInViewportElement.find('h5').first().attr('id');
-    console.log('previous: ' + _tmpMiniTocInViewPortID + ' current:' + _currentMiniTocInViewPortID);
-
-    window.cancelIdleCallback(miniTocSubsectionTimer);
-    miniTocSubsectionTimer = requestIdleCallback(function () {
-      //if (_tmpMiniTocInViewPortID != _currentMiniTocInViewPortID) { // removed bc doesnt go into conditional.. sometimes. and not necessary bc of loose idlecallback time
-        highlightMiniToc(_currentMiniTocInViewPortID);
-        _tmpMiniTocInViewPortID = _currentMiniTocInViewPortID;
-      //}
-    }, { timeout: 220 });
-  });
-}
 
 function highlightMiniToc(id) {
-  $('#minitoc li[data-content-id]').removeClass('active');
-  $('#minitoc li[data-content-id=' + id + ']').addClass('active');
+    $('#minitoc li[data-content-id]').removeClass('active');
+    $('#minitoc li[data-content-id=' + id + ']').addClass('active');
 }
 
 function updateMiniTOC() {
   if( $('div.sect3').find('h4').first().length < 1 ) {
-    console.log('no sections...')
     return false;
   }
 
-  $('#minitoc li[data-content-id]').removeClass('active');
+  //$('#minitoc li[data-content-id]').removeClass('active');
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
   const navTitle = sectionHeadElement.text();
@@ -131,8 +89,50 @@ function updateMiniTOC() {
   }
   else {
     $('#minitoc').empty();
-    //$('#minitoc').fadeOut(1000).promise().then(() => { $(this).empty(); });
   }
+}
+
+function highlightTOC() {
+  $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
+    inViewportElement = $(this);
+    var hasSubsections = $(inViewportElement).children('div.sect4').length ? true : false;
+    if(hasSubsections === false) {
+      miniTocTimer = requestIdleCallback(function () {
+      $('#minitoc').empty();
+      });
+    }
+    var subsectionTitleElement = inViewportElement.find("h4:first, h3:first");
+    var hID = subsectionTitleElement.attr('id');
+    if (currentlyHighlightedElementID !== hID) {
+      highlightTOCelement(hID);
+      currentlyHighlightedElementID = hID;
+    }
+
+    if (inViewportElement.is('div.sect3')) {
+      // if viewportElement has changed. else no redraw of minitoc.
+      window.cancelIdleCallback(miniTocTimer);
+      miniTocTimer = requestIdleCallback(function () {
+        var _currentInViewPortID = inViewportElement.find('h4').first().attr('id');
+        if (_tmpInViewPortID != _currentInViewPortID) {
+          _tmpInViewPortID = _currentInViewPortID;
+        }
+      }, { timeout: 300 });
+    }
+  });
+
+  // separate for miniToc
+  $('div.sect4').isInViewport({ tolerance: 100 }).run(function () {
+    miniTocInViewportElement = $(this);
+    var _currentMiniTocInViewPortID = miniTocInViewportElement.find('h5').first().attr('id');
+    window.cancelIdleCallback(miniTocSubsectionTimer);
+    miniTocSubsectionTimer = requestIdleCallback(function () {
+        updateMiniTOC();
+        //if (_tmpMiniTocInViewPortID != _currentMiniTocInViewPortID) { // removed bc doesnt go into conditional.. sometimes. and not necessary bc of loose idlecallback time
+        highlightMiniToc(_currentMiniTocInViewPortID);
+        _tmpMiniTocInViewPortID = _currentMiniTocInViewPortID;
+      //}
+    }, { timeout: 50 });
+  });
 }
 
 function miniTocClick(event, sectionElement, sectionID, callback = () => { }) {
