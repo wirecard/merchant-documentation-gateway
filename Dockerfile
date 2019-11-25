@@ -41,5 +41,5 @@ RUN chmod +x /home/tecdoc/run.sh
 USER tecdoc
 ENV HOME="/home/tecdoc"
 ENV GEM_HOME="$HOME/.gem"
-ENV PATH="$HOME/merchant-documentation-gateway/node_modules/.bin:$HOME/.gem/bin:${PATH}"
+ENV PATH="$HOME/mdg/node_modules/.bin:$HOME/merchant-documentation-gateway/node_modules/.bin:$HOME/.gem/bin:${PATH}"
 WORKDIR $HOME
