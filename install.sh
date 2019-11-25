@@ -1,6 +1,8 @@
 #!/bin/bash
 
+rm -rf node_modules/puppeteer
 npm install
+
 gem install bundler && bundle install
 # Workaround for new asciidoctor-diagram version
 gem install specific_install && \
