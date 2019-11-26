@@ -19,6 +19,9 @@ function highlightMiniToc(id) {
 }
 
 function updateMiniTOC() {
+  if (inViewportElement === undefined) {
+    return false;
+  }
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
   const navTitle = sectionHeadElement.text();
@@ -56,31 +59,34 @@ function updateMiniTOC() {
 
   // add subsection elements to MiniToc
   var subsectionTitles = sectionHeadElement.nextAll('div.sect4').find('h5');
-  subsectionTitles.each(function () {
-    const subsectionElement = $(this);
-    const subsectionTitle = subsectionElement.text();
-    const sectionID = subsectionElement.attr('id');
-    var miniTocElement = $('<li>');
-    miniTocElement.attr('data-content-id', sectionID);
-    var miniTocElementAnchor = $('<a>');
-    miniTocElementAnchor.text(subsectionTitle);
-    miniTocElementAnchor.attr('href', '#' + sectionID);
-    miniTocElementAnchor.on('click touch', function (event) {
-      miniTocClick(event, subsectionElement, sectionID);
-    });
 
-    // add generated elements to MiniToc
-    miniTocElement.append(miniTocElementAnchor);
-    _tmpMiniToc.append(miniTocElement);
-  });
-  $('#minitoc').replaceWith(_tmpMiniToc);
-  $('#minitoc').mouseover(() => {
-    $('#minitoc').addClass('minitoc-open');
-    clearTimeout(miniTocCloseTimer);
-  }).mouseleave(() => {
-    $('#minitoc').removeClass('minitoc-open');
-  });
-  highlightMiniToc(_tmpMiniTocInViewPortID);
+  if (subsectionTitles.length) {
+    subsectionTitles.each(function () {
+      const subsectionElement = $(this);
+      const subsectionTitle = subsectionElement.text();
+      const sectionID = subsectionElement.attr('id');
+      var miniTocElement = $('<li>');
+      miniTocElement.attr('data-content-id', sectionID);
+      var miniTocElementAnchor = $('<a>');
+      miniTocElementAnchor.text(subsectionTitle);
+      miniTocElementAnchor.attr('href', '#' + sectionID);
+      miniTocElementAnchor.on('click touch', function (event) {
+        miniTocClick(event, subsectionElement, sectionID);
+      });
+
+      // add generated elements to MiniToc
+      miniTocElement.append(miniTocElementAnchor);
+      _tmpMiniToc.append(miniTocElement);
+    });
+    $('#minitoc').replaceWith(_tmpMiniToc);
+    $('#minitoc').mouseover(() => {
+      $('#minitoc').addClass('minitoc-open');
+      clearTimeout(miniTocCloseTimer);
+    }).mouseleave(() => {
+      $('#minitoc').removeClass('minitoc-open');
+    });
+    highlightMiniToc(_tmpMiniTocInViewPortID);
+  }
 }
 function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
@@ -114,7 +120,7 @@ function miniTocClick(event, sectionElement, sectionID, callback = () => { }) {
 }
 
 function documentReady() {
-  $('#minitoc').empty();
+  inViewportElement = undefined;
   highlightTOC();
   // set title of page
   const docTitle = $('h1').html();
