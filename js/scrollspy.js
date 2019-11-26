@@ -14,16 +14,11 @@ var miniTocInViewportElement;
 var _tmpMiniTocInViewPortID = null;
 
 function highlightMiniToc(id) {
-    $('#minitoc li[data-content-id]').removeClass('active');
-    $('#minitoc li[data-content-id=' + id + ']').addClass('active');
+  $('#minitoc li[data-content-id]').removeClass('active');
+  $('#minitoc li[data-content-id=' + id + ']').addClass('active');
 }
 
 function updateMiniTOC() {
-  if( $('div.sect3').find('h4').first().length < 1 ) {
-    return false;
-  }
-
-  //$('#minitoc li[data-content-id]').removeClass('active');
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
   const navTitle = sectionHeadElement.text();
@@ -40,7 +35,7 @@ function updateMiniTOC() {
 
   _miniTocHeadAnchor.on('click touch', function (event) {
     // if this hasclass open, do click, else addclass
-    if($('#minitoc').hasClass('minitoc-open')) {
+    if ($('#minitoc').hasClass('minitoc-open')) {
       miniTocClick(event, sectionHeadElement, sectionHeadID);
     }
     else {
@@ -61,77 +56,52 @@ function updateMiniTOC() {
 
   // add subsection elements to MiniToc
   var subsectionTitles = sectionHeadElement.nextAll('div.sect4').find('h5');
-  if (subsectionTitles.length) {
-    subsectionTitles.each(function () {
-      const subsectionElement = $(this);
-      const subsectionTitle = subsectionElement.text();
-      const sectionID = subsectionElement.attr('id');
-      var miniTocElement = $('<li>');
-      miniTocElement.attr('data-content-id', sectionID);
-      var miniTocElementAnchor = $('<a>');
-      miniTocElementAnchor.text(subsectionTitle);
-      miniTocElementAnchor.attr('href', '#' + sectionID);
-      miniTocElementAnchor.on('click touch', function (event) {
-        miniTocClick(event, subsectionElement, sectionID);
-      });
+  subsectionTitles.each(function () {
+    const subsectionElement = $(this);
+    const subsectionTitle = subsectionElement.text();
+    const sectionID = subsectionElement.attr('id');
+    var miniTocElement = $('<li>');
+    miniTocElement.attr('data-content-id', sectionID);
+    var miniTocElementAnchor = $('<a>');
+    miniTocElementAnchor.text(subsectionTitle);
+    miniTocElementAnchor.attr('href', '#' + sectionID);
+    miniTocElementAnchor.on('click touch', function (event) {
+      miniTocClick(event, subsectionElement, sectionID);
+    });
 
-      // add generated elements to MiniToc
-      miniTocElement.append(miniTocElementAnchor);
-      _tmpMiniToc.append(miniTocElement);
-    });
-    $('#minitoc').replaceWith(_tmpMiniToc);
-    $('#minitoc').mouseover(() => {
-      $('#minitoc').addClass('minitoc-open');
-      clearTimeout(miniTocCloseTimer);
-    }).mouseleave(() => {
-      $('#minitoc').removeClass('minitoc-open');
-    });
-  }
-  else {
-    $('#minitoc').empty();
-  }
+    // add generated elements to MiniToc
+    miniTocElement.append(miniTocElementAnchor);
+    _tmpMiniToc.append(miniTocElement);
+  });
+  $('#minitoc').replaceWith(_tmpMiniToc);
+  $('#minitoc').mouseover(() => {
+    $('#minitoc').addClass('minitoc-open');
+    clearTimeout(miniTocCloseTimer);
+  }).mouseleave(() => {
+    $('#minitoc').removeClass('minitoc-open');
+  });
+  highlightMiniToc(_tmpMiniTocInViewPortID);
 }
-
 function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
     inViewportElement = $(this);
-    var hasSubsections = $(inViewportElement).children('div.sect4').length ? true : false;
-    if(hasSubsections === false) {
-      miniTocTimer = requestIdleCallback(function () {
-      $('#minitoc').empty();
-      });
-    }
+    hasSubsections = $(inViewportElement).children('div.sect4').length ? true : false;
     var subsectionTitleElement = inViewportElement.find("h4:first, h3:first");
     var hID = subsectionTitleElement.attr('id');
     if (currentlyHighlightedElementID !== hID) {
       highlightTOCelement(hID);
       currentlyHighlightedElementID = hID;
     }
-
     if (inViewportElement.is('div.sect3')) {
-      // if viewportElement has changed. else no redraw of minitoc.
-      window.cancelIdleCallback(miniTocTimer);
-      miniTocTimer = requestIdleCallback(function () {
-        var _currentInViewPortID = inViewportElement.find('h4').first().attr('id');
-        if (_tmpInViewPortID != _currentInViewPortID) {
-          _tmpInViewPortID = _currentInViewPortID;
-        }
-      }, { timeout: 300 });
+      _tmpInViewPortID = inViewportElement.find('h4').first().attr('id');
     }
   });
 
   // separate for miniToc
   $('div.sect4').isInViewport({ tolerance: 100 }).run(function () {
     miniTocInViewportElement = $(this);
-    var _currentMiniTocInViewPortID = miniTocInViewportElement.find('h5').first().attr('id');
-    window.cancelIdleCallback(miniTocSubsectionTimer);
-    miniTocSubsectionTimer = requestIdleCallback(function () {
-        updateMiniTOC();
-        //if (_tmpMiniTocInViewPortID != _currentMiniTocInViewPortID) { // removed bc doesnt go into conditional.. sometimes. and not necessary bc of loose idlecallback time
-        highlightMiniToc(_currentMiniTocInViewPortID);
-        _tmpMiniTocInViewPortID = _currentMiniTocInViewPortID;
-      //}
-    }, { timeout: 50 });
+    _tmpMiniTocInViewPortID = miniTocInViewportElement.find('h5').first().attr('id');
+
   });
 }
 
@@ -144,7 +114,8 @@ function miniTocClick(event, sectionElement, sectionID, callback = () => { }) {
 }
 
 function documentReady() {
-  console.log('documentReady');
+  $('#minitoc').empty();
+  highlightTOC();
   // set title of page
   const docTitle = $('h1').html();
   const pageTitle = $('#content h2 > a.link, #content h3 > a.link').first().text();
@@ -159,12 +130,19 @@ function documentReady() {
     highlightTOCelement($('#content h2, #content h3').first().attr('id'));
   }
   var scrollTimer;
-  var scrollDelay = 250;
+  var scrollDelay = 10;
   $(window).on('scroll', function () {
     window.cancelIdleCallback(scrollTimer);
+    requestAnimationFrame(highlightTOC);
     scrollTimer = requestIdleCallback(function () {
-      window.requestAnimationFrame(highlightTOC);
+      if (window.scrollY <= 75) {
+        window.cancelIdleCallback(scrollTimer);
+        $('#minitoc').empty();
+      } else {
+        requestAnimationFrame(updateMiniTOC);
+      }
     }, { timeout: scrollDelay });
+
   });
 
   // clipboard functions
