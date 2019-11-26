@@ -1,12 +1,4 @@
 $('header').prepend($('.closebtn'));
-function openNav() {
-  document.getElementById("toc").style.width = '0';
-}
-
-function closeNav() {
-  document.getElementById("toc").style.width = "20px";
-}
-
 $('#toctitle').click(function (event) {
   /*
   removeHash();
@@ -19,20 +11,21 @@ $('#toctitle').click(function (event) {
   location.href = _currentRoot;
 });
 
-$('<div id="minitoc"><ul></ul></div>').insertAfter("header");
+$('<nav id="minitoc-container"><ul id="minitoc"></ul></nav>').insertAfter('header');
 $('<span id="console"></span>').insertAfter("header");
 $('header').prepend('<button class="hamburger hamburger--arrow is-active" type="button" id="tocbtn"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button>');
+highlightTOC();
 
 function hideNav() {
   $('#toc').addClass('hidden-toc');
   $('#tocbtn').removeClass('is-active');
-  $('header').addClass('blue');
+  //$('header').addClass('blue');
 }
 
 function showNav() {
   $('#toc').removeClass('hidden-toc');
   $('#tocbtn').addClass('is-active');
-  $('header').removeClass('blue');
+  //$('header').removeClass('blue');
 }
 
 function initializeForScreenSize() {
@@ -49,6 +42,7 @@ $(window).on('resize', function () {
 });
 
 $('#content').on("click touch", function () {
+  $('#minitoc').removeClass('minitoc-open');
   if ($('#toc').width() > 0 && $(window).width() < mobileLayoutCutoffWidth) {
     hideNav();
   }
@@ -124,6 +118,7 @@ function replaceRootHref() {
 
 function addTOCbindings() {
   $('li.tocify-item > a').click(function (event) {
+    $('#minitoc').empty();
     // workaround for smoothState
     // uses window.location bc body id doesn't reliably change
     var currentPageID = location.pathname.substring(location.pathname.lastIndexOf("/") + 1).replace(new RegExp("\.html.*"), '');
@@ -131,11 +126,12 @@ function addTOCbindings() {
     setTimeout(function () {
       highlightTOCelement(clickedItemID);
     }, 0);
+    $('#minitoc').empty();
     var pageUrl = $(this).attr('href');
     if (pageUrl == currentPageID + '.html') {
       event.preventDefault();
       window.scrollTo(0, 0);
-      removeHash();
+      $('#minitoc').empty();
       return false;
     }
     if (pageUrl.indexOf(currentPageID + '.html') != 0) {
@@ -145,9 +141,7 @@ function addTOCbindings() {
         return true;
       }
       window.stop();
-      setTimeout(function () {
-        smoothState.load(pageUrl);
-      }, 20);
+      smoothState.load(pageUrl);
       event.preventDefault();
     }
   });
@@ -180,8 +174,8 @@ $.getJSON('toc.json', function (data) {
   buildTOC(data);
   $('#generated-toc').replaceWith(toc);
   if (maskString) applyMask(maskString);
-  if (typeof scrollSpyLoaded !== undefined) documentReady();
   addTOCbindings();
+  if (typeof scrollSpyLoaded !== undefined) documentReady();
   replaceRootHref();
   if (editorMode) initMaskEditor(data);
   if (!isEdgeBrowser && !isInternetExplorer) {
