@@ -87,6 +87,9 @@ function updateMiniTOC() {
     });
     highlightMiniToc(_tmpMiniTocInViewPortID);
   }
+  else {
+    $('#minitoc').empty();
+  }
 }
 function highlightTOC() {
   $('div.sect2, div.sect3').isInViewport({ tolerance: 100 }).run(function () {
