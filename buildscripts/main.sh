@@ -28,6 +28,8 @@ LC_ALL=C
 
 DEBUG=YES #unset to disable
 
+source buildscripts/global.sh
+
 INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
 
@@ -49,10 +51,6 @@ ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtim
 
 function increaseErrorCount() {
   ERRORS=$((ERRORS++))
-}
-
-function debugMsg() {
-  [[ ${DEBUG} ]] && echo "[$(date +'%T')] ${1}" >&2
 }
 
 function scriptError() {
@@ -118,6 +116,31 @@ function cloneWhitelabelRepository() {
   return $?
 }
 
+function postToSlack() {
+  content=$(echo "$1" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  secondary=$(echo "$2" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  tmpfile="$(mktemp)"
+  if [[ -z $2 ]]; then
+    cat > "$tmpfile" << EOF
+  { "blocks": [{ "type": "section", "text": {
+  "type": "mrkdwn", "text": "${content}"
+  }}]}
+EOF
+else
+    cat > "$tmpfile" << EOF
+  { "blocks": [
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${content}" }
+    },
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${secondary}" }
+    }
+  ]}
+EOF
+fi
+  python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
+}
+
 # create folder where white labeled content is stored
 # takes partner name == folder name as argument
 function createPartnerFolder() {
@@ -143,6 +166,19 @@ function createPartnerFolder() {
     # fill the partner dir with whitelabel content
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
+
+  debugMsg "Running tests from tests.d/"
+  ROOT="$(pwd)"
+  pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
+
+  for testscript in "$ROOT"/buildscripts/tests.d/*.sh; do
+    if ! source "$testscript"; then
+      debugMsg "Exiting..."
+      exit 1
+    fi
+  done
+  
+  popd >/dev/null
 }
 
 function setUpMermaid() {
@@ -221,6 +257,10 @@ function buildPartner() {
 
   debugMsg "Minifying and combining js files"
   node buildscripts/util/combine-and-minify.js
+
+  debugMsg "Beautify samples"
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
 
   debugMsg "Building blob html"
   # build html for toc and index
