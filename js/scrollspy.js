@@ -80,7 +80,7 @@ function updateMiniTOC() {
       _tmpMiniToc.append(miniTocElement);
     });
     $('#minitoc').replaceWith(_tmpMiniToc);
-    $('#minitoc').mouseenter(() => {
+    $('#minitoc').mouseover(() => {
       $('#minitoc').addClass('minitoc-open');
       clearTimeout(miniTocCloseTimer);
     }).mouseleave(() => {
