@@ -241,12 +241,6 @@ function buildPartner() {
   -r ./buildscripts/asciidoc/multipage-html5-converter.rb ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
-  if [[ -n $NEW_MERMAID ]]; then
-    debugMsg "Post process svg files"
-    sed -r -i 's/<foreignObject (height|width)/<foreignObject style="overflow: visible;" \1/g' ./*.svg
-    cp ./*.svg mermaid/
-  fi
-
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
 
@@ -255,12 +249,7 @@ function buildPartner() {
   debugMsg "Moving created web resources to deploy html folder"
   mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
 
-  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html"
-
-  # fallback png's for IE
-  cp mermaid/*.png "${BUILDFOLDER_PATH}/${BPATH}/html/"
-
-  cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
+  mv toc.json searchIndex.json ./*.png ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html"
 
   cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
