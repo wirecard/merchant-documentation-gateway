@@ -93,19 +93,24 @@ def main():
             header = git_info_to_str(git_info)
             json_msg['blocks'].insert(0, {"type": "divider"})
             json_msg['blocks'].insert(0, header)
-            message = json.dumps(json_msg)
+            final_msg = json.dumps(json_msg)
         except json.JSONDecodeError as e:
             if args.debug:
                 print(e)
-            header = git_info_to_str(git_info, json=False)
-            message = "\n".join([header, message])
+            header = git_info_to_str(git_info)
+            blocks = {'blocks': [
+                header,
+                {'type': 'divider'},
+                {'type': 'section', 'text': {'type': 'mrkdwn', 'text': message}}
+            ]}
+            final_msg = json.dumps(blocks)
+
 
     if args.debug:
-        print(message)
+        print(final_msg)
         print()
 
-    # print(message)
-    post_to_slack(message)
+    post_to_slack(final_msg)
 
 
 if __name__ == "__main__":
