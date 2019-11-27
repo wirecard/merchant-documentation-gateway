@@ -523,7 +523,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
-  global $ci; // don't look. global. i know.
+  global $CI; // don't look. global. i know.
 
   // Gather information
   if( !empty(getenv('DEBUG')) )
