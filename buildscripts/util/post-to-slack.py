@@ -86,24 +86,23 @@ def main():
         message = "".join(sys.stdin.readlines())
 
     header = None
+    try:
+        json_msg = json.loads(message)
+    except json.JSONDecodeError as e:
+        if args.debug:
+            print(e)
+        json_msg = {'blocks': [
+            {'type': 'section', 'text': {'type': 'mrkdwn', 'text': message}}
+        ]}
+
     if args.parse_git_info:
         git_info = parse_git_info(get_git_info_filename())
-        try:
-            json_msg = json.loads(message)
-            header = git_info_to_str(git_info)
-            json_msg['blocks'].insert(0, {"type": "divider"})
-            json_msg['blocks'].insert(0, header)
-            final_msg = json.dumps(json_msg)
-        except json.JSONDecodeError as e:
-            if args.debug:
-                print(e)
-            header = git_info_to_str(git_info)
-            blocks = {'blocks': [
-                header,
-                {'type': 'divider'},
-                {'type': 'section', 'text': {'type': 'mrkdwn', 'text': message}}
-            ]}
-            final_msg = json.dumps(blocks)
+        header = git_info_to_str(git_info)
+        json_msg['blocks'].insert(0, {"type": "divider"})
+        json_msg['blocks'].insert(0, header)
+
+    final_msg = json.dumps(json_msg)
+
 
 
     if args.debug:
