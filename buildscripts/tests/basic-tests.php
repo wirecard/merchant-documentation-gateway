@@ -532,15 +532,21 @@ function sendNotifications ( $results ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console\n";
 
   $partner = getenv( 'PARTNER' );
-  $currentBranch = $CI->pull_request_branch === false ? GitInfo::getInstance()->getBranch() : 'Pull Request for '.$CI->pull_request_branch;
+  $currentBranch = $CI->pull_request_branch === false ? GitInfo::getInstance()->getBranch() : $CI->pull_request_branch;
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $commitHash = GitInfo::getInstance()->getCommitHash();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  $headerText = "*Branch:* ".$currentBranch
-  ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"
-  ."*Commit:* `".$commitHash
+  if($CI->pull_request_branch !== false) {
+    $headerText = "*Pull Request for:* ".$currentBranch
+    ." (<https://github.com/wirecard/merchant-documentation-gateway/pull/".$CI->pull_request_number."|On Github>)PHP_EOL";
+  }
+  else {
+    $headerText = "*Branch:* ".$currentBranch
+    ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"; 
+  }
+  $headerText = $headertext."*Commit:* `".$commitHash
   ."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
