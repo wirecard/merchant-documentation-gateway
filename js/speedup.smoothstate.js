@@ -874,7 +874,7 @@ var smoothState = $('#content').smoothState({
       }, 2000);
     }*/
     // trigger Matomo on instant page switch
-    if(_paq !== undefined) {
+    if( typeof _paq !== 'undefined') {
       _paq.push(['setCustomUrl', window.location.href]);
       _paq.push(['trackPageView']);
     }
