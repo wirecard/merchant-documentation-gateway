@@ -28,6 +28,8 @@ LC_ALL=C
 
 DEBUG=YES #unset to disable
 
+source buildscripts/global.sh
+
 INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
 
@@ -49,10 +51,6 @@ ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtim
 
 function increaseErrorCount() {
   ERRORS=$((ERRORS++))
-}
-
-function debugMsg() {
-  [[ ${DEBUG} ]] && echo "[$(date +'%T')] ${1}" >&2
 }
 
 function scriptError() {
@@ -119,27 +117,28 @@ function cloneWhitelabelRepository() {
 }
 
 function postToSlack() {
-  # content="${1//\n/\\n}"
-  content="$(echo $1 | sed 's/\n/\#/g')"
+  content=$(echo "$1" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  secondary=$(echo "$2" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
   tmpfile="$(mktemp)"
-  cat > "$tmpfile" << EOF
-{ "blocks": [{ "type": "section", "text": {
-"type": "mrkdwn", "text": "${content}"
-}}]}
+  if [[ -z $2 ]]; then
+    cat > "$tmpfile" << EOF
+  { "blocks": [{ "type": "section", "text": {
+  "type": "mrkdwn", "text": "${content}"
+  }}]}
 EOF
+else
+    cat > "$tmpfile" << EOF
+  { "blocks": [
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${content}" }
+    },
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${secondary}" }
+    }
+  ]}
+EOF
+fi
   python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
-}
-
-function testEnvironmentDefinition() {
-  ADOC_FILE="$1"
-  count="$(grep -oE '^:env-\w+:' ${ADOC_FILE} | wc -l)"
-  if (( count != 1 )); then
-    content="Found ${count} environments defined in ${ADOC_FILE}! Expected: 1"
-    debugMsg "$content"
-    debugMsg "Exiting..."
-    postToSlack "$content"
-    exit 1
-  fi
 }
 
 # create folder where white labeled content is stored
@@ -168,30 +167,17 @@ function createPartnerFolder() {
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
 
-  debugMsg "Checking env-* definitions..."
+  debugMsg "Running tests from tests.d/"
+  ROOT="$(pwd)"
   pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
-  env_count="$(grep -oE '^:env-(wirecard|po|ms):' ./*.adoc | wc -l)"
-  if (( env_count > 1 )); then
-    errMsg="Found multiple environments defined!"
-    grep -oE '^:env-(wirecard|po|ms):' ./*.adoc
-    debugMsg "$errMsg"
-    debugMsg "Exiting..."
-    postToSlack "${errMsg}\nCheck the logs for more info."
-    exit 1
-  fi
 
-  testEnvironmentDefinition "shortcuts.adoc"
-  testEnvironmentDefinition "nova.adoc"
+  for testscript in "$ROOT"/buildscripts/tests.d/*.sh; do
+    if ! source "$testscript"; then
+      debugMsg "Exiting..."
+      exit 1
+    fi
+  done
   
-  debugMsg "Checking include::shortcuts.adoc[] in all files..."
-  shortcuts_count="$(grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc | wc -l)"
-  if (( shortcuts_count > 2 )); then
-    errMsg="Found more than two 'include::shortcuts[]' in the adocs. Run 'git grep \\\"include::shortcuts\\\" *.adoc' in your git bash to see where they are."
-    debugMsg "$errMsg"
-    grep -oE '^include::shortcuts.adoc\[\]' ./*.adoc 
-    postToSlack "${errMsg//\'/\`}"
-    exit 1
-  fi
   popd >/dev/null
 }
 
@@ -271,6 +257,10 @@ function buildPartner() {
 
   debugMsg "Minifying and combining js files"
   node buildscripts/util/combine-and-minify.js
+
+  debugMsg "Beautify samples"
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
 
   debugMsg "Building blob html"
   # build html for toc and index
