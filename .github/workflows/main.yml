@@ -1,6 +1,6 @@
 name: doc.wirecard.com
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -8,6 +8,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Set up PHP
+      uses: actions/setup-php@1
+      run: |
+        echo | pecl install channel://pecl.php.net/yaml-2.0.2
+        git clone https://github.com/krakjoe/pthreads.git
+        cd pthreads
+        git checkout 6c6b15138c923b69cfa46ee05fc2dd45da587287
+        phpize
+        "./configure && make && make install"
+        cd ..
+        echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
     - name: Set up Ruby
       uses: actions/setup-ruby@v1
       with:
