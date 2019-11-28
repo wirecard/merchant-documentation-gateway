@@ -86,26 +86,30 @@ def main():
         message = "".join(sys.stdin.readlines())
 
     header = None
+    try:
+        json_msg = json.loads(message)
+    except json.JSONDecodeError as e:
+        if args.debug:
+            print(e)
+        json_msg = {'blocks': [
+            {'type': 'section', 'text': {'type': 'mrkdwn', 'text': message}}
+        ]}
+
     if args.parse_git_info:
         git_info = parse_git_info(get_git_info_filename())
-        try:
-            json_msg = json.loads(message)
-            header = git_info_to_str(git_info)
-            json_msg['blocks'].insert(0, {"type": "divider"})
-            json_msg['blocks'].insert(0, header)
-            message = json.dumps(json_msg)
-        except json.JSONDecodeError as e:
-            if args.debug:
-                print(e)
-            header = git_info_to_str(git_info, json=False)
-            message = "\n".join([header, message])
+        header = git_info_to_str(git_info)
+        json_msg['blocks'].insert(0, {"type": "divider"})
+        json_msg['blocks'].insert(0, header)
+
+    final_msg = json.dumps(json_msg)
+
+
 
     if args.debug:
-        print(message)
+        print(final_msg)
         print()
 
-    # print(message)
-    post_to_slack(message)
+    post_to_slack(final_msg)
 
 
 if __name__ == "__main__":
