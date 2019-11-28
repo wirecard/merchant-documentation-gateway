@@ -1,0 +1,29 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Ruby 2.6
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.x
+    - name: Install Ruby dependencies
+      run: |
+        gem install bundler
+        bundle install --jobs 4 --retry 3
+        
+    - name: Use Node.js v10.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: v10.x
+    - run: npm install
+        
+    - uses: actions/checkout@v1
+    - name: Build docs
+      run: bash buildscripts/main.sh
