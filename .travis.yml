@@ -4,6 +4,7 @@ addons:
   apt:
     packages:
       - "python3-pip"
+      - "tidy"
 git:
   depth: false
 env:
@@ -29,15 +30,12 @@ before_script:
 - cd ${INIT_DIR}
 - find . -name "*.py" | xargs -l1 chmod +x
 install:
-- gem install asciidoctor -v 1.5.8
-- gem install asciidoctor-diagram -v 1.5.14
-- gem install asciidoctor-pdf --pre
-- gem install rouge
-- gem install concurrent-ruby
-- npm install -g inline-source-cli
-- npm install --save cheerio lunr asciidoctor.js minimist js-levenshtein babel-minify
-- npm install -g mermaid.cli
-- pip3 install xmltodict
+- export PATH="node_modules/.bin:${PATH}"
+- gem install bundler
+- bundle install
+- npm install
+- npm install -g jsonlint
+- pip3 install -r requirements.txt
 script:
 - bash buildscripts/build-wrapper.sh
 # - echo "TRAVIS_ENVSET_FILE=${TRAVIS_ENVSET_FILE}"
@@ -85,6 +83,7 @@ deploy:
   region: eu-central-1
   skip_cleanup: true
   local-dir: /tmp/build/WD/NOVA/html
+  upload-dir: $TRAVIS_BRANCH
   on:
     all_branches: true
     condition: $DEPLOY_WD_NOVA = TRUE

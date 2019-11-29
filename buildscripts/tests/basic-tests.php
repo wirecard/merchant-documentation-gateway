@@ -11,6 +11,10 @@ error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 const testNoErrorPath = true;
 
+function size_check(string $text, string $appendText, int $maxSize=2000) {
+  return (strlen($text) + strlen($appendText) <= $maxSize);
+}
+
 function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   if ( error_reporting() == 0 ) {
     return;
@@ -20,8 +24,12 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   }
 }
 
+$CI = new stdClass();
+$CI->travis = (getenv('TRAVIS') == 'true');
+$CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
+$CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+
 const URLTEST_MAXRETRIES = 3;
-const PULL_REQUEST_BRANCH = "Pull Request";
 const INFO_FILE = "buildscripts/info-files.json";
 
 class Task extends Threaded {
@@ -515,6 +523,8 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
+  global $CI; // don't look. global. i know.
+
   // Gather information
   if( !empty(getenv('DEBUG')) )
     echo "DEBUG for messaging is ".getenv('DEBUG')."\n";
@@ -522,14 +532,22 @@ function sendNotifications ( $results ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console\n";
 
   $partner = getenv( 'PARTNER' );
-  $currentBranch = GitInfo::getInstance()->getBranch();
+  $currentBranch = $CI->pull_request_branch === false ? GitInfo::getInstance()->getBranch() : $CI->pull_request_branch;
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $commitHash = GitInfo::getInstance()->getCommitHash();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  $headerText = "*Branch:* ".$currentBranch." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github)>PHP_EOL"
-  ."*Commit:* `".$commitHash."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
+  if($CI->pull_request_branch !== false) {
+    $headerText = "*Pull Request for:* ".$currentBranch
+    ." (<https://github.com/wirecard/merchant-documentation-gateway/pull/".$CI->pull_request_number."|On Github>)PHP_EOL";
+  }
+  else {
+    $headerText = "*Branch:* ".$currentBranch
+    ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"; 
+  }
+  $headerText = $headertext."*Commit:* `".$commitHash
+  ."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
@@ -551,6 +569,8 @@ function sendNotifications ( $results ) {
         $result['filename'] = $filename;
       if(!isset($result['branch']))
         $result['branch'] = "whitelabel";
+      if($CI->pull_request_branch !== false)
+        $result['branch'] = $CI->pull_request_branch;
       if(!isset($result['author']))
         $result['author'] = "redacted";
       $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
@@ -596,8 +616,8 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
     $filename = $result['filename'];
     $branch = $result['branch'];
     $lastEditedAuthor = $result['author'];
-    if( $branch == PULL_REQUEST_BRANCH ) {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pulls';
+    if( $branch == $CI->pull_request_branch ) {
+      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pull/'.$CI->pull_request_number;
     }
     else {
       $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
@@ -609,34 +629,49 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
       $content['text'] .= "• *Anchors*"."PHP_EOL";
       foreach( $result['tests']['anchors'] as $key => $test ) {
         if( $test['errorType'] == 'format')
-          $content['text'] .= "```".$test['errorMessage'].": ".$test['anchorID']."```PHP_EOL";
+          $appendTxt = "```".$test['errorMessage'].": ".$test['anchorID']."```PHP_EOL";
         else
-          $content['text'] .= "```".$test['errorMessage'].": ".$test['anchorText']."```PHP_EOL";
+          $appendTxt = "```".$test['errorMessage'].": ".$test['anchorText']."```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['anchors'] );
     }
 
-    if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0 ){
+    if( array_key_exists( 'patterns', $result['tests'] ) && sizeof( $result['tests']['patterns'] ) > 0
+      && strlen($content['text'] < 2000) ) {
       $content['text'] .= "• *Patterns*"."PHP_EOL";
       foreach( $result['tests']['patterns'] as $key => $test ) {
-        $content['text'] .= "```Line ".$test['lineNumber'].": ".$test['type'].": \"".$test['match']."\"```PHP_EOL";
+        $appendTxt = "```Line ".$test['lineNumber'].": ".$test['type'].": \"".$test['match']."\"```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['patterns'] );
     }
 
-    if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 ){
+    if( array_key_exists( 'links', $result['tests'] ) && sizeof( $result['tests']['links'] ) > 0 
+      && strlen($content['text'] < 2000) ) {
       $content['text'] .= "• *Links*"."PHP_EOL";
       foreach( $result['tests']['links'] as $key => $test ) {
-        $content['text'] .= "```".$test['httpErrorMessage']." (".$test['httpStatusCode'].") for ".$test['url']."```PHP_EOL";
+        $appendTxt = "```".$test['httpErrorMessage']." (".$test['httpStatusCode'].") for ".$test['url']."```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['links'] );
     }
 
-    if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0 ){
+    if( array_key_exists( 'asciidoctor', $result['tests'] ) && sizeof( $result['tests']['asciidoctor'] ) > 0
+    && strlen($content['text'] < 2000) ) {
       $content['text'] .= "• *Asciidoctor Diagnosis*"."PHP_EOL";
       foreach( $result['tests']['asciidoctor'] as $key => $test ) {
         $testMessage = ucfirst( preg_replace( '/(.*:\ )(.*)$/', '$1`$2`', $test['message'] ) );
-        $content['text'] .= "```Line ".$test['lineNumber'].": ".$testMessage."```PHP_EOL";
+        $appendTxt = "```Line ".$test['lineNumber'].": ".$testMessage."```PHP_EOL";
+        if(!size_check($content['text'], $appendTxt))
+          break;
+        $content['text'] .= $appendTxt;
       }
       $numErrors += sizeof( $result['tests']['asciidoctor'] );
     }
