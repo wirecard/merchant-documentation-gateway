@@ -3,13 +3,10 @@ name: doc.wirecard.com
 on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
+  basic-tests:
+    runs-on: docker://php:7.3-zts
     steps:
-    - uses: actions/checkout@v1
-    - name: Basic tests
-      runs-on: docker://php:7.3-zts
+    - name: Set up PHP
       run: |
         git clone https://github.com/krakjoe/pthreads.git
         cd pthreads
@@ -20,6 +17,14 @@ jobs:
         make install
         cd ..
         echo "extension=pthreads.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+
+    - name: Basic tests
+      run: php buildscripts/basic-tests.php
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
 
     - name: Set up Ruby
       uses: actions/setup-ruby@v1
