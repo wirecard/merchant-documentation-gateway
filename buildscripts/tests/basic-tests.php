@@ -546,7 +546,7 @@ function sendNotifications ( $results ) {
     $headerText = "*Branch:* ".$currentBranch
     ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"; 
   }
-  $headerText = $headertext."*Commit:* `".$commitHash
+  $headerText = $headerText."*Commit:* `".$commitHash
   ."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
