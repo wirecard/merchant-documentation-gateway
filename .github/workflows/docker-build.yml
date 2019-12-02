@@ -3,17 +3,12 @@ name: Build doc.wirecard.com (Docker)
 on: [push, pull_request]
 
 jobs:
-  login:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Login
-      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
-
   build:
-    needs: login
     runs-on: ubuntu-latest
     steps:
-    - name: Build
+    - name: Login to Github registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+    - name: Build merchant-documentation-gateway
       uses: ldz-w/mdg-dockerfile@master
       env:
         WL_REPO_SSHKEY: ${{ secrets.WL_REPO_SSHKEY }}
