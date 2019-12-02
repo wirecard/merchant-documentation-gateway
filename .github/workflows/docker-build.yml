@@ -3,8 +3,14 @@ name: Build doc.wirecard.com (Docker)
 on: [push, pull_request]
 
 jobs:
-  build:
+  login:
     runs-on: ubuntu-latest
+    steps:
+    - name: Login
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+
+  build:
+    needs: login
     steps:
     - name: Build
       uses: ldz-w/mdg-dockerfile@master
@@ -12,4 +18,3 @@ jobs:
         WL_REPO_SSHKEY: ${{ secrets.WL_REPO_SSHKEY }}
         SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
         PARTNER: WD
-
