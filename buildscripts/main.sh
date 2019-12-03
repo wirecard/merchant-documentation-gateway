@@ -90,7 +90,7 @@ function writeRepoKey() {
 
   if [[ -n ${WL_REPO_SSHKEY} ]]; then
     B64DEC='base64 -d'
-    [[ $(printf 'aWFtYW1hYw==' | base64 -D 2>/dev/null) == 'iamamac' ]] && B64DEC='base64 -D'
+    [[ "$(printf 'aWFtYW1hYw==' | base64 -D 2>/dev/null)" == 'iamamac' ]] && B64DEC='base64 -D'
     echo "${WL_REPO_SSHKEY}" | ${B64DEC} | gunzip >"${WL_REPO_SSHKEY_PATH}"
     chmod 600 "${WL_REPO_SSHKEY_PATH}"
   else
