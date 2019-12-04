@@ -106,10 +106,11 @@ function cloneWhitelabelRepository() {
   debugMsg "inside cloneWhitelabelRepository()"
   mkdir -p "${INITDIR}/${WL_REPO_ORG}"
   writeRepoKey
+  GIT_CMD="ssh -i ${WL_REPO_SSHKEY_PATH} ${GITHUB_ACTIONS:+-o StrictHostKeyChecking=no}"
   if [[ -d "${WL_REPO_PATH}" ]]; then
-    (cd "${WL_REPO_PATH}" && GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git pull)
+    (cd "${WL_REPO_PATH}" && GIT_SSH_COMMAND="$GIT_CMD" git pull)
   else
-    GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
+    GIT_SSH_COMMAND="$GIT_CMD" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
   fi
 
   debugMsg "Create info files"
