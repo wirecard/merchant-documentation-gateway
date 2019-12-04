@@ -61,8 +61,12 @@ function scriptError() {
 
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
-  echo "Build aborted." >&2
-  echo "${1}" >&2
+  if [[ -z $GITHUB_ACTIONS ]]; then
+    echo "Build aborted." >&2
+    echo "${1}" >&2
+  else
+    echo "::error file=buildscripts/main.sh::Build aborted: ${1}"
+  fi
   exit 1
 }
 
