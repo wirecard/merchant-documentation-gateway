@@ -91,6 +91,7 @@ function executeCustomScripts() {
 # writeRepoKey takes WL_REPO_SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64 | tr -d '\n')
 function writeRepoKey() {
   debugMsg "inside writeRepoKey()"
+  base64 --help
 
   if [[ -n ${WL_REPO_SSHKEY} ]]; then
     B64DEC='base64 -d'
