@@ -6,15 +6,26 @@ jobs:
   build:
     strategy:
       matrix:
-        partner: ["WD", "PO", "MS"]
+        config:
+          - {partner: "WD", endpoint: "wirecard-docs", deploy: true}
+          - {partner: "PO", endpoint: "p-bckt", deploy: false}
+          - {partner: "MS", endpoint: "m-bckt", deploy: false}
+
     runs-on: ubuntu-latest
     env:
       WL_REPO_SSHKEY: ${{ secrets.WL_REPO_SSHKEY }}
       SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
-      PARTNER: ${{ matrix.partner }}
+      PARTNER: ${{ matrix.config.partner }}
     steps:
     - uses: actions/checkout@v1
     - name: Debug output
       run: echo "GH Building ${{ matrix.partner }}"
     - name: Build merchant-documentation-gateway
       uses: ldz-w/mdg-dockerfile@master
+    - name: Deploy merchant-documentation-gateway
+      if: matrix.config.deploy
+      uses: wirecard/s3-deploy@master
+      with:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRETS_ACCESS_KEY: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
