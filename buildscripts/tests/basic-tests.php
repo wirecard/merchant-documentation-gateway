@@ -610,6 +610,7 @@ function sendNotifications ( $results ) {
 
 // creates a single error message
 function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
+  global $CI;
 
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
