@@ -1,11 +1,10 @@
 :payment-method-name: Klarna
-//include::shortcuts.adoc[]
 
 [#Klarnav2_TransactionTypes_authorization]
 ===== _authorization_ (_pending-authorization_)
-Klarna performs a risk check before accepting an order. Furthermore, Klarna flags some orders for additional review and transmits ``fraud_status pending`` to _{payment-gateway}_. For this status, _{payment-gateway}_ uses the transaction type ``pending-authorization`` and creates the final authorization transaction once Klarna has completed the risk check.
+_{payment-method-name}_ performs a risk check before accepting an order. Furthermore, _{payment-method-name}_ flags some orders for additional review and transmits ``fraud_status pending`` to _{payment-gateway}_. For this status, _{payment-gateway}_ uses the transaction type ``pending-authorization`` and creates the final authorization transaction once _{payment-method-name}_ has completed the risk check.
 
-If Klarna accepts the order, it guarantees the paymentonce the authorization has been captured.
+If _{payment-method-name}_ accepts the order, it guarantees the paymentonce the authorization has been captured.
 
 [#KlarnaV2_TransactionTypes_authorization_Workflow]
 ====== _authorization_ (_pending-authorization_) Workflow
@@ -42,14 +41,14 @@ M->>C: redirects to payment status page
 . Consumer checks out products.
 . -> Send an _authorization_ request to _{payment-gateway}_. This request must contain order data (such as amount, order number, order items), consumer data (e.g. name, billing
 and shipping address, client IP address).
-. _{payment-gateway}_ forwards the request to Klarna.
-. Klarna creates a session token and sends it to _{payment-gateway}_.
+. _{payment-gateway}_ forwards the request to _{payment-method-name}_.
+. _{payment-method-name}_ creates a session token and sends it to _{payment-gateway}_.
 . _{payment-gateway}_ creates a _pending-authorization_ transaction.
-. Klarna performs a basic risk check:
-  - If Klarna accepts the order, it guarantees the payment once the _authorization_ has been captured.
-  - If Klarna does not accept the order, the _authorization_ is
+. _{payment-method-name}_ performs a basic risk check:
+  - If _{payment-method-name}_ accepts the order, it guarantees the payment once the _authorization_ has been captured.
+  - If _{payment-method-name}_ does not accept the order, the _authorization_ is
 rejected with a corresponding error code.
-  - In some cases, Klarna performs an <<Klarnav2_TransactionTypes_authorization_advancedRiskCheck, advanced risk check>>.
+  - In some cases, _{payment-method-name}_ performs an <<Klarnav2_TransactionTypes_authorization_advancedRiskCheck, advanced risk check>>.
 . _{payment-gateway}_  forwards the risk check result (with the corresponding status code) to you:
   - Basic risk check ok: +
    _{payment-gateway}_ sends you an _authorization_ success response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>>.
@@ -60,11 +59,11 @@ rejected with a corresponding error code.
   _{payment-gateway}_ sends you a _pending-authorization_ response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN>>.
 . -> Inform your consumer on the payment process outcome.
 
-. [[Klarnav2_TransactionTypes_authorization_advancedRiskCheck]]If Klarna performs an advanced risk check: +
+. [[Klarnav2_TransactionTypes_authorization_advancedRiskCheck]]If _{payment-method-name}_ performs an advanced risk check: +
 +
 _{payment-gateway}_ retrieves the risk check result every 2 hours.
 +
-9.1 Klarna sends the advanced risk check result to _{payment-gateway}_. +
+9.1 _{payment-method-name}_ sends the advanced risk check result to _{payment-gateway}_. +
 9.2  _{payment-gateway}_ processes the advanced risk check result and sends you an _authorization_ response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN>>. 
 +
 [NOTE]
@@ -128,12 +127,12 @@ The requested amount must be equal to the amount sum of all order items.
 
 Use ``,`` (comma) as separator.
 
-|[[Klarna_Fields_requestedAmount_currency]]requested-amount@currency 
+|[[KlarnaV2_Fields_requestedAmount_currency]]requested-amount@currency 
 |M 
 |M 
 |Alphanumeric
 |3 
-a|The <<Klarna_CountriesCurrencies, currency>> of the requested/contested
+a|The <<KlarnaV2_CountriesCurrencies, currency>> of the requested/contested
 transaction amount. +
 Format: 3-character abbreviation according to ISO 4217.
 
@@ -148,9 +147,9 @@ a|The name of the payment method used for the transaction.
 Possible values: 
 
   - ``klarna-finance`` for payment in installments (Pay later)
-  - ``klarna-debit`` for Klarna direct debit (Pay now) 
-  - ``klarna-transfer`` for Klarna bank transfer (Pay now)
-  - ``klarna-paylater`` for Klarna payment on invoive (Pay later)
+  - ``klarna-debit`` for _{payment-method-name}_ direct debit (Pay now) 
+  - ``klarna-transfer`` for _{payment-method-name}_ bank transfer (Pay now)
+  - ``klarna-paylater`` for _{payment-method-name}_ payment on invoive (Pay later)
 //-
 
 |order-number	
@@ -159,14 +158,14 @@ Possible values:
 |Alphanumeric
 |255 
 |Order number of the merchant. +
-If set, it shows as "order number" on Klarna's payment confirmation page.
+If set, it shows as "order number" on _{payment-method-name}_'s payment confirmation page.
 
 |locale	
 |M 
 |M 
 |Alphanumeric
 |5 
-|A 5-letter code which indicates what <<Klarna_Locales, language>> the payment page is rendered in (RFC 1766).
+|A 5-letter code which indicates what <<KlarnaV2_Locales, language>> the payment page is rendered in (RFC 1766).
 
 |transaction-id 
 |-
@@ -212,8 +211,8 @@ s|Contains consumer data.
 |Date 
 |
 |Consumer's date of birth. +
-Format: Klarna accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. + 
-If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
+Format: _{payment-method-name}_ accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. + 
+If you provide a different format, __{payment-method-name}__ prompts the consumer to enter their birth date during the payment process.
 
 |first-name 
 |O 
@@ -280,7 +279,7 @@ s|Consumer's address.
 |M 
 |Alphanumeric
 |3 
-|<<Klarna_CountriesCurrencies, Country code>> of the consumer's address.
+|<<KlarnaV2_CountriesCurrencies, Country code>> of the consumer's address.
 
 |postal-code 
 |O 
@@ -411,7 +410,7 @@ Use ``,`` (comma) as separator.
 |M 
 |Alphanumeric
 |3 
-|<<Klarna_CountriesCurrencies, Currency>> of this item's price. Must match the <<Klarna_Fields_requestedAmount_currency, order currency (requested amount currency)>>. +
+|<<KlarnaV2_CountriesCurrencies, Currency>> of this item's price. Must match the <<KlarnaV2_Fields_requestedAmount_currency, order currency (requested amount currency)>>. +
 Format: 3-character abbreviation according to ISO 4217.
 
 |tax-rate 
@@ -494,24 +493,24 @@ a|The definition of the status message. Possible values:
 |O
 |Alphanumeric
 |34
-|Original Klarna error code.
+|Original _{payment-method-name}_ error code.
 
 |@provider-message
 |-
 |O
 |Alphanumeric
 |
-|Error message to be shown to the consumer as required by Klarna.
+|Error message to be shown to the consumer as required by _{payment-method-name}_.
 
 |@provider-transaction-id 
 |-
 |O
 |Alphanumeric
 |36
-|Klarna reservation number.
+|_{payment-method-name}_ reservation number.
 
 5+<.>s|additional-provider-data.provider-data
-s|Contains one (max.) additional data item for Klarna.
+s|Contains one (max.) additional data item for _{payment-method-name}_.
 
 |request
 |O
