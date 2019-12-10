@@ -142,4 +142,3 @@ if (adocFilename !== 'index.adoc') {
 
 // do not remove. output is required by basic-tests.php
 console.log(JSON.stringify(Result, null, 2));
-console.log(includeStatement)
