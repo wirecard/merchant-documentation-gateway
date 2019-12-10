@@ -1,0 +1,203 @@
+:payment-method-name: Klarna
+include::shortcuts.adoc[]
+
+[#Klarna]
+=== Klarna
+
+[#KlarnaV2_Introduction]
+==== Introduction
+[.clearfix]
+--
+[.right]
+image::images/11-13-klarna/klarna_logo_black.png[Klarna Logo,width=200]
+_{payment-method-name}_ offers 3 payment options for consumers to pay when and how they prefer to: 
+
+* **Pay now:** +
+    - Quick and easy direct payments with 
+        ** direct debit +
+        payment-method name: ``klarna-debit``
+        ** bank transfer +
+        payment-method name: ``klarna-transfer``.
+    - Support for recurring payments and subscriptions.
+    - Type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+* **Pay later:**
+    - Payment on invoice. Consumers pay for goods or services 14 - 60 days after receipt. 
+    - payment-method name: ``klarna-paylater``
+    - Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+* **Financing:** +
+    - Consumers pay for received goods or services in equal monthly installments.
+    - payment-method name: ``klarna-finance``
+    - Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+//-
+
+_{payment-method-name}_ takes full credit and fraud risk and guarantees payments.
+
+--
+
+NOTE: Klarna accepts only physical persons as consumers.
+
+[#KlarnaV2_GeneralInformation]
+==== General Information
+
+[#KlarnaV2_CountriesCurrencies]
+===== Countries and Currencies
+
+.Countries and Currencies
+[%autowidth]
+[cols="h,"]
+|===
+|Countries |Austria, Denmark, Finland, Germany, Netherlands, Norway, Sweden, Switzerland, UK
+|Currencies | CHF, DKK, EUR, GBP, NOK, SEK
+|===
+
+[#KlarnaV2_CountriesProductMatrix]
+.Product Availability
+[%autowidth]
+[cols=","]
+|===
+|Country |Available Payment Options
+
+|Austria
+|Pay now, Pay later
+|Denmark
+|Pay now, Pay later, Financing
+|Finland
+|Pay now, Pay later, Financing
+|Germany
+|Pay now, Pay later, Financing
+|Netherlands
+|Pay now, Pay later
+|Norway	
+|Pay now, Pay later, Financing
+|Sweden	
+|Pay now, Pay later, Financing
+|Switzerland
+|Pay now, Pay later
+|UK	
+|Pay now, Pay later, Financing
+|===
+
+[#KlarnaV2_Locales]
+.Supported locale/country/currency combinations
+
+[%autowidth]
+[cols=",,"]
+|===
+s|Locale s|Country of Consumer's Address s|Currency
+|da-dk
+|DK
+|DKK
+|de-at
+|AT
+|EUR
+|de-de
+|DE
+|EUR
+|en-gb
+|GB
+|GBP
+|fi-fi
+|FI
+|EUR
+|nl-nl
+|NL
+|EUR
+|no-no
+|NO
+|NOK
+|sv-se
+|SE
+|SEK
+|===
+
+[#KlarnaV2_CommunicationFormats]
+===== Communication Formats
+
+This table illustrates how __Klarna Pay Now__, __Klarna Pay Later__ and __Klarna Financing__
+notifications are encoded and which formats and methods can be used for
+requests and responses.
+
+[%autowidth]
+|===
+.2+h| Requests/Responses | Format   | XML, JSON
+                         | Methods  | POST, GET
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#KlarnaV2_TestCredentials]
+==== Test Credentials
+
+[%autowidth,cols=",,"]
+|===
+.2+s| URLs (Endpoints)    | for transaction type __authorization__
+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+a| for transaction types 
+
+* __adjust-authorization__ 
+* __void-authorization__ 
+* __capture-authorization__ 
+* __refund-capture__ 
+* __adjust-capture__
+
+| ``\https://{test-instance-hostname}/engine/rest/paymentmets/``
+2+s| Merchant Account ID | f570c123-62f1-4a0d-8688-d999a05d50d4
+2+s| Username            | 16390-testing
+2+s| Password            | 3!3013=D3fD8X7
+2+s| Secret Key          | 0fb50d2c-8ab5-4d53-ac69-b707b1319148
+|===
+
+[#KlarnaV2_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB, Appendix B: Transaction Types>>.
+
+[%autowidth]
+|===
+|Transaction Type |Description |Link to the sample
+
+|<<Klarnav2_TransactionTypes_authorization, _authorization_>> |Performs a risk check of the order and order
+reservation. An order reservation guarantees also the payment once
+captured.
+|<<KlarnaV2_TransactionTypes_authorization_Samples, authorization samples>>
+
+|<<Klarnav2_TransactionTypes_adjustAuthorization, _adjust-authorization_>> |Changes a preceding authorization or adds new information to it. You can only adjust authorizations that have not yet been captured.
+|<<KlarnaV2_TransactionTypes_adjustAuthorization_Samples, adjust-authorization samples>>
+
+|<<KlarnaV2_TransactionTypes_voidAuthorization, _void-authorization_>> |Cancels a total order amount or a partial order amount (if the order has been captured partially).
+No further operations on the order are possible after cancelation.
+|<<KlarnaV2_TransactionTypes_voidAuthorization_Samples, void-authorization samples>>
+
+|<<KlarnaV2_TransactionTypes_captureAuthorization, _capture-authorization_>> |Full or partial capture of a reserved
+order. Once captured, the invoice is generated and sent to the
+end consumer. The order amount will be paid out to the merchant
+according to the agreed billing period.
+|<<KlarnaV2_TransactionTypes_captureAuthorization_Samples, capture-authorization samples>>
+
+|<<KlarnaV2_TransactionTypes_refundCapture, _refund-capture_>> |Full or partial refund of a captured order amount with additional optional fees.
+|<<KlarnaV2_TransactionTypes_refundCapture_Samples, refund-capture samples>>
+
+|<<KlarnaV2_TransactionTypes_adjustCapture, _adjust-capture_>> |Updates/adds shipping/tracking information to an existing capture.
+|<<KlarnaV2_TransactionTypes_adjustCapture_Samples, adjust-capture samples>>
+
+|===
+
+include::11-13-01-01-klarna-v2-authorization.adoc[]
+
+include::11-13-01-02-klarna-v2-adjust-authorization.adoc[]
+
+include::11-13-01-03-klarna-v2-void-authorization.adoc[]
+
+include::11-13-01-03-klarna-v2-void-authorization.adoc[]
+
+include::11-13-01-04-klarna-v2-capture-authorization.adoc[]
+
+include::11-13-01-05-klarna-v2-refund-capture.adoc[]
+
+include::11-13-01-06-klarna-v2-adjust-capture.adoc[]
+
+---
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, see <<AppendixB, Appendix B: Transaction Types>>.
+//-
