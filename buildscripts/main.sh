@@ -22,10 +22,13 @@
 ###############################################################################
 
 set -e
+set -o pipefail
 
 LC_ALL=C
 
 DEBUG=YES #unset to disable
+
+source buildscripts/global.sh
 
 INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
@@ -45,38 +48,50 @@ WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
 ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
+
 function increaseErrorCount() {
   ERRORS=$((ERRORS++))
 }
 
-function debugMsg() {
-  [[ ${DEBUG} ]] && echo >&2 "[$(date +'%T')] ${1}"
-}
-
 function scriptError() {
-  echo >&2 "Error executing: ${1}"
+  echo "Error executing: ${1}" >&2
   increaseErrorCount
-  return 1
+  exitWithError "${1}"
 }
 
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
-  echo >&2 "Build aborted."
-  echo >&2 "${1}"
+  echo "Build aborted." >&2
+  echo "${1}" >&2
   exit 1
 }
 
 function abortCurrentBuild() {
-  echo >&2 "Aborting current build ${1}."
-  return 0
+  echo "Aborting current build ${1}." >&2
+  exit 1
 }
+
+function executeCustomScripts() {
+    PARTNER="${1}"
+    debugMsg "Executing custom scripts.."
+    # execute all custom scripts of the partner
+    # IMPORTANT: script MUST NOT use exit, only return!
+    for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
+      debugMsg "$(basename ${script}):"
+      source "${script}" || scriptError "$(basename ${script})"
+    done
+    debugMsg "Custom scripts done. Errors: ${ERRORS}"
+}
+
 
 # writeRepoKey takes WL_REPO_SSHKEY from Travis ENV (generated like this: cat private.key | gzip -9 | base64 | tr -d '\n')
 function writeRepoKey() {
   debugMsg "inside writeRepoKey()"
 
   if [[ -n ${WL_REPO_SSHKEY} ]]; then
-    echo "${WL_REPO_SSHKEY}" | base64 -d | gunzip >"${WL_REPO_SSHKEY_PATH}"
+    B64DEC='base64 -d'
+    [[ $(printf 'aWFtYW1hYw==' | base64 -D 2>/dev/null) == 'iamamac' ]] && B64DEC='base64 -D'
+    echo "${WL_REPO_SSHKEY}" | ${B64DEC} | gunzip >"${WL_REPO_SSHKEY_PATH}"
     chmod 600 "${WL_REPO_SSHKEY_PATH}"
   else
     exitWithError "Failed in ${FUNCNAME[0]}: Missing repository key."
@@ -101,6 +116,31 @@ function cloneWhitelabelRepository() {
   return $?
 }
 
+function postToSlack() {
+  content=$(echo "$1" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  secondary=$(echo "$2" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  tmpfile="$(mktemp)"
+  if [[ -z $2 ]]; then
+    cat > "$tmpfile" << EOF
+  { "blocks": [{ "type": "section", "text": {
+  "type": "mrkdwn", "text": "${content}"
+  }}]}
+EOF
+else
+    cat > "$tmpfile" << EOF
+  { "blocks": [
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${content}" }
+    },
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${secondary}" }
+    }
+  ]}
+EOF
+fi
+  python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
+}
+
 # create folder where white labeled content is stored
 # takes partner name == folder name as argument
 function createPartnerFolder() {
@@ -110,17 +150,35 @@ function createPartnerFolder() {
   mkdir -p "${BUILDFOLDER_PATH}"
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
-  # copy the master template to the build directory and name it after the partner
-  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}" ]]; then
-    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}"
+  if [[ "${2}" == "NOVA" ]]; then
+    NOVA="NOVA"
+    mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}"
   fi
-  cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}"
-  cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/"
 
-  if [[ ${PARTNER} != 'WD' ]]; then
-    # fill the partner dir with whitelabel content
-    cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/"
+  # copy the master template to the build directory and name it after the partner
+  if [[ -d "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}" ]]; then
+    rm -rf "${BUILDFOLDER_PATH:?}/${PARTNER:?}/${NOVA:+NOVA}"
   fi
+  cp -r "${MASTERTEMPLATE_PATH}" "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA}"
+  cp -r "${MASTERTEMPLATE_PATH}/.asciidoctor" "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
+
+  if [[ "${PARTNER}" != 'WD' ]]; then
+    # fill the partner dir with whitelabel content
+    cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
+  fi
+
+  debugMsg "Running tests from tests.d/"
+  ROOT="$(pwd)"
+  pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
+
+  for testscript in "$ROOT"/buildscripts/tests.d/*.sh; do
+    if ! source "$testscript"; then
+      debugMsg "Exiting..."
+      exit 1
+    fi
+  done
+  
+  popd >/dev/null
 }
 
 function setUpMermaid() {
@@ -163,43 +221,51 @@ function setUpMermaid() {
 function buildPartner() {
   PARTNER=${1}
 
-  debugMsg " "
-  debugMsg "::: Building ${PARTNER}"
-  createPartnerFolder "${PARTNER}"
-  cd "${BUILDFOLDER_PATH}/${PARTNER}"
+  echo
+  debugMsg "::: Building ${PARTNER} ${NOVA}"
+
+  BPATH="${PARTNER}"
+  if [[ "${2}" == "NOVA" ]]; then
+    debugMsg "[NOVA] build started"
+    NOVA="NOVA"
+    NOVA_INDEX="nova.adoc"
+    BPATH="${BPATH}/NOVA"
+  fi
+
+  createPartnerFolder "${PARTNER}" "${NOVA}"
+  cd "${BUILDFOLDER_PATH}/${BPATH}"
 
   setUpMermaid
 
-  if [[ ${PARTNER} != 'WD' ]]; then
+  if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
 
-    debugMsg "Executing custom scripts.."
-    # execute all custom scripts of the partner
-    # IMPORTANT: script MUST NOT use exit, only return!
-    for script in "${WL_REPO_PATH}/partners/${PARTNER}/scripts/"*.sh; do
-      debugMsg "$(basename ${script}):"
-      source "${script}" || scriptError "$(basename ${script})"
-    done
-    debugMsg "Custom scripts done. Errors: ${ERRORS}"
+    executeCustomScripts "${PARTNER}" || abortCurrentBuild " for WL partner ${PARTNER}."
 
     # if any script failed, abort right here the build of this WL-partner
-    [[ ${ERRORS} -gt 0 ]] && abortCurrentBuild " for WL partner ${PARTNER}." && return 1
     # if any test or script that comes later (common build instructions for all partners) fails
     # then the loop that called buildPartner() will handle the error message
   fi
 
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
-  if [[ -z $SKIP ]] && [[ "${PARTNER}" != "MS" ]]; then
+  TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
+  if [[ -z $SKIP ]] && printf '%s\n' "${TEST_PARTNER_ARRAY[@]}" | grep -E '^'"${PARTNER}"'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
+  else
+    debugMsg "[SKIP] basic tests"
   fi
 
   debugMsg "Minifying and combining js files"
   node buildscripts/util/combine-and-minify.js
 
+  debugMsg "Beautify samples"
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
+
   debugMsg "Building blob html"
   # build html for toc and index
   # TODO: replace with asciidoctor.js api calls inside these scripts to avoid costly building of html
-  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html ||
+  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b html5 -o index.html ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
   debugMsg "Creating TOC json"
@@ -211,7 +277,8 @@ function buildPartner() {
     scriptError "lunr-index-builder.js in line $((LINENO - 1))"
 
   debugMsg "Building split page docs"
-  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 -r ./buildscripts/asciidoc/multipage-html5-converter.rb ||
+  RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 \
+  -r ./buildscripts/asciidoc/multipage-html5-converter.rb ${NOVA_INDEX} ||
     scriptError "asciidoctor in line $((LINENO - 1))"
 
   if [[ -n $NEW_MERMAID ]]; then
@@ -223,21 +290,19 @@ function buildPartner() {
   debugMsg "Copy Home.html to index.html"
   cp {Home,index}.html
 
-  HTMLFILES="$(ls ./*.html | grep -vP 'docinfo(-footer)?.html')"
+  HTMLFILES="$(ls ./*.html | grep -vE 'docinfo(-footer)?.html')"
 
   debugMsg "Moving created web resources to deploy html folder"
-  mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}/html"
+  mkdir -p "${BUILDFOLDER_PATH}/${BPATH}/html"
 
-  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${PARTNER}/html/" ||
-    increaseErrorCount
+  mv toc.json searchIndex.json ./*.svg ${HTMLFILES} "${BUILDFOLDER_PATH}/${BPATH}/html"
 
   # fallback png's for IE
-  cp mermaid/*.png "${BUILDFOLDER_PATH}/${PARTNER}/html/"
+  cp mermaid/*.png "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
-  cp "${BUILDFOLDER_PATH}/${PARTNER}/html"/*.svg mermaid/
+  cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
 
-  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${PARTNER}/html/" ||
-    increaseErrorCount
+  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
   return ${ERRORS}
 }
@@ -258,17 +323,24 @@ function main() {
     -s | --skip)
       SKIP="true"
       ;;
+    -sn | --skip-nova)
+      SKIP_NOVA="true"
+      ;;
     -f | --force)
       FORCE="true"
       ;;
     -h | --help)
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
+      echo "* [-sn|--skip-nova] skip NOVA docs build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
       ;;
     --pdf)
+      createPartnerFolder "${PARTNER}"
+      cd "${BUILDFOLDER_PATH}/${PARTNER}"
       setUpMermaid
+      executeCustomScripts "${PARTNER}"
       debugMsg "Creating PDF..."
       # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
@@ -310,7 +382,8 @@ function main() {
     exitWithError "Line ${LINENO}: Failed to create template."
 
   ERRORS=0
-  if buildPartner "${PARTNER}"; then # if everything built well then
+  if buildPartner "${PARTNER}"; then
+    # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
@@ -322,6 +395,20 @@ function main() {
     FAILED_BUILDS+=("${PARTNER}") # and add partner to list of failed builds
     return 1
   fi
+
+  if [[ "${PARTNER}" != "WD" ]]; then
+    debugMsg "Partner does not support NOVA"
+  elif [[ -n $SKIP_NOVA ]]; then
+    debugMsg "Skipping NOVA for ${PARTNER}"
+  elif buildPartner "${PARTNER}" "NOVA"; then
+    debugMsg "SUCCESS! NOVA for ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/"
+    debugMsg "export DEPLOY_${PARTNER}_${NOVA}=TRUE"
+    export DEPLOY_${PARTNER}_${NOVA}=TRUE
+    echo "${PARTNER}_${NOVA}:${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/" >>"${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}_nova"
+  else
+    debugMsg "Failed! Could not build NOVA ${PARTNER}"
+  fi
+
   echo
   return 0
 }
