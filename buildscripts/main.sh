@@ -198,19 +198,17 @@ function setUpMermaid() {
     checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
     checksum_new="/tmp/mermaid-css-checksum.txt"
     sha1sum --text css/mermaid.css >"${checksum_new}"
+
     # show hashes
     echo "Reference: $(cat ${checksum_ref})"
     echo "Current:   $(cat ${checksum_new})"
-    if [[ ${SKIP_MERMAID} == "true" ]]; then
-      timed_log "SKIPPING MERMAID CREATION: --skip-mermaid is set"
-    else
-      if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
-        debugMsg "Delete all *.svg to force re-creation"
-        rm ./*.svg
-        debugMsg "Overwriting checksum file with new checksum"
-        cp "${checksum_new}" "${checksum_ref}"
-        NEW_MERMAID="true"
-      fi
+
+    if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
+      debugMsg "Delete all *.svg to force re-creation"
+      rm ./*.svg
+      debugMsg "Overwriting checksum file with new checksum"
+      cp "${checksum_new}" "${checksum_ref}"
+      NEW_MERMAID="true"
     fi
   fi
 
@@ -239,8 +237,12 @@ function buildPartner() {
   createPartnerFolder "${PARTNER}" "${NOVA}"
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
-  setUpMermaid
-
+  if [[ ${SKIP_MERMAID} == "true" ]]; then
+    timed_log "SKIPPING MERMAID CREATION: --skip-mermaid is set"
+  else
+    setUpMermaid
+  fi
+  
   if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
 
     executeCustomScripts "${PARTNER}" || abortCurrentBuild " for WL partner ${PARTNER}."
