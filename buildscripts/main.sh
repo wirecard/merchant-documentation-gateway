@@ -46,7 +46,7 @@ WL_REPO_ORG=wirecard-cee
 WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
-ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
+ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a root=${INITDIR} -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
 
 function increaseErrorCount() {
@@ -201,12 +201,16 @@ function setUpMermaid() {
     # show hashes
     echo "Reference: $(cat ${checksum_ref})"
     echo "Current:   $(cat ${checksum_new})"
-    if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
-      debugMsg "Delete all *.svg to force re-creation"
-      rm ./*.svg
-      debugMsg "Overwriting checksum file with new checksum"
-      cp "${checksum_new}" "${checksum_ref}"
-      NEW_MERMAID="true"
+    if [[ ${SKIP_MERMAID} == "true" ]]; then
+      timed_log "SKIPPING MERMAID CREATION: --skip-mermaid is set"
+    else
+      if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
+        debugMsg "Delete all *.svg to force re-creation"
+        rm ./*.svg
+        debugMsg "Overwriting checksum file with new checksum"
+        cp "${checksum_new}" "${checksum_ref}"
+        NEW_MERMAID="true"
+      fi
     fi
   fi
 
@@ -326,6 +330,9 @@ function main() {
     -sn | --skip-nova)
       SKIP_NOVA="true"
       ;;
+    -sm | --skip-mermaid)
+      SKIP_MERMAID="true"
+      ;;
     -f | --force)
       FORCE="true"
       ;;
@@ -333,6 +340,7 @@ function main() {
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
       echo "* [-sn|--skip-nova] skip NOVA docs build"
+      echo "* [-sm|--skip-mermaid] skip mermaid diagram build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
       ;;
