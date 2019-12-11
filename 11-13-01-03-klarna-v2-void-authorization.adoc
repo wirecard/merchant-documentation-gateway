@@ -21,6 +21,10 @@ To unambiguously refer to a specific _authorization_, _adjust-authorization_ or 
 [#KlarnaV2_TransactionTypes_voidAuthorization_Workflow]
 ====== _void-authorization_ Workflow
 
+image::images/11-13-01-klarna-v2/klarnaV2_voidAuthorization_workflow.png[width=700]
+
+////
+
 [mermaid,Klarnav2_workflow_voidAuthorization,svg,subs=attributes+]
 ----
 sequenceDiagram
@@ -41,8 +45,12 @@ Note over W: capture check:
 W->>M: creates/sends "void-authorization" response
 ----
 
+////
+
 . -> Send a _void-authorization_ request. This request must contain the ``parent-transaction-id``which is the ``transaction-id`` of the preceding _authorization_, _adjust-authorization_ or _pending-authorization_ that is to be canceled.
-. _{payment-gateway}_ forwards the request to _Klarna_. 
+. _{payment-gateway}_ checks if parts of this order have already been captured:
+  ** If yes: _{payment-gateway}_ sends a _void-authorization_ request for the uncaptured order items to _Klarna_. 
+  ** If no: _{payment-gateway}_ sends a _void-authorization_ request for the total order amount to _Klarna_. 
 . _Klarna_ approves or rejects the void request and returns the result.
 . _{payment-gateway}_ sends you the _void-authorization_ response which contains the status code.
 . -> Process the _void-authorization_ response.
