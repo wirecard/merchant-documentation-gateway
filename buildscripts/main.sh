@@ -321,6 +321,13 @@ function main() {
     PARTNER="WD"
   fi
 
+  if [[ $(git log -1 --pretty=%B | head -n 1) == *'[quick]'* ]]; then
+    debugMsg 'Commit message contains [quick]'
+    # can also be set with cli argument
+    SKIP_MERMAID="true"
+    debugMsg '-> Mermaid diagram creation will be skipped'
+  fi
+
   # check arguments that are passed
   while (("$#")); do
     case "$1" in
