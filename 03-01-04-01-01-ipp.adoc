@@ -55,17 +55,12 @@ NOTE: You need a Merchant Account ID (MAID) to offer IPP to your consumers. Be s
 ===== Workflow
 . The consumer checks out products in the your shop and selects the payment method credit card.
 
-. -> Send an <<PaymentPageSolutions_PPv2_HPP_Integration_Example_Create, initial payment request>> to WPG. This initial payment request must contain the MAID (IPP configuration).
+. -> Send an <<PaymentPageSolutions_PPv2_HPP_Integration_Example_Create, initial payment request>> to _{payment-gateway}_. This initial payment request must contain the MAID (IPP configuration).
 
-. WPG checks
-  - the signature
-  - if "onus" is enabled
-  - if "IPP" is enabled.
-
-+
-
-If the check fails, the payment process proceeds with a regular credit card payment. +
-If the check is ok, WPG returns the ``payment-redirect-url`` with a list of available IPP banks, programs and tenures. 
+. _{payment-gateway}_ checks if "IPP" is enabled in the merchant configuration.
+** If the check fails, the payment process proceeds with a regular credit card payment. +
+** If the check is ok, _{payment-gateway}_ returns the ``payment-redirect-url`` with a list of available IPP banks, programs and tenures.
+ 
 
 . -> Use the ``payment-redirect-url`` to redirect the consumer.
 
@@ -74,10 +69,10 @@ If the check is ok, WPG returns the ``payment-redirect-url`` with a list of avai
 image:images/03-01-04-01-credit-card/wpp_cc_ipp_hpp_workflow1.png[IPP payment form,width=453]
 
 . The consumer selects their preferred payment plan/tenure: +
-image:images/03-01-04-01-credit-card/wpp_cc_ipp_hpp_workflow2.png[IPP bank selection,width=450] +
+image:images/03-01-04-01-credit-card/wpp_cc_ipp_hpp_workflow2_v.png[IPP bank selection,width=450] +
 and submits the payment.
 
-. WPG checks the IPP eligibility of
+. _{payment-gateway}_ checks the IPP eligibility of
   - MAID
   - credit card number
   - consumer's country
@@ -85,9 +80,9 @@ and submits the payment.
 +
 and sends a payment request to the issuer.
 
-. The issuer sends an authorization response to WPG.
+. The issuer sends an authorization response to _{payment-gateway}_.
 
-. WPG forwards the payment result to you and sends an IPN to inform you on the outcome.
+. _{payment-gateway}_ forwards the payment result to you and sends an IPN to inform you on the outcome.
 
 . -> Inform the consumer on the payment outcome.
 
@@ -104,7 +99,7 @@ There are two types of seamless IPP integration:
 [discrete]
 ==== 1. Non-customizable IPP
 
-Non-customizable IPPs are predefined. Consumers are prompted to choose from various installment programs. These programs are retrieved with an initial payment request. This request must contain your Merchant Account ID (MAID). With your MAID, WPG checks if "onus" and "IPP" are enabled for your merchant account, so make sure that your merchant account has been set up for IPP by <<ContactUs, merchant support>>. 
+Non-customizable IPPs are predefined. Consumers are prompted to choose from various installment programs. These programs are retrieved with an initial payment request. This request must contain your Merchant Account ID (MAID). With your MAID, _{payment-gateway}_ checks if "onus" and "IPP" are enabled for your merchant account, so make sure that your merchant account has been set up for IPP by <<ContactUs, merchant support>>. 
 
 NOTE: If the MAID is missing in the initial payment request (e.g. due to expected merchant account resolving), the payment page does not offer payment in installments to your consumer.
 
@@ -113,17 +108,11 @@ NOTE: If the MAID is missing in the initial payment request (e.g. due to expecte
 ===== Workflow
 . The consumer checks out products in your shop and selects the payment method credit card.
 
-. -> Send an <<PPv2_Seamless_Integration_Example_InitialRequest, initial payment request>> to WPG. This initial payment request must contain the MAID (IPP configuration).
+. -> Send an <<PPv2_Seamless_Integration_Example_InitialRequest, initial payment request>> to _{payment-gateway}_. This initial payment request must contain the MAID (IPP configuration).
 
-. WPG checks
-  - the signature
-  - if "onus" is enabled
-  - if "IPP" is enabled.
-
-+
-
-If the check fails, the payment process proceeds with a regular credit card payment. +
-If the check is ok, WPG returns the ``payment-redirect-url`` with a list of available IPP banks, programs and tenures. 
+. _{payment-gateway}_ checks if "IPP" is enabled.
+** If the check fails, the payment process proceeds with a regular credit card payment. +
+** If the check is ok, _{payment-gateway}_ returns the ``payment-redirect-url`` with a list of available IPP banks, programs and tenures. 
 
 . -> Use the ``payment-redirect-url`` to <<PPv2_Seamless_Integration_Example_Render, render the seamless payment form>> on your payment page, where the consumer can choose to pay with IPP: + 
 +
@@ -141,10 +130,10 @@ WPP.seamlessRender({
 image:images/03-01-04-01-credit-card/wpp_cc_ipp_option1_workflow1.png[IPP payment form,width=453]
 
 . The consumer selects their preferred bank and a plan/tenure: +
-image:images/03-01-04-01-credit-card/wpp_cc_ipp_option1_workflow2.png[IPP bank selection,width=450]
+image:images/03-01-04-01-credit-card/wpp_cc_ipp_option1_workflow2_v.png[IPP bank selection,width=450]
 
 . The consumer enters their credit card details and submits the payment: +
-image:images/03-01-04-01-credit-card/wpp_cc_ipp_option1_workflow3.png[IPP bank selection,width=456]. +
+image:images/03-01-04-01-credit-card/wpp_cc_ipp_option1_workflow3_v.png[IPP bank selection,width=456]. +
 The "Submit/Pay" button is on your payment page (not part of the iframe).
 
 . Clicking "Submit/Pay" calls the <<PPv2_Seamless_Integration_Example_Submit,  ``WPP.seamlessSubmit``>> script:
@@ -158,7 +147,7 @@ WPP.seamlessSubmit({
 ----
 
 
-. WPG checks the IPP eligibility of
+. _{payment-gateway}_ checks the IPP eligibility of
   - MAID
   - credit card number
   - consumer's country
@@ -166,9 +155,9 @@ WPP.seamlessSubmit({
 +
 and sends a payment request to the issuer.
 
-. The issuer sends an authorization response to WPG.
+. The issuer sends an authorization response to _{payment-gateway}_.
 
-. WPG forwards the payment result to you and sends an IPN to inform you on the outcome.
+. _{payment-gateway}_ forwards the payment result to you and sends an IPN to inform you on the outcome.
 
 . -> Inform the consumer on the payment outcome.
 
@@ -184,18 +173,20 @@ For that purpose, you have to
  . provide installment details when submitting the seamless form. +
 These installment details must be part of the ``extPayment`` object of the ``WPP.seamlessSubmit`` function.
 +
-//NOTE: To retrieve all available IPP options, send a request to the WPG <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>>.
-NOTE: To retrieve all available IPP options, send a request to the <<PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSRequest, Installment Payment Plan Service (IPPS)>>.
+//NOTE: To retrieve all available IPP options, send a request to the _{payment-gateway}_ <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>>.
+NOTE: To retrieve all available IPP options, send a request to the <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>>.
 
 [#PPv2_CC_IPP_seamlessCustomizable_Workflow]
 [discrete]
 ===== Workflow
 
-. -> Send an IPPS (Installment Payment Plan Service) request to retrieve the available IPPs:
+. -> Send an <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> request to retrieve the available IPPs.
++
+////
 +
 [#PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSRequest]
 .Sample IPPS Request
-Endpoint: \http://d-ipps-app01.wirecard.sys:9000/v2/ +
+Endpoint: \http://d-ipps-app01.wirecard.sys:9000/v2/   engine/rest/utils/installmentcalculator +
 Authentication:
 +
 [source,js,subs=attributes+]
@@ -226,9 +217,10 @@ Authentication:
 |
 |
 |===
-
-. IPPS returns a list of available IPP programs and tenures:
+//// 
+. <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator>> returns a list of available IPPs. Depending on your merchant configuration, the IPPs in this response are specified by either a single unique ``installment-plan-id`` or by a set of ``program-id``, ``plan-code`` and ``tenure``.
 +
+////
 [#PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSResponse]
 .Sample IPPS Response
 [source,js,subs=attributes+]
@@ -291,10 +283,10 @@ m|tenor
 |
 |
 |===
-
+//// 
 . The consumer checks out products in your shop and selects the payment method credit card.
 
-. -> Send an <<PPv2_CC_IPP_seamlessCustomizable_Samples_initialPaymentRequest, initial payment request>> to WPG. This request must contain
+. -> Send an <<PPv2_CC_IPP_seamlessCustomizable_Samples_initialPaymentRequest, initial payment request>> to _{payment-gateway}_. This request must contain
   - MAID
   - the field ``"manual-ipp" : true`` in the ``options`` JSON parent.
 +
@@ -337,7 +329,7 @@ Authentication:
 }
 ----
 
-. WPG returns the ``payment-redirect-url`` that contains a list of available IPP banks, programs and tenures. 
+. _{payment-gateway}_ returns the ``payment-redirect-url`` that contains a list of available IPP banks, programs and tenures. 
 
 . -> Use ``WPP.seamlessRender`` to display the seamless payment form in an iframe on your payment page: 
 +
@@ -367,7 +359,8 @@ Example of data content: ``data = {"bin": "549415"}``.
 
 . The consumer selects an installment/tenure option and clicks "Submit/Pay" on your payment page.
 
-. Clicking "Submit/Pay" calls a script similar to:
+. Clicking "Submit/Pay": +
+  .. If the Installment Calculator response contains ``program-id``, ``plan-code`` and ``tenure``, clicking "Submit/Pay" calls a script similar to:
 +
 [source,js,subs=attributes+]
 ----
@@ -404,18 +397,42 @@ m|program-id
 |This ID uniquely identifies the corresponding installment payment plan framework.
 |``plan-code``
 |String
-|
-|
+|20
+|Unique ID for this IPP issued by Wirecard. Maps to a specific tenure period and interest rate as agreed upon with the acquirer.
 |===
 +
 
 These fields are **mandatory** in the ``extPayment`` object of the ``WPP.seamlessSubmit`` function. They specify the IPP options selected by the consumer. 
 +
--> Retrieve the field values from the <<PPv2_CC_IPP_seamlessCustomizable_Samples_IPPSResponse, IPPS response>>.
+-> Retrieve the field values from the <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator response>>.
 +
-The ``extPayment`` data are automatically merged with the other payment data (credit card number, payment details from the initial payment request) and sent to WPG.
+.. If the Installment Calculator response contains ``installment-plan-id``, clicking "Submit/Pay" calls a script similar to:
++
+[source,js,subs=attributes+]
+----
+WPP.seamlessSubmit({
+  extPayment : {
+    "periodic": {
+      "periodic-type": "installment",
+      "installment-plan": {
+		"installment-plan-id": "04204903-eda1-4cbf-8a93-f297577fbeae"
+      }
+    }
+  },
+  onSuccess : processSucceededResult,
+  onError : processErrorResult
+});
 
-. WPG checks the IPP eligibility of
+----
++
+``installment-plan-id`` is mandatory in the ``extPayment`` object of the ``WPP.seamlessSubmit function``. They specify the IPP options selected by the consumer.
++
+-> Retrieve the ``installment-plan-id`` from the <<GeneralPlatformFeatures_IPP_InstallmentCalculator, Installment Calculator response>>.
+
++
+The ``extPayment`` data are automatically merged with the other payment data (credit card number, payment details from the initial payment request) and sent to _{payment-gateway}_.
+
+. _{payment-gateway}_ checks the IPP eligibility of
   - MAID
   - credit card number
   - consumer's country
@@ -423,9 +440,9 @@ The ``extPayment`` data are automatically merged with the other payment data (cr
 +
 and sends a payment request to the issuer. 
 
-. The issuer sends an authorization response to WPG.
+. The issuer sends an authorization response to _{payment-gateway}_.
 
-. WPG forwards the payment result to you and sends an IPN to inform you on the outcome.
+. _{payment-gateway}_ forwards the payment result to you and sends an IPN to inform you on the outcome.
 
 . -> Inform the consumer on the payment outcome.
 
