@@ -67,11 +67,10 @@ class CI {
       }
       return CI::$instance;
   }
-  public function getCIinfo() {
+  public function getInfo() {
     return $this->info;
   }
 }
-CI::getInstance();
 
 const URLTEST_MAXRETRIES = 3;
 const INFO_FILE = "buildscripts/info-files.json";
@@ -86,7 +85,7 @@ class Task extends Threaded {
   }
 
   public function run() {
-    $CI = CI::getCIinfo();
+    $CI = CI::getInstance()->getInfo();
 
     $asciidoctorOutput = getAsciidoctorOutput( $this->filename );
     if(!$asciidoctorOutput) {
@@ -362,7 +361,7 @@ function getCurrentBranch() {
 //         all anchors                    as $result['anchors']
 //         all error messages of asciidoc as $result['errors']
 function getAsciidoctorOutput( $filename ) {
-  $CI = CI::getCIinfo();
+  $CI = CI::getInstance()->getInfo();
 
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
   if(!$asciidoctorJSON) {
@@ -478,7 +477,7 @@ function validateTests( $tests ) {
 }
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
-  $CI = CI::getCIinfo();
+  $CI = CI::getInstance()->getInfo();
 
   // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
   foreach( $testsResultsArray as $tr ) {
@@ -568,7 +567,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
-  $CI = CI::getCIinfo();
+  $CI = CI::getInstance()->getInfo();
 
   // Gather information
   if( !empty(getenv('DEBUG')) )
@@ -655,7 +654,7 @@ function sendNotifications ( $results ) {
 
 // creates a single error message
 function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
-  $CI = CI::getCIinfo();
+  $CI = CI::getInstance()->getInfo();
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
     $filename = $result['filename'];
@@ -781,7 +780,7 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
 }
 
 function main() {
-  $CI = CI::getCIinfo();
+  $CI = CI::getInstance()->getInfo();
 
   putenv( 'LC_ALL=C' );
   putenv( 'RUBYOPT="-E utf-8"' );
