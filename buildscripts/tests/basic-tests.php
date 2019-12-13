@@ -560,14 +560,14 @@ function sendNotifications ( $results ) {
   // Slack message
   if($CI->pull_request_branch !== false) {
     $headerText = "*Pull Request for:* ".$currentBranch
-    ." (<".$CI->url_pull_request."|Github link>)PHP_EOL";
+    ." (<".$CI->url_pull_request."|Link to Github>)PHP_EOL";
   }
   else {
     $headerText = "*Branch:* ".$currentBranch
-    ." (<".$CI->url_branch."|On ".$CI->name.">)PHP_EOL"; 
+    ." (<".$CI->url_branch."|Link to Github>)PHP_EOL";
   }
   $headerText = $headerText."*Commit:* `".$commitHash
-  ."` (<".$CI->url_repo."/commit/".$commitHash."|Github link>)PHP_EOL"
+  ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
@@ -643,7 +643,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
       $githubLink = $CI->url_repo.'/blob/'.$currentBranch.'/'.$filename;
     }
 
-    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|Github link>)"."PHP_EOL"
+    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|Link to Github>)PHP_EOL"
                       ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
     if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
       $content['text'] .= "• *Anchors*"."PHP_EOL";
