@@ -636,8 +636,9 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "Basic-Tests v".majorVersion."PHP_EOL"
-                                                               ."CI System: ".$CI->name))),
+                                                      "text" => $currentBranch.' '.$partner.($CI->is_nova ? ' [NOVA]' : '')."PHP_EOLPHPEOL"
+                                                                .basename( __FILE__, '.php')." v".majorVersion."PHP_EOL"
+                                                                .$CI->name))),
                       array("type" => "divider")
                       );
 
