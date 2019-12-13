@@ -323,7 +323,19 @@ function main() {
     PARTNER="WD"
   fi
 
-  if [[ $(git log -1 --pretty=%B | head -n 1) == *'[quick]'* ]]; then
+  COMMIT_MSG=$(git log -1 --pretty=%B | head -n 1)
+
+  if [[ ${COMMIT_MSG} == *'[wd]'* ]]; then
+    debugMsg 'Commit message contains [wd]'
+    WDONLY="true"
+    debugMsg '-> Only WD will be built'
+    if [[ ${WDONLY} == 'true' && ${PARTNER} != 'WD' ]]; then
+      debugMsg '-> Skipping build for '${PARTNER}
+      return 0
+    fi
+  fi
+
+  if [[ ${COMMIT_MSG} == *'[quick]'* ]]; then
     debugMsg 'Commit message contains [quick]'
     # can also be set with cli argument
     SKIP_MERMAID="true"
