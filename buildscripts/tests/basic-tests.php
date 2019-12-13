@@ -26,32 +26,51 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   }
 }
 
-$CI = new stdClass();
-$CI->travis = (getenv('TRAVIS') == 'true');
-$CI->github = (getenv('GITHUB_ACTIONS') == 'true');
-$CI->is_nova = (getenv('NOVA') == 'NOVA');
-$CI->index_file = getenv('INDEX_FILE');
+class CI {
+  private static $instance;
+  private $info;
+ 
+  private function __construct() {
+    $CI = new stdClass();
+    $CI->travis = (getenv('TRAVIS') == 'true');
+    $CI->github = (getenv('GITHUB_ACTIONS') == 'true');
+    $CI->is_nova = (getenv('NOVA') == 'NOVA');
+    $CI->index_file = getenv('INDEX_FILE');
+    
+    if($CI->travis) {
+      $CI->name = 'Travis CI';
+      $CI->repo = getenv('TRAVIS_REPO_SLUG');
+      $CI->branch = getenv('TRAVIS_BRANCH');
+      $CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
+      $CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+      $CI->pull_request = ($CI->pull_request_number !== false);
+      $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+    }
+    elseif ($CI->github) {
+      $CI->name = 'Github Actions';
+      $CI->repo = getenv('GITHUB_REPOSITORY');
+      $CI->branch = preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_REF'));
+      $CI->pull_request_number = preg_replace('/refs\/pull\/:([0-9]+)\/merge/', '$1', getenv('GITHUB_REF'));
+      $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
+      $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
+    }
+    $CI->url_repo = 'https://github.com/'.$CI->repo;
+    $CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
+    $CI->url_branch = $CI->url_repo.'/tree/'.$CI->branch;
+    $this->info = $CI;
+  }
+  private function __clone() {}
 
-if($CI->travis) {
-  $CI->name = 'Travis CI';
-  $CI->repo = getenv('TRAVIS_REPO_SLUG');
-  $CI->branch = getenv('TRAVIS_BRANCH');
-  $CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
-  $CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
-  $CI->pull_request = ($CI->pull_request_number !== false);
-  $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+  public static function getInstance() {
+      if (!GitInfo::$instance instanceof self) {
+        GitInfo::$instance = new self();
+      }
+      return GitInfo::$instance;
+  }
+  public function getCIinfo() {
+    return $this->info;
+  }
 }
-elseif ($CI->github) {
-  $CI->name = 'Github Actions';
-  $CI->repo = getenv('GITHUB_REPOSITORY');
-  $CI->branch = preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_REF'));
-  $CI->pull_request_number = preg_replace('/refs\/pull\/:([0-9]+)\/merge/', '$1', getenv('GITHUB_REF'));
-  $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
-  $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
-}
-$CI->url_repo = 'https://github.com/'.$CI->repo;
-$CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
-$CI->url_branch = $CI->url_repo.'/tree/'.$CI->branch;
 
 const URLTEST_MAXRETRIES = 3;
 const INFO_FILE = "buildscripts/info-files.json";
@@ -66,7 +85,7 @@ class Task extends Threaded {
   }
 
   public function run() {
-    global $CI;
+    $CI = CI::getCIinfo();
 
     $asciidoctorOutput = getAsciidoctorOutput( $this->filename );
     if(!$asciidoctorOutput) {
@@ -342,7 +361,7 @@ function getCurrentBranch() {
 //         all anchors                    as $result['anchors']
 //         all error messages of asciidoc as $result['errors']
 function getAsciidoctorOutput( $filename ) {
-  global $CI;
+  $CI = CI::getCIinfo();
 
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
   if(!$asciidoctorJSON) {
@@ -458,7 +477,7 @@ function validateTests( $tests ) {
 }
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
-  global $CI;
+  $CI = CI::getCIinfo();
 
   // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
   foreach( $testsResultsArray as $tr ) {
@@ -548,7 +567,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
-  global $CI; // don't look. global. i know.
+  $CI = CI::getCIinfo();
 
   // Gather information
   if( !empty(getenv('DEBUG')) )
@@ -635,7 +654,7 @@ function sendNotifications ( $results ) {
 
 // creates a single error message
 function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
-  global $CI;
+  $CI = CI::getCIinfo();
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
     $filename = $result['filename'];
@@ -761,8 +780,8 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
 }
 
 function main() {
-  global $CI;
-  
+  $CI = CI::getCIinfo();
+
   putenv( 'LC_ALL=C' );
   putenv( 'RUBYOPT="-E utf-8"' );
 
