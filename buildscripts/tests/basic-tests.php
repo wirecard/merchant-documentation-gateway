@@ -62,10 +62,10 @@ class CI {
   private function __clone() {}
 
   public static function getInstance() {
-      if (!GitInfo::$instance instanceof self) {
-        GitInfo::$instance = new self();
+      if (!CI::$instance instanceof self) {
+        CI::$instance = new self();
       }
-      return GitInfo::$instance;
+      return CI::$instance;
   }
   public function getCIinfo() {
     return $this->info;
