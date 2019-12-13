@@ -46,7 +46,8 @@ WL_REPO_ORG=wirecard-cee
 WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
-ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
+export INDEX_FILE='index.adoc' # will be overwritten for NOVA, see NOVA_INDEX
+ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
 
 function increaseErrorCount() {
@@ -227,8 +228,9 @@ function buildPartner() {
   BPATH="${PARTNER}"
   if [[ "${2}" == "NOVA" ]]; then
     debugMsg "[NOVA] build started"
-    NOVA="NOVA"
+    export NOVA="NOVA"
     NOVA_INDEX="nova.adoc"
+    export INDEX_FILE=${NOVA_INDEX}
     BPATH="${BPATH}/NOVA"
   fi
 
@@ -342,13 +344,13 @@ function main() {
       setUpMermaid
       executeCustomScripts "${PARTNER}"
       debugMsg "Creating PDF..."
-      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
+      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram ${INDEX_FILE}
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
       RUBYOPT="-E utf-8" asciidoctor-pdf \
         -a pdf-theme=config/pdf-theme.yml \
         -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
         -r asciidoctor-diagram \
-        index.adoc
+        ${INDEX_FILE}
       if [[ -z $CI ]]; then
         mv index.pdf "docu-$(date +%Y%m%d-%H%M%S).pdf"
       fi
