@@ -71,6 +71,7 @@ class CI {
     return $this->info;
   }
 }
+CI::getInstance();
 
 const URLTEST_MAXRETRIES = 3;
 const INFO_FILE = "buildscripts/info-files.json";
