@@ -29,6 +29,8 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
 $CI = new stdClass();
 $CI->travis = (getenv('TRAVIS') == 'true');
 $CI->github = (getenv('GITHUB_ACTIONS') == 'true');
+$CI->is_nova = (getenv('NOVA') == 'NOVA');
+$CI->index_file = getenv('INDEX_FILE');
 
 if($CI->travis) {
   $CI->name = 'Travis CI';
@@ -64,6 +66,7 @@ class Task extends Threaded {
   }
 
   public function run() {
+    global $CI;
 
     $asciidoctorOutput = getAsciidoctorOutput( $this->filename );
     if(!$asciidoctorOutput) {
@@ -87,7 +90,7 @@ class Task extends Threaded {
     // all other tests are perfomed on the individual files
     // global errors are added to individual reports in postprocessErrors()
 
-    if( $this->filename === 'index.adoc' ){
+    if( $this->filename === $CI->index_file ){
       $result['tests'] = array( 'anchors'     => array(),
                                 'patterns'    => array(),
                                 'links'       => array(),
@@ -339,6 +342,7 @@ function getCurrentBranch() {
 //         all anchors                    as $result['anchors']
 //         all error messages of asciidoc as $result['errors']
 function getAsciidoctorOutput( $filename ) {
+  global $CI;
 
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
   if(!$asciidoctorJSON) {
@@ -363,7 +367,7 @@ function getAsciidoctorOutput( $filename ) {
 
     if( substr( $singleError['message'], 0, 18 ) === "invalid reference:" ) {
       // ignore invalid reference error if its not produced by index.adoc
-      if( $singleError['filename'] !== 'index.adoc' ) {
+      if( $singleError['filename'] !== $CI->index_file ) {
         continue;
       }
     }
@@ -454,38 +458,39 @@ function validateTests( $tests ) {
 }
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
+  global $CI;
 
   // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
   foreach( $testsResultsArray as $tr ) {
     foreach( $tr['tests']['asciidoctor'] as $e => $adError ) {
       if( isMermaidError( $adError['message'] ) ) {
-        unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
+        unset($testsResultsArray[$CI->index_file]['tests']['asciidoctor'][$e]);
         continue;
       }
     }
   }
 
-  if( array_key_exists( 'index.adoc', $testsResultsArray ) === false ) return $testsResultsArray;
+  if( array_key_exists( $CI->index_file, $testsResultsArray ) === false ) return $testsResultsArray;
 
   $invalidReferencesArray = array();
 
   // get all asciidoctor errors and add them to the corresponding file entry in the tests results list
   // index == filename
-  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $e => $adError ) {
+  foreach( $testsResultsArray[$CI->index_file]['tests']['asciidoctor'] as $e => $adError ) {
     $filename = $adError['filename'];
     // skip file search for invalid references if not in index
-    if( $filename !== 'index.adoc' )
+    if( $filename !== $CI->index_file )
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = $adError;
 
     // if it is an invalid reference error add it to the pile that we use later to search the files with
     if( isInvalidReferenceError( $adError['message'] ) ) {
       $invalidReferenceID = str_replace( 'invalid reference: ', '', $adError['message'] );
       // make sure this is not a false positive created by asciidoctor by searching all anchors (contained in ['index.adoc']['anchors'])
-      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) === false ) {
+      if( array_key_exists( $invalidReferenceID, $testsResultsArray[$CI->index_file]['anchors'] ) === false ) {
         $invalidReferencesArray[] = $invalidReferenceID;
       }
     }
-    if ($filename == '<stdin>') $adError['filename'] = 'index.adoc';
+    if ($filename == '<stdin>') $adError['filename'] = $CI->index_file;
   }
 
   // take all invalid reference errors
@@ -534,7 +539,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     if( $numErrors == 0 ) unset( $testsResultsArray[$filename] );
   }
   // remove index.adoc from results after adding all error messages to their files
-  unset( $testsResultsArray['index.adoc'] );
+  unset( $testsResultsArray[$CI->index_file] );
 
   return $testsResultsArray;
 }
@@ -569,7 +574,7 @@ function sendNotifications ( $results ) {
   $headerText = $headerText."*Commit:* `".$commitHash
   ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
-  ."*Partner:* ".$partner."PHP_EOL";
+  ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '')."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
                       array("type" => "divider"),
                       );
@@ -756,6 +761,8 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
 }
 
 function main() {
+  global $CI;
+  
   putenv( 'LC_ALL=C' );
   putenv( 'RUBYOPT="-E utf-8"' );
 
@@ -764,7 +771,7 @@ function main() {
 
   $adocFilesArray = glob( '*.adoc' );
 
-  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( 'index.adoc', FILE_IGNORE_NEW_LINES ) );
+  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
 
   $pool = new Pool( $numConcurrentThreads );
 
