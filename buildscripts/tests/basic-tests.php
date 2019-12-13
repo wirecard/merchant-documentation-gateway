@@ -633,8 +633,8 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
     $filename = $result['filename'];
     $branch = $result['branch'];
     $lastEditedAuthor = $result['author'];
-    if( $branch == $CI->pull_request_branch ) {
-      $githubLink = $CI->url_pull_request;
+    if( $CI->pull_request ) {
+      $githubLink = $CI->url_pull_request.'/files';
     }
     else {
       $githubLink = $CI->url_repo.'/blob/'.$currentBranch.'/'.$filename;
@@ -735,12 +735,12 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
       $errors = stream_get_contents($pipes[2]);
       if ($result !== '') {
         echo("######### POST-TO-SLACK ############\n");
-        echo($result."\n");
+        echo($result);
         echo("####################################\n");
       }
       if ($errors !== '') {
         echo("############# ERRORS ###############\n");
-        echo($errors."\n");
+        echo($errors);
         echo("####################################\n");
       }
       fclose($pipes[1]);
