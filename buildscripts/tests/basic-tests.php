@@ -26,8 +26,28 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
 
 $CI = new stdClass();
 $CI->travis = (getenv('TRAVIS') == 'true');
-$CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
-$CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+$CI->github = (getenv('GITHUB_ACTIONS') == 'true');
+
+if($CI->travis) {
+  $CI->name = 'Travis CI';
+  $CI->repo = getenv('TRAVIS_REPO_SLUG');
+  $CI->branch = getenv('TRAVIS_BRANCH');
+  $CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
+  $CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+  $CI->pull_request = ($CI->pull_request_number !== false);
+  $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+}
+elseif ($CI->github) {
+  $CI->name = 'Github Actions';
+  $CI->repo = getenv('GITHUB_REPOSITORY');
+  $CI->branch = preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_REF'));
+  $CI->pull_request_number = preg_replace('/refs\/pull\/:([0-9]+)\/merge/', '$1', getenv('GITHUB_REF'));
+  $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
+  $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
+}
+$CI->url_repo = 'https://github.com/'.$CI->repo;
+$CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
+$CI->url_branch = $CI->url_repo.'/tree/'.$CI->branch;
 
 const URLTEST_MAXRETRIES = 3;
 const INFO_FILE = "buildscripts/info-files.json";
@@ -463,6 +483,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
         $invalidReferencesArray[] = $invalidReferenceID;
       }
     }
+    if ($filename == '<stdin>') $adError['filename'] = 'index.adoc';
   }
 
   // take all invalid reference errors
@@ -537,14 +558,14 @@ function sendNotifications ( $results ) {
   // Slack message
   if($CI->pull_request_branch !== false) {
     $headerText = "*Pull Request for:* ".$currentBranch
-    ." (<https://github.com/wirecard/merchant-documentation-gateway/pull/".$CI->pull_request_number."|On Github>)PHP_EOL";
+    ." (<".$CI->url_pull_request."|On ".$CI->name.">)PHP_EOL";
   }
   else {
     $headerText = "*Branch:* ".$currentBranch
-    ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"; 
+    ." (<".$CI->url_branch."|On ".$CI->name.">)PHP_EOL"; 
   }
   $headerText = $headerText."*Commit:* `".$commitHash
-  ."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
+  ."` (<".$CI->url_repo."/commit/".$commitHash."|On ".$CI->name.")>PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
@@ -589,8 +610,7 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "I'm C.I. Travis, and I approve this message. "
-                                                      ."<https://travis-ci.com/wirecard/merchant-documentation-gateway/builds|Vote for me!>"))),
+                                                      "text" => "CI System: ".$CI->name))),
                       array("type" => "divider")
                       );
 
@@ -614,10 +634,10 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
     $branch = $result['branch'];
     $lastEditedAuthor = $result['author'];
     if( $branch == $CI->pull_request_branch ) {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pull/'.$CI->pull_request_number;
+      $githubLink = $CI->url_pull_request;
     }
     else {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
+      $githubLink = $CI->url_repo.'/blob/'.$currentBranch.'/'.$filename;
     }
 
     $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|On Github>)"."PHP_EOL"
