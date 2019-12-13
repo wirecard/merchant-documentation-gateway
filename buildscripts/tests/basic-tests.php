@@ -42,7 +42,7 @@ class CI {
       $CI->repo = getenv('TRAVIS_REPO_SLUG');
       $CI->branch = getenv('TRAVIS_BRANCH');
       $CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
-      $CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+      $CI->pull_request_branch_head = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
       $CI->pull_request = ($CI->pull_request_number !== false);
       $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
     }
@@ -51,6 +51,7 @@ class CI {
       $CI->repo = getenv('GITHUB_REPOSITORY');
       $CI->branch = preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_REF'));
       $CI->pull_request_number = preg_replace('/refs\/pull\/:([0-9]+)\/merge/', '$1', getenv('GITHUB_REF'));
+      $CI->pull_request_branch_head = getenv('GITHUB_HEAD_REF') ? preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_HEAD_REF')) : false;
       $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
       $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
     }
@@ -576,24 +577,24 @@ function sendNotifications ( $results ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console\n";
 
   $partner = getenv( 'PARTNER' );
-  $currentBranch = $CI->pull_request_branch === false ? GitInfo::getInstance()->getBranch() : $CI->pull_request_branch;
+  $currentBranch = $CI->pull_request_branch_head === false ? GitInfo::getInstance()->getBranch() : $CI->pull_request_branch_head;
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $commitHash = GitInfo::getInstance()->getCommitHash();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  if($CI->pull_request_branch !== false) {
+  if($CI->pull_request_branch_head !== false) {
     $headerText = "*Pull Request for:* ".$currentBranch
-    ." (<".$CI->url_pull_request."|Link to Github>)PHP_EOL";
+    ." (<".$CI->url_pull_request."|Link to Github>)".PHP_EOL;
   }
   else {
     $headerText = "*Branch:* ".$currentBranch
-    ." (<".$CI->url_branch."|Link to Github>)PHP_EOL";
+    ." (<".$CI->url_branch."|Link to Github>)".PHP_EOL;
   }
   $headerText = $headerText."*Commit:* `".$commitHash
-  ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)PHP_EOL"
-  ."*Commit from:* ".$commitAuthor."PHP_EOL"
-  ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '')."PHP_EOL";
+  ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)".PHP_EOL
+  ."*Commit from:* ".$commitAuthor.PHP_EOL
+  ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '').PHP_EOL;
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
                       array("type" => "divider"),
                       );
@@ -613,8 +614,8 @@ function sendNotifications ( $results ) {
         $result['filename'] = $filename;
       if(!isset($result['branch']))
         $result['branch'] = "whitelabel";
-      if($CI->pull_request_branch !== false)
-        $result['branch'] = $CI->pull_request_branch;
+      if($CI->pull_request_branch_head !== false)
+        $result['branch'] = $CI->pull_request_branch_head;
       if(!isset($result['author']))
         $result['author'] = "redacted";
       $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
@@ -636,8 +637,8 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => $currentBranch.' '.$partner.($CI->is_nova ? ' [NOVA]' : '')."PHP_EOLPHPEOL"
-                                                                .basename( __FILE__, '.php')." v".majorVersion."PHP_EOL"
+                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHPEOL
+                                                                .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
                                                                 .$CI->name))),
                       array("type" => "divider")
                       );
