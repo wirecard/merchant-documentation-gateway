@@ -9,6 +9,8 @@ Use multithreading with thread pool to speed up the process.
 */
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
+
+const majorVersion = '1.0';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
@@ -558,14 +560,14 @@ function sendNotifications ( $results ) {
   // Slack message
   if($CI->pull_request_branch !== false) {
     $headerText = "*Pull Request for:* ".$currentBranch
-    ." (<".$CI->url_pull_request."|On ".$CI->name.">)PHP_EOL";
+    ." (<".$CI->url_pull_request."|Github link>)PHP_EOL";
   }
   else {
     $headerText = "*Branch:* ".$currentBranch
     ." (<".$CI->url_branch."|On ".$CI->name.">)PHP_EOL"; 
   }
   $headerText = $headerText."*Commit:* `".$commitHash
-  ."` (<".$CI->url_repo."/commit/".$commitHash."|On ".$CI->name.")>PHP_EOL"
+  ."` (<".$CI->url_repo."/commit/".$commitHash."|Github link>)PHP_EOL"
   ."*Commit from:* ".$commitAuthor."PHP_EOL"
   ."*Partner:* ".$partner."PHP_EOL";
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
@@ -610,7 +612,8 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "CI System: ".$CI->name))),
+                                                      "text" => "Basic-Tests v".majorVersion."PHP_EOL"
+                                                               ."CI System: ".$CI->name))),
                       array("type" => "divider")
                       );
 
@@ -640,7 +643,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
       $githubLink = $CI->url_repo.'/blob/'.$currentBranch.'/'.$filename;
     }
 
-    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|On Github>)"."PHP_EOL"
+    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|Github link>)"."PHP_EOL"
                       ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
     if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
       $content['text'] .= "• *Anchors*"."PHP_EOL";
