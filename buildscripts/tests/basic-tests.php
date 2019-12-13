@@ -324,9 +324,6 @@ function getAsciidoctorOutput( $filename ) {
   }
   $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
 
-  // Format Output
-  $result = array();
-
   // initialize this.. or else... regret it
   $results = array();
   foreach( $asciidoctorOutput['errors'] as $key => $e ) {
@@ -610,7 +607,7 @@ function sendNotifications ( $results ) {
 
 // creates a single error message
 function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
-
+  global $CI;
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
     $filename = $result['filename'];
