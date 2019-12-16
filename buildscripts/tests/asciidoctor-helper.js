@@ -73,8 +73,6 @@ function stfuGetJsonFromFile(file, strict = false) {
     return JsonObject;
 }
 
-if (argv['file'] !== undefined) adocFilename = argv['file'];
-
 const memoryLogger = asciidoctor.MemoryLogger.$new();
 asciidoctor.LoggerManager.setLogger(memoryLogger);
 
@@ -88,7 +86,7 @@ try {
     throw err;
 }
 
-const includeStatement = ':root: ' +  process.cwd() + '\ninclude::shortcuts.adoc[]\n';
+const includeStatement = 'include::shortcuts.adoc[]\n';
 adocFileContents = includeStatement + adocFileContents;
 const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
 

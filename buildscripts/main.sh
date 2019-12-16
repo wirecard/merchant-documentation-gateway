@@ -46,7 +46,8 @@ WL_REPO_ORG=wirecard-cee
 WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
-ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a root=${INITDIR} -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
+export INDEX_FILE='index.adoc' # will be overwritten for NOVA, see NOVA_INDEX
+ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
 
 function increaseErrorCount() {
@@ -198,11 +199,9 @@ function setUpMermaid() {
     checksum_ref=".asciidoctor/mermaid-css-checksum.txt"
     checksum_new="/tmp/mermaid-css-checksum.txt"
     sha1sum --text css/mermaid.css >"${checksum_new}"
-
     # show hashes
     echo "Reference: $(cat ${checksum_ref})"
     echo "Current:   $(cat ${checksum_new})"
-
     if ! diff -q --strip-trailing-cr "${checksum_new}" "${checksum_ref}"; then
       debugMsg "Delete all *.svg to force re-creation"
       rm ./*.svg
@@ -229,20 +228,17 @@ function buildPartner() {
   BPATH="${PARTNER}"
   if [[ "${2}" == "NOVA" ]]; then
     debugMsg "[NOVA] build started"
-    NOVA="NOVA"
+    export NOVA="NOVA"
     NOVA_INDEX="nova.adoc"
+    export INDEX_FILE=${NOVA_INDEX}
     BPATH="${BPATH}/NOVA"
   fi
 
   createPartnerFolder "${PARTNER}" "${NOVA}"
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
-  if [[ ${SKIP_MERMAID} == "true" ]]; then
-    timed_log "SKIPPING MERMAID CREATION: --skip-mermaid is set"
-  else
-    setUpMermaid
-  fi
-  
+  setUpMermaid
+
   if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
 
     executeCustomScripts "${PARTNER}" || abortCurrentBuild " for WL partner ${PARTNER}."
@@ -265,8 +261,8 @@ function buildPartner() {
   node buildscripts/util/combine-and-minify.js
 
   debugMsg "Beautify samples"
-  find samples/xml auto-generated/samples -name "*.xml" -type f -print0 | xargs -0 -P32 tidy -xml -quiet -indent -modify -wrap 100 -utf8
-  find samples/json auto-generated/samples -name "*.json" -type f -print0 | xargs -0 -P32 jsonlint --in-place
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
 
   debugMsg "Building blob html"
   # build html for toc and index
@@ -323,25 +319,6 @@ function main() {
     PARTNER="WD"
   fi
 
-  COMMIT_MSG=$(git log -1 --pretty=%B | head -n 1)
-
-  if [[ ${COMMIT_MSG} == *'[wd]'* ]]; then
-    debugMsg 'Commit message contains [wd]'
-    WDONLY="true"
-    debugMsg '-> Only WD will be built'
-    if [[ ${WDONLY} == 'true' && ${PARTNER} != 'WD' ]]; then
-      debugMsg '-> Skipping build for '${PARTNER}
-      return 0
-    fi
-  fi
-
-  if [[ ${COMMIT_MSG} == *'[quick]'* ]]; then
-    debugMsg 'Commit message contains [quick]'
-    # can also be set with cli argument
-    SKIP_MERMAID="true"
-    debugMsg '-> Mermaid diagram creation will be skipped'
-  fi
-
   # check arguments that are passed
   while (("$#")); do
     case "$1" in
@@ -351,9 +328,6 @@ function main() {
     -sn | --skip-nova)
       SKIP_NOVA="true"
       ;;
-    -sm | --skip-mermaid)
-      SKIP_MERMAID="true"
-      ;;
     -f | --force)
       FORCE="true"
       ;;
@@ -361,7 +335,6 @@ function main() {
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
       echo "* [-sn|--skip-nova] skip NOVA docs build"
-      echo "* [-sm|--skip-mermaid] skip mermaid diagram build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
       ;;
@@ -371,13 +344,13 @@ function main() {
       setUpMermaid
       executeCustomScripts "${PARTNER}"
       debugMsg "Creating PDF..."
-      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
+      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram ${INDEX_FILE}
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
       RUBYOPT="-E utf-8" asciidoctor-pdf \
         -a pdf-theme=config/pdf-theme.yml \
         -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
         -r asciidoctor-diagram \
-        index.adoc
+        ${INDEX_FILE}
       if [[ -z $CI ]]; then
         mv index.pdf "docu-$(date +%Y%m%d-%H%M%S).pdf"
       fi
