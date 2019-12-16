@@ -47,7 +47,7 @@ WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
 export INDEX_FILE='index.adoc' # will be overwritten for NOVA, see NOVA_INDEX
-ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
+ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a root=${INITDIR} -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
 
 function increaseErrorCount() {

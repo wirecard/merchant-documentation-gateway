@@ -86,7 +86,7 @@ try {
     throw err;
 }
 
-const includeStatement = 'include::shortcuts.adoc[]\n';
+const includeStatement = ':root: ' +  process.cwd() + '\ninclude::shortcuts.adoc[]\n';
 adocFileContents = includeStatement + adocFileContents;
 const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
 
