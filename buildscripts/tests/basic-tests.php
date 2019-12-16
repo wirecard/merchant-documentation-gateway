@@ -235,7 +235,6 @@ class GitInfo {
       return $this->gitInfoArray['commit_hash'];
   }
   public function getCommitDateTime() {
-    var_dump($this->gitInfoArray['commit_timestamp']);
     $_dt = new DateTime(null, new DateTimeZone('Europe/Berlin'));
     $_dt->setTimestamp(intval($this->gitInfoArray['commit_timestamp']));
     return $_dt;
@@ -649,8 +648,8 @@ function sendNotifications ( $results ) {
                             "elements" => array(array("type" => "mrkdwn",
                                                       "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHP_EOL
                                                                 .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
-                                                                .$CI->name." - "
-                                                                .$commitDateTimeString))),
+                                                                .$CI->name.PHP_EOL
+                                                                ."Committed at ".$commitDateTimeString))),
                       array("type" => "divider")
                       );
 
