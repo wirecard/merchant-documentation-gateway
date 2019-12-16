@@ -237,6 +237,12 @@ function buildPartner() {
   createPartnerFolder "${PARTNER}" "${NOVA}"
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
+  if [[ ${SKIP_MERMAID} == "true" ]]; then
+    timed_log "SKIPPING MERMAID CREATION: --skip-mermaid is set"
+  else
+    setUpMermaid
+  fi
+
   setUpMermaid
 
   if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
@@ -319,11 +325,33 @@ function main() {
     PARTNER="WD"
   fi
 
+  COMMIT_MSG=$(git log -1 --pretty=%B | head -n 1)
+
+  if [[ ${COMMIT_MSG} == *'[wd]'* ]]; then
+    debugMsg 'Commit message contains [wd]'
+    WDONLY="true"
+    debugMsg '-> Only WD will be built'
+    if [[ ${WDONLY} == 'true' && ${PARTNER} != 'WD' ]]; then
+      debugMsg '-> Skipping build for '${PARTNER}
+      return 0
+    fi
+  fi
+
+  if [[ ${COMMIT_MSG} == *'[quick]'* ]]; then
+    debugMsg 'Commit message contains [quick]'
+    # can also be set with cli argument
+    SKIP_MERMAID="true"
+    debugMsg '-> Mermaid diagram creation will be skipped'
+  fi
+
   # check arguments that are passed
   while (("$#")); do
     case "$1" in
     -s | --skip)
       SKIP="true"
+      ;;
+    -sm | --skip-mermaid)
+      SKIP_MERMAID="true"
       ;;
     -sn | --skip-nova)
       SKIP_NOVA="true"
@@ -334,6 +362,7 @@ function main() {
     -h | --help)
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
+      echo "* [-sm|--skip-mermaid] skip mermaid diagram build"
       echo "* [-sn|--skip-nova] skip NOVA docs build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
