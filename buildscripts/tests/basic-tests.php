@@ -235,9 +235,13 @@ class GitInfo {
       return $this->gitInfoArray['commit_hash'];
   }
   public function getCommitDateTime() {
-    return new DateTime(intval($this->gitInfoArray['commit_timestamp']), new DateTimeZone('Europe/Berlin'));
+    var_dump($this->gitInfoArray['commit_timestamp']);
+    $_dt = new DateTime(null, new DateTimeZone('Europe/Berlin'));
+    $_dt->setTimestamp(intval($this->gitInfoArray['commit_timestamp']));
+    return $_dt;
   }
   public function getLastEditedByOfFile($file) {
+    $file = preg_replace('/^\.\//', '', $file);
     if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file])) {
       $lastEditedBy = $this->gitInfoArray['files'][$file]['last_edited_by'];
     }
@@ -645,7 +649,7 @@ function sendNotifications ( $results ) {
                             "elements" => array(array("type" => "mrkdwn",
                                                       "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHP_EOL
                                                                 .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
-                                                                .$CI->name." "
+                                                                .$CI->name." - "
                                                                 .$commitDateTimeString))),
                       array("type" => "divider")
                       );
@@ -809,7 +813,7 @@ function main() {
   $otherIndexFiles = ['index.adoc', 'nova.adoc', 'apac.adoc', 'payments.adoc'];
   $otherIndexFiles = array_diff($otherIndexFiles, array($CI->index_file));
   // remove other indexes from being tested
-  $adocFilesArray = array_diff($adocFilesArray, $otherIndexFiles);
+  $adocFilesArray = array_values(array_diff($adocFilesArray, $otherIndexFiles));
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
 
   $pool = new Pool( $numConcurrentThreads );
