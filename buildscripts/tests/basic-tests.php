@@ -10,7 +10,7 @@ Use multithreading with thread pool to speed up the process.
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
-const majorVersion = '1.0';
+const majorVersion = '1.1';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
@@ -36,7 +36,7 @@ class CI {
     $CI->github = (getenv('GITHUB_ACTIONS') == 'true');
     $CI->is_nova = (getenv('NOVA') == 'NOVA');
     $CI->index_file = getenv('INDEX_FILE');
-    
+
     if($CI->travis) {
       $CI->name = 'Travis CI';
       $CI->repo = getenv('TRAVIS_REPO_SLUG');
@@ -213,6 +213,7 @@ class GitInfo {
       'commit_author' => $gitInfo['commit_author'],
       'branch' => $gitInfo['branch'],
       'commit_hash' => $gitInfo['commit_hash'],
+      'commit_timestamp' => $gitInfo['commit_timestamp'],
       'files' => $gitInfo['files']
     );
   }
@@ -232,6 +233,9 @@ class GitInfo {
   }
   public function getCommitHash() {
       return $this->gitInfoArray['commit_hash'];
+  }
+  public function getCommitDateTime() {
+    return new DateTime(intval($this->gitInfoArray['commit_timestamp']), new DateTimeZone('Europe/Berlin'));
   }
   public function getLastEditedByOfFile($file) {
     if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file])) {
@@ -346,8 +350,8 @@ function getLastEditedByOfFile( $filename ) {
 }
 
 function getCommitAuthor() {
-  $commiter = 'git log -1 --pretty=format:%an';
-  return exec( $commiter );
+  $committer = 'git log -1 --pretty=format:%an';
+  return exec( $committer );
 }
 
 function getCurrentBranch() {
@@ -570,6 +574,8 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 function sendNotifications ( $results ) {
   $CI = CI::getInstance()->getInfo();
 
+  $commitDateTimeString = GitInfo::getInstance()->getCommitDateTime()->format('Y-m-d H:i:s');
+
   // Gather information
   if( !empty(getenv('DEBUG')) )
     echo "DEBUG for messaging is ".getenv('DEBUG')."\n";
@@ -639,7 +645,8 @@ function sendNotifications ( $results ) {
                             "elements" => array(array("type" => "mrkdwn",
                                                       "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHP_EOL
                                                                 .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
-                                                                .$CI->name))),
+                                                                .$CI->name." "
+                                                                .$commitDateTimeString))),
                       array("type" => "divider")
                       );
 
@@ -781,6 +788,14 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
   return $result;
 }
 
+function rglob($pattern, $flags = 0) {
+  $files = glob($pattern, $flags);
+  foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+      $files = array_merge($files, rglob($dir.'/'.basename($pattern), $flags));
+  }
+  return $files;
+}
+
 function main() {
   $CI = CI::getInstance()->getInfo();
 
@@ -790,8 +805,11 @@ function main() {
   $exitCode = 0;
   $numConcurrentThreads = 8;
 
-  $adocFilesArray = glob( '*.adoc' );
-
+  $adocFilesArray = rglob('*.adoc');
+  $otherIndexFiles = ['index.adoc', 'nova.adoc', 'apac.adoc', 'payments.adoc'];
+  $otherIndexFiles = array_diff($otherIndexFiles, array($CI->index_file));
+  // remove other indexes from being tested
+  $adocFilesArray = array_diff($adocFilesArray, $otherIndexFiles);
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
 
   $pool = new Pool( $numConcurrentThreads );
