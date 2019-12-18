@@ -73,8 +73,6 @@ function stfuGetJsonFromFile(file, strict = false) {
     return JsonObject;
 }
 
-if (argv['file'] !== undefined) adocFilename = argv['file'];
-
 const memoryLogger = asciidoctor.MemoryLogger.$new();
 asciidoctor.LoggerManager.setLogger(memoryLogger);
 
