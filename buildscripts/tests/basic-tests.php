@@ -9,6 +9,8 @@ Use multithreading with thread pool to speed up the process.
 */
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
+
+const majorVersion = '1.0';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
@@ -24,10 +26,52 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   }
 }
 
-$CI = new stdClass();
-$CI->travis = (getenv('TRAVIS') == 'true');
-$CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
-$CI->pull_request_branch = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+class CI {
+  private static $instance;
+  private $info;
+ 
+  private function __construct() {
+    $CI = new stdClass();
+    $CI->travis = (getenv('TRAVIS') == 'true');
+    $CI->github = (getenv('GITHUB_ACTIONS') == 'true');
+    $CI->is_nova = (getenv('NOVA') == 'NOVA');
+    $CI->index_file = getenv('INDEX_FILE');
+    
+    if($CI->travis) {
+      $CI->name = 'Travis CI';
+      $CI->repo = getenv('TRAVIS_REPO_SLUG');
+      $CI->branch = getenv('TRAVIS_BRANCH');
+      $CI->pull_request_number = (getenv('TRAVIS_PULL_REQUEST') !== false && getenv('TRAVIS_PULL_REQUEST') !== 'false') ? getenv('TRAVIS_PULL_REQUEST') : false;
+      $CI->pull_request_branch_head = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
+      $CI->pull_request = ($CI->pull_request_number !== false);
+      $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+    }
+    elseif ($CI->github) {
+      $CI->name = 'Github Actions';
+      $CI->repo = getenv('GITHUB_REPOSITORY');
+      $CI->branch = preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_REF'));
+      $CI->pull_request_number = preg_replace('/refs\/pull\/:([0-9]+)\/merge/', '$1', getenv('GITHUB_REF'));
+      $CI->pull_request_branch_head = getenv('GITHUB_HEAD_REF') ? preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_HEAD_REF')) : false;
+      $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
+      $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
+    }
+    $CI->url_repo = 'https://github.com/'.$CI->repo;
+    $CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
+    $CI->url_branch = $CI->url_repo.'/tree/'.$CI->branch;
+    $this->info = $CI;
+  }
+  private function __clone() {}
+
+  public static function getInstance() {
+      if (!CI::$instance instanceof self) {
+        CI::$instance = new self();
+      }
+      return CI::$instance;
+  }
+  public function getInfo() {
+    return $this->info;
+  }
+}
 
 const URLTEST_MAXRETRIES = 3;
 const INFO_FILE = "buildscripts/info-files.json";
@@ -42,6 +86,7 @@ class Task extends Threaded {
   }
 
   public function run() {
+    $CI = CI::getInstance()->getInfo();
 
     $asciidoctorOutput = getAsciidoctorOutput( $this->filename );
     if(!$asciidoctorOutput) {
@@ -65,7 +110,7 @@ class Task extends Threaded {
     // all other tests are perfomed on the individual files
     // global errors are added to individual reports in postprocessErrors()
 
-    if( $this->filename === 'index.adoc' ){
+    if( $this->filename === $CI->index_file ){
       $result['tests'] = array( 'anchors'     => array(),
                                 'patterns'    => array(),
                                 'links'       => array(),
@@ -317,15 +362,13 @@ function getCurrentBranch() {
 //         all anchors                    as $result['anchors']
 //         all error messages of asciidoc as $result['errors']
 function getAsciidoctorOutput( $filename ) {
+  $CI = CI::getInstance()->getInfo();
 
   $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
   if(!$asciidoctorJSON) {
     return false;
   }
   $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
-
-  // Format Output
-  $result = array();
 
   // initialize this.. or else... regret it
   $results = array();
@@ -344,7 +387,7 @@ function getAsciidoctorOutput( $filename ) {
 
     if( substr( $singleError['message'], 0, 18 ) === "invalid reference:" ) {
       // ignore invalid reference error if its not produced by index.adoc
-      if( $singleError['filename'] !== 'index.adoc' ) {
+      if( $singleError['filename'] !== $CI->index_file ) {
         continue;
       }
     }
@@ -435,37 +478,39 @@ function validateTests( $tests ) {
 }
 
 function postprocessErrors( $testsResultsArray, $indexedFiles ) {
+  $CI = CI::getInstance()->getInfo();
 
   // remove mermaid errors for now. TODO: have asciidoctor diagram inside js asciidoc helper, so there are no such errors
   foreach( $testsResultsArray as $tr ) {
     foreach( $tr['tests']['asciidoctor'] as $e => $adError ) {
       if( isMermaidError( $adError['message'] ) ) {
-        unset($testsResultsArray['index.adoc']['tests']['asciidoctor'][$e]);
+        unset($testsResultsArray[$CI->index_file]['tests']['asciidoctor'][$e]);
         continue;
       }
     }
   }
 
-  if( array_key_exists( 'index.adoc', $testsResultsArray ) === false ) return $testsResultsArray;
+  if( array_key_exists( $CI->index_file, $testsResultsArray ) === false ) return $testsResultsArray;
 
   $invalidReferencesArray = array();
 
   // get all asciidoctor errors and add them to the corresponding file entry in the tests results list
   // index == filename
-  foreach( $testsResultsArray['index.adoc']['tests']['asciidoctor'] as $e => $adError ) {
+  foreach( $testsResultsArray[$CI->index_file]['tests']['asciidoctor'] as $e => $adError ) {
     $filename = $adError['filename'];
     // skip file search for invalid references if not in index
-    if( $filename !== 'index.adoc' )
+    if( $filename !== $CI->index_file )
       $testsResultsArray[$filename]['tests']['asciidoctor'][] = $adError;
 
     // if it is an invalid reference error add it to the pile that we use later to search the files with
     if( isInvalidReferenceError( $adError['message'] ) ) {
       $invalidReferenceID = str_replace( 'invalid reference: ', '', $adError['message'] );
       // make sure this is not a false positive created by asciidoctor by searching all anchors (contained in ['index.adoc']['anchors'])
-      if( array_key_exists( $invalidReferenceID, $testsResultsArray['index.adoc']['anchors'] ) === false ) {
+      if( array_key_exists( $invalidReferenceID, $testsResultsArray[$CI->index_file]['anchors'] ) === false ) {
         $invalidReferencesArray[] = $invalidReferenceID;
       }
     }
+    if ($filename == '<stdin>') $adError['filename'] = $CI->index_file;
   }
 
   // take all invalid reference errors
@@ -514,7 +559,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
     if( $numErrors == 0 ) unset( $testsResultsArray[$filename] );
   }
   // remove index.adoc from results after adding all error messages to their files
-  unset( $testsResultsArray['index.adoc'] );
+  unset( $testsResultsArray[$CI->index_file] );
 
   return $testsResultsArray;
 }
@@ -523,7 +568,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
 // Sends notifications to (for now) Slack
 // Take Webhook from ENV
 function sendNotifications ( $results ) {
-  global $CI; // don't look. global. i know.
+  $CI = CI::getInstance()->getInfo();
 
   // Gather information
   if( !empty(getenv('DEBUG')) )
@@ -532,24 +577,24 @@ function sendNotifications ( $results ) {
     echo "Environment Var SLACK_TOKEN not set -> output to console\n";
 
   $partner = getenv( 'PARTNER' );
-  $currentBranch = $CI->pull_request_branch === false ? GitInfo::getInstance()->getBranch() : $CI->pull_request_branch;
+  $currentBranch = $CI->pull_request_branch_head === false ? GitInfo::getInstance()->getBranch() : $CI->pull_request_branch_head;
   $commitAuthor = GitInfo::getInstance()->getCommitAuthor();
   $commitHash = GitInfo::getInstance()->getCommitHash();
   $slackWebhookUrl = 'https://hooks.slack.com/services/'.getenv( 'SLACK_TOKEN' );
 
   // Slack message
-  if($CI->pull_request_branch !== false) {
+  if($CI->pull_request_branch_head !== false) {
     $headerText = "*Pull Request for:* ".$currentBranch
-    ." (<https://github.com/wirecard/merchant-documentation-gateway/pull/".$CI->pull_request_number."|On Github>)PHP_EOL";
+    ." (<".$CI->url_pull_request."|Link to Github>)".PHP_EOL;
   }
   else {
     $headerText = "*Branch:* ".$currentBranch
-    ." (<https://github.com/wirecard/merchant-documentation-gateway/tree/".$currentBranch."|On Github>)PHP_EOL"; 
+    ." (<".$CI->url_branch."|Link to Github>)".PHP_EOL;
   }
   $headerText = $headerText."*Commit:* `".$commitHash
-  ."` (<https://github.com/wirecard/merchant-documentation-gateway/commit/".$commitHash."|On Github)>PHP_EOL"
-  ."*Commit from:* ".$commitAuthor."PHP_EOL"
-  ."*Partner:* ".$partner."PHP_EOL";
+  ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)".PHP_EOL
+  ."*Commit from:* ".$commitAuthor.PHP_EOL
+  ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '').PHP_EOL;
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
                       array("type" => "divider"),
                       );
@@ -569,8 +614,8 @@ function sendNotifications ( $results ) {
         $result['filename'] = $filename;
       if(!isset($result['branch']))
         $result['branch'] = "whitelabel";
-      if($CI->pull_request_branch !== false)
-        $result['branch'] = $CI->pull_request_branch;
+      if($CI->pull_request_branch_head !== false)
+        $result['branch'] = $CI->pull_request_branch_head;
       if(!isset($result['author']))
         $result['author'] = "redacted";
       $msgContent["fields"][] = createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash );
@@ -592,8 +637,9 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "I'm C.I. Travis, and I approve this message. "
-                                                      ."<https://travis-ci.com/wirecard/merchant-documentation-gateway/builds|Vote for me!>"))),
+                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHP_EOL
+                                                                .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
+                                                                .$CI->name))),
                       array("type" => "divider")
                       );
 
@@ -610,21 +656,20 @@ function sendNotifications ( $results ) {
 
 // creates a single error message
 function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commitAuthor, $commitHash ) {
-  global $CI;
-  
+  $CI = CI::getInstance()->getInfo();
   $numErrors = 0;
   if( testNoErrorPath && sizeof( $result ) > 0 ){
     $filename = $result['filename'];
     $branch = $result['branch'];
     $lastEditedAuthor = $result['author'];
-    if( $branch == $CI->pull_request_branch ) {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/pull/'.$CI->pull_request_number;
+    if( $CI->pull_request ) {
+      $githubLink = $CI->url_pull_request.'/files';
     }
     else {
-      $githubLink = 'https://github.com/wirecard/merchant-documentation-gateway/blob/'.$currentBranch.'/'.$filename;
+      $githubLink = $CI->url_repo.'/blob/'.$currentBranch.'/'.$filename;
     }
 
-    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|On Github>)"."PHP_EOL"
+    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|Link to Github>)PHP_EOL"
                       ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
     if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
       $content['text'] .= "• *Anchors*"."PHP_EOL";
@@ -719,12 +764,12 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
       $errors = stream_get_contents($pipes[2]);
       if ($result !== '') {
         echo("######### POST-TO-SLACK ############\n");
-        echo($result."\n");
+        echo($result);
         echo("####################################\n");
       }
       if ($errors !== '') {
         echo("############# ERRORS ###############\n");
-        echo($errors."\n");
+        echo($errors);
         echo("####################################\n");
       }
       fclose($pipes[1]);
@@ -737,6 +782,8 @@ function postToSlack( $slackWebhookUrl, $slackMessage ) {
 }
 
 function main() {
+  $CI = CI::getInstance()->getInfo();
+
   putenv( 'LC_ALL=C' );
   putenv( 'RUBYOPT="-E utf-8"' );
 
@@ -745,7 +792,7 @@ function main() {
 
   $adocFilesArray = glob( '*.adoc' );
 
-  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( 'index.adoc', FILE_IGNORE_NEW_LINES ) );
+  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
 
   $pool = new Pool( $numConcurrentThreads );
 
