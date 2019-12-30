@@ -186,20 +186,20 @@ list available in <<RestApi_Fields, REST API field list>>):
 
 |_merchant-account-id_
 |M
-|Alphanumeric
+|String
 |36
 |Unique identifier for a merchant account
 
 |_request-id_
 |M
-|Alphanumeric
+|String
 |150
 |This is the identification number of the request.
 *It has to be unique for each request.*
 
 |_transaction-type_
 |M
-|Alphanumeric
+|String
 |30
 |This is the type for a transaction: _authorization_, _capture_, _void-authorization_, _refund-capture_ and _credit_ are supported for _Guaranteed Installments_.
 
@@ -211,46 +211,52 @@ list available in <<RestApi_Fields, REST API field list>>):
 
 |_requested-amount@currency_
 |M
-|
-|
+|String
+|?????
 |This is the currency of the transaction. For Germany and Austria, only ``EUR`` is allowed. Switzerland additionally accepts ``CHF``.
 
 |_order-detail_
 |O
-|Alphanumeric
+|String
 |65535
 |Details of the order filled by the merchant.
 
 |_order-number_
 |M
-|Alphanumeric
+|String
 |64
 |The order number from the merchant.
 
 |_consumer-id_
 |O
-|Alphanumeric
-|
+|String
+|50 ?????
 |Merchant's identifier for the consumer.
 
 |_invoice-id_
 |O
-|Alphanumeric
-|
+|String
+|?????
 |Merchant's invoice identifier.
 
 |_creditor-id_
-|C
-|Alphanumeric
-|
-|Wirecard Bank creditor identifier, provided by Wirecard Support
+|M/O
+|String
+|256 ?????
+|Wirecard Bank creditor identifier, provided by Wirecard Support. QUESTION: When is it mandatory?????
 
 |_locale_
 |O
-|Alphanumeric
-|
+|String
+|6 ?????
 |It is used to control the language of the consumer message and the correspondence to the consumer. Allowed values: ``fr``, ``en``, ``nl``, ``de``.
 If empty or with wrong value, German language is used by default. The same logic applies for Payment Page integration.
+
+|_api-id_
+|M/O
+|Token
+|36 ?????
+|????? Spec says: "Mandatory for authorization via HPP."
 
 5+a|
 [[GuaranteedInstallment_Fields_PaymentMethods]]
@@ -259,9 +265,9 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_payment-methods.payment-method@name_
 |M
-|Alphanumeric
+|String
 |15
-|The name of the Payment Method is ``ratepay-invoice``.
+|The name of the Payment Method is ``ratepay-install``.
 
 5+a|
 [[GuaranteedInstallment_Fields_AccountHolder]]
@@ -270,39 +276,39 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_account-holder.first-name_
 |M
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|Account holder's first name.
 
 |_account-holder.last-name_
 |M
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|Account holder's last name.
 
 |_account-holder.email_
 |M
-|Alphanumeric
-|
-|
+|String
+|64 ?????
+|Account holder's email address.
 
 |_account-holder.phone_
 |M
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|Account holder's phone number.
 
 |_account-holder.date-of-birth_
 |M
-|Alphanumeric
-|
-|
+|String
+|n/a ?????
+|Account holder's date of birth.
 
 |_account-holder.gender_
 |O
 |Token
-|
-|
+|1 ?????
+|Account holder's gender.
 
 5+a|
 [[GuaranteedInstallment_Fields_AccountHolderAddress]]
@@ -311,39 +317,39 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_account-holder.address.street1_
 |M
-|Alphanumeric
-|
-|Must include house number.
+|String
+|128 ?????
+|The first line of the street address of the account holder. Must include house number.
 
 |_account-holder.address.street2_
 |O
-|Alphanumeric
-|
-|
+|String
+|128 ?????
+|The second line of the street address of the account holder.
 
 |_account-holder.address.city_
 |M
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The city of the address of the account holder.
 
 |_account-holder.address.state_
 |O
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The state or province of the address of the account holder.
 
 |_account-holder.address.country_
 |M
 |Token
-|
-|
+|3 ?????
+|The Country Id of the address of the account holder.
 
 |_account-holder.address.postal-code_
 |M
-|Alphanumeric
-|
-|
+|String
+|16 ?????
+|The postal code or ZIP of the address of the account holder.
 
 4+a|
 [[GuaranteedInstallment_Fields_BankAccount]]
@@ -354,33 +360,39 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_bank-account.bank-name_
 |M
-|Alphanumeric
-|
-|
+|String
+|100 ?????
+|The name of the consumer’s bank.
 
 |_bank-account.iban_
-|C
-|Alphanumeric
-|
-|Mandatory if ``account-number`` is not used
+|M/O
+|String
+|34 ?????
+|The international bank account number (IBAN) required in a bank transfer. It is an international standard for identifying bank accounts across national borders. The current standard is ISO 13616:2007, which indicates SWIFT as the formal registrar. +
+Allowed characters: [a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}. +
+Mandatory if ``account-number`` is not used
 
 |_bank-account.bic_
-|C
-|Alphanumeric
-|
-|Mandatory if ``iban`` is used
+|M/O
+|String
+|15 ?????
+|The bank identifier code (BIC) in bank transfer. +
+Allowed characters: ([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3}). +
+Mandatory if ``iban`` is used
 
 |_bank-account.account-number_
-|C
-|Alphanumeric
-|
-|Mandatory if ``iban`` is not used
+|M/O
+|String
+|34 ?????
+|The number designating a bank account used nationally. +
+Mandatory if ``iban`` is not used
 
 |_bank-account.bank-code_
-|C
-|Alphanumeric
-|
-|Mandatory if ``account-number`` is used
+|M/O
+|String
+|15 ?????
+|The national bank sorting code for national bank transfers. +
+Mandatory if ``account-number`` is used
 
 5+a|
 [[GuaranteedInstallment_Fields_OrderItems]]
@@ -389,32 +401,32 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_order-items.order-item.name_
 |M
-|Alphanumeric
-|
+|String
+|?????
 |Name of the item in the basket.
 
 |_order-items.order-item.article-number_
 |M
-|Alphanumeric
-|
+|String
+|?????
 |EAN or other article identifier for merchant.
 
 |_order-items.order-item.amount_
 |M
 |Number
-|
+|?????
 |Item's price per unit.
 
 |_order-items.order-item.tax-rate_
 |M
 |Number
-|
+|?????
 |Item's tax rate per unit.
 
 |_order-items.order-item.quantity_
 |M
 |Number
-|
+|?????
 |Total count of items in the order.
 
 4+a|
@@ -426,21 +438,21 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_shipping/first-name_
 |O
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The first name of the shipping address.
 
 |_shipping/last-name_
 |O
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The last name of the shipping address.
 
 |_shipping/phone_
 |O
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The phone number of the shipping address.
 
 4+a|
 [[GuaranteedInstallment_Fields_ShippingAaddress]]
@@ -451,49 +463,50 @@ If empty or with wrong value, German language is used by default. The same logic
 
 |_shipping/address/street1_
 |O
-|Alphanumeric
-|
-|
+|String
+|128 ?????
+|The first line of the shipping address.
 
 |_shipping/address/street2_
 |O
-|Alphanumeric
-|
-|
+|String
+|128 ?????
+|The second line of the shipping address.
 
 |_shipping/address/city_
 |O
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The city of the shipping address.
 
 |_shipping/address/state_
 |O
-|Alphanumeric
-|
-|
+|String
+|32 ?????
+|The state or province of the shipping address.
 
 |_shipping/address/country_
 |O
-|Alphanumeric
-|
-|
+|String
+|3 ?????
+|The Country Id of the shipping address. Is this a three character ISO value????? If yes, which one?????
 
 |_shipping/address/postal-code_
 |O
-|Alphanumeric
-|
-|
+|String
+|16?????
+|The postal code or ZIP of the shipping address.
+
 5+a|
 [[GuaranteedInstallment_Fields_Device]]
 [discrete]
 ===== device
 
 |_device/fingerprint_
-|C
-|Alphanumeric
-|
-|Device fingerprinting token that was used in merchant's online shop to track this transaction.
+|M/O
+|String
+|4096 ?????
+|Device fingerprinting token that was used in merchant's online shop to track this transaction. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
 
 *It is mandatory for _authorization_.*
 
@@ -503,10 +516,51 @@ If empty or with wrong value, German language is used by default. The same logic
 ===== mandate
 
 |_mandate.mandate-id_
-|C
-|Alphanumeric
-|
+|M/O
+|String
+|35 ?????
 |Mandate ID will be generated by Wirecard. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt"
+
+5+a|
+[[GuaranteedInstallment_Fields_Custom]]
+[discrete]
+===== custom-fields
+
+|_custom-field@name="total-amount"_
+|M
+|?????
+|?????
+|Mapping for authorization: custom-field@value=installment-calculator-response/installments/installment/details/total-amount
+
+|_custom-field@name="interest-rate"_
+|M
+|?????
+|?????
+|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/interest-rate
+
+|_custom-field@name="number-of-rates"_
+|M
+|?????
+|?????
+|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/number-of-rates
+
+|_custom-field@name="rate"_
+|M
+|?????
+|?????
+|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/rate
+
+|_custom-field@name="last-rate"_
+|M
+|?????
+|?????
+|Mapping for authorization: custom-field@value=installment-calculator-response/installments/installment/details/last-rate
+
+|_custom-field@name="payment-firstday"_
+|M
+|?????
+|?????
+|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/payment-first-day
 |===
 
 //-
@@ -517,7 +571,7 @@ If empty or with wrong value, German language is used by default. The same logic
 [#GuaranteedInstallment_BasketItemsDetails]
 ===== Basket Items Details
 
-Basket items details must be sent along with every request. Content of
+Basket items details must be <<GuaranteedInstallment_Fields_OrderItems, sent along with every request>>. Content of
 the shopping basket depends on the location of the items.
 There can be 3 different locations:
 
@@ -533,19 +587,6 @@ or credited depending to the transaction type.
 
 The detailed items of the shopping basket will be stored as a part of
 payment details on provider and they can be obtained from _{payment-gateway}_ later as part of transaction details.
-
-[cols="v,,,"]
-|===
-| Field                                   | Cardinality | Datatype     | Description
-
-| _order-items.order-item.name_           | M           | Alphanumeric | Name of the item in the basket.
-| _order-items.order-item.article-number_ | M           | Alphanumeric | EAN or other article identifier for merchant.
-| _order-items.order-item.amount_         | M           | Number       | Item's price per unit.
-| _order-items.order-item.tax-rate_       | M           | Number       | Item's tax rate per unit.
-| _order-items.order-item.quantity_       | M           | Number       | Total count of items in the order.
-|===
-
-//-
 
 [#GuaranteedInstallment_Samples]
 ==== Samples
