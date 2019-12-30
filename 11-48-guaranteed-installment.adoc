@@ -1,0 +1,781 @@
+[#GuaranteedInstallment]
+=== Guaranteed Installments
+
+[#GuaranteedInstallment_GeneralInformation]
+==== General Information
+
+[#GuaranteedInstallment_CountriesandCurrencies]
+===== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _Guaranteed Installments_ belongs to. It also provides detailed
+information about the countries and currencies which are relevant for
+_Guaranteed Installments._
+
+[%autowidth,stripes=none,cols="h,"]
+|===
+| Payment Mode | <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
+| Countries    | DE, AT, CH +
+                 on Payment Page environment: DE only
+| Currencies   | EUR, CHF
+|===
+
+[#GuaranteedInstallment_Communication]
+===== Communication Formats
+
+This table illustrates how _Guaranteed Installments_ notifications are encoded and which formats and methods can be
+used for requests and responses.
+
+[%autowidth,stripes=none]
+|===
+.2+h| Requests/Responses | Format  | XML
+                         | Methods | POST
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#GuaranteedInstallment_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB, AppendixB: Transaction Types>>.
+
+
+[%autowidth,stripes=none, cols="e,,"]
+|===
+|Transaction Type | Description | Link to samples
+
+|_authorization_    | Performs a creditworthiness check at the moment when
+                    consumer makes an order. All order items must be listed for the shopping
+                    basket. The _authorization_ amount must match the value of the items in
+                    the basket.
+                                | <<GuaranteedInstallment_Samples_GuaranteedInstallment, _Guaranteed Installments_ samples>>
+
+|_capture-authorization_ | Used to capture the reserved funds at the moment
+                         when some or all goods are physically delivered to the consumer.
+                         Available only on successful _authorization_ response which wasn't voided
+                         nor fully captured. Partial (and multiple) capture is allowed, until
+                         the _authorization_ limit is not exceeded. Basket items only lists the
+                         items that were delivered to the consumer in this delivery, not the ones
+                         that were delivered before or are waiting to be delivered. The total
+                         amount of the capture must be the value of the items in the basket.
+                                | <<GuaranteedInstallment_Samples_GuaranteedInstallment, _Guaranteed Installments_ samples>>
+
+|_void-authorization_ | Used when the consumer wishes to cancel some or all
+                      (not yet shipped) items from the order. Available only for a successful
+                      _authorization_ response which was not yet voided or captured. Partial and
+                      multiple void are allowed, until all items from the order are canceled
+                      or shipped. Basket items only list those items which are being canceled from the order.
+                                | <<GuaranteedInstallment_Samples_GuaranteedInstallment, _Guaranteed Installments_ samples>>
+
+|_refund-capture_ | Used when the consumer wishes to return some or all
+                  delivered goods. Available on a successful _capture-authorization_.
+                  Partial and multiple refunds are allowed, until all delivered items have
+                  been returned. Basket items list only those items which are being returned to the merchant.
+                                | <<GuaranteedInstallment_Samples_GuaranteedInstallment, _Guaranteed Installments_ samples>>
+
+|_credit_ | Used when merchant wishes to grant a discount on an existing
+          order. Items from this order may already be delivered to the consumer.
+          Available on a successful _capture-authorization_. Multiple credits are
+          allowed, but the overall sum of credits must not exceed the value of the
+          delivered goods to the consumer. The credit transaction must include a
+          basket item representing the discount. The credit transaction must refer
+          to the successful _authorization_ ``transaction-id``.
+                                | <<GuaranteedInstallment_Samples_GuaranteedInstallment, _Guaranteed Installments_ samples>>
+|===
+
+[NOTE]
+====
+. <<GuaranteedInstallment_BasketItemsDetails, Basket items>>  must be specified in every request.
+. The response for each _authorization_ request returns an individual
+string (an alphanumerical code) in the
+field ``descriptor``.
+. The descriptor must be printed on all invoice documents and saved by
+the shop (used by consumers in bank transfers; German:
+"Verwendungszweck").­­
+. _capture-authorization_ transactions have to follow a successful
+_authorization_ on the same day the goods are dispatched.
+. The period between _authorization_ and the first
+_capture-authorization_ must be at least 4 hours.
+. Merchants can request several partial _capture-authorization_ transactions if the goods
+are shipped in separate shipments.
+
+//-
+====
+
+[#GuaranteedInstallment_TestCredentials]
+==== Test Credentials
+
+[%autowidth,stripes=none]
+|===
+h| URLs (Endpoints)           | `\https://{test-instance-hostname}/engine/rest/paymentmethods`
+h| Merchant Account ID (MAID) | 9df7b8a6-546a-4e01-9fe5-ccc3ae54b23e
+h| Username                   | 16390-testing
+h| Password                   | 3!3013=D3fD8X7
+|===
+
+//-
+
+[#GuaranteedInstallment_TestCredentials_Additional]
+.Banking Credentials
+
+[cols="20h,80"]
+|===
+| IBAN
+| DE42512308000000060004
+
+| BIC
+|WIREDEMMXXX
+|===
+
+//-
+
+[#GuaranteedInstallment_Workflow]
+==== Workflow
+
+[#GuaranteedInstallment_StandardProcess]
+===== Standard Process
+
+[#GuaranteedInstallment_GuaranteedInstallment]
+====== Guaranteed Installments
+
+[mermaid, GuaranteedInstallment_workflow,svg,subs=attributes+]
+----
+sequenceDiagram
+    participant Consumer
+    participant Merchant
+    participant {payment-gateway-abbr}
+    participant {payment-provider-name} Bank
+Consumer->>Consumer: adds items to shopping basket
+Consumer->>Consumer: selects Guaranteed Installment
+Consumer->>Merchant: proceeds to checkout
+Merchant->>{payment-gateway-abbr}: sends authorization request
+{payment-gateway-abbr}->>{payment-gateway-abbr}: generates descriptor
+{payment-gateway-abbr}->>Merchant: sends authorization response
+Merchant->>{payment-gateway-abbr}: sends a capture request
+Merchant->>Merchant: generates the invoice
+Merchant->>{payment-provider-name} Bank: collects the transaction amount from consumer's bank account
+----
+
+. Consumer adds items to shopping basket.
+. Consumer selects the payment method _Guaranteed Installments._
+.. Selects duration and rate of payment.
+. Consumer proceeds to checkout
+. Merchant sends an _authorization_ request including basket items to {payment-gateway-abbr}.
+. {payment-gateway-abbr} generates a descriptor
+..  Descriptor is an alphanumerical code, starting with DG
+. {payment-gateway-abbr} sends _authorization_ response to merchant. 
+.. The _authorization_ response includes the descriptor.
+. Merchant sends a _capture_ request to {payment-gateway-abbr} when the items
+are ready for delivery.
+. After a successful _capture_ request, Merchant generates the invoice, including the descriptor.
+.. NOTE: Alternatively the invoice can also be generated by {payment-gateway-abbr}
+. Invoice generator informs {payment-provider-name} Bank
+. {payment-provider-name} Bank collects the transaction amount from consumer's bank account.
+. If any payment changes are necessary, the following transaction types
+are available: _credit_, _refund-capture_ or _void-authorization_.
+
+//-
+
+[#GuaranteedInstallment_Fields]
+==== Fields
+
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for sending a request for the payment method _Guaranteed Installments_ (complete field
+list available in <<RestApi_Fields, REST API field list>>):
+
+[%autowidth,stripes=none, cols="v,,,,"]
+|===
+| Field  | Cardinality  | Datatype  | Size  | Description
+
+5+a|
+[[GuaranteedInvoice_Fields_Payment]]
+[discrete]
+===== payment
+
+|_merchant-account-id_
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account
+
+|_request-id_
+|M
+|Alphanumeric
+|150
+|This is the identification number of the request.
+*It has to be unique for each request.*
+
+|_transaction-type_
+|M
+|Alphanumeric
+|30
+|This is the type for a transaction: _authorization_, _capture_, _void-authorization_, _refund-capture_ and _credit_ are supported for _Guaranteed Installments_.
+
+|_requested-amount_
+|M
+|Numeric
+|18,3
+|This is the amount of the transaction. The amount of the decimal place depends on the currency. The amount must be between a defined minimum value and a defined maximum value.
+
+|_requested-amount@currency_
+|M
+|
+|
+|This is the currency of the transaction. For Germany and Austria, only ``EUR`` is allowed. Switzerland additionally accepts ``CHF``.
+
+|_order-detail_
+|O
+|Alphanumeric
+|65535
+|Details of the order filled by the merchant.
+
+|_order-number_
+|M
+|Alphanumeric
+|64
+|The order number from the merchant.
+
+|_consumer-id_
+|O
+|Alphanumeric
+|
+|Merchant's identifier for the consumer.
+
+|_invoice-id_
+|O
+|Alphanumeric
+|
+|Merchant's invoice identifier.
+
+|_creditor-id_
+|C
+|Alphanumeric
+|
+|Wirecard Bank creditor identifier, provided by Wirecard Support
+
+|_locale_
+|O
+|Alphanumeric
+|
+|It is used to control the language of the consumer message and the correspondence to the consumer. Allowed values: ``fr``, ``en``, ``nl``, ``de``.
+If empty or with wrong value, German language is used by default. The same logic applies for Payment Page integration.
+
+5+a|
+[[GuaranteedInvoice_Fields_PaymentMethods]]
+[discrete]
+===== payment-methods
+
+|_payment-methods.payment-method@name_
+|M
+|Alphanumeric
+|15
+|The name of the Payment Method is ``ratepay-invoice``.
+
+5+a|
+[[GuaranteedInvoice_Fields_AccountHolder]]
+[discrete]
+===== account-holder
+
+|_account-holder.first-name_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.last-name_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.email_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.phone_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.date-of-birth_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.gender_
+|O
+|Token
+|
+|
+
+5+a|
+[[GuaranteedInvoice_Fields_AccountHolderAddress]]
+[discrete]
+===== account-holder.address
+
+|_account-holder.address.street1_
+|M
+|Alphanumeric
+|
+|Must include house number.
+
+|_account-holder.address.street2_
+|O
+|Alphanumeric
+|
+|
+
+|_account-holder.address.city_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.address.state_
+|O
+|Alphanumeric
+|
+|
+
+|_account-holder.address.country_
+|M
+|Token
+|
+|
+
+|_account-holder.address.postal-code_
+|M
+|Alphanumeric
+|
+|
+
+4+a|
+[[GuaranteedInvoice_Fields_BankAccount]]
+[discrete]
+===== bank-account
+
+|Consumer's bank account details.
+
+|_bank-account.bank-name_
+|M
+|Alphanumeric
+|
+|
+
+|_bank-account.iban_
+|C
+|Alphanumeric
+|
+|Mandatory if ``account-number`` is not used
+
+|_bank-account.bic_
+|C
+|Alphanumeric
+|
+|Mandatory if ``iban`` is used
+
+|_bank-account.account-number_
+|C
+|Alphanumeric
+|
+|Mandatory if ``iban`` is not used
+
+|_bank-account.bank-code_
+|C
+|Alphanumeric
+|
+|Mandatory if ``account-number`` is used
+
+5+a|
+[[GuaranteedInvoice_Fields_OrderItems]]
+[discrete]
+===== order-items
+
+|_order-items.order-item.name_
+|M
+|Alphanumeric
+|
+|Name of the item in the basket.
+
+|_order-items.order-item.article-number_
+|M
+|Alphanumeric
+|
+|EAN or other article identifier for merchant.
+
+|_order-items.order-item.amount_
+|M
+|Number
+|
+|Item's price per unit.
+
+|_order-items.order-item.tax-rate_
+|M
+|Number
+|
+|Item's tax rate per unit.
+
+|_order-items.order-item.quantity_
+|M
+|Number
+|
+|Total count of items in the order.
+
+4+a|
+[[GuaranteedInvoice_Fields_Shipping]]
+[discrete]
+===== shipping
+
+|Shipping fields have to match the billing address (specified as <<GuaranteedInstallment_Fields_AccountHolder, account-holder>>).
+
+|_shipping/first-name_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/last-name_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/phone_
+|O
+|Alphanumeric
+|
+|
+
+4+a|
+[[GuaranteedInvoice_Fields_ShippingAaddress]]
+[discrete]
+===== shipping/address
+
+|Shipping/address fields have to match the billing address (specified as <<GuaranteedInstallment_Fields_AccountHolderAddress, account-holder.address>>).
+
+|_shipping/address/street1_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/street2_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/city_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/state_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/country_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/postal-code_
+|O
+|Alphanumeric
+|
+|
+5+a|
+[[GuaranteedInvoice_Fields_Device]]
+[discrete]
+===== device
+
+|_device/fingerprint_
+|C
+|Alphanumeric
+|
+|Device fingerprinting token that was used in merchant's online shop to track this transaction.
+
+*It is mandatory for _authorization_.*
+
+5+a|
+[[GuaranteedInvoice_Fields_Mandate]]
+[discrete]
+===== mandate
+
+|_mandate.mandate-id_
+|C
+|Alphanumeric
+|
+|Mandate ID will be generated by Wirecard. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt"
+
+|===
+
+[#GuaranteedInstallment_Features]
+==== Features
+
+[#GuaranteedInstallment_Features_Bankaccountdetails]
+===== Bank Account Details
+
+consist either of
+
+- ``account-owner``, ``bank-name``, ``account-number`` and ``bank-code`` +
+or
+- ``account-owner``, ``bank-name``, ``iban`` and ``bic`` for SEPA standard.
+
+NOTE: Account holder details must
+cover ``first-name``, ``last-name``,`` email``,`` phone``, ``date-of-birth``,`` address``
+and ``gender``. An address within the account holder details must
+``include street1`` (including house number),`` city``, ``country`` and ``postal-code``.
+
+NOTE: Shipping address has to match the billing address.
+
+[#GuaranteedInstallment_BasketItemsDetails]
+===== Basket Items Details
+
+Basket items details must be sent along with every request. Content of
+the shopping basket depends on the location of the items.
+There can be 3 different locations:
+
+- the (distribution) storage of the merchant,
+- the delivery (items are „on the road"); and
+- home of the consumer.
+
+//-
+
+The shopping basket always contains the items that are being authorized
+(ordered), captured (delivered), voided (canceled), refunded (returned)
+or credited depending to the transaction type.
+
+The detailed items of the shopping basket will be stored as a part of
+payment details on provider and they can be obtained from _{payment-gateway}_ later as part of transaction details.
+
+[cols="v,,,"]
+|===
+| Field                                   | Cardinality  Req/Resp  | Datatype     | Description
+
+| _order-items.order-item.name_           | M                      | Alphanumeric | Name of the item in the basket.
+| _order-items.order-item.article-number_ | M                      | Alphanumeric | EAN or other article identifier for merchant.
+| _order-items.order-item.amount_         | M                      | Number       | Item's price per unit.
+| _order-items.order-item.tax-rate_       | M                      | Number       | Item's tax rate per unit.
+| _order-items.order-item.quantity_       | M                      | Number       | Total count of items in the order.
+|===
+
+[#GuaranteedInstallment_DeviceFingerprint_GuaranteedInstallment]
+===== Device Fingerprint (Guaranteed Installments)
+
+[#GuaranteedInstallment_DeviceFingerprint_GuaranteedInstallment_Introduction]
+====== Introduction
+
+_Device Fingerprint (Guaranteed Installments)_ is a method of fraud
+protection and able to identify technical devices. Fraudsters learn to
+exploit the weaknesses of traditional fraud prevention tools over time.
+We protect businesses from fraud and loss of revenue with innovative
+fraud prevention: by automatically linking transactions, fraud can be
+detected in real time. With our self-learning and adaptive software you
+are prepared to face new and upcoming fraud scenarios. This document
+describes the procedure of a _Device Fingerprint_ call and how to
+implement its result in the PAYMENT_QUERY operation and PAYMENT_REQUEST
+operation.
+
+[#GuaranteedInstallment_DeviceFingerprint_GuaranteedInstallment_UniqueToken]
+====== Generate a Unique Token
+
+To generate a fingerprint you first need to create a unique token within
+your online shop. To ensure that the token is really unique, we suggest
+using a combination of customer id and timestamp which is encrypted,
+with MD5 for instance.
+
+.Generate a unique token (Example)
+[source,php]
+----
+$deviceIdentSId = 'WDWL';
+$timestamp = microtime();
+$customerId = $customerObject->getId();
+$deviceIdentToken = md5($customerId . "_" . $timestamp);
+----
+
+[#GuaranteedInstallment_DeviceFingerprint_GuaranteedInstallment_RunJavaScript]
+====== Run JavaScript
+
+We recommend outputting the _Device Fingerprint_ JavaScript code as
+early as possible to get a sufficient latency between script call and
+end of the order.
+
+For instance when the customer entered the checkout or when the customer
+is putting a first item into the cart.
+
+Please ensure that this script is executed only one-time per session
+(per customer + checkout + device).
+
+.Output Device Fingerprint JavaScript/HTML/PHP (Example)
+[source,php]
+----
+<script language="JavaScript">
+ var di = {t:'<?php echo $deviceIdentToken ?>',v:'<?php echo $deviceIdentSId ?>',l:'Checkout'};
+ </script>
+ <script type="text/javascript" src="//d.ratepay.com/<?php echo $deviceIdentSId ?>/di.js">
+</script>
+ <noscript><link rel="stylesheet" type="text/css" href="//d.ratepay.com/di.css?t=<?php echo $deviceIdentToken ?>&v=<?php echo $deviceIdentSId ?>&l=Checkout">
+</noscript>
+<object type="application/x-shockwave-flash" data="//d.ratepay.com/<?php echo $deviceIdentSId?>/c.swf" width="0" height="0">
+<param name="movie" value="//d.ratepay.com/<?php echo $deviceIdentSId ?>/c.swf" />
+<param name="flashvars" value="t=<?php echo $deviceIdentToken ?>&v=<?php echo $deviceIdentSId?>"/><param name="AllowScriptAccess" value="always"/>
+</object>
+----
+
+[#GuaranteedInstallment_DeviceFingerprint_GuaranteedInstallment_DataTransferToWirecard]
+====== Data Transfer to Wirecard
+
+Please transfer the ``deviceIdentToken`` within the authorization request to
+Wirecard. You can find a corresponding XML sample for either <<GuaranteedInstallment_Samples_GuaranteedInstallment, Guaranteed Installments>> or <<GuaranteedDirectDebit_Samples_DirectDebit, Guaranteed Direct Debit>>.
+
+// if "Data Transfer to Wirecard" is part of "Installment", check links!!
+
+[#GuaranteedInstallment_RegularConsumers]
+===== Regular Consumers
+
+Regular consumers who pay their bills on time are important capital for
+each merchant. With Wirecard, merchants can use this capital as a
+payment method.
+
+To accomplish that, merchants submit a list with the order and
+payment history of their consumers to Wirecard.
+
+https://wcdwl.ratepay.com/index.php/en/overview.html[Here] you can
+find which format (and content) you need for the list and how to upload
+it.
+
+[#GuaranteedInstallment_ConsenttoGeneralTermsandConditions]
+===== Consent to General Terms and Conditions
+
+During checkout, the consumer has to agree to Wirecard's general terms
+and conditions. They have to give their consent by ticking an
+appropriate checkbox.
+
+|===
+|Language |Check-box text |Correct links
+
+|English
+|I herewith confirm that I have read the https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy
+notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for Wirecard payment types and that I accept their validity.
+a|
+- https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy notice]:
+link to
+https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/
+- https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions]:
+link to
+https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/
+|Deutsch
+|Hiermit bestätige ich, dass ich die https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]
+und https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzlichen Geschäftsbedingungen] für Wirecard-Zahlarten zur Kenntnis genommen habe und mit deren Geltung einverstanden bin.
+a|
+- https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]:
+link to
+https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/]
+- https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzliche Geschäftsbedingungen]:
+link to
+https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/]
+|===
+
+Make sure that the privacy notice and the additional terms and
+conditions are linked properly.
+
+[#GuaranteedInstallment_AdditionalBusinessContitions]
+====== Additional Business Conditions
+
+When consumers use _Guaranteed Installments,_
+payments with debt discharging effect can be made solely to Wirecard.
+
+[#GuaranteedInstallment_Samples]
+==== Samples
+
+Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for corresponding notification samples.
+
+[#GuaranteedInstallment_Samples_GuaranteedInstallment]
+===== Guaranteed Installments
+
+[#GuaranteedInstallment_Samples_GuaranteedInstallment_Authorization]
+====== _authorization_
+
+.XML authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+.XML authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+[#GuaranteedInstallment_Samples_GuaranteedInstallment_CaptureAuthorization]
+====== _capture-authorization_
+
+.XML capture-authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+.XML capture-authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+[#GuaranteedInstallment_Samples_GuaranteedInstallment_Credit]
+====== _credit_
+
+.XML credit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+.XML credit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+[#GuaranteedInstallment_Samples_GuaranteedInstallment_RefundCapture]
+====== _refund-capture_
+
+.XML refund-capture Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+.XML refund-capture Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+
+[#GuaranteedInstallment_Samples_GuaranteedInstallment_VoidAuthorization]
+====== _void-authorization_
+
+.XML void-authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+.XML void-authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::[]
+----
+
+//-
