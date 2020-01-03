@@ -74,33 +74,35 @@ sequenceDiagram
     participant Consumer
     participant Merchant
     participant {payment-gateway-abbr}
-    participant giropay/Consumer Bank
+    participant Consumer's Bank
 Consumer->>Consumer: adds items to shopping basket
 Consumer->>Merchant: selects payment method giropay
 Merchant->>{payment-gateway-abbr}: forwards information
 {payment-gateway-abbr}->>{payment-gateway-abbr}: processes and validates the transaction
-{payment-gateway-abbr}->>giropay/Consumer Bank: sends the request to giropay
-giropay/Consumer Bank->>{payment-gateway-abbr}: provides URL of the consumer's online banking account for payment verification
-{payment-gateway-abbr}->>Consumer: processes the response and redirects the consumer to the provided online banking URL
-Consumer->>giropay/Consumer Bank: verifies the payment within the personal online basket system
-giropay/Consumer Bank->>giropay/Consumer Bank: transfers funds from consumer's bank to merchant's bank
-giropay/Consumer Bank->>{payment-gateway-abbr}: sends payment notification
-{payment-gateway-abbr}->>merchant: sends payment notification
+{payment-gateway-abbr}->>Consumer's Bank: sends the request to giropay
+Consumer's Bank->>{payment-gateway-abbr}: verifies payment
+{payment-gateway-abbr}->>{payment-gateway-abbr}: processes the response 
+{payment-gateway-abbr}->>Consumer: redirects the consumer to the provided online banking URL
+Consumer->>Consumer's Bank: verifies the payment within the personal online basket system
+Consumer's Bank->>Consumer's Bank: transfers funds from consumer's bank to merchant's bank
+Consumer's Bank->>{payment-gateway-abbr}: sends payment notification
+{payment-gateway-abbr}->>Merchant: sends payment notification
 ----
 
-. Consumer initiates a 3D Secure 2 payment.
-. The merchant sends a _check-enrollment_ request to {payment-gateway-abbr}.
-.. The _check-enrollment_ request contains all the card data, such as card number, CVV, etc.
-. {payment-gateway-abbr} checks the card data and sends a _check-enrollment_ response to the merchant.
-.. The  _check-enrollment_ response contains the <PAReq>.
-. The merchant sends the <PAReq> to the issuer.
-.. The issuer address is part of the <acs-url>.
-. The issuer asks the consumer to authenticate the payment process.
-. The issuer sends the <PARes> to the merchant.
-. The merchant sends a _check-payer-response_ request to {payment-gateway-abbr}.
-.. The _check-payer-response_ request contains the <PARes>.
-. {payment-gateway-abbr} sends _check-payer-response_ response to the merchant. 
-.. This response includes all the 3D Secure 2 process information.
+. Consumer adds items to the shopping basket.
+. Consumer selects payment method _{payment-method-name}_.
+. The merchant sends a get-url request to _{payment-gateway-abbr}_.
+. _{payment-gateway-abbr}_ processes and validates the transaction.
+. _{payment-gateway-abbr}_ forwards the request to the consumer's bank (giropay).
+. consumer's bank (giropay) verifies payment and sends verification to _{payment-gateway-abbr}_.
+.. verification contains consumer's online banking URL
+. _{payment-gateway-abbr}_ processes the response.
+. _{payment-gateway-abbr}_ redirects the consumer to the provided online banking URL.
+. Consumer verifies the payment within the personal online banking system.
+. consumer's bank (giropay) transfers funds from the consumer’s bank account to the merchant’s bank account.
+. consumer's bank (giropay) sends a payment notification to the _{payment-gateway-abbr}_.
+. _{payment-gateway-abbr}_ processes the notification and sends the payment debit notification to the merchant.
+. The merchant receives the notification with the payment result.
 
 ====
 *For a successful transaction:*
@@ -134,7 +136,7 @@ Content-Type: application/json;charset=UTF-8
 |===
 
 
-[#PPv2_giropay_TransactionType_debitauth_Create]
+[#PPv2_giropay_debit_Create]
 .1. Create a Payment Session (Initial Request)
 
 Use the following sample to initiate a payment session.
@@ -223,7 +225,7 @@ If provided, redirect to _{payment-method-name}_ sandbox will be initiated. If n
 | The URL to which the consumer is redirected after an unsuccessful payment, e.g. ``\https://{pp-redirect-url-error}``
 |===
 
-[#PPv2_complete anchor]
+[#PPv2_giropay_debit_RedirectURL]
 .2. Redirect the Consumer to the Payment Page (Sample Response URL)
 
 [source,json,subs=attributes+]
@@ -245,7 +247,7 @@ include::samples/json/WPP_giropayTransactionTypeDebit_2redirectURL.json[]
 include::include/ppv2-redirect-instructions.adoc[]
 
 //// 
-[#PPv2_complete anchor]
+[#PPv2_giropay_debit_ProcessPaymentResponse]
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
 [source,json,subs=attributes+]
