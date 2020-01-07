@@ -10,25 +10,20 @@ To refer to a specific _capture-authorization_, you need the ``parent-transactio
 [#KlarnaV2_TransactionTypes_AdjustCapture_Workflow]
 ====== _adjust-capture_ Workflow
 
-image::images/11-13-01-klarna-v2/klarnaV2_adjustCapture_workflow.png[width=700]
-
-////
 [mermaid,Klarnav2_workflow_captureAuthorization,svg,subs=attributes+]
 ----
 sequenceDiagram
     participant M as Merchant
     participant W as WPG
     participant K as Klarna
-note over M: updates shipping info
+M-->>M: updates shipping info
 M->>W: sends "adjust-capture" request
-W->>+K: creates and sends<br/>"adjust-capture"
-Note over K: updates shipping info
-K->>-W: sends shipping update response
+W->>K: creates and sends "adjust-capture"
+K-->>K: updates shipping info
+K->>W: sends shipping update response
 W->>M: sends "adjust-capture" response
-Note over M: processes<br/>"adjust-capture"<br/>response
+M-->>M: processes response
 ----
-image::images/11-13-01-klarna-v2/klarnaV2_refundCapture_workflow.png[width=700]
-////
 
 . -> Send an _adjust-capture_ request. This request must contain the ``parent-transaction-id``. Enter the ``transaction-id`` of the preceding _capture-authorization_ response.
 . _{payment-gateway}_ forwards the request to _Klarna_. 

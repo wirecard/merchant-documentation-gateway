@@ -11,10 +11,6 @@ If _Klarna_ accepts the order, it guarantees the payment once the authorized amo
 [#KlarnaV2_TransactionTypes_authorization_Workflow]
 ====== _authorization_/_pending-authorization_ Workflow
 
-image::images/11-13-01-klarna-v2/klarnaV2_authorization_workflow.png[width=900]
-
-////
-
 [mermaid,Klarnav2_workflow_authorization,svg,subs=attributes+]
 ----
 sequenceDiagram
@@ -26,25 +22,23 @@ C->>M: proceeds to checkout
 M->>W: sends "authorization" request
 W->>K: sends "check-signature" and "get-url"
 K->>W: creates and sends session token
-W->>+K: creates and sends<br/>"pending-authorization"
-Note over K: performs <br/> basic risk check
-K->>-W: sends basic risk check result
-Note over W: updates <br/>"pending-authorization"
-    alt basic risk check result ok
+W->>K: creates and sends<br/>"pending-authorization"
+K-->>K: performs <br/> basic risk check
+K->>W: sends basic risk check result
+W-->>W: updates "pending-authorization"
+    alt basic risk check ok
         W->>M: sends "authorization" response
     else advanced risk check required
         W->>M: sends "pending-authorization" response
     end
 M->>C: redirects to payment status page
     alt advanced risk check required
-       Note over K: performs <br/>advanced risk check
+       K-->>K: performs advanced risk check
        K->>W: sends risk check result notification
-       W->>M: processes notification and <br/>sends "authorization" response
+       W->>M: processes notification and sends response
        M->>C: redirects to payment status page
     end
 ----
-
-////
 
 . Consumer checks out products.
 . -> Send an _authorization_ request to _{payment-gateway}_. This request must contain order data (e.g. amount, order number, order items), consumer data (e.g. name, billing

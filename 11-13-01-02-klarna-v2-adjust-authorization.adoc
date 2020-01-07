@@ -18,7 +18,7 @@ You  can update
 //-
 ====
 
-If the change of an _authorization_ increases the total order amount, _Klarna_ performs another risk chek. A new risk check can lead to a rejection of the
+If the change of an _authorization_ increases the total order amount, _Klarna_ performs another risk check. A new risk check can lead to a rejection of the
 authorization adjustment request. In this case, the initial _authorization_ is
 still valid and can be updated, captured or canceled.
 
@@ -27,31 +27,26 @@ To refer to a specific _authorization_ or _adjust-authorization_, you need the `
 [#KlarnaV2_TransactionTypes_adjustAuthorization_Workflow]
 ====== _adjust-authorization_ Workflow
 
-image::images/11-13-01-klarna-v2/klarnaV2_adjustAuthorization_workflow.png[width=700]
-
-////
 [mermaid,Klarnav2_workflow_adjustAuthorization,svg,subs=attributes+]
 ----
 sequenceDiagram
     participant M as Merchant
     participant W as WPG
     participant K as Klarna
-note over M: updates order
+M-->>M: updates order
 M->>W: sends "adjust-authorization" request
-W->>+K: creates and sends<br/>"adjust-authorization"
-Note over K: updates order<br/> amount or address
-K->>-W: sends order update response
-Note over W: updates <br/>"adjust-authorization"
-W->>M: sends "adjust-authorization" response
-Note over M: processes<br/>"adjust-authorization"<br/>response
+W->>K: creates and sends "adjust-authorization"
+K-->>K: updates order
+K->>W: sends order update response
+W-->>W: updates "adjust-authorization"
+W->>M: sends response
+M-->>M: processes response
 ----
-
-////
 
 . -> Send an _adjust-authorization_ request. This request must contain the ``parent-transaction-id``. Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_ response.
 
 . _{payment-gateway}_ updates the initial (or already adjusted) authorization and forwards the request to _Klarna_. 
-. _Klarna_ returns the result of the adjustment.
+. _Klarna_ updates order amount and/or address and returns the result of the adjustment.
 . _{payment-gateway}_ sends you the _adjust-authorization_ response which contains the status code.
 . -> Process the _adjust-authorization_ response.
 
