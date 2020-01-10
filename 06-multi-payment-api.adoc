@@ -118,7 +118,51 @@ or by specifying an extension.
 [#MultiPaymentApi_Workflow]
 === Workflow
 
-image::images/06-00-multi-payment-api/transaction-brace.png[Multipayments Workflow]
+[Multipayments Workflow]
+[mermaid,MultiPaymentApi_Workflow,svg,subs=attributes+]
+----
+sequenceDiagram
+    participant A as Merchant (Shop)
+    participant B as Elastic Engine
+    participant C as Payment Provider
+        A ->> B: Multipayment Request
+        activate B
+        B -> C: Validate Payment Request
+        B -> C: Generate Single payment request for each payment method
+        B ->> C: Send request for a single payment method
+        deactivate B
+        activate C
+        C -> B: Process the payment request
+        C ->> B: Payment Response
+        deactivate C
+        C -> B: Payment Successful?
+        activate B
+            alt Yes
+                B -> C: Pending Payment Request?
+                    alt Yes
+                        B ->> C: Send single payment request
+        deactivate B
+                        activate C
+                        C -> B: Process the payment request
+                        C ->> B: Payment Response
+                        deactivate C
+                    else No
+                        activate B
+                        B -> A: Build Response
+                        deactivate B
+                    end
+            else No
+                B ->> C: Rollback previously successful payment transactions
+        activate C
+                C -> B: Cancel the previous payment transaction
+            end
+        C ->> B: Payment Response
+        deactivate C
+        activate B
+        B -> A: Build Response
+        B ->> A: Multipayment Response
+        deactivate B
+----
 
 At first, the _Multi Payment API_ validates the incoming
 multi payment request. This validation includes
