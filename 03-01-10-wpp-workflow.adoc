@@ -7,19 +7,21 @@
 [mermaid,PPv2BasicPaymentWorkflow,svg,subs=attributes+]
 ----
 sequenceDiagram
-    participant Customer
-    participant Merchant
-    participant {payment-page-v2-abbr}
-        Customer ->> Merchant: CHECKOUT
-        Merchant ->> {payment-page-v2-abbr}: Sends a POST request with payment data.
-        {payment-page-v2-abbr}->>Merchant: Creates a session and returns a payment URL.
-        Merchant ->> Customer: Redirects the customer to the payment page using the payment URL.
-        Customer ->> {payment-page-v2-abbr}: Inputs additional data and submits the payment.
-        {payment-page-v2-abbr} ->> Customer: Processes the payment and returns the transaction result.
-        {payment-page-v2-abbr}->> Merchant: Transaction OK?
+    participant A as Customer
+    participant B as Merchant
+    participant C as {payment-page-v2-abbr}
+        A ->> B: CHECKOUT
+        B ->> C: Sends a POST request with payment data.
+        C ->> B: Creates a session and returns a payment URL.
+        B ->> A: Redirects the customer to the payment page using the payment URL.
+        A ->> C: Inputs additional data and submits the payment.
+        C ->> A: Processes the payment and returns the transaction result.
+        activate A
+        B -> A: Transaction OK?
             alt SUCCSESS
-           	 Merchant ->> Customer: Redirect to success page.
+           	 B -> A: Redirect to success page.
             else FAIL
-            	Merchant ->> Customer: Redirect to fail page.
+            	B -> A: Redirect to fail page.
             end
+        deactivate A
 ----
