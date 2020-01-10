@@ -14,17 +14,28 @@ page between the payment data collection page and the actual payment:
 [mermaid,Seamless_v2_Workflow,svg,subs=attributes+]
 ----
 sequenceDiagram
-    participant Consumer
-    participant Merchant Shop
-    participant Wirecard
-        Consumer ->> Merchant Shop: 1
-        Merchant Shop ->> Wirecard: 2
-        Wirecard ->> Merchant Shop: 3
-            opt Seamless form
-            	Merchant Shop -> Consumer: 4
+    participant A as Consumer
+    participant B as Merchant Shop
+    participant C as Wirecard
+            Note over A: 170 currencies, 9 card types
+            %%Delete note?!
+        A ->> B: 1
+        B ->> C: 2
+        activate C
+            opt 3
+                B -> C: generating form
+                B -> C: processing data
+                B -> C: sending response
             end
-            opt Success payment
-            	Merchant Shop -> Consumer: 5
+        C ->> B: 4
+        deactivate C
+        activate B
+            opt 5
+            	B -> A: seamless form
+            	B -> A: success payment
             end
-        Merchant Shop ->> Consumer: 6 Consumer Goods
+            opt 6
+                B ->> A: consumer goods
+            end
+        deactivate B
 ----
