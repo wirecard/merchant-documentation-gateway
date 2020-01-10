@@ -87,33 +87,39 @@ devices/units of the merchant's choice).
 ====== Workflow
 
 [Workflow Email via Invoice]
-[mermaid,PaymentSolutions_InvoiceviaEmail_v2_Workflow,subs=attributes+]
+[mermaid,PPv1_PaymentSolutions_InvoiceviaEmail_Workflow,svg,subs=attributes+]
 ----
 sequenceDiagram
-    participant Consumer on HPP
-    participant Consumer
-    participant Merchant
-       Merchant ->> Consumer: Logs in to the portal.
-       Merchant ->> Consumer: Selects "Invoicing By Email".
-       Merchant ->> Consumer: Provides payment information.
+    participant A as Consumer on HPP
+    participant B as Consumer
+    participant C as Merchant
+        activate C
+        C -> B: Logs in to the portal.
+        C -> B: Selects "Invoicing By Email".
+        C -> B: Provides payment information.
             opt 1
-                Merchant -> Consumer: Can optionally either upload an invoice or other attachments.
+                C -> B: Can optionally either upload an invoice or other attachments.
             end
-       Merchant ->> Consumer: Clicks "Generate Payment URL" button.
+        C -> B: Clicks "Generate Payment URL" button.
             alt 1
-               Merchant ->> Consumer: Clicks "Send" button.
-                opt 1
-                   Merchant -> Consumer: URL can be sent via email.
-                end
+                C ->> B: Clicks "Send" button.
+                    opt 1a
+                        C -> B: URL can be sent via email.
+                    end
             else 2
-               Merchant ->> Consumer: Copies Payment URL to clipboard.
-                opt 2
-                   Merchant -> Consumer: URL must be sent via other device/unit.
-                end
+                C -> B: Copies Payment URL to clipboard.
+                    opt 2a
+                        C -> B: URL must be sent via other device/unit.
+                    end
             end
-        Consumer ->> Merchant: Receives email with Payment URL.
-        Consumer ->> Consumer on HPP: Clicks on Payment URL.
-        Consumer on HPP ->> Consumer: Continues payment process.
+        C ->> B: Sends email with Payment URL.
+        deactivate C
+        activate B
+        B ->> A: Clicks on Payment URL.
+        deactivate B
+        activate A
+        A -> B: Continues payment process.
+        deactivate A
 ----
 
 . The merchant logs in to the https://{enterprise-portal-url}[{enterprise-portal-name}].
