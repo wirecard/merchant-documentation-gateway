@@ -26,4 +26,11 @@ while kill -0 ${MAIN_PID} >&/dev/null; do
 done
 
 wait ${MAIN_PID}
-exit $?
+
+EXIT_CODE=$?
+
+if (( EXIT_CODE > 0 )); then
+  echo "*Build failed*. Check the <${TRAVIS_JOB_WEB_URL}|Travis Log> for details! " | python3 buildscripts/util/post-to-slack.py -d -p
+fi
+
+exit ${EXIT_CODE}

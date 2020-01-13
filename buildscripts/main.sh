@@ -28,6 +28,8 @@ LC_ALL=C
 
 DEBUG=YES #unset to disable
 
+source buildscripts/global.sh
+
 INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
 
@@ -44,32 +46,29 @@ WL_REPO_ORG=wirecard-cee
 WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
-ASCIIDOCTOR_CMD_COMMON="asciidoctor index.adoc --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
+export INDEX_FILE='index.adoc' # will be overwritten for NOVA, see NOVA_INDEX
+ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
 
 function increaseErrorCount() {
   ERRORS=$((ERRORS++))
 }
 
-function debugMsg() {
-  [[ ${DEBUG} ]] && echo >&2 "[$(date +'%T')] ${1}"
-}
-
 function scriptError() {
-  echo >&2 "Error executing: ${1}"
+  echo "Error executing: ${1}" >&2
   increaseErrorCount
   exitWithError "${1}"
 }
 
 # exitWithError is called on failures that warrant exiting the script
 function exitWithError() {
-  echo >&2 "Build aborted."
-  echo >&2 "${1}"
+  echo "Build aborted." >&2
+  echo "${1}" >&2
   exit 1
 }
 
 function abortCurrentBuild() {
-  echo >&2 "Aborting current build ${1}."
+  echo "Aborting current build ${1}." >&2
   exit 1
 }
 
@@ -118,6 +117,31 @@ function cloneWhitelabelRepository() {
   return $?
 }
 
+function postToSlack() {
+  content=$(echo "$1" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  secondary=$(echo "$2" | sed 's/\.\///g' | sed 's/$/\\n/' | tr -d '\n')
+  tmpfile="$(mktemp)"
+  if [[ -z $2 ]]; then
+    cat > "$tmpfile" << EOF
+  { "blocks": [{ "type": "section", "text": {
+  "type": "mrkdwn", "text": "${content}"
+  }}]}
+EOF
+else
+    cat > "$tmpfile" << EOF
+  { "blocks": [
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${content}" }
+    },
+    { "type": "section", "text":
+      { "type": "mrkdwn", "text": "${secondary}" }
+    }
+  ]}
+EOF
+fi
+  python3 buildscripts/util/post-to-slack.py -p -f "$tmpfile"
+}
+
 # create folder where white labeled content is stored
 # takes partner name == folder name as argument
 function createPartnerFolder() {
@@ -143,6 +167,19 @@ function createPartnerFolder() {
     # fill the partner dir with whitelabel content
     cp -r "${WL_REPO_PATH}/partners/${PARTNER}/content/"* "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}"
   fi
+
+  debugMsg "Running tests from tests.d/"
+  ROOT="$(pwd)"
+  pushd "${BUILDFOLDER_PATH}/${PARTNER}/${NOVA:+NOVA/}" >/dev/null
+
+  for testscript in "$ROOT"/buildscripts/tests.d/*.sh; do
+    if ! source "$testscript"; then
+      debugMsg "Exiting..."
+      exit 1
+    fi
+  done
+  
+  popd >/dev/null
 }
 
 function setUpMermaid() {
@@ -191,8 +228,9 @@ function buildPartner() {
   BPATH="${PARTNER}"
   if [[ "${2}" == "NOVA" ]]; then
     debugMsg "[NOVA] build started"
-    NOVA="NOVA"
+    export NOVA="NOVA"
     NOVA_INDEX="nova.adoc"
+    export INDEX_FILE=${NOVA_INDEX}
     BPATH="${BPATH}/NOVA"
   fi
 
@@ -213,7 +251,7 @@ function buildPartner() {
   debugMsg "Executing basic tests"
   # execute some basic tests volkswagen
   TEST_PARTNER_ARRAY=(WD) #contains partners that will be tested, eg. TEST_PARTNER_ARRAY=(WD PO)
-  if [[ -z $SKIP ]] && printf '%s\n' ${TEST_PARTNER_ARRAY[@]} | grep -E '^'${PARTNER}'$' >&/dev/null; then
+  if [[ -z $SKIP ]] && printf '%s\n' "${TEST_PARTNER_ARRAY[@]}" | grep -E '^'"${PARTNER}"'$' >&/dev/null; then
     php buildscripts/tests/basic-tests.php || true
   else
     debugMsg "[SKIP] basic tests"
@@ -221,6 +259,10 @@ function buildPartner() {
 
   debugMsg "Minifying and combining js files"
   node buildscripts/util/combine-and-minify.js
+
+  debugMsg "Beautify samples"
+  find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
+  find samples/json auto-generated/samples -name "*.json" -exec jsonlint --in-place --quiet {} \; 2>/dev/null
 
   debugMsg "Building blob html"
   # build html for toc and index
@@ -302,13 +344,13 @@ function main() {
       setUpMermaid
       executeCustomScripts "${PARTNER}"
       debugMsg "Creating PDF..."
-      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram index.adoc
+      # asciidoctor-pdf -a icons=font -r asciidoctor-diagram ${INDEX_FILE}
       # -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
       RUBYOPT="-E utf-8" asciidoctor-pdf \
         -a pdf-theme=config/pdf-theme.yml \
         -a pdf-fontsdir="fonts-pdf;GEM_FONTS_DIR" \
         -r asciidoctor-diagram \
-        index.adoc
+        ${INDEX_FILE}
       if [[ -z $CI ]]; then
         mv index.pdf "docu-$(date +%Y%m%d-%H%M%S).pdf"
       fi

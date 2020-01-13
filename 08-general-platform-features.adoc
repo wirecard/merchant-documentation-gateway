@@ -1,4 +1,3 @@
-include::shortcuts.adoc[]
 [#GeneralPlatformFeatures]
 == General Platform Features
 
@@ -14,6 +13,7 @@ ifdef::env-po[]
 //-
 endif::[]
 
+ifndef::env-nova[]
 ifdef::env-wirecard[]
 [#GeneralPlatformFeatures_CrossRef]
 === Cross-Referencing
@@ -438,6 +438,7 @@ include::samples/xml/sepadirectdebit_debit_response__recurring_recurring_aaf7d69
 ----
 
 endif::[]
+endif::[]
 
 [#GeneralPlatformFeatures_IPN]
 === Instant Payment Notification
@@ -453,20 +454,27 @@ final status of a transaction.
 There are two types of notifications:
 
 - *HTTP(S)* (Web Server POST)
+ifndef::env-nova[] 
 - *SMTP* (Email prefixed with 'mailto')
+endif::[]
 //-
 
 The following formats are currently supported:
 
+ifndef::env-nova[] 
 - application/x-www-form-urlencoded
+endif::[]
 - application/xml
 - application/json
+ifndef::env-nova[] 
 - application/json-signed
+endif::[]
 //-
 
 [#GeneralPlatformFeatures_IPN_Configuration]
 ==== Configuration
 
+ifndef::env-nova[] 
 When the merchant wants to receive a notification, he can either
 
 - specify a URL as part the merchant account setup; or
@@ -517,10 +525,28 @@ endif::[]
 Be aware that just *one* notification format can be set for all
 notifications sent to the specified URLs.
 ====
+endif::[]
+
+ifdef::env-nova[] 
+When the merchant wants to receive a notification, he must include the IPN notifications element in each transaction request.
+
+[WARNING]
+====
+In case a notification address has changed, it is the responsibility of the merchant to request a Firewall Change Request on the merchant's system so that the firewall will accept the new address. 
+====
+
+[NOTE]
+====
+In case there is no format specified in the request then the notification will be sent in ``application/xml``.
+The ``application/json`` format must be specified explicitly.
+Be aware that just *one* notification format can be set for all notifications sent to the specified URLs.
+====
+endif::[]
 
 [#GeneralPlatformFeatures_IPN_Json]
 ===== Request a Notification in JSON Format
 
+ifndef::env-nova[] 
 The following example shows how the _{payment-gateway}_ can be
 configured to send notifications as JSON format:
 
@@ -530,6 +556,14 @@ format value. Compared to the default JSON notification, signed
 notifications are base64 encoded and include a security signature: this
 means you can verify that the notification comes from {payment-provider-name}, but need
 to decode it before you can see its content.
+endif::[]
+
+ifdef::env-nova[] 
+
+.JSON Notifications
+The following example shows how you must set the ``<notification>`` element to receive a notification in JSON format:
+
+endif::[]
 
 ``<notifications format="application/json>``
 
@@ -550,6 +584,7 @@ The notification will look like this:
 include::samples/json/GeneralPlatformFeatures_IPN_Json_JSON_Notification.json[]
 ----
 
+ifndef::env-nova[] 
 .application/JSON-signed Notification Example
 [source,json,subs=attributes+]
 ----
@@ -584,12 +619,12 @@ public boolean isValidSignature(String responseBase64, String responseBase64Sign
 ``<notifications format="application/html">``
 
 image:images/08-general-platform-features/HTML-Notification.png[HTML Notification]
+endif::[]
 
 [#GeneralPlatformFeatures_IPN_Xml]
 ===== Request a Notification in XML Format
 
 ``<notifications format="application/xml">``
-
 
 .Notification in XML Format
 [source,xml,subs=attributes+]
@@ -597,6 +632,7 @@ image:images/08-general-platform-features/HTML-Notification.png[HTML Notificatio
 include::samples/xml/creditcard_purchase_notification_.xml[]
 ----
 
+ifndef::env-nova[]
 It is possible to set up conditional notifications based on the state of
 the transaction.  For example, it is possible to instruct a notification
 to only occur on 'failed' or 'successful' transactions.
@@ -606,10 +642,9 @@ to only occur on 'failed' or 'successful' transactions.
 |Notification Type  | Notification Tag in Request     | Possible Extensions of URL  | Ports         | Possible Extensions of ``transaction-state``
 
 |HTTP(S)            | ``URL``, ``transaction-state``  | any configured URL          | 80, 443, 5500 | if _URL_ <> empty and _`transaction-state`_ = empty all notifications go to that URL or if _URL_ <> empty and _`transaction-state`_ <> empty depending on the _transaction-state_ (success, failed, in-progress, etc) the notification goes to the corresponding _URL_.
+
 |SMTP               | ``URL``, ``transaction-state``  |                             |               | if _URL_ <> empty and ``transaction-state`` = empty all notifications go to that URL (Email address prefixed with 'mailto'). OR if _URL_ <> empty and ``transaction-state`` <> empty depending on the ``transaction-state`` (success, failed, in-progress, etc) the notification goes to the corresponding _URL_ (Email address prefixed with 'mailto').
 |===
-
-
 
 A request, which defines a URL to be used, when the payment process will fail:
 
@@ -618,6 +653,7 @@ A request, which defines a URL to be used, when the payment process will fail:
 ----
 include::samples/xml/generic_debit_request__edeec5.xml[]
 ----
+endif::[]
 
 [#GeneralPlatformFeatures_IPN_NotificationExamples]
 ===== Notification Examples
@@ -668,6 +704,7 @@ on the payment methods.
 For each notification type it is possible to add more than one
 recipient. Copy the tag and add a different URL.
 
+ifndef::env-nova[] 
 In the following example, the transaction will notify the merchant's
 site for a failed transaction and send all results to an email address.
 
@@ -686,7 +723,7 @@ notification after a specific request/response.
 |pending-debit |debit, debit-return, deposit
 |refund-request |refund-debit
 |===
-
+endif::[]
 
 [#GeneralPlatformFeatures_IPN_Delay]
 ==== Notification Delay
@@ -706,6 +743,8 @@ available.
 
 //-
 
+ifndef::env-nova[]
+
 [#GeneralPlatformFeatures_IpValidation]
 === IP Validation
 
@@ -724,6 +763,8 @@ validation process can be enabled and disabled in the merchant's setup.
 |  |IPv4 Compatible (or compat): "::8.8.8.8"
 |  |IPv4 Mapped IP: "::ffff:8.8.8.8"
 |===
+
+endif::[]
 
 [#GeneralPlatformFeatures_RedirectURL]
 === Redirect-URL
@@ -770,6 +811,7 @@ The payment method can be any payment method that provides the redirect feature.
 ====
 endif::[]
 
+ifndef::env-nova[]
 [#GeneralPlatformFeatures_RedirectURL_Request]
 ==== Determined in Request
 
@@ -894,6 +936,8 @@ NOTE: The payment *response* (structured payment by seamless or message POST
 to merchant's page) *contains* resolved merchant and *signature computed
 with secret key of resolved merchant*.
 
+endif::[]
+
 [#GeneralPlatformFeatures_Transactions]
 === Transactions
 
@@ -903,18 +947,31 @@ with secret key of resolved merchant*.
 With the _{payment-gateway}_ a payment process can reference two
 subsequent transactions.
 
+ifndef::env-nova[] 
 This reference can be accomplished in two different ways:
 
 - For 
 ifdef::env-wirecard[]
 alternative payment methods (such as _PayPal_ and _SEPA_) and
 endif::[]
-_credit card_ the merchant can reference transactions via the
+_Credit Card_ the merchant can reference transactions via the
 transaction ID.
-- For _credit card_ payments the merchant can also
+- For _Credit Card_ payments the merchant can also
  <<CreditCard_PaymentFeatures_Tokenization, use a token>>.
 
+[WARNING]
+====
+*Referenced Transactions* +
+Referenced transactions (e.g. refund, recurring) have a limited transaction lifecycle in _{payment-gateway-abbr}._ Starting on 1 February 2020 only transactions processed within the last two years can be referenced.
+====
+endif::[]
+
 //-
+
+ifdef::env-nova[]
+This reference can be accomplished for all payment methods via the
+transaction ID.
+endif::[]
 
 [#GeneralPlatformFeatures_ReferencingTransaction_byID]
 ===== Referencing by Transaction ID
@@ -927,7 +984,7 @@ referenced as the <``parent-transaction-id``> of the follow up transaction.
 Be aware that the ``parent-transaction-id`` is also referred to as
 ``reference-transaction-id``.
 
-The following example for PayPal shows the use of
+The following example for _PayPal_ shows the use of
 <``parent-transaction-id``>:
 
 [%autowidth]
@@ -939,6 +996,7 @@ The following example for PayPal shows the use of
 |etc |void-authorization |6789012 |8901235
 |===
 
+ifndef::env-nova[]
 [#GeneralPlatformFeatures_Transactions_Recurring]
 ==== Recurring Transaction
 
@@ -961,6 +1019,12 @@ endif::[]
 .
 If the merchant wants to use recurring transactions the request must
 provide the corresponding PERIODIC TYPE and a SEQUENCE TYPE.
+
+[WARNING]
+====
+*Referenced Transactions* +
+Referenced transactions (e.g. refund, recurring) have a limited transaction lifecycle in _{payment-gateway-abbr}._ Starting on 1 February 2020 only transactions processed within the last two years can be referenced.
+====
 
 [#GeneralPlatformFeatures_Transactions_Recurring_Periodic]
 ===== The Periodic Type
@@ -1014,6 +1078,7 @@ this series.
 - Only one periodic type may be used for the complete series of
 recurring payments. This means that the periodic type in a subsequent
 transaction must match the periodic type sent in the _first_ request.
+endif::[]
 
 [#GeneralPlatformFeatures_RetrieveTransaction]
 ==== Retrieve a Transaction
@@ -1037,12 +1102,23 @@ after submitting a transaction and still waiting for the IPN.
 [#GeneralPlatformFeatures_RetrieveTransaction_Formats]
 ===== Formats and Methods
 
+ifndef::env-nova[]
 [cols="h,"]
 |===
 |Request Formats | XML, NVP (credit card only)
 |Response Formats | XML, HTML, JSON
 |Request Methods | GET
 |===
+endif::[]
+
+ifdef::env-nova[]
+[cols="h,"]
+|===
+|Request Formats | XML
+|Response Formats | XML, JSON
+|Request Methods | GET
+|===
+endif::[]
 
 [#GeneralPlatformFeatures_RetrieveTransaction_TransactionID]
 ===== Retrieve Transaction by Transaction-ID
@@ -1069,7 +1145,13 @@ notification was sent the status is final.
 |===
 |URL
 
+ifndef::env-nova[] 
 |``\https://{test-instance-hostname}/engine/rest/merchants/{merchant-account-id}/payments/{transaction-id}``
+endif::[]
+
+ifdef::env-nova[] 
+|``\https://{test-instance-hostname}/engine/rest/merchants/{merchant-account-id}/payments/{transaction-id}``
+endif::[]
 |===
 
 [#GeneralPlatformFeatures_RetrieveTransaction_TransactionID_Fields]
@@ -1100,6 +1182,7 @@ transaction is being created and that same response will occur for this
 retrieval. See the sample responses as described for each transaction
 type.
 
+ifndef::env-nova[]
 [#GeneralPlatformFeatures_RetrieveTransaction_RequestID]
 ===== Retrieve Transaction by Request-ID
 
@@ -1195,6 +1278,9 @@ Mandatory (M) or optional (O).
 include::samples/xml/GeneralPlatformFeaturesRetrieveTransactionRequestIDCategorySampleResponse_GeneralRequestSampleForRedirect_URL.xml[]
 ----
 
+endif::[]
+
+
 [#GeneralPlatformFeatures_Transactions_Storing]
 ==== Storing Additional Data
 
@@ -1217,6 +1303,8 @@ reporting system.
 include::samples/xml/GeneralPlatformFeaturesTransactionsStoring.xml[]
 ----
 
+ifndef::env-nova[]
+
 [#GeneralPlatformFeatures_Transactions_View]
 ==== View Transactions in Browser
 
@@ -1237,6 +1325,7 @@ Enter this URL in your browser and replace the following variables:
 
 When you login with the username and password of the test account, you
 can see the result of the transaction in your browser.
+endif::[]
 
 ifdef::env-wirecard[]
 
@@ -1281,7 +1370,7 @@ steps.
 - submitted _debit_ => visible in _{enterprise-portal-abbr}_ _pending-debit_ and _debit_
 ====
 
-
+ifndef::env-nova[]
 [#GeneralPlatformFeatures_Transactions_AutoSale]
 ===== _auto-sale_
 
@@ -1348,10 +1437,14 @@ transaction types depending on the currency.
 ``Merchant-id-1``, ``Creditcard``, ``GBP``, ``authorization-only``;
 
 endif::[]
+endif::[]
+
+ifndef::env-nova[]
 
 [#GeneralPlatformFeatures_ServerAvailability]
 === Server Availability
 
+ifndef::env-nova[]
 When you want to find out, whether the _{payment-gateway-abbr}_ servers are available, you
 can use a link to the _{payment-gateway-abbr}_ status page:
 
@@ -1369,6 +1462,7 @@ credentials.
 Please be aware that each server request means data traffic. Use this
 request carefully. Use it only, if you encounter server connection
 problems.
+endif::[]
 
 ifdef::env-wirecard[]
 [#GeneralPlatformFeatures_IPP]
@@ -1821,8 +1915,10 @@ include::samples/xml/GeneralPlatformFeatures_IPP_InstallmentCalculatorSamples_In
 ----
 //-
 endif::[]
+endif::[]
 
 ifdef::env-wirecard[]
+ifndef::env-nova[]
 [#GeneralPlatformFeatures_Surcharging]
 === Surcharging
 
@@ -2029,3 +2125,7 @@ include::samples/xml/GeneralPlatformFeatures_Surcharging_response.xml[]
 ----
 
 endif::[]
+endif::[]
+
+//-
+

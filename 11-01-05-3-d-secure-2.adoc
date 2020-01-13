@@ -68,7 +68,7 @@ endif::[]
 - <<PPv2_CC, Credit Card with {payment-page-v2-abbr}>>
 ////
 ifdef::env-po[]
-- <<API_MasterPass, MasterPass>>
+- <<API_Masterpass, Masterpass>>
 - <<VISACheckout, Visa Checkout>>
 endif::[]
 ////
@@ -168,15 +168,14 @@ endif::[]
 
 We provide a full field reference table for 3D Secure 2.
 
-Most fields are optional but we recommend the implementation of optional
-fields, as this creates a smoother user experience and ensures a higher
-level of security.
+NOTE: We recommend sending optional fields, such as `account-holder` phone numbers and `shipping.address`. If you submit this information, it is more likely that the Issuer authenticates the consumer without requesting <<CreditCard_PSD2_SCA, Strong Customer Authentication>>.
 
-[%autowidth]
+[cols="30m,6,9,7,48a"]
 |===
 |XML |Request |Datatype |Size |Description
 
-|card.merchant-tokenization-flag
+|[[CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag]]
+card.merchant-tokenization-flag
 |M
 |Boolean
 |
@@ -230,8 +229,9 @@ account-holder.account-info.challenge-indicator
  ``02`` = No challenge requested. +
  ``03`` = Challenge requested: Merchant Preference. +
  ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
- (e.g. for one-click checkout, first recurring payment, installments, UCOF). +
- NOTE: If the element is not provided, the ACS will interpret this as ``01`` = No preference.
+ (e.g. for one-click checkout, first recurring payment, installments, UCOF).
+
+NOTE: If the element is not provided, the ACS will interpret this as ``01`` = No preference.
 
 |account-holder.account-info.creation-date
 |O
@@ -334,14 +334,13 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |50
-|Line 2 of the street address of the consumer's billing address.
-
+a|Line 2 of the street address of the consumer's billing address.
 
 |account-holder.address.street3
 |O
 |String
 |50
-|Line 3 of the street address of the consumer's billing address.
+a|Line 3 of the street address of the consumer's billing address.
 
 |account-holder.address.postal-code
 |M
@@ -353,7 +352,7 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |3
-|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard.
+a|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard.
 
 |account-holder.email
 |M
@@ -365,13 +364,13 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |18
-|Home phone number provided by the consumer. 
+a|Home phone number provided by the consumer.
 
 |account-holder.mobile-phone
 |O
 |String
 |18
-|Mobile phone number provided by the consumer.
+a|Mobile phone number provided by the consumer.
 
 |account-holder.work-phone
 |O
@@ -395,13 +394,13 @@ account-holder.account-info.challenge-indicator
 |O
 |String
 |50
-|City of the consumer's shipping address. Please provide this field even if billing city is identical.
+a|City of the consumer's shipping address. Please provide this field even if billing city is identical.
 
 |shipping.address.country
 |O
 |String
 |2
-|Country of the consumer's shipping address.
+a|Country of the consumer's shipping address.
 Please provide this field even if billing country is identical.
 Format: ISO 3166-1 alpha-2 country code.
 
@@ -409,32 +408,32 @@ Format: ISO 3166-1 alpha-2 country code.
 |O
 |String
 |50
-|Line 1 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+a|Line 1 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.street2
 |O
 |String
 |50
-|Line 2 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+a|Line 2 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.street3
 |O
 |String
 |50
-|Line 3 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+a|Line 3 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.postal-code
 |O
 |String
 |16
-|ZIP/postal code of the consumer's shipping address. Please provide this field even if billing address is identical.
+a|ZIP/postal code of the consumer's shipping address. Please provide this field even if billing address is identical.
 
 |shipping.address.state
 |O
 |String
 |3
-|State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
- Please provide this field even if billing address is identical.
+a|State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
+Please provide this field even if billing address is identical.
 
 |shipping.shipping-method
 |O
@@ -526,19 +525,12 @@ periodic.recurring-frequency
 |4
 |For recurring payments. **Required only for authentication of the first transaction.** Indicates the minimum number of days between individual authorizations.
 
-|periodic.number-of-installments
-|O
-|Numeric
-|3
-|For installment payments. **Required only for authentication of the first transaction.** Indicates the maximum number of authorizations permitted for installment payments.
-
-|[[CreditCard_3DS2_Fields_PeriodicRecurringNumber]]
+|[[CreditCard_3DS2_Fields_Periodic_NumberOfInstallments]]
 periodic.number-of-installments
 |O
 |Numeric
 |3
-|Indicates the maximum number of authorizations permitted for instalment payments.
-For installment transactions only. 
+|For installment payments. **Required only for authentication of the first transaction.** Indicates the maximum number of authorizations permitted for installment payments.
 
 |iso-transaction-type
 |O
@@ -546,7 +538,7 @@ For installment transactions only.
 |2
 |Identifies the transaction type. The values are derived from ISO 8583.
  Accepted values are: ``01``, ``03``, ``10``, ``11``, ``28`` +
- ``01`` = Goods/ Service Purchase +
+ ``01`` = Goods/Service Purchase +
  ``03`` = Check Acceptance +
  ``10`` = Account Funding +
  ``11`` = Quasi-Cash Transaction +
@@ -638,3 +630,5 @@ Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
 ``04`` = Maintain card information +
 ``05`` = Account
 |===
+
+//-
