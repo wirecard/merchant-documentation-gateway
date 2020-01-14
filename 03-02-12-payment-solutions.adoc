@@ -94,31 +94,26 @@ sequenceDiagram
     participant B as Consumer
     participant C as Merchant
         activate C
-        C -> B: Logs in to the portal.
-        C -> B: Selects "Invoicing By Email".
-        C -> B: Provides payment information.
-            opt 1
-                C -> B: Can optionally either upload an invoice or other attachments.
+        C -->> C: logs in to the portal
+        C -->> C: selects "Invoicing By Email"
+        C -->> C: provides payment information
+            alt either
+              C -->> C: uploads invoice
+            else or
+              C -->> C: uploads other attachments
             end
-        C -> B: Clicks "Generate Payment URL" button.
-            alt 1
-                C ->> B: Clicks "Send" button.
-                    opt 1a
-                        C -> B: URL can be sent via email.
-                    end
-            else 2
-                C -> B: Copies Payment URL to clipboard.
-                    opt 2a
-                        C -> B: URL must be sent via other device/unit.
-                    end
+        C -->> C: clicks "Generate Payment URL"
+            alt sends URL either
+                C ->> B: via email
+            else or copies URL and sends
+                C ->> B: via other device/unit
             end
-        C ->> B: Sends email with Payment URL.
     	deactivate C
         activate B
-        B ->> A: Clicks on Payment URL.
+        B ->> A: clicks on URL
         deactivate B
         activate A
-        A -> B: Continues payment process.
+        A -->> A: continues payment process
         deactivate A
 ----
 
