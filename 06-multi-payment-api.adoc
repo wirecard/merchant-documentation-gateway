@@ -125,42 +125,42 @@ sequenceDiagram
     participant A as Merchant (Shop)
     participant B as Elastic Engine
     participant C as Payment Provider
-        A ->> B: Multipayment Request
+        A ->> B: multi payment request
         activate B
-        B -> C: Validate Payment Request
-        B -> C: Generate Single payment request for each payment method
-        B ->> C: Send request for a single payment method
+        B -->> B: validates request
+        B -->> B: generates individual request for each payment method
+        B ->> C: sends individual request
         deactivate B
         activate C
-        C -> B: Process the payment request
-        C ->> B: Payment Response
+        C -->> C: processes request
+        C ->> B: sends response
         deactivate C
-        C -> B: Payment Successful?
+        B -->> B: Payment successful?
         activate B
-            alt Yes
-                B -> C: Pending Payment Request?
-                    alt Yes
-                        B ->> C: Send single payment request
+            alt yes
+                B -->> B: Pending payment request?
+                    alt yes
+                        B ->> C: sends individual request
         deactivate B
                         activate C
-                        C -> B: Process the payment request
-                        C ->> B: Payment Response
+                        C -->> C: processes request
+                        C ->> B: sends response
                         deactivate C
-                    else No
+                    else no
                         activate B
-                        B -> A: Build Response
+                        B -->> B: builds response
                         deactivate B
                     end
-            else No
-                B ->> C: Rollback previously successful payment transactions
+            else no
+                B ->> C: rolls back previously successful transactions
         activate C
-                C -> B: Cancel the previous payment transaction
+                C -->> C: cancels previous transaction
             end
-        C ->> B: Payment Response
+        C ->> B: sends response
         deactivate C
         activate B
-        B -> A: Build Response
-        B ->> A: Multipayment Response
+        B -->> B: builds response
+        B ->> A: multi payment response
         deactivate B
 ----
 
