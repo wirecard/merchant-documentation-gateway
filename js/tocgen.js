@@ -93,7 +93,7 @@ function createTOCElements(elements, level, num) {
       if (maskStringEncoded !== '') a.attr('href', e.parentID + '.html?' + maskStringEncoded + '#' + e.id);
     }
 
-    a.text(e.attributes.text);
+    a.text(e.attributes.text.replace(/REST\ API\ \&\ Wirecard\ Payment\ Page\ v1/, 'REST API & WPP v1'));
     li.append(a);
     ul.append(li);
     if (e.children.length > 0 && level < 4) {
