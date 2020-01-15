@@ -62,6 +62,16 @@ $('#resultslist, #toc').on("click touch", function () {
   }
 });
 
+function shortenForTOC(linkText) {
+  const tocReplacements = [[/REST\ API\ \&\ Wirecard\ Payment\ Page\ v1/, 'REST API & WPP v1']];
+  for (var i in tocReplacements) {
+    var pattern = tocReplacements[i][0];
+    var replacement = tocReplacements[i][1];
+    linkText = linkText.replace(pattern, replacement);
+  }
+  return linkText;
+}
+
 function createTOCElements(elements, level, num) {
   rootID = tocData[num].id;
   var ul = $('<ul/>');
@@ -92,8 +102,8 @@ function createTOCElements(elements, level, num) {
       a = $('<a/>').attr('href', e.parentID + '.html' + '#' + e.id);
       if (maskStringEncoded !== '') a.attr('href', e.parentID + '.html?' + maskStringEncoded + '#' + e.id);
     }
-
-    a.text(e.attributes.text.replace(/REST\ API\ \&\ Wirecard\ Payment\ Page\ v1/, 'REST API & WPP v1'));
+    var linkText = shortenForTOC(e.attributes.text);
+    a.text(linkText);
     li.append(a);
     ul.append(li);
     if (e.children.length > 0 && level < 4) {
