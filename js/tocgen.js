@@ -63,7 +63,11 @@ $('#resultslist, #toc').on("click touch", function () {
 });
 
 function shortenForTOC(linkText) {
-  const tocReplacements = [[/REST\ API\ \&\ Wirecard\ Payment\ Page\ v1/, 'REST API & WPP v1']];
+  const tocReplacements = [
+    [/REST\ API\ \&\ Wirecard\ Payment\ Page\ v1/, 'REST API & WPP v1'],
+    [/Wirecard\ Payment\ Page\ v2/, 'WPP v2'],
+    [/\ by\ Wirecard/, '']
+  ];
   for (var i in tocReplacements) {
     var pattern = tocReplacements[i][0];
     var replacement = tocReplacements[i][1];
