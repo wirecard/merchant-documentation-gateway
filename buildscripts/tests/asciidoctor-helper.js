@@ -86,8 +86,8 @@ try {
     throw err;
 }
 
-const isNOVA = (process.env.PORT == 'NOVA');
-const includeStatement = 'include::shortcuts.adoc[]\n' + isNOVA ? ':env-nova:\n' : '';
+const isNOVA = (process.env.NOVA == 'NOVA');
+const includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
 
 adocFileContents = includeStatement + adocFileContents;
 const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
