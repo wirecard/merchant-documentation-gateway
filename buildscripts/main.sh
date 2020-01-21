@@ -152,7 +152,7 @@ function createPartnerFolder() {
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
   if [[ "${2}" == "NOVA" ]]; then
-    NOVA="NOVA"
+    export NOVA="NOVA"
     mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}"
   fi
 
