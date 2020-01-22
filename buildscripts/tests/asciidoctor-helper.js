@@ -86,7 +86,7 @@ try {
     throw err;
 }
 
-const isNOVA = (argv['nova'] !== undefined);
+const isNOVA = (argv['nova'] == 'true');
 const includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
 
 adocFileContents = includeStatement + adocFileContents;

@@ -153,6 +153,7 @@ function createPartnerFolder() {
 
   if [[ "${2}" == "NOVA" ]]; then
     export NOVA="NOVA"
+    echo "exporting NOVA env"
     mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}"
   fi
 

@@ -366,7 +366,7 @@ function getAsciidoctorOutput( $filename ) {
 
   $NOVA = getenv('NOVA');
   if ($NOVA == "NOVA") {
-    $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --nova --file "'.$filename.'"';
+    $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --nova=true --file "'.$filename.'"';
   }
   else {
     $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"';
