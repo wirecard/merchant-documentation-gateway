@@ -90,7 +90,7 @@ const isNOVA = (argv['nova'] == 'true');
 const includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
 
 process.stderr.write(includeStatement);
-process.stderr.write(argv);
+process.stderr.write(argv.toString);
 
 adocFileContents = includeStatement + adocFileContents;
 const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
