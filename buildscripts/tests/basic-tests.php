@@ -364,8 +364,7 @@ function getCurrentBranch() {
 function getAsciidoctorOutput( $filename ) {
   $CI = CI::getInstance()->getInfo();
 
-  $NOVA = getenv('NOVA');
-  if ($NOVA == "NOVA") {
+  if ($CI->is_nova) {
     $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --nova=true --file "'.$filename.'"';
   }
   else {
