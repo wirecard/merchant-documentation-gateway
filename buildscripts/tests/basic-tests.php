@@ -366,10 +366,10 @@ function getAsciidoctorOutput( $filename ) {
 
   $NOVA = getenv('NOVA');
   if ($NOVA == "NOVA") {
-    $asciidoctoHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --nova --file "'.$filename.'"';
+    $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --nova --file "'.$filename.'"';
   }
   else {
-    $asciidoctoHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"';
+    $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"';
   }
   $asciidoctorJSON = shell_exec( $asciidoctorHelperCmd );
   if(!$asciidoctorJSON) {
