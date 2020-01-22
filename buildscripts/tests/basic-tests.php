@@ -364,7 +364,14 @@ function getCurrentBranch() {
 function getAsciidoctorOutput( $filename ) {
   $CI = CI::getInstance()->getInfo();
 
-  $asciidoctorJSON = shell_exec( 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"' );
+  $NOVA = getenv('NOVA');
+  if ($NOVA == "NOVA") {
+    $asciidoctoHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --nova --file "'.$filename.'"';
+  }
+  else {
+    $asciidoctoHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"';
+  }
+  $asciidoctorJSON = shell_exec( $asciidoctorHelperCmd );
   if(!$asciidoctorJSON) {
     return false;
   }
