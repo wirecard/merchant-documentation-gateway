@@ -87,6 +87,7 @@ try {
 }
 
 const isNOVA = (process.env.NOVA == 'NOVA');
+console.log(process.env.NOVA);
 const includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
 
 adocFileContents = includeStatement + adocFileContents;
