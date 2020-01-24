@@ -103,12 +103,16 @@ are shipped in separate shipments.
 [#GuaranteedInstallment_TestCredentials]
 ==== Test Credentials
 
-[%autowidth,stripes=none]
+[stripes=none,cols="20,40,40"]
 |===
-h| URLs (Endpoint)           | `\https://{test-instance-hostname}/engine/rest/paymentmethods`
-h| Merchant Account ID (MAID) | 9df7b8a6-546a-4e01-9fe5-ccc3ae54b23e
-h| Username                   | 16390-testing
-h| Password                   | 3!3013=D3fD8X7
+.2+h| URLs (Endpoint)           |_authorization_| `\https://{test-instance-hostname}/engine/rest/paymentmethods`
+|_capture-authorization_ +
+_credit_ +
+_refund-capture_ +
+_void-authorization_|`\https://{test-instance-hostname}/engine/rest/payments`
+2+h| Merchant Account ID (MAID) | 9df7b8a6-546a-4e01-9fe5-ccc3ae54b23e
+2+h| Username                   | 16390-testing
+2+h| Password                   | 3!3013=D3fD8X7
 |===
 
 //-
@@ -586,14 +590,30 @@ This table illustrates in which formats and methods the Installment Calculator s
 
 |===
 
+[#GuaranteedInstallment_InstallCalc_TestCredentials]
+====== Test Credentials
+
+[%autowidth,stripes=none]
+|===
+h| URL (Endpoint)             | `\https://{test-instance-hostname}/engine/rest/utils/installmentcalculator`
+h| Merchant Account ID (MAID) | 9df7b8a6-546a-4e01-9fe5-ccc3ae54b23e
+|===
+
+//do I use the MAID mentioned above or the one used in the Installment Calculator samples?
+
+//-
+
 [#GuaranteedInstallment_Features_InstallCalc_Fields]
 ====== Fields
 
-.installment-calculator-request.
+.Request
 [%autowidth,stripes=none, cols="v,,,,"]
 |===
 | Field | Cardinality | Datatype | Size | Description 
 
+5+a|
+[discrete]
+*installment-calculator-request.*
 |payment-method|M|String|15|The payment method to calculate the installment for. Must be _ratepay-install_.
 |merchant-account-id|M|String|36|Merchant account ID. Must follow a pattern like: 815c32ab-486d-4e4c-baf8-f412e2e4e9b8.
 |amount|M|Decimal| Size ????? |Full amount of the purchase. Must be in the format of _Money_ (Example: 100.00)
@@ -601,16 +621,18 @@ This table illustrates in which formats and methods the Installment Calculator s
 |rate|M/O|Decimal| Size ?????|Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: 25.00). It is *mandatory* for  for calculation by rate. It must not be used when calculating the installment plan by time.
 |currency (attribute of ``rate``)|M|String|3|The currency of  the rate. _Guaranteed Installments_ requires EUR.
 |months|M/O|Integer|Size ?????|Number of months to cover the duration of the installment plan. It is *mandatory* for calculation by time. It must not be used when calculating the installment plan by rate.
-
 |===
 
 //-
 
-.installment-calculator-response.
+.Response
 [%autowidth,stripes=none, cols="v,,,"]
 |===
 | Field | Datatype | Size | Description 
 
+4+a|
+[discrete]
+*installment-calculator-response.*
 |payment-method|String|15|The payment method to calculate the installment for. Must be _ratepay-install_.
 |merchant-account-id|String|36|Merchant account ID. Must follow a pattern like: 815c32ab-486d-4e4c-baf8-f412e2e4e9b8.
 |amount|Decimal |Size ?????|Full amount of the purchase. Must be in the format of _Money_ (Example: 100.00)
@@ -621,16 +643,11 @@ This table illustrates in which formats and methods the Installment Calculator s
 ``success`` +
 ``failed``.
 
-|===
+a|
+[discrete]
+*installment-calculator-response.statuses.status.*
 
-//-
-
-.installment-calculator-response.statuses.status.
-
-This field table describes the structure of the response statuses.
-[%autowidth,stripes=none, cols="v,,,"]
-|===
-| Field | Datatype | Size | Description 
+3+|These fields describe the structure of the response statuses.
 
 |code (attribute of ``status``)|String|Size ?????|The status code of the response (Example: 200.0000)
 |description (attribute of ``status``)|String|Size ????? |The description to the status code of the response (Example: "Successful Response"")
@@ -638,16 +655,11 @@ This field table describes the structure of the response statuses.
 ``information`` +
 ``error``.
 
-|===
+a|
+[discrete]
+*installment-calculator-response.installments.installment.details.*
 
-//-
-
-.installment-calculator-response.installments.installment.details.
-
-This field table describes the structure of the available installment plans which are sent in the response. It is a breakdown of fees and other information about the corresponding installment plan.
-[%autowidth,stripes=none, cols="v,,,"]
-|===
-| Field | Datatype | Size | Description 
+3+|These fields describe the structure of the available installment plans which are sent in the response. It is a breakdown of fees and other information about the corresponding installment plan.
 
 |interest-rate|Decimal|Size ?????|Interest-rate which will be used to calculate the annual percentage rate (Example: 12.9).
 |monthly-debit-interest|Decimal|Size ?????|Monthly interest rates based on ``interest-rate`` (Example: 1.02).
@@ -676,52 +688,68 @@ When I compare the values of installment-calculator-response.amount, installment
 [#GuaranteedInstallment_Samples_InstCalc]
 ===== Installment Calculator
 
-.XML Calculation by Rate Request
+//// 
+How do I send these samples?
+////
+
+[#GuaranteedInstallment_Samples_InstCalc_xml_rate]
+====== XML Calculation by Rate 
+
+.Request
 [source,xml,subs=attributes+]
 ----
-include::samples/xml/ratepay-installment_install-calculator-rate_request_success[]
+include::samples/xml/ratepay-installment_install-calculator-rate_request_success.xml[]
 ----
 
-.XML Calculation by Rate Response
+.Response
 [source,xml,subs=attributes+]
 ----
-include::samples/xml/ratepay-installment_install-calculator-rate_response_success[]
+include::samples/xml/ratepay-installment_install-calculator-rate_response_success.xml[]
 ----
 
-.XML Calculation by Time Request
+[#GuaranteedInstallment_Samples_InstCalc_xml_time]
+====== XML Calculation by Time 
+
+.Request
 [source,xml,subs=attributes+]
 ----
-include::samples/xml/ratepay-installment_install-calculator-time_request_success[]
+include::samples/xml/ratepay-installment_install-calculator-time_request_success.xml[]
 ----
 
-.XML Calculation by Time Response
+.Response
 [source,xml,subs=attributes+]
 ----
-include::samples/xml/ratepay-installment_install-calculator-time_response_success[]
+include::samples/xml/ratepay-installment_install-calculator-time_response_success.xml[]
 ----
 
-.JSON Calculation by Rate Request
+[#GuaranteedInstallment_Samples_InstCalc_xml_rate]
+====== JSON Calculation by Rate 
+
+.Request
 [source,json,subs=attributes+]
 ----
-include::samples/json/ratepay-installment_install-calculator-rate_request_success[]
+include::samples/json/ratepay-installment_install-calculator-rate_request_success.json[]
 ----
 
-.JSON Calculation by Rate Response
+.Response
 [source,json,subs=attributes+]
 ----
-include::samples/json/ratepay-installment_install-calculator-rate_response_success[]
+include::samples/json/ratepay-installment_install-calculator-rate_response_success.json[]
 ----
 
-.JSON Calculation by Time Request
+[#GuaranteedInstallment_Samples_InstCalc_xml_time]
+====== JSON Calculation by Time 
+
+.Request
 [source,json,subs=attributes+]
 ----
-include::samples/json/ratepay-installment_install-calculator-time_request_success[]
+include::samples/json/ratepay-installment_install-calculator-time_request_success.json[]
 ----
 
-.JSON Calculation by Time Response
+.Response
 [source,json,subs=attributes+]
 ----
-include::samples/json/ratepay-installment_install-calculator-time_response_success[]
+include::samples/json/ratepay-installment_install-calculator-time_response_success.json[]
 ----
 
 [#GuaranteedInstallment_Samples_Payment]
@@ -735,13 +763,13 @@ Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for correspondi
 .XML authorization Request (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_authorization_request_success.xml[]
 ----
 
 .XML authorization Response (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_authorization_response_success.xml[]
 ----
 
 [#GuaranteedInstallment_Samples_CaptureAuthorization]
@@ -750,13 +778,13 @@ include::[]
 .XML capture-authorization Request (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_capture-authorization_request_success.xml[]
 ----
 
 .XML capture-authorization Response (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_capture-authorization_response_success.xml[]
 ----
 
 [#GuaranteedInstallment_Samples_Credit]
@@ -765,13 +793,13 @@ include::[]
 .XML credit Request (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_credit_request_success.xml[]
 ----
 
 .XML credit Response (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_credit_response_success.xml[]
 ----
 
 [#GuaranteedInstallment_Samples_RefundCapture]
@@ -780,13 +808,13 @@ include::[]
 .XML refund-capture Request (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_refund-capture_request_success.xml[]
 ----
 
 .XML refund-capture Response (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_refund-capture_response_success.xml[]
 ----
 
 
@@ -796,14 +824,14 @@ include::[]
 .XML void-authorization Request (Successful)
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_void-authorization_request_success.xml[]
 ----
 
 .XML void-authorization Response (Successful)
 
 [source,xml,subs=attributes+]
 ----
-include::[]
+include::samples/xml/ratepay-installment_void-authorization_response_success.xml[]
 ----
 
 //-
