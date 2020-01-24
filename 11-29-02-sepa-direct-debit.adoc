@@ -1,47 +1,18 @@
 [#SEPADirectDebit]
 ==== SEPA Direct Debit
-
-_SEPA Direct Debit_ is a payment method which authorizes a transaction
-before it transfers money from the consumer account to the merchant.
-
-During the _authorization_ process _SEPA Direct Debit_ checks the
-validity of IBAN/BIC and Creditor ID. If the check is positive, _SEPA Direct Debit_ performs a _debit_ via Wirecard Bank to consumer's bank
-on the referred consumer account. If the balance on the consumer
-account is not sufficient, the consumer receives a notification from his
-bank about the rejection and the merchant receives a _debit-return._
-
-There might be other reasons for a _debit-return_ right after the
-_debit_ transaction was processed successfully:
-
-- The consumer account might be locked, closed or the account is not
-enabled for _Direct Debit_.
-- The consumer declines a transaction by the given SEPA Scheme time
-constraints without giving any reasons: 8 weeks by default or 13 months
-in case the _debit_ was not authorized.
-//-
-All these reasons cannot be checked by _{payment-gateway}_ or
-_Wirecard Bank._
-
-[#SEPADirectDebit_GeneralInformation]
-===== General Information
+_SEPA Direct Debit_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
 [#SEPADirectDebit_PaymentModeCountriesandCurrencies]
-====== Payment Mode, Countries and Currencies
-
-This table illustrates which payment mode _SEPA Direct Debit_ belongs
-to. It also provides detailed information about the countries and
-currencies which are relevant for _SEPA Direct Debit._
-
-[cols="20h, 80"]
+===== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
 |===
-| Payment Mode | <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>
 | Countries    | The 28 EU Member States as well as Iceland, Liechtenstein,
 Monaco, Norway, and Switzerland.
 |Currencies    | EUR
 |===
 
 [#SEPADirectDebit_CommunicationFormats]
-====== Communication Formats
+===== Communication Formats
 
 This table illustrates how _SEPA Direct Debit_ notifications are encoded
 and which formats and methods can be used for requests and responses.
@@ -74,6 +45,7 @@ Only available when the <<SEPA_TransactionType_Void_Restrictions, restrictions>>
 | _debit-return_ | The payment is returned by the consumer bank. See <<SEPA_ReturnCodes, Return Codes>>. |
 |===
 
+ifndef::env-nova[]
 [#SEPADirectDebit_TransactionTypes_Recurring]
 ====== Recurring Transaction
 
@@ -164,6 +136,7 @@ The due date calculation of a recurring transaction is the same as for
 one-off transactions. Please refer to
 <<SEPADirectDebit_Fields_SpecificFields_DueDate, Due Date>>,
 which defines how to calculate a due date for each sequence type.
+endif::[]
 
 [#SEPADirectDebit_TransactionTypes_Authorization]
 ====== _authorization_
@@ -296,9 +269,16 @@ and matched to the original _debit_ transaction to ensure the merchant
 has a complete overview for his debtor management. For a full list of
 _debit-return_ reasons, please refer to the list of  <<SEPA_ReturnCodes, SEPA Return Codes>>.
 
-The merchant can request the status of the transaction at any time by sending a
-<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, "Retrieve Transaction by Transaction ID">> or
-<<GeneralPlatformFeatures_RetrieveTransaction_RequestID, "Retrieve Transaction by Request ID">>.
+ifndef::env-nova[]
+The merchant can request the status of the transaction at any time by
+sending a "<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>>"
+or "<<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request ID>>".
+endif::[]
+
+ifdef::env-nova[]
+The merchant can request the status of the transaction at any time by
+sending a "<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction ID>>".
+endif::[]
 
 [#SEPADirectDebit_Fields]
 ===== Fields
@@ -376,6 +356,7 @@ lifecycle of a payment is identifiable. Wirecard generates this ID for
 the merchant.
 |===
 
+ifndef::env-nova[]
 [#SEPADirectDebit_Fields_RecurringTransaction]
 ====== Recurring Transaction
 
@@ -548,6 +529,7 @@ non-banking days. These include:
 
 For more information about recurring SEPA Direct Debit payments, please
 read chapter <<SEPADirectDebit_TransactionTypes_Recurring, SEPA Direct Debit Recurring Transaction>>.
+endif::[]
 
 [#SEPADirectDebit_Fields_SpecificFields_DelayedProcessing]
 .Delayed processing of SEPA _Direct Debit_ transactions
@@ -638,10 +620,10 @@ Otherwise, the transaction may be rejected.
 
                                 a| - Mandatory
 
-|*Submission Deadlines*         a| . Pre-notification: 14 calendar days prior to the due date (D–14):
+|*Submission Deadlines*         a| . Pre-notification: 14 calendar days prior to the due date (D-14):
 Merchant notifies the consumer of the upcoming _debit_ transaction. (Merchant and consumer may agree upon a different timeframe.)
                                    . Due Date: The transaction must be submitted to the bank earliest one
-business day prior to the due date (D–1) for the submission of one-off, first, and subsequent debits.
+business day prior to the due date (D-1) for the submission of one-off, first, and subsequent debits.
                                  | Same as Core DD
 |===
 
@@ -756,6 +738,7 @@ include::samples/xml/sepadirectdebit_pending-debit_request_success_1a3ff0.xml[]
 include::samples/xml/sepadirectdebit_pending-debit_response_success_f9dbb8.xml[]
 ----
 
+ifndef::env-nova[]
 [#SEPADirectDebit_Samples_Debit_Recurring]
 *Recurring Transactions*
 
@@ -800,6 +783,7 @@ include::samples/xml/sepadirectdebit_debit_request_failure_recurring_recurring.x
 ----
 include::samples/xml/sepadirectdebit_debit_response_failure_recurring_recurring.xml[]
 ----
+endif::[]
 
 [#SEPADirectDebit_Samples_Authorization]
 ====== _authorization_
@@ -864,3 +848,5 @@ include::samples/xml/sepadirectdebit_void-pending-debit_request_failure.xml[]
 ----
 include::samples/xml/sepadirectdebit_void-pending-debit_response_failure.xml[]
 ----
+
+//-
