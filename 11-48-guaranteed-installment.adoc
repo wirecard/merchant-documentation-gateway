@@ -290,7 +290,7 @@ If empty or sent with a wrong value, ``de`` is used by default.
 |_date-of-birth_
 |M
 |String
-|10 ?????
+|10 
 |Account holder's date of birth. Format (according to ISO 8601): YYYY-MM-DD +
 This format cannot be customized.
 
@@ -489,50 +489,50 @@ Mandatory if ``account-number`` is used
 |[[GuaranteedInstallment_Fields_Device]]_fingerprint_
 |M/O
 |String
-|4096 ?????
+|4096 
 |Device fingerprinting token that was used in merchant's online shop to track this transaction. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off. +
 It is mandatory for _authorization_.
 
 a|
 [discrete]
 ===== payment.custom-fields.
-4+| All custom fields are mandatory for _authorization_.
+4+| All custom fields are needed for mapping the authorization. Therefore they all are mandatory for _authorization_.
 
 |[[GuaranteedInstallment_Fields_Custom]] _custom-field@name="total-amount"_
 |M
 |Decimal
-|Size ?????
-|Mapping for authorization: custom-field@value=installment-calculator-response/installments/installment/details/total-amount
+|18,3
+|custom-field@value=installment-calculator-response/installments/installment/details/total-amount
 
 |_custom-field@name="interest-rate"_
 |M
 |Decimal
-|Size ?????
-|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/interest-rate
+|18,3
+|custom-field@value= installment-calculator-response/installments/installment/details/interest-rate
 
 |_custom-field@name="number-of-rates"_
 |M
-|Number ????? I guess, ``number-of-rates`` doesn't allow decimal places?
-|Size ?????
-|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/number-of-rates
+|Number 
+|5
+|custom-field@value= installment-calculator-response/installments/installment/details/number-of-rates
 
 |_custom-field@name="rate"_
 |M
-|Decimal
-|Size ?????
-|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/rate
+|Number
+|5
+|custom-field@value= installment-calculator-response/installments/installment/details/rate
 
 |_custom-field@name="last-rate"_
 |M
-|Decimal
-|Size ?????
-|Mapping for authorization: custom-field@value=installment-calculator-response/installments/installment/details/last-rate
+|Number
+|5
+|custom-field@value=installment-calculator-response/installments/installment/details/last-rate
 
 |_custom-field@name="payment-firstday"_
 |M
-|Number ????? I guess, ``payment-first-day`` doesn't allow decimal places or does it follow a date pattern?
-|Size ?????
-|Mapping for authorization: custom-field@value= installment-calculator-response/installments/installment/details/payment-first-day
+|Number
+|5
+|custom-field@value= installment-calculator-response/installments/installment/details/payment-first-day
 |===
 
 //-
@@ -540,16 +540,16 @@ a|
 [#GuaranteedInstallment_Features]
 ==== Features
 
-[#GuaranteedInstallment_BasketItemsDetails]
+[#GuaranteedInstallment_Features_BasketItemsDetails]
 ===== Basket Items Details
 
 Basket items details must be <<GuaranteedInstallment_Fields_OrderItems, sent along with every request>>. Content of
 the shopping basket depends on the location of the items.
 There can be 3 different locations:
 
-- the (distribution) storage of the merchant,
-- the delivery (items are „on the road"); and
-- home of the consumer.
+* the (distribution) storage of the merchant,
+* the delivery (items are „on the road"); and
+* home of the consumer.
 
 //-
 
@@ -560,8 +560,172 @@ or credited depending to the transaction type.
 The detailed items of the shopping basket will be stored as a part of
 payment details on provider and they can be obtained from _{payment-gateway}_ later as part of transaction details.
 
+[#GuaranteedInstallment_Features_InstallCalc]
+===== Installment Calculator
+
+The installment calculator service provides the list of available installment plans.
+
+_Guaranteed Installments_ supports two different installment plans:
+
+* Calculation by rate
+* Calculation by time
+
+//-
+
+You show this list to the consumer and the consumer decides which plan suits best to pay the purchased amount.
+
+[#GuaranteedInstallment_Features_InstallCalc_Communication]
+====== Communication Formats
+
+This table illustrates in which formats and methods the Installment Calculator service can be used for requests and responses.
+
+[%autowidth,stripes=none]
+|===
+.2+h| Requests/Responses | Format  | XML, JSON
+                         | Methods | POST
+
+|===
+
+[#GuaranteedInstallment_Features_InstallCalc_Fields]
+====== Fields
+
+.installment-calculator-request.
+[%autowidth,stripes=none, cols="v,,,,"]
+|===
+| Field | Cardinality | Datatype | Size | Description 
+
+|payment-method|M|String|15|The payment method to calculate the installment for. Must be _ratepay-install_.
+|merchant-account-id|M|String|36|Merchant account ID. Must follow a pattern like: 815c32ab-486d-4e4c-baf8-f412e2e4e9b8.
+|amount|M|Decimal| Size ????? |Full amount of the purchase. Must be in the format of _Money_ (Example: 100.00)
+|currency (attribute of ``amount``)|M|String|3|The currency of the purchase. _Guaranteed Installments_ requires EUR.
+|rate|M/O|Decimal| Size ?????|Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: 25.00). It is *mandatory* for  for calculation by rate. It must not be used when calculating the installment plan by time.
+|currency (attribute of ``rate``)|M|String|3|The currency of  the rate. _Guaranteed Installments_ requires EUR.
+|months|M/O|Integer|Size ?????|Number of months to cover the duration of the installment plan. It is *mandatory* for calculation by time. It must not be used when calculating the installment plan by rate.
+
+|===
+
+//-
+
+.installment-calculator-response.
+[%autowidth,stripes=none, cols="v,,,"]
+|===
+| Field | Datatype | Size | Description 
+
+|payment-method|String|15|The payment method to calculate the installment for. Must be _ratepay-install_.
+|merchant-account-id|String|36|Merchant account ID. Must follow a pattern like: 815c32ab-486d-4e4c-baf8-f412e2e4e9b8.
+|amount|Decimal |Size ?????|Full amount of the purchase. Must be in the format of _Money_ (Example: 100.00)
+|currency (attribute of ``amount``)|String|3|The currency of the purchase. _Guaranteed Installments_ requires EUR.
+|rate|Decimal|Size ?????|Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: 25.00).
+|currency (attribute of ``rate``)|String|3|The currency of  the rate. _Guaranteed Installments_ requires EUR.
+|state|String|Size ?????| The state of the response. Values can be +
+``success`` +
+``failed``.
+
+|===
+
+//-
+
+.installment-calculator-response.statuses.status.
+
+This field table describes the structure of the response statuses.
+[%autowidth,stripes=none, cols="v,,,"]
+|===
+| Field | Datatype | Size | Description 
+
+|code (attribute of ``status``)|String|Size ?????|The status code of the response (Example: 200.0000)
+|description (attribute of ``status``)|String|Size ????? |The description to the status code of the response (Example: "Successful Response"")
+|severity (attribute of ``status``)|String|Size ?????|This field informs about the status of the transaction. Values can be +
+``information`` +
+``error``.
+
+|===
+
+//-
+
+.installment-calculator-response.installments.installment.details.
+
+This field table describes the structure of the available installment plans which are sent in the response. It is a breakdown of fees and other information about the corresponding installment plan.
+[%autowidth,stripes=none, cols="v,,,"]
+|===
+| Field | Datatype | Size | Description 
+
+|interest-rate|Decimal|Size ?????|Interest-rate which will be used to calculate the annual percentage rate (Example: 12.9).
+|monthly-debit-interest|Decimal|Size ?????|Monthly interest rates based on ``interest-rate`` (Example: 1.02).
+|service-charge|Decimal|Size ?????|Additional costs of financing (Example: 1.95).
+|rate|Decimal|Size ?????|Monthly rate the consumer has to pay (Example: 89.35).
+|annual-percentage-rate|Decimal|Size ?????|The annual percentage rate is based on ``service-charge`` and ``interest-rate`` (Example: 12.25).
+|number-of-rates|Integer|Size ?????|Number of months to cover the duration of the installment plan.
+|amount|Decimal|Size ?????|Price that has to be financed (Example: 1000.00).
+|interest-amount|Decimal|Size ?????|Total of all monthly paid interests (Example: 72.09).
+|total-amount|Decimal|Size ?????|Total of amount, adding up ``interest-amount`` and ``service-charge`` (Example: 1074.04).
+|last-rate|Decimal|Size ?????|Last rate which the consumer has to pay (Example: 89.24).
+|payment-first-day|Integer|Size ?????|Calendar day of the first payment.
+
+|===
+
+//// 
+With the request fields we always have a corresponding attribute "currency" with amount and rate. Why not in the response?
+When I compare the values of installment-calculator-response.amount, installment-calculator-response.installments.installment.details.total-amount, installment-calculator-response.installments.installment.details.amount and installment-calculator-response.installments.installment.details.interest-amount in the sample with the field description at https://confluence.wirecard.sys/display/EE/RatePay+Installment+Calculator I cannot get the things together. Need to talk!
+////
+
+//-
+
 [#GuaranteedInstallment_Samples]
 ==== Samples
+
+[#GuaranteedInstallment_Samples_InstCalc]
+===== Installment Calculator
+
+.XML Calculation by Rate Request
+[source,xml,subs=attributes+]
+----
+include::samples/xml/ratepay-installment_install-calculator-rate_request_success[]
+----
+
+.XML Calculation by Rate Response
+[source,xml,subs=attributes+]
+----
+include::samples/xml/ratepay-installment_install-calculator-rate_response_success[]
+----
+
+.XML Calculation by Time Request
+[source,xml,subs=attributes+]
+----
+include::samples/xml/ratepay-installment_install-calculator-time_request_success[]
+----
+
+.XML Calculation by Time Response
+[source,xml,subs=attributes+]
+----
+include::samples/xml/ratepay-installment_install-calculator-time_response_success[]
+----
+
+.JSON Calculation by Rate Request
+[source,json,subs=attributes+]
+----
+include::samples/json/ratepay-installment_install-calculator-rate_request_success[]
+----
+
+.JSON Calculation by Rate Response
+[source,json,subs=attributes+]
+----
+include::samples/json/ratepay-installment_install-calculator-rate_response_success[]
+----
+
+.JSON Calculation by Time Request
+[source,json,subs=attributes+]
+----
+include::samples/json/ratepay-installment_install-calculator-time_request_success[]
+----
+
+.JSON Calculation by Time Response
+[source,json,subs=attributes+]
+----
+include::samples/json/ratepay-installment_install-calculator-time_response_success[]
+----
+
+[#GuaranteedInstallment_Samples_Payment]
+===== _Guaranteed Installments_ payment
 
 Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for corresponding notification samples.
 
