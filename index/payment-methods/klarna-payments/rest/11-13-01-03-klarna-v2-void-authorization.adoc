@@ -1,63 +1,59 @@
 //:payment-method-name: Klarna
 
-[#KlarnaV2_TransactionTypes_captureAuthorization]
-===== _capture-authorization_
+[#KlarnaV2_TransactionTypes_voidAuthorization]
+== _void-authorization_
 
-When the goods or services are ready to be delivered, you have to capture an authorized order fully or partially.
+Use this transaction type to cancel an order, e.g. if the goods or services are not available
+or the consumer wants to cancel their order. We recommend to cancel authorizations to avoid any influence on risk decisions for further payments.
 
-[NOTE]
-====
-*** You cannot add new articles.
-    *** You cannot change the price of the ordered items,
-otherwise the _capture-authorization_ transaction will be rejected.
-    *** Every partial capture triggers the creation and sending of a new payment instruction.
+
+You can cancel
+
+* only authorized amounts that have not yet been completely captured.
+* the **total order amount**.
+* a **partial order amount**. If the order has been partially captured, a _void-authorization_ cancels only the part of the preceding _authorization_ that has not yet been captured.
 
 //-
-====
 
-Once an authorized amount is captured, the due date for payment is set. The
-default payment due date is 14 days after capturing.
+NOTE: Once canceled, you can no longer process the order. The initial authorization/reservation is no longer valid.
 
-_Klarna_ pays you the order amount according to the agreed billing period.
+To refer to a specific _authorization_, _adjust-authorization_ or _pending-authorization_, you need the ``parent-transaction-id``, which is the ``transaction-id`` of the preceding transaction.
 
-To refer to a specific _authorization_, you need the ``parent-transaction-id``, which is the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_ response.
+[#KlarnaV2_TransactionTypes_voidAuthorization_Workflow]
+=== _void-authorization_ Workflow
 
-_Klarna_ sends *payment instructions* (containing bank account details) per email to your consumer.
-//-
-
-[#KlarnaV2_TransactionTypes_captureAuthorization_Workflow]
-====== _capture-authorization_ Workflow
-
-[mermaid,Klarnav2_workflow_captureAuthorization,svg,subs=attributes+]
+[mermaid,Klarnav2_workflow_voidAuthorization,svg,subs=attributes+]
 ----
 sequenceDiagram
     participant M as Merchant
     participant W as WPG
     participant K as Klarna
-M-->>M: activates order
-M->>W: sends "capture-authorization" request
-W->>K: creates and sends "capture-authorization"
-K-->>K: captures order
-K->>W: sends capture response
-W->>M: sends response
-M-->>M: processes response
+M-->>M: cancels order
+M->>W: sends "void-authorization" request
+W->>K: creates "void-authorization" transaction
+W-->>W: capture check
+    alt partial capture before
+        W->>K: releases remaining auth. request
+        K->>W: releases remaining order
+    else no partial capture before
+        W->>K: cancels authorization request
+        K->>W: cancels authorization
+    end
+W->>M: creates/sends response
 ----
 
-. -> Send an _capture-authorization_ request. This request must contain the ``parent-transaction-id``. Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_ response.
-
- ** If the _capture-authorization_
-request does not contain order items, _{payment-gateway}_ captures the total order amount, i.e. all order items of the preceding _authorization_ transaction are captured and must be delivered.
-  ** Multiple partial captures are possible by sending
-_capture-authorization_ requests with order items to be captured.
-. _{payment-gateway}_ forwards the request to _Klarna_. 
-. _Klarna_ returns the capture result.
-. _{payment-gateway}_ sends you the _capture-authorization_ response which contains the status code.
-. -> Process the _capture-authorization_ response.
+. -> Send a _void-authorization_ request. This request must contain the ``parent-transaction-id``. Enter the ``transaction-id`` of the preceding _authorization_, _adjust-authorization_ or _pending-authorization_ that is to be canceled.
+. _{payment-gateway}_ checks if parts of this order have already been captured:
+  ** If yes: _{payment-gateway}_ sends a _void-authorization_ request for the uncaptured order items to _Klarna_. 
+  ** If no: _{payment-gateway}_ sends a _void-authorization_ request for the total order amount to _Klarna_. 
+. _Klarna_ approves or rejects the void request and returns the result.
+. _{payment-gateway}_ sends you the _void-authorization_ response which contains the status code.
+. -> Process the _void-authorization_ response.
 
 //-
 
-[#KlarnaV2_TransactionTypes_captureAuthorization_Fields]
-====== _capture-authorization_ Fields
+[#KlarnaV2_TransactionTypes_voidAuthorization_Fields]
+=== _void-authorization_ Fields
 
 Fields can be mandatory (M) or optional (O).
 
@@ -71,7 +67,8 @@ Fields can be mandatory (M) or optional (O).
 |M 
 |Alphanumeric 
 |36 
-|A unique identifier assigned to every merchant account (by {payment-provider-name}).
+|A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
 
 |request-id 
 |M
@@ -91,30 +88,27 @@ Allowed characters:  ``[a-z0-9-\_]``.
 |M
 |Alphanumeric 
 |36
-|Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_.
+|Enter the ``transaction-id`` of the preceding _authorization_, _adjust-authorization_ or _pending-authorization_.
 
 |transaction-type 
 |M 
 |M 
 |Alphanumeric
 |30 
-|The requested transaction type. Set this field to `capture-authorization`.
+|The requested transaction type. Set this field to `void-authorization`.
 
 |requested-amount  
-|M
+|-
 |M
 |Numeric
 |18,3
-a|Total order amount to be captured. The number of decimal places depends on the currency. 
-
+|Total order amount to be reserved. The number of decimal places depends on the currency. +
 The requested amount must be equal to the amount sum of all order items.
-
-The sum of all _capture-authorization_ transactions must not exceed the amount of the preceding _authorization_ or _adjust-authorization_ transaction.
 
 Use ``,`` (comma) as separator.
 
-|[[KlarnaV2_TransactionTypes_captureAuthorization_Fields_requestedAmount_currency]]requested-amount@currency 
-|M 
+|[[KlarnaV2_TransactionTypes_voidAuthorization_Fields_requestedAmount_currency]]requested-amount@currency 
+|-
 |M 
 |Alphanumeric
 |3 
@@ -123,13 +117,11 @@ transaction amount. +
 Format: 3-character abbreviation according to ISO 4217.
 
 |order-detail
-|O
+|-
 |O
 |Alphanumeric
 |
-|Message or other important information for the consumer, shown on the
-payment instructions. +
-Requires a setting in your <<ContactUs, merchant configuration>>.
+|Description of the cancelation.
 
 |payment-methods. +
 payment-method@name
@@ -162,7 +154,7 @@ Possible values:
 |A unique identifier assigned for every transaction. Generated by {payment-provider-name}. Used when searching for or referencing it later.
 
 |transaction-state 
-|-
+| -
 |M 
 |Alphanumeric
 |12
@@ -184,44 +176,44 @@ Possible values:
 |notifications. +
 notification-url 
 |O 
-|O 
+|M 
 |Alphanumeric
 |256
-|The URL to which _{payment-gateway}_ sends an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>> for the transaction outcome. It overwrites the notification URL that is set up in your merchant configuration.
+|The URL to which _{payment-gateway}_ sends an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>> for pending reservations or the transaction outcome. It overwrites the notification URL that is set up in your merchant configuration.
 
 5+<.>s|order-items.order-item.
 s|Description of a specific order item.
 
 |name 
-|M 
+|-
 |M 
 |Alphanumeric
 |256 
 |Name of the item in the shopping basket.
 
 |description 
-|O 
+|-
 |O 
 |Alphanumeric
 |1024 
 |Description of the item in the shopping basket.
 
 |article-number 
-|O 
+|-
 |O 
 |Alphanumeric
 |256 
 |EAN or other merchant-side article identifier.
 
 |quantity 
-|M
+|-
 |M
 |Numeric 
 |n/a  
 |Total number of this item in the shopping basket.
 
 |amount 
-|M 
+|- 
 |M 
 |Numeric 
 |18,3 
@@ -230,16 +222,16 @@ s|Description of a specific order item.
 Use ``,`` (comma) as separator.
 
 |amount@currency 
-|M 
+|-
 |M 
 |Alphanumeric
 |3 
-|<<KlarnaV2_CountriesCurrencies, Currency>> of this item's price. Must match the <<KlarnaV2_TransactionTypes_captureAuthorization_Fields_requestedAmount_currency, order currency (requested amount currency)>>. +
+|<<KlarnaV2_CountriesCurrencies, Currency>> of this item's price. Must match the <<KlarnaV2_TransactionTypes_voidAuthorization_Fields_requestedAmount_currency, order currency (requested amount currency)>>. +
 Format: 3-character abbreviation according to ISO 4217.
 
 |type
-|M 
-|M
+|-
+|O
 |Alphanumeric
 |n/a
 a|Order item type. +
@@ -257,21 +249,21 @@ Possible values:
 //-
 
 |tax-rate 
-|O 
+|-
 |O 
 |Numeric
 |5,2 
-a|Item’s tax rate per unit in percent. 
+a|Item’s tax rate per unit in percent.
 
 |tax-amount 
-|O 
+|-
 |O 
 |Numeric
 |5,2 
-a|Item’s tax value per unit. 
+a|Item’s tax value per unit.
 
 |discount	
-|O
+|-
 |O
 |Numeric
 |18,3 
@@ -291,7 +283,7 @@ Format: _Klarna_ accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. +
 If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
 
 |first-name 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
@@ -305,21 +297,21 @@ If you provide a different format, _Klarna_ prompts the consumer to enter their 
 |Consumer's last name.
 
 |email 
-|- 
+|-
 |O 
 |Alphanumeric
 |64 
 |Consumer's email address.
 
 |gender 
-|
+|-
 |O 
 |Alphanumeric
 |1 
 |Consumer's gender.
 
 |phone 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
@@ -330,35 +322,35 @@ Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here
 s|Consumer's address.
 
 |street1 
-|- 
+|-
 |O 
 |Alphanumeric
 |128 
 |Street of the consumer's address.
 
 |street2	
-|- 
+|-
 |O 
 |Alphanumeric
 |128 
 |House number of the consumer's address.	 
 
 |city 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
 |City of the consumer's address.
 
 |country 
-|- 
+|-
 |M 
 |Alphanumeric
 |3 
 |<<KlarnaV2_CountriesCurrencies, Country code>> of the consumer's address.
 
 |postal-code 
-|- 
+|-
 |O 
 |Alphanumeric
 |16 
@@ -368,67 +360,60 @@ s|Consumer's address.
 s|Consumer's shipping information.
 
 |first-name 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
 |Recipient's first name.  
 
 |last-name 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
-|Recipient's last name. 
+|Last name of the recipient.
 
 |email 
-|- 
+|-
 |O 
 |Alphanumeric
 |64 
-|Recipient's email address. 	
+|Email address of the recipient.	
 
 |phone 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
-|Recipient's phone number.  +
+|The phone number of the recipient. +
 Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here>> for details.
-
-|tracking-number
-|O
-|O
-|Alphanumeric
-|64
-|The delivery tracking number for this order.
 
 5+<.>s|shipping.address.
 s|Consumer's shipping address.
 
 |street1 
-|- 
+|-
 |O 
 |Alphanumeric
 |128 
 |Street of the recipient's address.
 
 |street2 
-|- 
+|-
 |O 
 |Alphanumeric
 |128 
 |House number of the recipient's address.	 
 
 |house-extension 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
 |House extension of the recipient's address.	 
 
 |city 
-|- 
+|-
 |O 
 |Alphanumeric
 |32 
@@ -442,7 +427,7 @@ s|Consumer's shipping address.
 |Country code of the recipient's address.
 
 |postal-code 
-|- 
+|-
 |O 
 |Alphanumeric
 |16 
@@ -452,21 +437,21 @@ s|Consumer's shipping address.
 s|Contains information on the status of a specific transaction.
 
 |code
-|
+|-
 |M
 |Alphanumeric
 |12
 |Transaction status code.
 
 |description
-|
+|-
 |M
 |Alphanumeric
 |256
 |Transaction status message.
 
 |severity
-|
+|-
 |M
 |Alphanumeric
 |20
@@ -480,21 +465,21 @@ a|The definition of the status message. Possible values:
 
 |===
 
-[#KlarnaV2_TransactionTypes_captureAuthorization_Samples]
-====== _capture-authorization_ Samples
+[#KlarnaV2_TransactionTypes_voidAuthorization_Samples]
+=== _void-authorization_ Samples
 
-._capture-authorization_ Request
+._void-authorization_ Request
 [source,xml,subs=attributes+]
 ----
-include::samples/xml/Klarnav2_captureAuthorization_request.xml[]
+include::samples/xml/Klarnav2_voidAuthorization_request.xml[]
 ----
 
-NOTE: {{txnId}} serves as placeholder. Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_.
+NOTE: {{txnId}} serves as placeholder. Enter the ``transaction-id`` of the preceding _authorization_, _adjust-authorization_ or _pending-authorization_ that is to be canceled.
 
-._capture-authorization_ Response
+._void-authorization_ Response
 [source,xml,subs=attributes+]
 ----
-include::samples/xml/Klarnav2_captureAuthorization_response.xml[]
+include::samples/xml/Klarnav2_voidAuthorization_response.xml[]
 ----
 
 //-
