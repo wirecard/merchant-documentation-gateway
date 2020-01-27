@@ -86,7 +86,11 @@ try {
     throw err;
 }
 
-const includeStatement = ':root: ' +  process.cwd() + '\ninclude::shortcuts.adoc[]\n';
+const isNOVA = (argv['nova'] == 'true');
+const includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
+
+// process.stderr.write(includeStatement);
+
 adocFileContents = includeStatement + adocFileContents;
 const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
 
