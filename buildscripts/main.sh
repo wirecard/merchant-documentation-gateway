@@ -30,7 +30,7 @@ DEBUG=YES #unset to disable
 
 source buildscripts/global.sh
 
-INITDIR="$(pwd)"
+export INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
 
 # WIRECARD_REPO_NAME=merchant-documentation-gateway
