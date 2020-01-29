@@ -10,7 +10,7 @@ Use multithreading with thread pool to speed up the process.
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
-const majorVersion = '1.0';
+const majorVersion = '1.1';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
