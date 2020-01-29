@@ -106,7 +106,7 @@ function createTOCElements(elements, level, num) {
       a = $('<a/>').attr('href', e.parentID + '.html' + '#' + e.id);
       if (maskStringEncoded !== '') a.attr('href', e.parentID + '.html?' + maskStringEncoded + '#' + e.id);
     }
-    var linkText = shortenForTOC(e.attributes.text);
+    var linkText = (level >2) ? shortenForTOC(e.attributes.text) : e.attributes.text;
     a.text(linkText);
     li.append(a);
     ul.append(li);
