@@ -820,6 +820,11 @@ function main() {
     array_splice($adocFilesArray, $key, 1);  
   }
 
+  // disalbe testing of auto-generated folder
+  $adocFilesArray = preg_grep('/\/auto-generated\//', $adocFilesArray, PREG_GREP_INVERT);
+  $adocFilesArray = preg_replace('/^\.\//', '', $adocFilesArray);
+  $adocFilesArray = array_values($adocFilesArray);
+
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
   $indexedFiles[] = $CI->index_file;
   $indexedFiles = array_values($indexedFiles);
