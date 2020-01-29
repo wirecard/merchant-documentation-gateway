@@ -26,6 +26,16 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   }
 }
 
+function glob_recursive($pattern, $flags = 0)
+{
+  $files = glob($pattern, $flags);
+  foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir)
+  {
+    $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
+  }
+  return $files;
+}
+
 class CI {
   private static $instance;
   private $info;
@@ -807,20 +817,6 @@ function main() {
   else {
     $key = array_search('nova.adoc', $adocFilesArray);
     array_splice($adocFilesArray, $key, 1);  
-  }
-
-  if ( ! function_exists('glob_recursive'))
-  {
-      // Does not support flag GLOB_BRACE        
-    function glob_recursive($pattern, $flags = 0)
-    {
-      $files = glob($pattern, $flags);
-      foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir)
-      {
-        $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
-      }
-      return $files;
-    }
   }
 
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
