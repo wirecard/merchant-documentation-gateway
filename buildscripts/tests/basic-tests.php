@@ -245,8 +245,8 @@ class GitInfo {
   }
   public function getLastEditedByOfFile($file) {
     $file_key = preg_replace('/^\.\/', '', $file);
-    if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file])) {
-      $lastEditedBy = $this->gitInfoArray['files'][$file]['last_edited_by'];
+    if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file_key])) {
+      $lastEditedBy = $this->gitInfoArray['files'][$file_key]['last_edited_by'];
     }
     else {
       $lastEditedBy = '';
