@@ -88,7 +88,7 @@ try {
 
 const isNOVA = (argv['nova'] == 'true');
 var includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
-includeStatement += ':root: ' + process.env.INITDIR + "\n"
+includeStatement += ':root: ' + process.cwd() + "\n"
 
 process.stderr.write(includeStatement);
 
