@@ -799,15 +799,29 @@ function main() {
   $exitCode = 0;
   $numConcurrentThreads = 8;
 
-  // $adocFilesArray = glob( '*.adoc' );
-  // if( $CI->index_file == 'nova.adoc' ) {
-  //   $key = array_search('index.adoc', $adocFilesArray);
-  //   array_splice($adocFilesArray, $key, 1);  
-  // }
-  // else {
-  //   $key = array_search('nova.adoc', $adocFilesArray);
-  //   array_splice($adocFilesArray, $key, 1);  
-  // }
+  $adocFilesArray = glob_recursive( '*.adoc' );
+  if( $CI->index_file == 'nova.adoc' ) {
+    $key = array_search('index.adoc', $adocFilesArray);
+    array_splice($adocFilesArray, $key, 1);  
+  }
+  else {
+    $key = array_search('nova.adoc', $adocFilesArray);
+    array_splice($adocFilesArray, $key, 1);  
+  }
+
+  if ( ! function_exists('glob_recursive'))
+  {
+      // Does not support flag GLOB_BRACE        
+    function glob_recursive($pattern, $flags = 0)
+    {
+      $files = glob($pattern, $flags);
+      foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir)
+      {
+        $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
+      }
+      return $files;
+    }
+  }
 
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
   $indexedFiles[] = $CI->index_file;
@@ -815,10 +829,10 @@ function main() {
 
   $pool = new Pool( $numConcurrentThreads );
 
-  $numOfAdocFiles = sizeof( $indexedFiles );
+  $numOfAdocFiles = sizeof( $adocFilesArray );
   for( $i = 0; $i < $numOfAdocFiles; ++$i ) {
-    $task = new Task( $indexedFiles[$i] );
-    $tasksArray[$indexedFiles[$i]] = $task;
+    $task = new Task( $adocFilesArray[$i] );
+    $tasksArray[$adocFilesArray[$i]] = $task;
     $pool->submit( $task );
   }
   while( $pool->collect() );
