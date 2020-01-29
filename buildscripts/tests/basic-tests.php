@@ -65,7 +65,7 @@ class CI {
       $CI->pull_request_branch_head = getenv('GITHUB_HEAD_REF') ? preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_HEAD_REF')) : false;
       $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
       $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
-      $CI->commit_message = 'commit message for gh actions not yet implemented'
+      $CI->commit_message = 'commit message for gh actions not yet implemented';
     }
     $CI->url_repo = 'https://github.com/'.$CI->repo;
     $CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
