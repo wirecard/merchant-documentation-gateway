@@ -660,7 +660,8 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_: ".'"'.$CI->commit_message.'"'.PHP_EOL.PHP_EOL
+                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL
+                                                                .'Commit message: "'.$CI->commit_message.'"'.PHP_EOL.PHP_EOL
                                                                 .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
                                                                 .$CI->name))),
                       array("type" => "divider")
