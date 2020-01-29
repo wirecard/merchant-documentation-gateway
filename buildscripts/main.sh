@@ -391,17 +391,15 @@ function main() {
     debugMsg "Skipping WL Repo checkout for partner ${PARTNER}"
   else
     cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
+    PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
+    if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}" && [[ "${PARTNER}" != "WD" ]]; then
+      debugMsg "partner ${PARTNER} not in partners list"
+      exit 0
+    fi
   fi
-
   debugMsg "Create info files"
   if [[ -z $SKIP ]]; then
     node buildscripts/util/create-info-files.js
-  fi
-
-  PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
-  if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}" && [[ "${PARTNER}" != "WD" ]]; then
-    debugMsg "partner ${PARTNER} not in partners list"
-    exit 0
   fi
 
   # prepare master template
