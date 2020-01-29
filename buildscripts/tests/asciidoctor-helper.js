@@ -144,10 +144,7 @@ if (adocFilename !== indexFileName) {
     }
 }
 
-if ((isNOVA && adocFilename == 'index.adoc') || (isNOVA == false && adocFilename == 'nova.adoc')) {
-    process.stderr.write('skipping ' + adocFilename + ' because isNOVA is ' + isNOVA.toString + "\n")
-}
-else {
-    // do not remove. output is required by basic-tests.php
-    process.stdout.write(JSON.stringify(Result, null, 2));
-}
+// do not remove. output is required by basic-tests.php
+process.stdout.write(JSON.stringify(Result, null, 2));
+process.stderr.write(JSON.stringify(Result, null, 2));
+
