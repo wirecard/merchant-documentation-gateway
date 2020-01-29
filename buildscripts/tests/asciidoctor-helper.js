@@ -105,7 +105,7 @@ doc.getSourceLines().forEach((line, lineNumber) => {
                 typoWordsList.forEach(referenceWord => {
                     var levenshteinScore = levenshtein(referenceWord, word);
                     // only look at lv values > 0 && <= 3
-                    if (levenshteinScore && levenshteinScore <= 4){
+                    if (levenshteinScore && levenshteinScore <= 4) {
                         _similarWords.push({
                             "line": lineNumber + 1,
                             "word": word,
@@ -144,5 +144,10 @@ if (adocFilename !== indexFileName) {
     }
 }
 
-// do not remove. output is required by basic-tests.php
-process.stdout.write(JSON.stringify(Result, null, 2));
+if ((isNOVA && adocFilename == 'index.adoc') || (isNOVA == false && adocFilename == 'nova.adoc')) {
+    process.stderr.write('skipping ' + adocFilename + ' because isNOVA is ' + isNOVA.toString + "\n")
+}
+else {
+    // do not remove. output is required by basic-tests.php
+    process.stdout.write(JSON.stringify(Result, null, 2));
+}

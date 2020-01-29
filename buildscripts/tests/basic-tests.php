@@ -371,10 +371,13 @@ function getAsciidoctorOutput( $filename ) {
     $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"';
   }
   $asciidoctorJSON = shell_exec( $asciidoctorHelperCmd );
-  if(!$asciidoctorJSON) {
+
+  try {
+    $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
+  } catch (\Throwable $th) {
     return false;
   }
-  $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
+  
 
   // initialize this.. or else... regret it
   $results = array();
@@ -797,6 +800,14 @@ function main() {
   $numConcurrentThreads = 8;
 
   $adocFilesArray = glob( '*.adoc' );
+  if( $CI->index_file == 'nova.adoc' ) {
+    $key = array_search('index.adoc', $adocFilesArray);
+    array_splice($adocFilesArray, $key, 1);  
+  }
+  else {
+    $key = array_search('nova.adoc', $adocFilesArray);
+    array_splice($adocFilesArray, $key, 1);  
+  }
 
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
 
