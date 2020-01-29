@@ -91,7 +91,7 @@ const indexFileName = isNOVA ? 'nova.adoc' : 'index.adoc'
 var includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
 includeStatement += ':root: ' + process.cwd() + "\n"
 
-process.stderr.write(includeStatement);
+// process.stderr.write(includeStatement);
 
 adocFileContents = includeStatement + adocFileContents;
 const doc = asciidoctor.load(adocFileContents, { 'safe': 'safe', 'catalog_assets': true });
