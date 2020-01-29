@@ -21,6 +21,10 @@ const typoWordsList = readLines(typoWordsListFile);
 
 var Result = new Object();
 
+function getNested(obj, ...args) {
+    return args.reduce((obj, level) => obj && obj[level], obj)
+}
+
 /**
  * Reads plain text file
  *
@@ -120,7 +124,8 @@ doc.getSourceLines().forEach((line, lineNumber) => {
         }
     }
 });
-Result.similarWords = _similarWords;
+
+//Result.similarWords = _similarWords;
 
 // to get warnings for wrong internal references!
 Opal.gvars.VERBOSE = true;
@@ -129,6 +134,11 @@ doc.convert();
 Result.links = doc.getLinks();
 Result.ids = doc.getIds();
 Result.errors = memoryLogger.getMessages();
+
+process.stderr.write('asciidoctor-helper: Testing ' + adocFilename + ' with index ' + indexFileName + "\n");
+if (adocFilename == indexFileName) {
+    Result.errors = Result.errors.filter(e => getNested(e, 'message', 'source_location', 'path') != '<stdin>');
+}
 //Result.references = doc.getRefs()
 //Result.images = doc.getImages()
 //Result.footnotes = doc.getFootnotes()
