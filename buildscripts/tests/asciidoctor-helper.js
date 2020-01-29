@@ -87,6 +87,7 @@ try {
 }
 
 const isNOVA = (argv['nova'] == 'true');
+const indexFileName = isNOVA ? 'nova.adoc' : 'index.adoc'
 var includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
 includeStatement += ':root: ' + process.cwd() + "\n"
 
@@ -133,7 +134,7 @@ Result.errors = memoryLogger.getMessages();
 //Result.footnotes = doc.getFootnotes()
 //Result.indexTerms = doc.getIndexTerms()
 
-if (adocFilename !== 'index.adoc') {
+if (adocFilename !== indexFileName) {
     AnchorIndex[adocFilename] = Result.ids;
     try {
         fs.writeFileSync(anchorIndexFile, JSON.stringify(AnchorIndex, null, 2));
@@ -144,4 +145,4 @@ if (adocFilename !== 'index.adoc') {
 }
 
 // do not remove. output is required by basic-tests.php
-console.log(JSON.stringify(Result, null, 2));
+process.stdout.write(JSON.stringify(Result, null, 2));
