@@ -146,6 +146,6 @@ if (adocFilename !== indexFileName) {
 
 // do not remove. output is required by basic-tests.php
 process.stdout.write(JSON.stringify(Result, null, 2));
-process.stderr.write("\n" + adocFilename + "\n");
-process.stderr.write(JSON.stringify(Result.errors, null, 2));
+//process.stderr.write("\n" + adocFilename + "\n");
+//process.stderr.write(JSON.stringify(Result.errors, null, 2));
 
