@@ -55,6 +55,7 @@ class CI {
       $CI->pull_request_branch_head = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
       $CI->pull_request = ($CI->pull_request_number !== false);
       $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+      $CI->commit_message = getenv('TRAVIS_COMMIT_MESSAGE');
     }
     elseif ($CI->github) {
       $CI->name = 'Github Actions';
@@ -64,6 +65,7 @@ class CI {
       $CI->pull_request_branch_head = getenv('GITHUB_HEAD_REF') ? preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_HEAD_REF')) : false;
       $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
       $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
+      $CI->commit_message = 'commit message for gh actions not yet implemented'
     }
     $CI->url_repo = 'https://github.com/'.$CI->repo;
     $CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
@@ -614,6 +616,7 @@ function sendNotifications ( $results ) {
   $headerText = $headerText."*Commit:* `".$commitHash
   ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)".PHP_EOL
   ."*Commit from:* ".$commitAuthor.PHP_EOL
+  ."*Commit message:* ".$CI->commit_message.PHP_EOL
   ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '').PHP_EOL;
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
                       array("type" => "divider"),
@@ -657,7 +660,7 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHP_EOL
+                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_: ".'"'.$CI->commit_message.'"'.PHP_EOL.PHP_EOL
                                                                 .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
                                                                 .$CI->name))),
                       array("type" => "divider")
