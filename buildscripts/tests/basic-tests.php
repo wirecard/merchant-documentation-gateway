@@ -244,7 +244,7 @@ class GitInfo {
       return $this->gitInfoArray['commit_hash'];
   }
   public function getLastEditedByOfFile($file) {
-    $file = basename($file);
+    $file_key = preg_replace('/^\.\/', '', $file);
     if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file])) {
       $lastEditedBy = $this->gitInfoArray['files'][$file]['last_edited_by'];
     }
