@@ -100,10 +100,6 @@ function writeRepoKey() {
 }
 
 function cloneWhitelabelRepository() {
-  if [[ ${PARTNER} == 'WD' ]]; then
-    debugMsg "Skipping WL Repo checkout for partner ${PARTNER}"
-    return 0
-  fi
   debugMsg "inside cloneWhitelabelRepository()"
   mkdir -p "${INITDIR}/${WL_REPO_ORG}"
   writeRepoKey
@@ -112,12 +108,6 @@ function cloneWhitelabelRepository() {
   else
     GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
   fi
-
-  debugMsg "Create info files"
-  if [[ -z $SKIP ]]; then
-    node buildscripts/util/create-info-files.js
-  fi
-
   return $?
 }
 
@@ -397,7 +387,16 @@ function main() {
     shift
   done
 
-  cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
+  if [[ ${PARTNER} == 'WD' ]]; then
+    debugMsg "Skipping WL Repo checkout for partner ${PARTNER}"
+  else
+    cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
+  fi
+
+  debugMsg "Create info files"
+  if [[ -z $SKIP ]]; then
+    node buildscripts/util/create-info-files.js
+  fi
 
   PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
   if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}" && [[ "${PARTNER}" != "WD" ]]; then
