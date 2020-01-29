@@ -811,6 +811,7 @@ function main() {
 
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
   $indexedFiles[] = $CI->index_file;
+  $indexedFiles = array_values($indexedFiles);
 
   $pool = new Pool( $numConcurrentThreads );
 
