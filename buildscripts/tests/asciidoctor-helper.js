@@ -135,7 +135,7 @@ Result.links = doc.getLinks();
 Result.ids = doc.getIds();
 Result.errors = memoryLogger.getMessages();
 
-process.stderr.write('asciidoctor-helper: Testing ' + adocFilename + ' with index ' + indexFileName + "\n");
+//process.stderr.write('asciidoctor-helper: Testing ' + adocFilename + ' with index ' + indexFileName + "\n");
 if (adocFilename == indexFileName) {
     Result.errors = Result.errors.filter(e => getNested(e, 'message', 'source_location', 'path') != '<stdin>');
 }
