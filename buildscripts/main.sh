@@ -100,7 +100,7 @@ function writeRepoKey() {
 }
 
 function cloneWhitelabelRepository() {
-  if [[ ${PARTNER} =='WD' ]]: then
+  if [[ ${PARTNER} == 'WD' ]]; then
     debugMsg "Skipping WL Repo checkout for partner ${PARTNER}"
     return 0
   fi
