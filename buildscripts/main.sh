@@ -100,6 +100,10 @@ function writeRepoKey() {
 }
 
 function cloneWhitelabelRepository() {
+  if [[ ${PARTNER} =='WD' ]]: then
+    debugMsg "Skipping WL Repo checkout for partner ${PARTNER}"
+    return 0
+  fi
   debugMsg "inside cloneWhitelabelRepository()"
   mkdir -p "${INITDIR}/${WL_REPO_ORG}"
   writeRepoKey
