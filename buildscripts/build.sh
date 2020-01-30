@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "use main.sh!"
+
 set -e
 
 function timed_log {
