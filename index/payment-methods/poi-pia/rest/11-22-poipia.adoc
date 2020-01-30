@@ -1,0 +1,379 @@
+[#API_POIPIA]
+== REST API & {payment-page-v1}
+_POI/PIA_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+[#API_POIPIA_General_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | Please contact <<ContactUs, Merchant Support>> for Countries.
+| Currencies   | EUR
+|===
+
+[#API_POIPIA_General_Communication]
+=== Communication Formats
+This table illustrates how _POI/PIA_ notifications are encoded and which
+formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses |Format  |XML, JSON, NVP
+                         |Methods |POST, GET
+h| IPN Encodements     2+|Base64
+|===
+
+[#API_POIPIA_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given
+here, look at <<AppendixB,  Transaction Types>>.
+
+[cols="20e,60,20"]
+|===
+|Transaction Type |Description |Link to the sample
+
+| authorization  |If the request is successful, a response will be
+returned with the status Success. This response means that the
+transaction has entered the {payment-gateway} successfully. The payment is
+in _pending_ status and awaiting a _deposit_ transaction from the consumer
+bank account to the merchant's Wirecard Bank account.
+|<<API_POIPIA_Samples_authorization, _authorization_ samples>>
+
+| void-authorization  |Voids an authorization.
+|<<API_POIPIA_Samples_voidauthorization, _void-authorization_ samples>>
+
+| deposit  |Incoming funds transfer from the consumer. Merchant is
+notified via IPN.
+|<<API_POIPIA_Samples_deposit, _deposit_ samples>>
+|===
+
+[#POIPIA_TestCredentials]
+=== Test Credentials
+
+[cols="20,60,20"]
+|===
+.2+h|URLs (Endpoints) |For transaction types _authorization_, _credit_, _pending-credit_.
+|``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+|For transaction type _void-authorization._ |``\https://{test-instance-hostname}/engine/rest/payments/``
+h|Merchant Account ID (MAID) 2+|dcd72c94-25df-4794-8197-daf029c82d65
+h|Username 2+|16390-testing
+h|Password 2+|3!3013=D3fD8X7
+h|Secret Key 2+|	cbdf53d2-b9ff-4355-80d5-8836342ac336
+|===
+
+[#API_POIPIA_Workflow]
+=== Workflow
+
+[#API_POIPIA_Workflow_From_to]
+==== From _authorization_ to _deposit_
+
+.via ReST API
+
+image::images/11-22-poipia/poipia_workflow_rest.png[Workflow via ReST]
+
+. Consumers initiate a payment process on merchants' website.
+. Consumers select the payment method _POI/PIA._
+. Merchants present invoice to consumers.
+. Merchants display the payment's confirmation page.
+. Consumers confirm the payment.
+. Consumers initiate a _Credit Transfer_ at their bank.
+. {payment-gateway} deposits the funds into the merchants'
+bank account.
+. {payment-gateway} sends a notification to the merchants.
+. Merchants receive the notification.
+
+//-
+
+.via Hosted Payment Page (HPP)
+
+image::images/11-22-poipia/poipia_workflow_hpp.png[Workflow via HPP]
+
+. Consumers initiate a payment process on merchants' website.
+. Merchants redirect consumers on Hosted Payment Page (HPP).
+. Consumers select the payment method _POI/PIA._
+. Consumers confirm the payment.
+. HPP sends an invoice to the consumers.
+. HPP redirects consumers to merchants' website.
+. Consumers initiate a _Credit Transfer_ at their bank.
+. {payment-gateway} deposits the funds into the merchants'
+bank account.
+. {payment-gateway} sends a notification to the merchants.
+. Merchants receive the notification.
+
+//-
+
+[#API_POIPIA_Workflow_From_to_authorization]
+===== _authorization_
+
+If the request is successful, a response will be returned with the
+status ``success``. This response means that the transaction has
+entered {payment-gateway} successfully. The payment is in the
+status ``pending`` and awaiting a _deposit_ transaction from the
+consumer's bank account to the merchant's bank account.
+
+If the request is not successful, a response will be returned with
+status ``failed``. The response always contains a status code and a
+description.
+
+Please read the description of the ``failed`` status carefully as it will
+help to understand why the transaction request has failed and what needs
+to be fixed in order to send a successful transaction request.
+
+[#API_POIPIA_Workflow_From_to_deposit]
+===== _deposit_
+
+Once the consumer's payment reaches the {payment-gateway},
+{payment-gateway} matches the transaction to the original
+_authorization_ transaction and creates a _deposit_ transaction.
+
+[#API_POIPIA_Workflow_refund]
+==== _refund_
+
+Merchant can refund a _wiretransfer_ payment by sending a _SEPA credit_
+transaction. It is possible to provide the ``transaction-id`` of the
+corresponding _deposit_ transaction in the ``parent-transaction-id`` field
+of the _refund_ request. For more details please refer to the chapter
+<<SEPACreditTransfer, Credit Transfer (SEPA)>> and
+<<GeneralPlatformFeatures_CrossPayment, Cross-Payment-Methods Referencing>>.
+
+It allows to perform a _refund_ to the corresponding buyer bank account
+without sending the consumer's name and bank account details like IBAN
+and BIC. This information is taken automatically from the {payment-gateway}. If the consumer's first/last name or IBAN/BIC is unknown for the
+referenced _deposit_ transaction and not provided with the _credit_
+request, the request will be rejected. If consumer's first and last name
+and IBAN and BIC are sent with the _credit_ SEPA request, this information
+will be used instead of the data stored in the referenced deposit
+transaction.
+
+If an amount is provided in the _credit_ request, this value will be
+refunded. Multiple refunds are allowed. If no amount is provided, the
+whole amount of the _deposit_ transaction will be refunded.
+
+[#API_POIPIA_Workflow_void]
+==== _void_
+
+{payment-gateway} allows merchants to void _wiretransfer Authorization_ transactions.
+
+NOTE: Voiding an _authorization_ transaction will not prevent the processing of incoming deposits for
+this authorization. Furthermore it is possible to void an _authorization_ even if a _deposit_ has already been received for it.
+
+To void an existing _wiretransfer authorization_ transaction, sending a
+new transaction request with the type ``void-authorization`` request is
+necessary. A request for a void transaction must contain
+a ``parent-transaction-id`` referring to the _authorization_ transaction
+that needs to be voided.
+
+[#API_POIPIA_Fields]
+=== Fields
+
+The following elements are mandatory (M) or optional (O) for a
+request/response.
+
+[#API_POIPIA_Fields_authorization]
+==== _authorization_
+
+[cols="12e,7,7,7,7,60"]
+|===
+|Field |Request |Response |Datatype |Size |Description
+
+|merchant-account-id |M |  |String |36 |Unique identifier for a merchant account.
+|transaction-id |  |M |String |36 a|The ``transaction-id`` is the unique identifier
+for a transaction. It is generated by Wirecard.
+|request-id |M |  |String |150 a|This is the identification number of the
+request on the merchant's side. It must be unique for each request.
+
+NOTE: To retrieve _authorization_ or _deposit_ transaction by the ``request-id``
+you need to add ``-authorization`` or ``-deposit`` to the original ``request-id``
+correspondingly (for details see
+  <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction>>
+  by ``request-id``).
+In case of multiple deposits please add ``-deposit:N`` where N is the sequence
+number of the _deposit_ starting with 2 (from second _deposit_).
+
+|transaction-type |M |  |String |30 |This is the type for a transaction. For
+_wiretransfer_, only ``authorization`` is allowed.
+|transaction-state  |  |M |String  |12  |This is the status of a transaction.
+|completion-time-stamp  |  |M |dateTime  |  |This is the timestamp of
+completion of request.
+|status.code |  |M |String |12 |This is the code of the status of a transaction.
+|status.description |  |M |String |256 |This is the description to the status
+code of a transaction.
+|status.severity |  |M |String |20 |This field gives information if a status
+is a warning, an error or an information.
+|statuses.Status |  |M |String |12 |This is the status of a transaction.
+|requested-amount |M |M |Numeric |11,3 |This is the amount of the transaction.
+The amount of the decimal place is dependent of the currency. Min amount €0.01.
+Max amount €999999999.99.
+|requested-amount@currency |M |M |String |3 |This is the currency of the
+requested-amount. Only EUR (euro) is accepted.
+|account-holder.first-Name |O |O |String |32 |This is the end-consumer's
+first name.
+|account-holder.last-Name |M |M |String |32 |This is the end-consumer's
+last name.
+|account-holder.email |O |O |String |64 |This is the end-consumer's email address.
+|account-holder.gender |O |O |String |1 |This is the end-consumer's gender.
+|account-holder.date-of-birth |O |O |Date |  |This is the end-consumer's
+birth date.
+|account-holder.phone |O |O |String |32 |This is the end-consumer's
+phone number.
+|account-holder.address.street1 |O |O |String |70 |This is the first part of
+the end-consumer's street.
+|account-holder.address.street2 |O |O |String |128 |This is the second part of
+the end-consumer's street.
+|account-holder.address.city |O |O |String |32 |This is the end-consumer's city.
+|account-holder.address.state |O |O |String |32 |This is the end-consumer's state.
+|account-holder.address.country |O |O |String |3 |This is the end-consumer's
+country.
+|account-holder.address.postal-code |O |O |String |16 |This is the
+end-consumer's postal code.
+|ip-address |O |O |String |15 |The global (internet) IP address of the
+consumer's computer.
+|order-number |O |O |String |64 |This is the order number of the merchant.
+|order-detail |O |O |String |65535 |This is a field for details of an order
+filled by the merchant.
+|descriptor |O |O |String |100 |Free text describing the order/payment purpose.
+Please note that this field provided in the _authorization_ request is not
+relevant for the _deposit_ matching. Delivered with the _deposit_ payment
+notification to the merchant this field contains the bank transfer usage
+information entered by the buyer.
+|notifications.notification@url |O |O |String |256 |The URL to be used for the
+Instant Payment Notification. It overwrites the notification URL that is set
+up in the merchant configuration.
+|custom-field.field-name |O |O |String |36 |This is the name for the custom field.
+|custom-field.field-value |O |O |String |256 |This is the content of the
+custom field. In this field the merchant can send additional information.
+|payment-methods.payment-method-Name |M |M |api-id |15 |This is the name of
+the payment method - ``wiretransfer``.
+|payment/merchant-bank-account/bank-name |  |O |String |100 |The merchant bank
+name as configured for the merchant account
+|payment/merchant-bank-account/branch-city |  |O |String |64 |The city of the
+merchant bank as configured for the merchant account
+|payment/merchant-bank-account/branch-state |  |O |String |64 |The state/country
+of the merchant bank as configured for the merchant account
+|payment/merchant-bank-account/branch-address |  |O |String |64 |The street and
+house number of the merchant bank as configured for the merchant account
+|payment/merchant-bank-account/iban |  |M |String |34 |The merchant bank account
+IBAN as configured for the merchant account
+|payment/merchant-bank-account/bic |  |M |String |15 |The merchant bank account
+BIC as configured for the merchant account
+|api-id |  |  |api-id |  |The API id is always returned in the notification.
+For _wiretransfer_ it is ``---``
+|provider-transaction-reference-id |  |M |String |10 |Wirecard generates this
+ID for the merchant and sends back with the _authorization_ response. This ID must be entered by the buyer in the usage field of the bank transfer form in order to be matched to the corresponding _authorization_ transaction in the {payment-gateway}.
+|===
+
+[#API_POIPIA_Fields_voidauthorization]
+==== _void-authorization_
+
+[cols="12e,7,7,7,7,60"]
+|===
+|Field |Request |Response |Data Type |Size |Description
+
+|merchant-account-id |M |  |String |36 |Unique identifier for a merchant account.
+|transaction-id |  |M |String |36 |The Transaction ID is the unique identifier
+for a transaction. It is generated by Wirecard.
+|request-id |M |  |String |150 |This is the identification number of the
+request on the merchant's side. It must be unique for each request.
+|transaction-type |M |  |String |30 |This is the type for a transaction -
+``void-authorization``.
+|transaction-state  |  |M |String  |12  |This is the status of a transaction
+|completion-time-stamp  |  |M |dateTime  |  |This is the timestamp of completion
+of request.
+|status.code |  |M |String |12 |This is the code of the status of a transaction.
+|status.description |  |M |String |256 |This is the description to the status
+code of a transaction.
+|status.severity |  |M |String |20 |This field gives information if a status
+is a warning, an error or an information.
+|statuses.status |  |M |String |12 |This is the status of a transaction.
+|requested-amount |O |O |Numeric |11,3 |This is the amount of the transaction
+to be voided. The amount of the decimal place is dependent of the currency.
+Min amount €0.01. Max amount €999999999.99.
+|requested-amount@currency |O |O |String |3 |This is the currency of the
+requested-amount. Only EUR (euro) is accepted.
+|parent-transaction-id |M |M |String |36 |The transaction ID of the
+_authorization_ transaction to be voided.
+|descriptor |O |O |String |100 |Free text describing the reason of voiding the
+transaction.
+|payment-methods.payment-method-name |M |M |api-id |15 |This is the name of
+the payment method - ``wiretransfer``.
+|===
+
+[#API_POIPIA_Samples]
+=== Samples
+
+Go to
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>,
+if you want to see corresponding notification samples.
+
+[#API_POIPIA_Samples_authorization]
+==== _authorization_
+
+.XML _authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_authorization_request_success.xml[]
+----
+
+.XML _authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_authorization_response_success.xml[]
+----
+
+.XML _authorization_ Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_authorization_request_failure.xml[]
+----
+
+.XML _authorization_ Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_authorization_response_failure.xml[]
+----
+
+[#API_POIPIA_Samples_voidauthorization]
+==== _void-authorization_
+
+.XML _void-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_void-authorization_request_success_c8d40613.xml[]
+----
+
+.XML _void-authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_void-authorization_response_success_c8d40613.xml[]
+----
+
+.XML _void-authorization_ Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_void-authorization_request_failure_a7953048.xml[]
+----
+
+.XML _void-authorization_ Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_void-authorization_response_failure.xml[]
+----
+
+[#API_POIPIA_Samples_deposit]
+==== _deposit_ Notification
+
+._deposit_ Notification (matched)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_deposit_notification_.xml[]
+----
+
+//-

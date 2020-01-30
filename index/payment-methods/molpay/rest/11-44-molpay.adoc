@@ -1,0 +1,298 @@
+[#MOLPay]
+== REST API & {payment-page-v1}
+_MOLPay_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#MOLPay_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+|Countries
+|China, Indonesia (coming soon), Malaysia, Philippines, Singapore, Thailand, Vietnam
+|Currencies
+|*Processing:* IDR, MYR, PHP, RMB/CNY, SGD, THB, VND +
+*Settlement:* local currency/USD
+|===
+
+[#MOLPay_Channels]
+==== Available Payment Methods (Channels)
+This table shows all available channels through which a consumer can make a payment:
+[width=75%,stripes=none]
+[frame=all]
+[cols="v,v,,"]
+|===
+|Payment Method (Channel) |Name |Country |Currency
+
+|alipay
+|Alipay
+|China
+|RMB/CNY/USD/MYR/SGD
+
+|cimbclicks
+|CIMB Clicks
+|Malaysia
+|MYR
+
+|maybank2u
+|Maybank2u
+|Malaysia
+|MYR
+
+|fpx_amonline
+|FPX B2C AmOnline
+|Malaysia
+|MYR
+
+|fpx_muamalat
+|FPX B2C Bank Muamalat
+|Malaysia
+|MYR
+
+|fpx_bankrakyat
+|FPX B2C Bank Rakyat
+|Malaysia
+|MYR
+
+|fpx_bimb
+|FPX B2C Bank Islam
+|Malaysia
+|MYR
+
+|dragonpay
+|Dragonpay
+|Philippines
+|PHP
+
+|fpx_abb
+|FPX B2C Affin Bank
+|Malaysia
+|MYR
+
+|fpx_abmb
+|FPX B2C Alliance Bank
+|Malaysia
+|MYR
+
+|fpx_bsn
+|FPX B2C Bank Simpanan Nasional
+|Malaysia
+|MYR
+
+|fpx_ocbc
+|FPX B2C OCBC
+|Malaysia
+|MYR
+
+|fpx_scb
+|FPX B2C Standard Chartered
+|Malaysia
+|MYR
+
+|fpx_uob
+|FPX B2C United
+Overseas Bank
+|Malaysia
+|MYR
+
+|fpx_hlbconnect
+|FPX B2C Hong Leong
+|Malaysia
+|MYR
+
+|nganluong
+|NganLuong
+|Vietnam
+|VND
+
+|omise
+|Omise
+|Thailand
+|THB
+
+|omise_bay
+|Krungsri e-Payment via Omise
+|Thailand
+|THB
+
+|omise_bbl
+|Bangkok Bank via Omise
+|Thailand
+|THB
+
+|omise_ktb
+|Krung Thai Bank via Omise
+|Thailand
+|THB
+
+|omise_scb
+|Siam Commercial Bank via Omise
+|Thailand
+|THB
+
+|omise_tl
+|Tesco Lotus via Omise
+|Thailand
+|THB
+
+|fpx_pbb
+|FPX B2C Public Bank
+|Malaysia
+|MYR
+
+|fpx_rhbnow
+|FPX B2C RHB Bank
+|Malaysia
+|MYR
+
+|singpost
+|SAM by SingPost
+|Singapore
+|SGD
+
+|UPOP
+|UnionPay
+|China
+|CNY/USD/MYR
+
+|vtcpay
+|VTC Pay
+|Vietnam
+|VND
+|===
+
+[#MOLPay_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _MOLPay_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h|Requests/Responses |Format |XML, JSON
+|Methods
+|POST
+h|IPN Encodement
+2+|Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#MOLPay_TransactionTypes]
+=== Transaction Types
+
+This table lists all transaction types available for _MOLPay_.
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+[%autowidth]
+[stripes=none]
+[cols="v,,,,,v"]
+|===
+|Transaction Type |Description |Request |Response/IPN |WEP v|Link to sample
+
+|_debit_ |Creates a request to charge the specified amount from the
+consumer’s bank account. |YES | YES |YES
+|<<MOLPay_samples_debit, debit sample>>
+
+|_get-url_ |Retrieves the URL of the MOLPay landing page for the
+consumer to be redirected to. |NO |YES |YES | 
+|===
+
+YES indicates that the transaction type is sent in the request, in the response/notification or in the **W**irecard **E**nterprise **P**ortal.
+//-
+
+[#MOLPay_TestCredentials]
+=== Test Credentials
+
+[cols=",,"]
+[%autowidth]
+[stripes=none]
+|===
+h|URL (Endpoint)
+|For transaction type ``debit`` (REST API)
+|``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+h|Merchant Account ID (MAID)
+2+|0518ac4e-a622-48d8-87f5-a04835ded715
+h|Username
+2+|Molpay-EETest
+h|Password
+2+|he04YtvH
+h|Secret Key
+2+|39c6793b-888b-4dd6-a5ac-f6b844418451
+|===
+
+[#MOLPay_Workflow]
+=== Workflow
+[#MOLPay_debit]
+==== debit
+
+[#MOLPay_debit_RESTAPI]
+===== Payment Process Using REST API
+
+image::images/11-44-molpay/MOLPay_workflow_debit_RESTAPI.png[Debit Workflow with REST API, width=950]
+
+. Consumer initiates a debit transaction.
+. Merchant sends a request to the {payment-gateway-abbr} endpoint. This request must contain 
+  - the transaction type ``debit``
+  - the selected payment method (channel)
+  - the consumer's data
+  - payment data.
+. {payment-gateway-abbr} sends a response to merchant. This response contains a generated URL for _MOLPay_'s landing page (field “payment-methods/payment-method/@url”).
+. With this URL, the merchant redirects the consumer to _MOLPay_'s landing page.
+. The consumer submits the transaction on _MOLPay_'s landing page and is redirected to their online banking system.
+. The consumer finishes the payment in their online banking system. Optionally, the consumer can be redirected back to the shop.
+. {payment-gateway-abbr} sends a success/failure notification to the merchant.
+
+//-
+
+[#MOLPay_debit_HPP]
+===== Payment Process Using HPP
+
+image::images/11-44-molpay/MOLPay_workflow_debit_HPP.png[Debit Workflow with HPP, width=950]
+
+. Consumer selects one of the _MOLPay_ payment methods (channel).
+. {payment-gateway-abbr} redirects the consumer to _MOLPay_'s landing page.
+. The consumer submits the transaction on _MOLPay_'s landing page and is redirected to their online banking system. 
+. The consumer finishes the payment in their online banking system. Optionally, the consumer can be redirected back to the shop.
+. {payment-gateway-abbr} sends a success/failure notification to the merchant.
+
+//-
+
+[#MOLPay_Fields]
+=== Fields
+
+The fields used for _MOLPay_ requests, responses and
+notifications are the same as the REST API Fields. Please refer to the <<RestApi_Fields, REST API field list>> or the request example for the fields required in
+a <<MOLPay_samples_debit, debit>> transaction.
+
+[#MOLPay_Samples]
+=== Samples
+
+[#MOLPay_samples_debit]
+==== debit
+
+.XML debit Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/fpx_abb_debit_request_success_MY.xml[]
+----
+
+.XML debit Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/fpx_abb_debit_response_success_MY.xml[]
+----
+
+.XML debit Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/fpx_abb_debit_request_failure_MY.xml[]
+----
+
+.XML debit Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/fpx_abb_debit_response_failure_MY.xml[]
+----
+
+//-

@@ -1,0 +1,428 @@
+[#CreditCard_3DS2_UseCases]
+== 3D Secure 2 Use Cases
+
+The following list covers the most typical use cases and business scenarios. Please keep in mind that other transaction workflows are possible.
+For standard *check-enrollment* request and response samples, head to our <<CreditCard_Samples_CheckEnrollment_3DS2, Credit Card Samples>> section.
+You can find more details on the implementation of these use cases in our <<API_CC_3DS2_PaymentFlows, 3D Secure 2 Payment Flows>>.
+
+[#CreditCard_3DS2_UseCase_OneTimePurchase]
+=== One-time Purchase
+
+One-time purchase is one of the most common scenarios: a consumer places an order for a product or service. The merchant fulfills the order in a single shipment and before expiration of the _authorization._
+
+[#CreditCard_3DS2_UseCase_OneTimePurchase_tx]
+==== For a successful transaction:
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._ +
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
+. *Authorization* (full amount): Send a second request with transaction type ``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
++
+_When ready to ship..._
++
+. *Capture* (full amount): Send a third request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+'''
+
+[#CreditCard_3DS2_UseCase_DelayedShipment]
+=== Delayed Shipment
+
+A consumer places an order for a product or service. The merchant fulfills the order in a single shipment, but with a delay. This delay may be expected or unexpected and could exceed the expiration date of the _authorization._
+
+NOTE: *Pre-authorization* is valid longer than a regular *authorization.*
+
+[#CreditCard_3DS2_UseCase_DelayedShipment_tx]
+==== For a successful transaction:
+
+.Option 1: Expected delay
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to validate the credit card data.
++
+_When ready to ship..._
++
+. *Authorization* (full amount): Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Capture* (full amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+
+.Option 2: Unexpected delay
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *(Pre-)authorization* (full amount): Send a second request with transaction type (``pre-``)``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
++
+_When exceeding the expiration date of the authorization_
++
+. *Void-authorization*: Send a request with transaction type ``void-authorization``. Include the ``transaction-id`` from the (_pre-_)_authorization_ response in the ``parent-transaction-id`` field.
++
+_When ready to ship (MIT)..._
++
+. *Authorization* (full amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. Include the ``transaction-id`` from the (_pre-_)_authorization_ response in the ``parent-transaction-id`` field.
+. *Capture* (full amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+
+'''
+[#CreditCard_3DS2_UseCase_PartialSplitShipment]
+=== Partial/ Split Shipment
+
+A consumer places an order for a product or service. The merchant fulfills the order in multiple shipments.
+
+[#CreditCard_3DS2_UseCase_PartialSplitShipment_tx]
+==== For a successful transaction:
+
+.Option 1: Without delay
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (full amount): Send a second request with transaction type ``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
++
+_Whenever a remaining part of the order is ready to ship_
++
+. *Capture* (partial amount): Send a third request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field. Capture every individual shipment.
+
+//-
+
+
+.Option 2: With (partial) delay (if shipping takes longer than *authorization* is valid)
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (full amount): Send a second request with transaction type ``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
++
+_Whenever a part of the order is ready to ship_
++
+. *Capture* (partial amount):  Send a third request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field. Capture every individual shipment.
++
+_When authorization expires_
++
+. *Void-authorization* (remaining amount): Void the remaining amount with a ``void-authorization`` request.
++
+_Whenever a remaining part of the order is ready to ship_
++
+. *Authorization* (remaining amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request.
+. *Capture* the remaining amount. Capture every individual shipment.
+
+//-
+
+'''
+ifndef::env-nova[]
+[#CreditCard_3DS2_UseCase_Recurring_Same]
+=== Recurring Payments - Same Amount (Merchant-Initiated Transaction)
+
+Recurring transactions are processed at regular intervals, with the same, recurring amount. When you set up a recurring _merchant-initiated transaction_ (MIT) agreement, the first transaction requires _Strong Customer Authentication_ (one-time only).
+A common business scenario would be subscription fees for a software-as-a-service (SaaS) solution, or for video streaming services.
+
+WARNING: Consumers must be clearly informed about the terms of the agreement when setting up the recurring payment plan.
+
+.Option 1: Amount due at sign-up (no trial period)
+
+_Setting up the agreement (consumer-initiated)_
+
+. *Check-enrollment* (amount due at sign-up): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (amount due at sign-up): Send a request with transaction type ``authorization``. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment._
+. *Capture* (amount due at sign-up): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
++
+_Recurring payment (MIT)_
++
+. *Authorization* (recurring amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the *first* _authorization_ response in the ``parent-transaction-id`` field (see step 2).
+. *Capture* (recurring amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the *second* _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+.Option 2: No amount due at sign-up (with trial period)
+
+_Setting up the agreement (consumer-initiated)_
+
+. *Check-enrollment* (zero amount): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
++
+_Per recurring payment (MIT)_
++
+. *Authorization* (recurring amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the _authorization-only_ response in the ``parent-transaction-id`` field (see step 2).
+. *Capture* (recurring amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+'''
+[#CreditCard_3DS2_UseCase_Recurring_Variable]
+=== Recurring Payments - Variable Amount (MIT Unscheduled Credential on File - UCOF)
+
+For recurring payments with a variable amount, the consumer agrees that the merchant may initiate one or more transactions in the future. These merchant-initiated _UCOF_ (Unscheduled Credential on File) transactions use stored credentials. The transactions are unscheduled and happen in irregular intervals. The payment amount is either fixed or variable. UCOF _merchant-initiated transaction_ agreements have to be set up with Strong Customer Authentication.
+Examples include automatic top-up transactions, e.g. for mobile phones and online gaming.
+
+WARNING: Consumers must be clearly informed about the terms of the unscheduled credential on file at the time of sign-up.
+
+.Option 1: Amount due at sign-up
+
+_Setting up the agreement (consumer-initiated)_
+
+. *Check-enrollment* (amount due at sign-up): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (amount due at sign-up): Send a request with transaction type ``authorization``. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment._
+. *Capture* (amount due at sign-up): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
++
+_Per UCOF payment (MIT)_
++
+. *Authorization* (UCOF amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the *first* _authorization_ response in the ``parent-transaction-id`` field (see step 2).
+. *Capture* (UCOF amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the UCOF _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+.Option 2: No amount due at sign-up
+
+_Setting up the agreement (consumer-initiated)_
+
+. *Check-enrollment* (zero amount): This is the initial request. It initiates the payment session and the agreement set-up. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the payment agreement. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
++
+_Per UCOF payment (MIT)_
++
+. *Authorization* (UCOF amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>ucof</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the _authorization-only_ response in the ``parent-transaction-id`` field (see step 2).
+. *Capture* (UCOF amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _UCOF_ *authorization* response in the ``parent-transaction-id`` field.
+
+//-
+
+endif::[]
+
+'''
+[#CreditCard_3DS2_UseCase_MultiPartyCommerce]
+=== General Multi-Party Commerce
+
+The consumer buys a product or service from a merchant. At the time of purchase, the consumer acquires an additional product or service provided by a separate merchant. This separate merchant charges for the additional product or service.
+For example, the consumer purchases a washing machine and a breakdown and repair insurance.
+
+[#CreditCard_3DS2_UseCase_MultiPartyCommerce_tx]
+==== For a successful transaction:
+
+_The consumer-facing merchant (i.e. where the consumer buys the primary product or service, e.g. the washing machine) sends the following requests_:
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (amount due with consumer-facing merchant): Send a second request with transaction type ``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
+. *Capture* (amount due with consumer-facing merchant): Send a third request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field.
++
+_Each merchant (when ready to ship / deliver)..._
++
+. *Authorization* (remaining amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope for SCA; therefore, ``check-enrollment`` is not required prior to this request.
+. *Capture* the remaining amount.
+
+//-
+
+'''
+[#CreditCard_3DS2_UseCase_AgentModel]
+=== Agent Model
+
+The consumer interacts with an agent that is selling another merchant's product or service. Payments are triggered by merchants. One example for this would be an online travel agency.
+
+WARNING: Agents must clearly inform consumers that their cards will be charged by merchants, and not them.
+
+[#CreditCard_3DS2_UseCase_AgentModel_tx]
+==== For a successful transaction:
+
+.Option 1: You are an agent with {payment-provider-name}
+
+_The agent initiates the payment session_:
+
+. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``, and the ``three-d/pareq``. The _PAReq_ is the digitally signed, base64-encoded authentication request message created by _{payment-gateway}._ It contains the results of the 3D Secure versioning request that is used to initiate _AReq_ as part of the HTTPS POST redirect to the ACS URL. The agent uses the PAReq for a HTTPS POST redirect to the ACS URL, which is part of a standard 3D Secure process. The HTTPS POST redirect returns the PARes as part of the response.
+. *Check-payer-response*: This request serves to provide the authentication values needed later on in the _authorization._ The _check-payer-response_ is executed after the _check-enrollment_ response and the PARes have been received. The _check-payer-response_ must contain the following fields
+ - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the _check-enrollment_ response.
+The _check-payer-response_ includes the ``three-d/cardholder-authentication-value``.
++
+Provide the final authentication values for the merchant. These values include:
++
+ - ``three-d/cardholder-authentication-value``
+ - ``three-d/eci``
+ - ``three-d/ds-transaction-id``
+ - ``three-d/version``
+ - ``three-d/cardholder-authentication-status``
+
+//-
+
+
+.Option 2: You are a merchant with {payment-provider-name}
+
+As a merchant you receive the following authentication values from your external 3D Secure provider (e.g. the agent):
+
+ - ``three-d/cardholder-authentication-value`` (Mandatory)
+ - ``three-d/eci`` (Mandatory)
+ - ``three-d/ds-transaction-id`` (Mandatory)
+ - ``three-d/version`` (Mandatory)
+ - ``three-d/cardholder-authentication-status`` (Optional)
+
+_Merchant (when ready to ship / deliver)..._
+
+. *Authorization* (full amount): Include the authentication values provided by the external 3D Secure provider.
+. *Capture* (full amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+'''
+
+[#CreditCard_3DS2_UseCase_OpenOrders]
+=== Open Orders (with an unknown payment amount before purchase)
+
+The consumer places an order for a certain amount. However, the amount is expected to change by the time of shipping.
+For example, this could apply to orders where a shipping date is booked several days or weeks in advance, but the shopping cart contents can be changed until the time of shipping.
+
+[#CreditCard_3DS2_UseCase_OpenOrders_tx]
+==== For a successful transaction:
+
+.Option 1: Initial order amount
+
+. *Check-enrollment* (initial order amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to validate the credit card data.
++
+_If the shopping cart content changes and the new total amount exceeds the original amount_
++
+. *Check-enrollment* (new total amount): To authenticate the new total amount, a new _check-enrollment_ is needed. If the request is successful, the response contains a _transaction-id._
++
+_When ready to ship..._
++
+. *Authorization* (latest enrolled amount): Send a request with transaction type ``authorization``. Include the ``transaction-id`` from the _latest_ *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
+. *Capture* (latest enrolled amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+NOTE: This option is more expensive because more enrollment-checks are necessary.
+
+
+.Option 2: Estimated maximum amount
+
+. *Check-enrollment* (estimated maximum amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to validate the credit card data.
++
+_When adding items (only if the total amount exceeds the estimated maximum amount)_
++
+. *Check-enrollment* (new total amount): To authenticate the new total amount, a new _check-enrollment_ is needed. If the request is successful, the response contains a _transaction-id._
++
+_When ready to ship..._
++
+. *Authorization* (latest enrolled amount): Send a request with transaction type ``authorization``. Include the ``transaction-id`` from the _latest_ *check-enrollment* response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
+. *Capture* (latest enrolled amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+NOTE: This option may have a higher abandonment rate. The authentication prompt asks the consumer to authenticate a higher amount than expected.
+
+'''
+ifndef::env-nova[]
+[#CreditCard_3DS2_UseCase_Installments]
+=== Installments (MIT)
+
+Payment in installments occurs when a consumer purchases goods and settles the bill with multiple partial payments (plus interest) over an agreed period of time.
+
+WARNING: Consumers must be clearly informed about the terms of the agreement when setting up the installment plan.
+
+.Option 1: Installment with down-payment
+
+_Setting up the agreement (consumer-initiated)_
+
+. *Check-enrollment* (full amount + interest): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (down-payment amount): Send a request with transaction type ``authorization``. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
+. *Capture* (down-payment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
++
+_Payment per installment (MIT)_
++
+. *Authorization* (installment amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the *first* _authorization_ response in the ``parent-transaction-id`` field (see step 2).
+. *Capture* (installment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the *second* _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+.Option 2: Installment without down-payment
+
+_Setting up the agreement (consumer-initiated)_
+
+. *Check-enrollment* (full amount + interest): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the payment agreement. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
++
+_Payment per installment (MIT)_
++
+. *Authorization* (installment amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>installment</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the _authorization-only_ response in the ``parent-transaction-id`` field (see step 2).
+. *Capture* (installment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+endif::[]
+
+//-
+
+'''
+[discrete]
+[#CreditCard_3DS2_UseCase_Special]
+== Special 3D Secure 2 Use Cases
+
+[#CreditCard_3DS2_UseCase_Special_ChangingTerms]
+=== Changing Terms of an Existing Payment Agreement (MIT)
+
+Existing payment agreements may change. Such changes could be initiated by both merchants and consumers.
+Whenever a payment agreement changes, a _check-enrollment_ for the new amount is recommended. Merchants may decide against a new _check-enrollment_ in certain business scenarios.
+
+Examples include up- and downgrades of subscription plans for video streaming services, changes to the billing cycle, as well as pausing, resuming, and canceling a subscription.
+
+
+.Scenario 1: Merchant-driven agreement changes
+
+If a change is initiated by merchants, ``check-enrollment`` is not needed if the original agreement with the consumer (e.g. the terms and conditions) clearly covers the eventuality of such changes. One example could be price changes due to inflation, or video streaming services changing their subscription fees.
+
+.Scenario 2: Consumer-driven agreement changes
+
+If a change is initiated by consumers, authentication is only required, if the agreed payment terms clearly cover the eventuality of such changes and the merchant has appropriate risk management in place. In case there are any doubts that the original agreement covers the change, treating the transaction as a new agreement by performing a _check-enrollment_ request (for the new amount) is highly recommended. Examples include consumers up- or downgrading their software subscriptions.
+
+ifndef::env-nova[]
+[#CreditCard_3DS2_UseCase_Special_CardOnFile]
+=== Card-on-File Transactions
+
+For card-on-file transactions, merchants store the consumer's card data (as a token) for future transactions. Thus, when the consumer returns to the merchant's shop, they don't need to re-enter their data.
+
+WARNING: Before storing credentials on file, consumers must be clearly informed how the credentials will be used in the future. Obtain the consumers' consent.
+
+[#CreditCard_3DS2_UseCase_Special_AddCardOnFile_add]
+==== To add a card on file:
+
+.Independent of purchase (standard scenario)
+
+. *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+
+//-
+
+NOTE: Zero-amount processing is not supported by all acquirers. If you experience difficulties, please consult the alternative scenario below.
+
+.Independent of purchase (alternative scenario)
+
+. *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
+. *Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Void-authorization* (_authorization_ amount): Send a third request with transaction type ``void-authorization``. The agreement has been signed by means of the ``authorization`` transaction. Void the amount provided in the _authorization_ request to conclude the workflow.
+
+.During purchase
+
+. *Check-enrollment* (payment amount): This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
++
+NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
++
+
+. *Authorization* (payment amount): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
+. *Capture* (payment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
+
+//-
+
+====
+WARNING: For subsequent transactions that use stored card details, use ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``.
+====
+endif::[]
+
+[#CreditCard_3DS2_UseCase_MOTO_Transactions]
+=== Mail Order Telephone Order (MOTO) Transactions
+
+NOTE: To process MOTO transactions, your merchant account must be configured accordingly (contact <<ContactUs, merchant support>>).
+
+Mail Order Telephone Order (MOTO) transactions are not considered electronic payments and, as such,
+are out of scope of SCA (Strong Customer Authentication). To process MOTO transactions (authorizations and purchases) without SCA, they must be marked accordingly.
+
+How to mark a transaction as MOTO depends on your merchant account configuration: 
+
+- *MOTO-exclusive setup:* In case your merchant account is set up for executing MOTO transactions only, MOTO is assigned as the default commerce type. If the ``payment/entry-mode`` field of the payment request is left empty, the respective transaction is marked as MOTO by default.
+
+- *Mixed setup:* In case your merchant account is set up for executing both MOTO transactions and e-commerce transactions, e-commerce is assigned as the default commerce type. To mark a transaction as MOTO, set the ``payment/entry-mode`` field to either ``mail-order`` or ``telephone-order`` in the payment request.
++
+====
+WARNING: *Mixed setup:* If the ``payment/entry-mode`` field of the payment request is left empty, the respective transaction is marked as e-commerce by default and thus subject to SCA.
+====
+
+//-

@@ -1,0 +1,214 @@
+[#PP_Security]
+== Payment Page Security
+
+As payment information is exchanged between the merchant's system, the
+consumer's browser, and {payment-gateway}, it is
+important that the data exchange safeguards against man-in-the-middle
+attacks.
+
+The Hosted Payment Page (HPP), Embedded Payment Page (EPP), and Seamless
+integration use a digital SHA-256 signature for all message exchanges.
+This digital signature is a mathematical scheme for demonstrating the
+authenticity of a digital message or document. A valid digital signature
+lets a recipient know that the message was created by a known sender,
+and that it was not altered, while transmitting.
+
+There are two types of signatures
+
+- Request Signature
+- Response Signature
+
+//-
+
+[#PP_Security_SecretKeyExchange]
+=== Secret Key Exchange
+
+To ensure the authenticity of the request and response messages, it is
+required that a Secret Key is shared with the merchant.
+
+The Secret Key is used in generation of the ``request_signature`` and
+``response_signature`` fields.
+
+IMPORTANT: It is important that the Secret Key is never shared with anyone and is
+protected within the Merchant Website (only used in server side code for
+generating the request signature or validating the response signature).
+
+image:images/03-02-05-00-payment-page-security/transparent-post-secret-key.png[Secret Key Exchange Workflow]
+
+The Secret Key will be communicated at the time of Merchant Account
+setup. Please contact your support representative if you did not receive
+a Secret Key or require Secret Key regeneration.
+
+[#PP_Security_DigitalSignature]
+=== Digital Signature
+
+Hosted Payment Page uses a digital SHA-256 signature for all message
+exchanges. The signature is a mathematical scheme for demonstrating the
+authenticity of a digital message or document. A valid digital signature
+gives a recipient reason to believe that the message was created by a
+known sender, and that it was not altered in transit.
+
+[#PP_Security_Signatures]
+=== Signatures
+
+Please contact <<ContactUs, Wirecard´s Merchant Support>> to obtain the secret key
+used to sign Payment Page requests.
+
+[#PP_Security_RequestSignature]
+==== Request Signature
+
+When the merchant creates the JavaScript data, the following values
+
+- are to be concatenated,
+- leading and trailing spaces removed, and
+- SHA-256 signature follows the combined string.
+
+//-
+
+WARNING: Please note that the order of the fields is important. Also note, the
+same values used in the request signature must be placed into the client
+side data (with the exception of the secret key).
+
+. ``request_time_stamp``
+. ``request_id``
+. ``merchant_account_id``
+. ``transaction_type``
+. ``requested_amount``
+. ``requested_amount_currency``
+. ``redirect_url`` (optional)
+. ``custom_css_url`` (optional)
+. ``ip_address`` (optional)
+. ``[secretkey]``
+
+//-
+
+NOTE: If an optional field is used in the request data, it is mandatory in the
+request signature.
+
+The SHA-256 hash value is then presented on the merchants client side
+form as ``request_signature`` field.
+
+An example of request signature generation is as follows:
+
+[source,subs=attributes+]
+----
+request_time_stamp              = '20190430123012'
+request_id                      = 'order-12345'
+merchant_account_id             = 'b19fb056-d8da-449b-ac85-cfbfd0558914'
+transaction_type                = 'purchase'
+requested_amount                = '1.01'
+requested_amount_currency       = 'USD'
+redirect_url                    = 'https://test.com'
+custom_css_url                  = 'https://test.com/custom.css'
+ip_address                      = '127.0.0.1'
+hyperlink_expiration_time_stamp = '2020-04-07T13:20:00+02:00'
+secret_key                      = 'efabf47b-e43b-4785-873f-1c5bc65b7cd2'
+
+
+Pre SHA-256 string
+20120430123012order-12345b19fb056-d8da-449b-ac85-cfbfd0558914purchase1.01USDhttps://test.comhttps://test.com/custom.css127.0.0.1efabf47b-e43b-4785-873f-1c5bc65b7cd2
+----
+
+[#PP_Security_ResponseSignature]
+==== Response Signature
+
+Within the response message the following values
+
+- are concatenated,
+- leading and trailing space removed, and
+- SHA-256 signature follows the combined string.
+
+//-
+
+Response signature calculation is very similar to request signature
+calculation. String of the concatenated fields is hashed with SHA256 so
+the algorithm is very same as already explained above. There are just
+different fields in different order concatenated. Use the following
+fields in this exact order only when creating the "string to hash":
+
+. ``merchant_account_id``
+. ``transaction_id``
+. ``request_id``
+. ``transaction_type``
+. ``transaction_state``
+. ``completion_time_stamp``
+. ``token_id``
+. ``masked_account_number``
+. ``ip_address``
+. ``authorization_code``
+. ``[secretkey]``
+
+//-
+
+If the particular field is missing in response then the empty string
+should be used instead of this field.
+
+[#PP_Security_SignatureGenerationCodeSamples]
+==== Signature Generation Code Samples
+
+Below you find code samples in various programming languages that you
+can use in your shop system. These samples take care of generating
+digital request signature.
+
+.PHP Example (PHP 5 >= 5.1.2, PHP 7, PECL hash >= 1.1)
+[source,php,subs=attributes+]
+----
+$request_signature = hash('sha256', trim($request_time_stamp . $request_id . $merchant_account_id . $transaction_type . $requested_amount . $request_amount_currency . $redirect_url . $ip_address . $secret_key));
+----
+
+.C# / ASP.NET Example
+[source,csharp,subs=attributes+]
+----
+public static string GetSHA256(string text) {
+       byte[] hashValue;
+       byte[] message = Encoding.UTF8.GetBytes(text);
+
+       SHA256Managed hashString = new SHA256Managed();
+       string hex = "";
+
+       hashValue = hashString.ComputeHash(message);
+       foreach( byte x in hashValue)
+       {
+             hex += String.Format("{0:x2}", x);
+       }
+       return hex.Trim();
+}
+----
+
+.Java Example
+[source,java,subs=attributes+]
+----
+private static String tosha256(String... fields) {
+    StringBuffer sb = null;
+    try {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        sb = new StringBuffer();
+        for (String field : fields) {
+            sb.append(field.trim());
+        }
+        md.update(sb.toString().getBytes("utf-8"));
+        byte[] mdbytes = md.digest();
+        return DatatypeConverter.printHexBinary(mdbytes);
+    } catch (NoSuchAlgorithmException e) {
+        sb = null;
+    } catch (UnsupportedEncodingException e) {
+        sb = null;
+    }
+    return sb == null ? null : sb.toString();
+}
+----
+
+.GROOVY Example
+[source,java,subs=attributes+]
+----
+import java.security.MessageDigest;
+...
+
+def messageDigest = MessageDigest.getInstance("SHA256");
+def secret_key = 'XXXXXXXXXXXXXXXXXXXXXX';
+
+def stringToHash = time_stamp + request_id + merchant_account_id + transaction_type + requested_amount + requested_amount_currency + redirect_url + ip_address + secret_key;
+
+messageDigest.update( stringToHash.trim().getBytes() );
+def shaHex = new BigInteger(1, messageDigest.digest()).toString(16);
+----
