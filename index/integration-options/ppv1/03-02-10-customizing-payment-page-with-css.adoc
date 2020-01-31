@@ -1,0 +1,736 @@
+[#PPSolution_PP_CustomizeWithCSS]
+== Customization Options
+
+Payment Page can be customized through a feature called _Custom CSS URL_,
+which provides the option to use an external CSS file and link it to Payment Page.
+
+This allows the Merchant to
+
+- customize the Payment Page by editing existing tag styles from
+an external css file
+- unhide optional fields on the credit card form
+- set up a custom logo
+- send _CUSTOM CSS URL_ per request as parameter
+- use a different CSS file per request
+- use multiple CSS files
+
+NOTE: All resources are stored on Merchant side.
+_CUSTOM CSS URL_ needs to be part of the signature.
+
+[#PPSolution_PP_CustomizeWithCSS_Advantages]
+=== Advantages of _Custom CSS URL_
+
+Next to the advantage, sending different types of CSS for different kind
+of requests, the merchant can customize his theme without requiring
+Wirecard's permission. Nevertheless, the merchant's development team is
+required to follow a few rules and restrictions, which do not present
+any kind of obstacles to get the page designed into the final theme.
+
+[#PPSolution_PP_CustomizeWithCSS_Howto]
+=== How to use _Custom CSS URL_
+
+The HPP, EPP, and Seamless Integration is set up to read a default css
+file ``embeddedHpp.css``.  This file handles basic default color schemas.
+
+The main <form> container is based on BOOTSTRAP Grid
+systems, which are used to create page layouts through a series of
+rows and columns that house payment page content.
+
+Developers can customize ``bootstrap.min.css``, so while
+customizing a theme, the developer must follow bootstrap grid
+system usage rules.  For more details about bootstrap CSS conditions and
+usage please visit the bootstrap page https://getbootstrap.com/docs/3.4/css/.
+
+image:images/03-02-10-customizing-payment-page-with-css/customize-with-css-order-total.png[image,height=400]
+
+[#PPSolution_PP_CustomizeWithCSS_ContentRestriction]
+=== Custom CSS File Content Restrictions
+
+NOTE: For security reasons some elements are prohibited in the custom CSS file.
+The file must follow the criteria described below.
+
+.Custom CSS cannot contain the property ``-moz-binding``.
+
+CSS attributes beginning with ``-`` describe a proprietary attribute which
+may not be supported by all browsers. ``-moz-binding`` is an attribute
+used to load another XML file to describe the presentation of the
+selected element.
+
+NOTE: If used, an error message appears:
+"Custom CSS contains not allowed property '-moz-binding'."
+
+This code segment imports an external XML file to apply CSS properties.
+
+.invalid usage
+
+[source,css]
+----
+body {
+    -moz-binding: url("external-file.xml#xss");
+}
+----
+
+.Custom CSS cannot contain the property ``behavior``.
+
+The element ``behavior`` is an IE property with the same functionality as
+-moz-binding.
+
+NOTE: If used, an error message appears:
+"Custom CSS contains not allowed property 'behavior'."
+
+.invalid usage
+[source,css]
+----
+body {
+    behavior:url("script.htc");
+}
+----
+
+.Custom CSS cannot contain the property ``expression``.
+
+The reasons are the same as described for the properties ``-moz-binding``
+ and ``behavior``.
+
+NOTE: If used, an error message appears:
+"Custom CSS contains not allowed property value 'expression'.
+
+.Custom CSS cannot contain the properties ``::before`` and ``::after``.
+
+The reasons are the same as described for the properties ``-moz-binding``
+ and ``behavior``.
+
+NOTE: If used, an error message appears:
+"Custom CSS contains not allowed selectors ``::after`` or ``::before``."
+
+.Custom CSS cannot contain the property ``url("javascript:``.
+
+Some CSS attributes support using ``url`` in their declaration.
+For example, it is possible to use a URL when setting the source of an
+image in CSS. Therefore it is prohibited to use this property.
+
+NOTE: If used, an error message appears:
+"Custom CSS contains not allowed property value 'url("javascript:."
+
+.Custom CSS cannot include another CSS file called ``included.css``.
+
+In CSS, it is optional to import another stylesheet into the
+current stylesheet by prepending the file you want to include in a
+"@import" declaration at the start of the file. For example, the
+following CSS includes another CSS file called "included.css".
+This is not possible with _Custom CSS_.
+
+NOTE: If used, an error message appears:
+"Custom CSS contains not allowed @import directive."
+
+.invalid usage
+[source,css]
+----
+@import url("included.css");
+----
+
+.Custom CSS cannot use unknown directives.
+
+Custom CSS can only use known directives.
+
+NOTE: If unknown directives are used, an error message appears:
+"Custom CSS has been evaluated as harmful because it contains unknown
+directive."
+
+.Custom CSS cannot use unknown properties.
+
+Custom CSS can only use known properties.
+
+NOTE: If unknown properties are used, an error message appears:
+"Custom CSS cannot be parsed."
+
+.Custom CSS file and sources must reside on a server with valid SSL certificate.
+
+The custom CSS file and all of the external sources need to be loaded from a
+server which is running on a valid SSL certificate over HTTPS secured protocol.
+
+NOTE: If this condition is not fulfilled, an error message appears:
+"Custom CSS URL contains sources with absolute path which are not using
+HTTPS secure protocol."
+
+.valid usage with relative path to resource
+[source,css]
+----
+/* ********** MAIN ELEMENTS THEMING - START ********** */
+#hpp-logo {
+/* customizing logo, this field could be hidden */
+    height: 45px;
+    width: 200px;
+    float: right;
+    background-image: url("../your-company-logo.png") !important;
+    /* Caution: Path to CSS file sent in payment request is used as base URL */
+
+    background-repeat: no-repeat;
+    background-position: right top;
+}
+----
+
+.valid usage with absolute path to resource
+[source,css,subs=attributes+]
+----
+/* ********** MAIN ELEMENTS THEMING - START ********** */
+#hpp-logo {
+/* customizing logo, this field could be hidden */
+    height: 45px;
+    width: 200px;
+    float: right;
+    background-image: url("HTTPS://www.your-company-site.com/your-company-logo.png") !important;
+    /* Absolute path has been used over HTTPS protocol */
+
+    background-repeat: no-repeat;
+    background-position: right top;
+}
+----
+
+[#PPSolution_PP_CustomizeWithCSS_DownloadableSample]
+=== Downloadable CSS Samples of Customized Themes
+
+The following are some examples created to support the design of a
+customized page to show how certain changes are made. In order to get
+the default theme and to begin customizing an individual theme,
+delete the content of the custom CSS file. This is described below.
+
+With a few lines of CSS you are able to change colors, transitions,
+backgrounds, etc. There is an option to add your own logo or
+picture with a custom location of the file.
+
+image:images/03-02-10-customizing-payment-page-with-css/customize-with-css-customized-theme.png[image]
+
+As seen on the image below, there is an option to change bootstrap css
+properties. In the following example, the bootstrap .checkbox definition
+has been overlapped by this definition.
+
+.Sample
+[source,css]
+----
+/* ********** CUSTOMIZING SEPA PAYMENT PAGE - START ********** */
+/* Highlighting SEPA payment consent checkbox */
+ #sepaDirectDebitForm.form-horizontal .radio, #sepaDirectDebitForm.form-horizontal .checkbox {
+    min-height: 27px;
+    background: #EDEDED;
+    padding: 8px;
+}
+/* ********** ENABLING OPTION FIELDS - END ********** */
+----
+
+image:images/03-02-10-customizing-payment-page-with-css/customize-with-css-customized-theme_submit-order.png[image]
+
+[#PPSolution_PP_CustomizeWithCSS_DownloadableSample_Dynamic]
+==== Dynamic CSS sample
+
+An offline demo page, incuding comments, is available instructing how to
+customize specific tags to achieve a desired theme.
+
+This example is located inside
+
+_wpg-dynamic-css-url.zip\wpg-dynamic-css-url\engine\custom\my-custom-name-css-embeddedHpp.css_
+
+which you can find here:
+link:/resources/03-02-10-customizing-payment-page-with-css/wpg-dynamic-css-url.zip[wpg-dynamic-css-url.zip]
+
+For a more detailed description and to get more familiarized with all of
+the properties, please visit https://www.w3schools.com/css/ for more
+information.
+
+.Sample
+[source,css]
+----
+/* ********** MAIN ELEMENTS THEMING - START ********** */
+#hpp-logo {
+/* customizing logo, this field could be hidden */
+    height: 45px;
+    width: 200px;
+    float: right;
+    background-image: url(your-company-logo.png) !important; /* Caution: relative path is not allowed. To reach proper functionality, image source file has to be called from absolute path over HTTPS secure protocol.*/
+    background-repeat: no-repeat;
+    background-position: right top;
+}
+.hpp-template, .hpp-nav > ul.nav > li.active > a {
+    background: #5FD923 !important;
+    color: white !important;
+}
+.hpp-template {
+    background:-webkit-linear-gradient(#333333,#333333)!important;
+    background:linear-gradient(#333333,#333333)!important;
+    border: 1px solid #333333 !important;
+}
+.hpp-template-hover:hover, .hpp-template-focus:focus {
+    background:#00D469!important;
+    background:-webkit-linear-gradient(#00D168, #00964A)!important;
+    background:linear-gradient(#00D168, #00964A)!important;
+    box-shadow:0px 0px 11px #00994C!important;
+}
+#hpp-form-cancel{
+background:maroon !important;
+border: 1px solid maroon !important;
+}
+#hpp-form-cancel:hover, #hpp-form-cancel:focus {
+   background:red important;
+    background:-webkit-linear-gradient(red, red)!important;
+    background:linear-gradient(red, red)!important;
+    box-shadow:0px 0px 11px red !important;
+}
+.hpp-datepicker.datepicker-days td.active {
+    background-color: #00A754 !important;
+}
+.hpp-nav > ul.nav > li.active > a::after {
+    border-left-color:#00A754!important;
+}
+.hpp-loading-spinner {
+    background: url('loading.gif') no-repeat; /* Caution: relative path is not allowed. To reach proper functionality, image source file has to be called from absolute path over HTTPS secure protocol.*/
+}
+.hpp-container .panel-heading {
+    background: transparent none repeat scroll 0% 0%;
+    -webkit-transition: background-color 0.4s;
+    -moz-transition: background-color 0.4s;
+    -ms-transition: background-color 0.4s;
+    -o-transition: background-color 0.4s;
+    transition: background-color 0.4s;
+    cursor: pointer;
+    cursor: hand;
+}
+.hpp-container .panel-heading:hover {
+    background-color: #DBDBDB;
+    -webkit-transition: background-color 0.4s;
+    -moz-transition: background-color 0.4s;
+    -ms-transition: background-color 0.4s;
+    -o-transition: background-color 0.4s;
+    transition: background-color 0.4s;
+    cursor: pointer;
+    cursor: hand;
+}
+/* ********** MAIN ELEMENTS THEMING - END ********** */
+/* ********** ENABLING OPTIONAL FIELDS - START ********** */
+#hpp-creditcard-form-row-for-street1-field {
+    display : block;
+}
+#hpp-creditcard-form-row-for-street2-field {
+    display : block;
+}
+#hpp-creditcard-form-row-for-city-field {
+    display : block;
+}
+#hpp-creditcard-form-row-for-state-and-postalcode-fields {
+    display : block;
+}
+#hpp-creditcard-form-row-for-country-field {
+    display : block;
+}
+#hpp-creditcard-form-row-for-email-field {
+    display : block;
+}
+#hpp-creditcard-form-row-for-phone-field {
+    display : block;
+}
+/* ********** ENABLING OPTIONAL FIELDS - END ********** */
+/* ********** CUSTOMIZING CREDIT CARD PAYMENT PAGE - START ********** */
+/* Setting Optional text to italic and changing color to silver */
+form#hpp-creditcard-form small[data-i18n~="optional"] {
+    color: #D9D9D9;
+    font-style: italic;
+    font-weight: 900;
+}
+/* ********** ENABLING OPTION FIELDS - END ********** */
+/* ********** CUSTOMIZING SEPA PAYMENT PAGE - START ********** */
+/* Highlighting SEPA payment consent checkbox */
+ #sepaDirectDebitForm.form-horizontal .radio, #sepaDirectDebitForm.form-horizontal .checkbox {
+    min-height: 27px;
+    background: #EDEDED;
+    padding: 8px;
+}
+/* ********** ENABLING OPTION FIELDS - END ********** */
+----
+
+[#PPSolution_PP_CustomizeWithCSS_DownloadableSample_DynamicFlat]
+==== Dynamic CSS Sample - Flat Design
+
+The flat design theme has been prepared for mobile users. Developers can
+completely change design, look, and structure of the payment page.
+
+This example is located inside
+_wpg-dynamic-css-url-flat-design.zip\wpg-flat_demo\index_files\FLAT-DESIGN-CUSTOM-embeddedHpp.css_
+
+which you can find here:
+link:/resources\03-02-10-customizing-payment-page-with-css/wpg-dynamic-css-url-flat-design.zip[wpg-dynamic-css-url-flat-design.zip]
+
+.Sample Code
+[source,css]
+----
+html, body, .hpp-container {
+    height:99%;
+}
+*:not(.caret) {
+    box-shadow:none!important;
+    border:none!important;
+    border-radius: 0!important;
+}
+
+.form-control {
+    background: rgb(241,241,241) !important;
+    color:rgb(85,85,85)!important;
+}
+.form-group input {
+    background: rgb(241,241,241) !important;
+    color:rgb(85,85,85)!important;
+}
+.panel-heading {
+    padding:0;
+    margin:20px 0 30px;
+    display:none; /* JS managed visibility */
+}
+.panel, .panel-group, .panel-body{
+    padding:0!important;
+    margin:0!important;
+}
+.hidden-xs, .hidden-sm {
+    display:none;
+}
+
+.hpp-template {
+    background: #072C4A!important;
+    color:#fff!important;
+    font-size:14px!important;
+}
+.hpp-template-hover:hover, .hpp-template-focus:focus {
+    background: #103757!important;
+    box-shadow: none!important;
+}
+#hpp-header {
+    display:none;
+}
+.hpp-btn-success {
+    background: #14AF96!important;
+    color:#fff!important;
+    font-size:14px;
+}
+.hpp-btn-success:focus, .hpp-btn-success:hover, .hpp-template-bg .panel-heading a:hover {
+    background:#16B89E!important;
+}
+.hpp-template-bg .panel-heading a {
+    padding:13px 15px;
+    background: #14AF96!important;
+    color:white!important;
+}
+.hpp-container {
+    width:100%;
+    padding:0!important;
+    margin:0 auto!important;
+}
+.hpp-container > div {
+    padding-left:10px!important;
+    padding-right:10px!important;
+}
+.hpp-btn {
+    padding:10px 15px!important;
+    font-size:21px!important;
+    font-weight: bold;
+}
+.hpp-grid-selection {
+    width: 175px;
+}
+.hpp-grid-selection > button > img {
+    margin:5px;
+}
+.dropdown-menu {
+    z-index:1002;
+}
+.hpp-grid-selection img,
+.hpp-select2-lang-drop, .hpp-select2-drop,
+.dropdown-menu {
+    border:1px solid #f1f1f1!important;
+}
+.hpp-select2-lang-container {
+    background: rgb(241,241,241) !important;
+    color:rgb(85,85,85)!important;
+}
+.hpp-row-card-num > div:first-child {
+    float:left!important;
+    width:65%!important;
+    padding-right:5px!important;
+}
+.hpp-row-card-num > div:nth-child(2) {
+    float:right!important;
+    width:35%!important;
+    padding-left:5px!important;
+}
+.hpp-row-exp-date > div:first-child {
+    display:none;
+}
+.hpp-row-exp-date > div:nth-child(2) {
+    width:50%;
+    padding-right:5px!important;
+}
+.hpp-row-exp-date > div:nth-child(3) {
+    width:50%;
+    padding-left:5px!important;
+}
+.hpp-white-glass {
+    position:fixed;
+    top:0;
+    right:0;
+    left:0;
+}
+#hpp-payment-methods > .hpp-white-glass > .hpp-loading-spinner {
+    display:none!important;
+}
+#hpp-header {
+    padding:0!important;
+}
+.hpp-form-title {
+    background: #fff !important;
+    color:rgb(85,85,85)!important;
+}
+.hpp-modal-confirm-dialog .hpp-form-title {
+    text-align:center;
+    margin:0;
+}
+#hpp-form-buttons {
+    position:fixed;
+    bottom:0;
+    width:550px;
+    margin:0!important;
+    padding-top:5px;
+    background:#fff;
+    z-index: 1001;
+}
+#hpp-form-buttons > div {
+    padding:0!important;
+}
+#hpp-confirm-dialog-buttons > .hpp-btn {
+    width:50%;
+}
+#hpp-form-buttons > div:first-child {
+     float:right!important;
+     left:0;
+     width:100%;
+}
+#hpp-form-buttons > div:nth-child(2)  {
+    display:none;
+}
+#hpp-form-navigation {
+    padding:0!important;
+}
+#hpp-form-navigation > div {
+    border-spacing:0;
+}
+#hpp-payment-methods {
+    margin-top:15px;
+    position:relative;
+    padding-bottom:70px!important;
+}
+#hpp-form-previous {
+    border-left: 2px solid #fff !important;
+}
+form div[class^="col"] > label, form div[class^="col"] > label + small {
+    display:none;
+}
+@media screen and (max-width: 560px), screen and (max-height: 560px),
+  screen and (max-device-width: 560px), screen and (max-device-height: 560px) {
+    #hpp-form-buttons {
+        width:100%;
+    }
+}
+----
+
+image::images/03-02-10-customizing-payment-page-with-css/01_flat_ordertotal.png[image,height=400]
+
+image::images/03-02-10-customizing-payment-page-with-css/02_flat_ordertotal_accept.png[image,height=400]
+
+image::images/03-02-10-customizing-payment-page-with-css/03_flat_ordertotal_confirm.png[image,height=400]
+
+image::images/03-02-10-customizing-payment-page-with-css/04_flat_ordertotal_selectpm.png[image,height=400]
+
+[#PPSolution_PP_CustomizeWithCSS_DynamicURL]
+== _Dynamic Custom CSS URL_
+
+This functionality has been implemented to overlap default styling
+definitions in ``embeddedHpp.css.`` and ``bootstrap.min.css.`` ``Custom css``
+appears at the bottom of css files in the ``head`` tag.
+
+This guarantees that existing ``bootstrap.min.css`` declarations are
+overlapped correctly.
+
+_Dynamic Custom CSS URL_ is an optional field named as ``custom_css_url``
+which is also a mandatory part of the signature, in case that the
+merchant sends the ``custom_css_url``. _Dynamic Custom CSS URL_ must meet the
+criteria mentioned below.
+
+.Length
+Custom CSS URL must be shorter than 2000 characters including
+non-alfa-numerical characters.
+
+NOTE: In case of an error the developer is notified by an error message:
+"Custom CSS URL is too long - more than 2000 characters."
+
+.Characters
+In general URIs as defined by RFC 3986 may contain any of the
+following characters: A-Z a-z 0-9 -._~:/?#[]@!$&'()*+,;=.
+
+NOTE: In case of an error the developer is notified by an error message:
+"Custom CSS URL has invalid format."
+
+.Size
+Custom CSS file must be smaller than 50 kb.
+
+NOTE: In case of an error the developer is notified by an error message:
+"Custom CSS is too large. Max. 50 kB"
+
+.Format
+Custom URL must be sent without any errors, or more precisely,
+the URL must have a valid format.
+
+NOTE: In case of an error the developer is notified by an error message:
+"Custom CSS cannot be fetched."
+
+.Invalid CSS Referencing
+[source,subs=attributes+]
+----
+http://www.your-site.com/custom-style.css
+http://www.your-site.com/custom-stylecss (missing dot: custom-style.css)
+http://www.your-site.com/custom-style.php (php is unsupported postfix)
+----
+
+.Valid SSL Certificate
+Custom URL must be stored on a server, which is running on a
+valid SSL certificate. Custom CSS URL must be requested over HTTPS
+protocol.
+
+NOTE: In case of an error the  developer is notified by an error
+message:
+"Custom CSS URL must be loaded from HTTPS source with valid SSL certificate."
+
+.Invalid CSS Referencing
+[source,subs=attributes+]
+----
+http://www.your-site.com/custom-style.css (only HTTPS URL is permitted)
+----
+
+.Valid CSS Referencing
+
+[source,subs=attributes+]
+----
+https://www.your-site.com/custom-style.css
+----
+
+.Subsequent Request
+Merchant is unable to request ``psp name`` and ``custom css url`` at
+the same time. If both are requested only ``custom css url`` will be
+accepted.
+
+.Identification
+Merchant needs to create a digital signature on his own server
+as it is the only place where the secret is stored. The client's server
+also provides the Merchant Account ID to the mobile app client.
+
+To calculate the signature, following conditions need to be met:
+
+- Fields need to be concatenated,
+- Leading and trailing space removed,
+- SHA-256 signature follows the combined string.
+
+NOTE: The field order is important. Also: The values in the request signature
+must be identical with the client side form/data (with the exception of
+the secret key).
+
+.Order of the fields
+[source,subs=attributes+]
+----
+1. request_time_stamp
+2. request_id
+3. merchant_account_id
+4. transaction_type
+5. requested_amount
+6. requested_amount_currency
+7. redirect_url (optional)
+8. custom_css_url (optional)
+9. ip_address (optional)
+10. [secretkey]
+----
+
+.The following is an example of request signature generation
+[source,subs=attributes+]
+----
+request_time_stamp           = '20120430123012'
+request_id                   = 'order-12345'
+merchant_account_id           = 'b19fb056-d8da-449b-ac85-cfbfd0558914'
+transaction_type              = 'purchase'
+requested_amount             = '1.01'
+requested_amount_currency    = 'USD'
+redirect_url                 = 'https://test.com'
+custom_css_url               = 'https://test.com/custom.css'
+ip_address                   = '127.0.0.1'
+secret_key                    = 'efabf47b-e43b-4785-873f-1c5bc65b7cd2'
+
+Pre SHA-256 string
+20120430123012order-12345b19fb056-d8da-449b-ac85-cfbfd0558914purchase1.01USDhttps://test.comhttps://test.com/custom.css127.0.0.1efabf47b-e43b-4785-873f-1c5bc65b7cd2
+
+SHA-256 signature
+a186cd295f5b0da14aa158090ee8abfcc1ca22961f2c19ea659c4a8f5cbb4a03
+----
+
+[#PPSolution_PP_CustomizeWithCSS_CCFields]
+== Input Fields for Credit Card
+
+The following elements are mandatory/optional for sending a request for
+the payment method Credit Card. All of the optional fields are hidden by
+default. There is an option to unhide optional fields in _Custom CSS_ by
+setting the value of the div ID parameter ``Display`` to _block_.
+
+[width="100%",cols="20%,20%,20%,20%,20%",]
+|===
+|Term |Man/Opt |Type |Value |Div tag ID
+
+|First Name |O |Input |String | #f_name_id
+
+|Last Name |M |Input |String |#l_name_id
+
+|Card Type |M |Select |String |Explicitly shown
+
+|Card Number |M |Input |Numerical |Explicitly shown
+
+|CVV |O |Input |Numerical |#cvv_id
+
+|Expiry Date - Month |M |Select |Numerical |Explicitly shown
+
+|Expiry Date - Year |M |Select |Numerical |Explicitly shown
+
+|Address (1) |O |Input |String
+|#hpp-creditcard-form-row-for-street1-field
+
+|Address (2) |O |Input |String
+|#hpp-creditcard-form-row-for-street2-field
+
+|City |O |Input |String |#hpp-creditcard-form-row-for-city-field
+
+a| State/Province
+   Postal Code/Zip
+
+ |O |Input |String |#hpp-creditcard-form-row-for-state-and-postalcode-fields
+
+|Country |O |Select |String |#hpp-creditcard-form-row-for-country-field
+
+|E-mail |O |Input |Valid email address |#hpp-creditcard-form-row-for-email-field
+
+|Phone |O |Input |Valid phone number |#hpp-creditcard-form-row-for-phone-field
+|===
+
+.Example of usage optional email and phone fields for Credit Card
+[source,css]
+----
+/* ********** ENABLING OPTIONAL FIELDS - START ********** */
+#hpp-creditcard-form-row-for-email-field {
+    display : block;
+}
+#hpp-creditcard-form-row-for-phone-field {
+    display : block;
+}
+/* ********** ENABLING OPTIONAL FIELDS - END ********** */
+----
+
+image::images/03-02-10-customizing-payment-page-with-css/customize-with-css-ccfields.png[image]
+
+//-
