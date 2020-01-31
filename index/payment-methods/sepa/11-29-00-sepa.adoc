@@ -1,0 +1,332 @@
+[#SEPA]
+== SEPA
+Wirecard offers two SEPA payment methods.
+
+- <<SEPACreditTransfer, SEPA Credit Transfer>>
+- <<SEPADirectDebit, SEPA Direct Debit>>
+//-
+
+_SEPA Direct Debit_ is very popular in Germany, Austria and the
+Netherlands.
+
+[#SEPA_TransactionTypes]
+=== Transaction Types
+
+The following transaction types may be used with both _SEPA Direct Debit_
+and _SEPA Credit Transfer_ payment methods. For payment method
+specific transaction types, please refer to the individual payment
+method pages.
+
+[#SEPA_TransactionType_Void]
+==== SEPA _void_
+
+{payment-gateway} allows merchants to void _SEPA Direct Debit_
+and _SEPA Credit Transfer_ transactions *before* they are forwarded to
+the bank for settlement.
+
+This means: It is only possible to void a transaction between the
+time the transaction request has been received by the {payment-gateway}
+for processing and the time the transaction will
+be forwarded for processing to the bank. Once the payment was processed
+by the bank and settled, it is no longer possible to void a transaction.
+
+[NOTE]
+====
+To void an existing pending _SEPA Direct Debit_ or SEPA _Credit
+Transfer_ transaction, a merchant must
+
+- send a _void-pending-debit_ or _void-pending-credit_ request.
+- include the parent-transaction-ID.
+//-
+====
+
+[#SEPA_TransactionType_Void_Restrictions]
+===== Restrictions
+
+To ensure proper processing, please take into consideration the
+following restrictions for SEPA _Void_ transactions:
+
+- A _pending-debit_ or _pending-credit_ transaction may only be voided
+*before* the transaction is batched into a file and sent to the bank for
+processing.
+
+NOTE: Batch processing starts at around 10:00 UTC.
+
+- If a _void_ request is sent after the transaction has been sent to the
+bank, a _Failed_ response will be returned.
+- Once a corresponding _debit_ or _credit_ transaction exists for the
+original _pending-debit_ or _pending-credit_ it is no longer possible to
+void a transaction.
+- A request for a _void_ transaction must contain a parent-transaction
+ID referring to the _pending-debit_ or _pending-credit_ transaction
+that should be voided.
+//-
+
+[#SEPA_TransactionType_Void_Fields]
+===== Fields
+
+The fields used for SEPA _Void_ requests, responses and notifications
+are the same as the REST API fields. Please refer to <<RestApi_Fields, REST API Fields>>
+or the request example for the fields required in a
+<<SEPADirectDebit_Samples_VoidPendingDebit, _void-pending-debit_>> or
+<<SEPACreditTransfer_Samples_VoidPendingCredit, _void-pending-credit_>> transaction.
+
+WARNING: If the amount is sent within the request for the _void_ transaction it
+will be checked if it is the same amount as in the previous
+_pending-debit_ or _pending-credit_ request. Partial cancellations are
+currently *not* possible.
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory (M) or optional (O) for a
+request/response/notification. If the respective cell is empty, the
+field is disregarded or not sent.
+
+[%autowidth]
+|===
+|Field           	| Request  | Response	| Notification | Description
+
+|requested-amount | O        | M        | M | This is the amount of the transaction. The amount of the decimal place
+is dependent of the currency. Min amount €0.01. Max amount
+€999,999,999.99.
+
+If it is sent within the request it will be validated if it is the same amount like in the _pending-debit_ or _pending-credit_ request.
+
+|requested-currency |O      | M         | M | This is the currency of the requested-amount. Only EUR is accepted.
+|payment-methods.payment-method-Name | M | M | M | This is the name of the payment method *sepadirectdebit* or
+*sepacredit*.
+|parent-transaction-id | M | M | M | Transaction ID of the transaction that needs to be voided.
+|transaction-type | M | M  | M | This is the type for a transaction. For a SEPA _Void_ request, only
+_void-pending-debit_, _void-debit_, _void-pending-credit_ or
+_void-credit_ are allowed.
+|===
+
+[#SEPA_TransactionType_Deposit]
+==== SEPA _deposit_
+
+Occasionally, a consumer send funds back to the merchant, either at the
+request of the merchant or through his/her own initiative. There are
+several reasons for this such as a re-payment or a subsequent /
+supplementary payment for an already existing SEPA _Direct Debit_
+transaction.
+
+These supplementary payments enter the {payment-gateway} as
+transactions with transaction type _deposit_ and with the payment method
+*wiretransfer*.
+
+If the consumer provides the PTRID (Provider Transaction Reference ID)
+in the descriptor of his transfer, the {payment-gateway} will
+attempt to match the deposit with the original _SEPA Direct Debit_ or
+_SEPA Credit Transfer_ transaction. If the PTRID is not provided or it
+is not possible to match the transaction, the transaction will
+remain unmatched.
+
+[#SEPA_TransactionType_Deposit_Fields]
+===== Fields
+
+The following elements are submitted in the IPN
+(<<GeneralPlatformFeatures_IPN, Instant Payment Notification>>) either mandatory (M) or optional (O):
+
+[%autowidth]
+|===
+|Field           	| Notification | Description
+|request-id | M | This is the identification number of the request on the merchant's side.
+*It must be unique for each request.*
+|transaction-type | M | This is the type for a transaction. For SEPA Deposit, it is always
+_deposit_.
+|payment-methods.payment-method-Name | M | This is the name of the payment method *wiretransfer*.
+
+|===
+
+[#SEPA_Samples_DepositNotification]
+===== Sample
+
+.XML deposit Notification
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/wiretransfer_deposit_notification__a88b4b46.xml[]
+----
+
+[#SEPA_TransactionType_DebitReturnAndCreditReturn]
+==== SEPA _debit-return_ and _credit-return_
+
+
+A _debit-return_ reverses a _debit_ transaction. It is initiated by the
+consumer bank
+
+- if the consumer disputes the transaction
+- if there is a problem with the consumer bank account (e.g. bank account
+closed)
+//-
+
+A _credit-return_ reverses a _credit_ transaction. It is initiated
+either by
+
+- the merchant's bank (e.g. insufficient funds)
+- the consumer's bank (e.g. bank account closed)
+//-
+
+All _debit-returns_ and _credit-returns_ are included in
+reconciliation files provided by Wirecard Bank and sent to the _{payment-gateway}._ The transaction types _debit-return_ and
+_credit-return_ are then initiated by the {payment-gateway}. It is not possible for a
+merchant to request these transaction types.
+
+If possible, a _debit-return_ or _credit-return_ is matched by the _{payment-gateway} (_{payment-gateway-abbr}_)_ to its original debit/credit, based on the provider transaction
+reference ID (PTRID) and the merchant account.
+
+Possible return codes are documented within <<SEPA_ReturnCodes, Return Codes>>.
+
+[#SEPA_Workflow]
+===== Workflow
+
+image::images/11-29-sepa/3704722.png[SEPA Workflow]
+
+. _Consumer's bank sends a debit-return_ or _credit-return_ to
+Wirecard Bank.
+. Wirecard Bank forwards the transaction to the _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} receives the transaction.
+. {payment-gateway-abbr} uses the PTRID to find an initial parent _debit_ or parent
+_credit_ transaction.
+.. If successful, {payment-gateway-abbr} maps the _debit-return_ to _a debit_ or
+_credit-return_ to a _credit._
+.. if not successful, {payment-gateway-abbr} creates _a debit-return_ or _credit-return_
+without reference.
+. {payment-gateway-abbr} sends a notification about the _debit-return_ or _credit-return_
+to the merchant.
+//-
+
+[#SEPA_Samples_DebitReturnNotification]
+===== Sample
+
+.XML debit-return Notification
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit-return_notification__3fa23529.xml[]
+----
+
+[#SEPA_DynamicDescriptor]
+=== Dynamic Descriptor
+
+Just like _Credit Card_ it is also possible to use a
+<<CreditCard_PaymentFeatures_DynamicDescriptor, Dynamic Descriptor>> with SEPA.
+
+ifndef::env-nova[]
+[#SEPA_Reporting]
+=== Reporting
+
+A reconciliation file is available to download by merchants. This allows
+merchant to have the most up-to-date status for their transactions. For
+more information about the reconciliation file see chapter
+<<Reporting_DataReconciliation, Data Reconciliation>> or please contact Wirecard Merchant Support.
+endif::[]
+
+[#SEPA_Reporting_BankDataValidation]
+=== Bank Data Validation
+
+The {payment-gateway} validates the consumer's bank data, to
+ensure transactions with faulty bank data are not forwarded to the bank
+for processing.
+
+[#SEPA_Reporting_IBANValidation]
+==== IBAN Validation
+
+{payment-gateway} validates the consumer's IBAN in the
+following manner:
+
+- The validity of the country code within the IBAN
+- The validity of the country code within the SEPA scheme
+- The structure of the IBAN including:
+* the length of the IBAN based on the issuing country
+* the position of the bank identifier
+* the position of the country code
+* the position of the check digits
+- Check digit verification
+//-
+
+[#SEPA_Reporting_BICValidation]
+==== BIC Validation
+
+{payment-gateway} validates the consumer's BIC in the following
+manner:
+
+- The length of the BIC may only be either 8 or 11 characters
+- The validity of the BIC within the SEPA scheme
+//-
+
+[#SEPA_Reporting_IbanOnly]
+==== SEPA IBAN _Only_
+
+According to the EU's SEPA migration directive, as of February 1, 2016,
+the BIC is no longer required to process cross-border _SEPA Direct Debit_ and SEPA _Credit Transfer_ transactions. The merchant may still
+submit the BIC along with the IBAN, however, it is no longer a mandatory
+field.
+
+WARNING: Depending on the payment method, some providers may still use the BIC as
+support functionality.
+
+[#SEPA_ReturnCodes]
+=== Return Codes
+
+SEPA transactions may be returned by either the merchant or consumer
+bank for several reasons described below.
+
+.SEPA Return Codes
+[%autowidth]
+|===
+|EE Status Code |Reason Name |Reason Description
+
+|201.0001 |Return reason not specified |Reason for the return was not
+specified by the debtor bank
+
+|201.0002 |Debtor / Account holder deceased |Debtor or account holder is
+deceased
+
+|201.0003 |Debtor bank details incorrect |Debtor bank details are
+incorrect
+
+|201.0004 |Debtor account closed |Debtor account is closed
+
+|201.0005 |Insufficient funds on debtor account |There are insufficient
+funds on the debtor bank account
+
+|201.0006 |Mandate not valid,  not active or cancelled |Mandate
+reference provided is not valid, not active or cancelled
+
+|201.0008 |Transaction forbidden |The payment type is not allowed for
+this type of account
+
+|201.0009 |Invalid Bank Operation Code |Invalid transaction code or
+incorrect data format (issued by debtor bank)
+
+|201.0010 |Duplicate transaction on debtor account |A duplicate
+transaction has been found on the debtor account
+
+|201.0011 |creditor address missing |Missing creditor address (only in
+the case of direct debit)
+
+|201.0012 |missing mandatory mandate information |Incomplete or
+incorrect mandatory information on the mandate (issued by debtor bank)
+
+|201.0013 |Invalid File Format |Data format is invalid for any reason
+other than grouping indicator
+
+|201.0014 |Refund request by End-Customer (payer) |A refund has been
+requested by the debtor (payer)
+
+|201.0015 |Regulatory reasons |Refusal due to regulatory reasons
+
+|201.0016 |Invalid due date or execution date |The due date or execution
+date specified in the request is not within the limits required by the
+payment method
+
+|201.0017 |Incorrect BIC |Bank Identifier Code (BIC) is incorrect or
+invalid
+
+|201.0018 |Amendment of mandate reference |There has been an amendment
+to the mandate reference provided
+
+|201.0019 |Returned due to technical problems |The transaction has been
+returned due to technical problems.
+|===
+
+//-

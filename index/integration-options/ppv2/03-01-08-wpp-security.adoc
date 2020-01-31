@@ -1,0 +1,177 @@
+
+[#PPSolutions_PPv2_PPv2Security]
+== {payment-page-v2-abbr} Security
+
+[#PPSolutions_PPv2_PPv2Security_Flow]
+=== {payment-page-v2-abbr} Security Flow
+
+All {payment-page-v2-abbr} integrations share a common backend-to-backend JSON
+<<PPSolutions_PPv2_Workflow, workflow>> for the payment process:
+
+[%autowidth]
+|===
+h|Payment Processing with HPP and EPP
+a|.  Create a payment session (initial request).
+  .  Redirect the consumer to the payment page (initial response URL).
+  .  Highly recommended: Parse and process the payment response.
+
+h|Payment Processing with _{payment-page-v1}_ in Seamless Mode
+a|.  Create a payment session (initial request).
+  . Render the Seamless payment form in your checkout page (initial response URL).
+  .  Submit the payment.
+  .  Highly recommended: Parse and process the payment response.
+|===
+
+As part of this workflow:
+
+- The initial request is secured by basic access authentication (basic
+header with base64-encoded credentials).
+- The final payment response is base64-encoded and signed by HMAC
+SHA-256. This allows you to verify the authenticity of the final payment
+response.
+
+//-
+
+NOTE: For more information regarding {payment-page-v2-abbr} integration-specific payment
+processes, see <<PaymentPageSolutions_PPv2_HPP_Integration, HPP Integration>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, EPP Integration>> and
+<<PPv2_Seamless_Integration, Integrating {payment-page-v2-abbr} in Seamless Mode>>.
+
+[#PPSolutions_PPv2_PPv2Security_ResponseVerification]
+=== Response Verification
+
+For {payment-page-v2-abbr}, response verification is optional but highly recommended.
+
+Response verification requires:
+
+- the Secret Key you receive during merchant configuration.
+- the field entries ``response-base64``, ``response-signature-base64`` and ``response-signature-algorithm`` sent
+as form data with the final payment response
+
+//-
+
+You can find the required form data included in the final payment
+response sent to the redirect target in your shop.
+
+image::images/03-01-08-wpp-security/response-verification.png[Response Verification]
+
+
+[%autowidth]
+|===
+|Name | Description
+
+|``response-signature-base64`` | Base64-encoded signature against which to verify the calculated security response signature.
+|``response-signature-algorithm`` |"HmacSHA256" specifying the type of the message authentication code.
+|``response-base64`` |Final response containing the payment data in a base64 encoded JSON format.
+|===
+
+*To verify the response*, calculate the security response signature and
+check it against the signature data you receive with the final payment
+response.
+
+We provide ready-made response verification examples for Java, PHP and
+C# below.
+
+IMPORTANT: **If the response signature verification fails,** do not accept the
+payment and contact <<ContactUs, Merchant Support>>.
+
+[#PPSolutions_PPv2_PPv2Security_ResponseVerification_Examples]
+==== Response Verification Examples
+
+.Verifying the Response Signature (JAVA)
+[source,java,subs=attributes+]
+----
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
+
+...
+
+private String merchantSecretKey = "merchantSecretKey";
+
+public boolean isValidSignature(String responseBase64, String responseBase64Signature, String responseSignatureAlgorithm) throws Exception {
+    Mac mac = Mac.getInstance(responseSignatureAlgorithm);
+    mac.init(new SecretKeySpec(merchantSecretKey.getBytes("UTF-8"), responseSignatureAlgorithm));
+    return responseBase64Signature != null && responseBase64Signature.equals(DatatypeConverter.printBase64Binary(mac.doFinal(responseBase64.getBytes("UTF-8"))));
+}
+----
+
+.Verifying the Response Signature (PHP)
+
+[source,php,subs=attributes+]
+----
+<?php
+
+/**
+ * @param string $responseBase64
+ * @param string $signatureBase64
+ * @return bool
+ */
+function isValidSignature($responseBase64, $signatureBase64, $merchantSecreyKey)
+{
+    $signature = hash_hmac('sha256', $responseBase64, $merchantSecreyKey, true);
+    return hash_equals($signature, base64_decode($signatureBase64));
+}
+----
+
+.Verifying the Response Signature (C#)
+
+[source,csharp,subs=attributes+]
+----
+  …
+
+  using
+  System.Linq;
+
+  using
+  System.Security.Cryptography;
+
+  using
+  System.Text;
+
+  …
+  String merchantSecretKey = "key";
+
+  Boolean isValidSignature(String responseBase64, String signatureBase64,
+  String responseSignatureAlgorithm)
+
+{
+  if (responseBase64 == null || signatureBase64 == null || responseSignatureAlgorithm == null)
+  {
+    return false;
+}
+
+  byte[] response = Encoding.UTF8.GetBytes(responseBase64);
+  byte[] expectedSignature = Convert.FromBase64String(signatureBase64);
+
+  KeyedHashAlgorithm algorithm =KeyedHashAlgorithm.Create(responseSignatureAlgorithm);
+  algorithm.Key = Encoding.UTF8.GetBytes(merchantSecretKey);
+  algorithm.Initialize();
+
+  byte[] computedSignature = algorithm.ComputeHash(response);
+  Boolean result = computedSignature.SequenceEqual(expectedSignature);
+  return result;
+}
+----
+
+
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+[#PPSolutions_PPv2_PPv2Security_NVP]
+=== Merchants Integrated with NVP
+
+Requests in the legacy NVP format are secured by a HMAC SHA-256 (Sig.
+v2) or SHA-256 (Sig. v1) signature. For merchants using this format,
+signature calculation is mandatory. Based on which version you are
+using, see the
+<<PP_Security_SignatureV2, Signature v2>> or
+<<PP_Security, Signature v1>> pages.
+
+NOTE: The signature is only used with requests sent to the {payment-gateway} endpoint, e.g.
+``\https://{pp-test-instance-hostname}/api/payment/``, using the legacy NVP format
+( for returning merchants). +
+This *does not* apply to the JSON flow.
+endif::[]
+endif::[]
+
+//-

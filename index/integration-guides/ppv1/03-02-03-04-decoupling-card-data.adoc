@@ -1,0 +1,127 @@
+[#Seamless_DecouplingCardData]
+== Decoupling Card Data Collection from Payment
+
+When the merchant decides to display a recap order page between the
+payment data collection page and actually submitting the payment,
+the merchant may use the payment form to perform a:
+
+- Zero authorization transaction that may later be referenced by a
+regular authorization or purchase. The advantage for credit card
+payments is that a zero authorization transaction is confirmed by an
+issuer and the CVC is verified.
+- Tokenization-only transaction. A token (non-sensitive data) is
+returned to the merchant that can be used for a real authorization or
+purchase later.
+
+//-
+
+In either case, sensitive payment data will not touch any of the
+merchant's systems.
+
+The difference to the previous scenario is that an ``authorization-only``
+transaction type with a zero amount is used instead of a ``purchase``
+transaction type (``tokenization`` transaction type may be used for a
+similar effect), and the real fund booking only comes in the third
+(additional) step. The payment form is displayed directly on the merchant's
+checkout page.
+
+[#Seamless_DecouplingCardData_RenderForm]
+=== Render Form
+
+The merchant renders the form into an element on their checkout page. The
+transaction details are specified in ``requestData``. The element is
+identified by ``wrappingDivId`` parameter.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+var requestData = {
+  "request_id" : "217c3832-8575-c1d5-0e3a-2fa08003b0fd",
+  "request_time_stamp" : "20190403095835",
+  "merchant_account_id" : "61e8c484-dbb3-4b69-ad8f-706f13ca141b",
+  "transaction_type" : "authorization-only",
+  "requested_amount" : "0",
+  "requested_amount_currency" : "EUR",
+  "ip_address" : "127.0.0.1",
+  "request_signature" : "43fd8c261a8fdad693024c7cc009239ad344f1e5716de0c3163237b5392d5700",
+  "payment_method" : "creditcard"
+};
+{payment-page-function}.seamlessRenderForm({
+  requestData : requestData,
+  wrappingDivId : "seamless-target",
+  onSuccess : processSucceededResult,
+  onError : processErrorResult
+});
+----
+endif::[]
+
+NOTE: Use a unique Request ID for each request.
+
+.Transaction Data Received from onSuccess Callback of seamlessRenderForm()
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/SeamlessDecouplingCardDataRenderForm_TransactionDataReceivedFromonSuccessCallbackOfseamlessRenderForm.json[]
+----
+
+[#Seamless_DecouplingCardData_SubmitForm]
+=== Submit Form
+
+The merchant will assign call of the function to a pay button on their
+checkout page. ``requestData`` are optional when submitting the form. They will
+be merged with data from the first step. Form input is validated before
+the submit.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessSubmitForm({
+  onSuccess : processSucceededResult,
+  onError : processErrorResult
+});
+----
+endif::[]
+
+.Transaction Data Received from onSuccess Callback of seamlessSubmitForm()
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/SeamlessDecouplingCardDataSubmitForm_TransactionDataReceivedFromonSuccessCallbackOfseamlessSubmitForm.json[]
+----
+
+[#Seamless_DecouplingCardData_ActualPayment]
+=== Actual Payment
+
+The merchant can now reference an existing authorization-only transaction to
+do a payment without further consumer involvement. The merchant may also
+do this using the function from {payment-provider-name}'s JavaScript library from the
+browser.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+var requestData = {
+  "request_id" : "679047dc-8a4d-657b-91dc-df6d80cd6a10",
+  "request_time_stamp" : "20190403101310",
+  "merchant_account_id" : "61e8c484-dbb3-4b69-ad8f-706f13ca141b",
+  "transaction_type" : "purchase",
+  "requested_amount" : "12",
+  "requested_amount_currency" : "EUR",
+  "ip_address" : "127.0.0.1",
+  "request_signature" : "ea468004287bf191a43b4c5ac33e38d5f035050ad784cad293646c1533e7fc48",
+  "payment_method" : "creditcard",
+  "parent_transaction_id" : "26c14051-8213-11e5-a96e-0050b667eb91"
+};
+{payment-page-function}.seamlessPay({
+  requestData : requestData,
+  onSuccess : processSucceededResult,
+  onError : processErrorResult
+});
+----
+endif::[]
+
+NOTE: Use a unique Request ID for each request.
+
+.Transaction Data Received from onSuccess Callback of seamlessPay()
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/SeamlessDecouplingCardDataActualPayment_TransactionDataReceivedFromonSuccessCallbackOfseamlessPay.json[]
+----

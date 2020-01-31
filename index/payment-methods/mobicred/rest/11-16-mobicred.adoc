@@ -1,0 +1,133 @@
+[#mobicred]
+== REST API & {payment-page-v1}
+_mobicred_ is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#mobicred_PaymentModeCountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | South Africa
+| Currencies   | ZAR
+|===
+
+[#mobicred_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _mobicred_ notifications are encoded, and
+which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format   | XML, NVP
+                         | Methods  | POST, GET
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+
+[#mobicred_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given
+here, look at <<AppendixB,  Transaction Types>>.
+
+[cols="e,"]
+|===
+| Transaction Type | Link to the Sample
+
+| check-signature  |
+| get-url          | <<mobicred_getUrl, _get-url_ sample>>
+| debit            | <<mobicred_debit, _debit_ sample>>
+|===
+
+[#mobicred_TestCredentials]
+=== Test Credentials
+
+[cols="h,"]
+|===
+| URLs (Endpoints)                | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID)      | Please contact <<ContactUs, Merchant Support>> for complete test credentials.
+| Username                        | Please contact <<ContactUs, Merchant Support>> for complete test credentials.
+| Password                        | Please contact <<ContactUs, Merchant Support>> for complete test credentials.
+| Secret Key (for usage with HPP) | Please contact <<ContactUs, Merchant Support>> for complete test credentials.
+|===
+
+[#mobicred_AdditionalTestCredentials]
+==== On _mobicred_ Environment
+
+[%autowidth,cols="h,"]
+|===
+| Username | MyGate_test
+| Password | TestS3cureMyGate
+|===
+
+[#mobicred_Workflow]
+=== Workflow
+
+image::images/11-16-mobicred/mobicred-workflow.png[mobicred Workflow]
+
+[#mobicred_Fields]
+=== Fields
+
+The fields used for _mobicred_ requests, responses and notifications are
+the same as the <<RestApi_Fields, REST API Fields>>.
+
+[#mobicred_Samples]
+=== Samples
+
+[#mobicred_RESTAPI]
+==== REST API
+
+[#mobicred_getUrl]
+===== get-url
+
+.XML get-url Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/mobicred_get-url_request_success.xml[]
+----
+
+.XML get-url Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/mobicred_get-url_response_success.xml[]
+----
+
+NOTE: See <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN Notification Examples>>, for corresponding notification samples.
+
+[#mobicred_HostedPaymentPage]
+==== Hosted Payment Page
+
+[#mobicred_debit]
+===== debit
+
+NOTE: This request opens the _Hosted Payment Page._
+
+.NVP debit Request (Successful)
+[source,subs=attributes+]
+----
+requested_amount=10.01&requested_amount_currency=ZAR&locale=en&order_number=123456&order_detail=1+widget&form_url=http%3A%2F%2F{test-instance-hostname}%3A443%2Fengine%2Fhpp%2F&secret_key=96f2b343-0c50-4fbe-bbdc-56516c08c466&request_id=0a74b12a-4b10-dec2-45ba-ab5625c50a7f&request_time_stamp=20180208212432&merchant_account_id=8ab4479d-0455-44d6-b2ce-55c5fe360de6&payment_method=mobicred&transaction_type=debit&redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&ip_address=127.0.0.1&request_signature=eb5ce5250a03869a63faa8ef5f45177b28377820492ec9e7a5f14ceaf39db436&psp_name=demo&attempt_three_d=false&descriptor=&notification_url=&notification_transaction_state=&success_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dsuccess%26&fail_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dfailed%26&cancel_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dcancel%26&processing_redirect_url=http%3A%2F%2F10.0.0.114%3A8080%2Fshop%2Fcomplete.jsp%3Fstate%3Dprocessing%26&first_name=John&last_name=Doe&email=john.doe%40{domain}&phone=1+555+555+5555&street1=123+test&street2=&city=Toronto&state=ON&postal_code=M4P1E8&country=CA
+----
+
+.NVP debit Response (Successful)
+[source,subs=attributes+]
+----
+psp_name=demo&country=CA&custom_css_url=&merchant_account_resolver_category=&response_signature=bcb1eb84387fad40d9c719eaf64600c3f329ba90694a57ab9cd604115ecb9f4d&city=Toronto&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9ZGY5MTZiMzctMjRlMy00ZDAzLWJiM2EtMmNkODk5MDc0Y2Q1CmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTgwMjA4MTU0NDExCm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD1iMGZjODkwZS04ZDI2LTQwZDQtOTdiMy1mZDE3Mjk1NWJmYjIKdHJhbnNhY3Rpb25fc3RhdGU9c3VjY2VzcwppcF9hZGRyZXNzPTEyNy4wLjAuMQp0cmFuc2FjdGlvbl90eXBlPWRlYml0CnJlcXVlc3RfaWQ9NGRiYzQwOGUtZGZlZi1hZjllLTNkYjgtMmZkNWEyYTEyNzMzCg%3D%3D.bIyMOj7jmGgoGBcIxKK7iv65S%2BrEazk79QYVP71wY1Y%3D&locale=en&requested_amount=10.010000&completion_time_stamp=20180208154411&provider_status_description_1=&authorization_code=&merchant_account_id=8ab4479d-0455-44d6-b2ce-55c5fe360de6&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40{domain}&transaction_id=df916b37-24e3-4d03-bb3a-2cd899074cd5&provider_transaction_id_1=79d3c13f-63df-447c-a5de-ba1278c70b27&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=201.0000&status_description_1=The+resource+was+successfully+created.&phone=1+555+555+5555&transaction_state=success&requested_amount_currency=ZAR&postal_code=M4P1E8&request_id=4dbc408e-dfef-af9e-3db8-2fd5a2a12733
+----
+
+.NVP debit Notification (Successful)
+[source,subs=attributes+]
+----
+country=CA&merchant_account_resolver_category=&response_signature=dfcae9d24e25cb2d92262984af65d86b8b878ef1508dc9f4c871ed5db47a1539&city=Toronto&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9Y2RjNWY5NTUtMzc0OS00MWZmLWFhYWUtMGU5NTU4OTM2ZWVmCmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTgwMjA4MTkyMjU2Cm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD1iMGZjODkwZS04ZDI2LTQwZDQtOTdiMy1mZDE3Mjk1NWJmYjIKdHJhbnNhY3Rpb25fc3RhdGU9c3VjY2VzcwppcF9hZGRyZXNzPTEyNy4wLjAuMQp0cmFuc2FjdGlvbl90eXBlPWRlYml0CnJlcXVlc3RfaWQ9MWE1MWM4NzctYmE0ZS1iZDVhLWEwNmEtMjMwNTFjOTU3NWZhCg%3D%3D.C8xEaujfme0HomBkVWGVd1TU4%2FO3WRMnBuMykWFcN%2BI%3D&locale=en&requested_amount=10.010000&completion_time_stamp=20180208192256&provider_status_description_1=&authorization_code=&merchant_account_id=8ab4479d-0455-44d6-b2ce-55c5fe360de6&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40{domain}&transaction_id=cdc5f955-3749-41ff-aaae-0e9558936eef&provider_transaction_id_1=6110ed11-8477-4d78-a50e-1f021c33ddbb&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=201.0000&status_description_1=mygate-virtual%3AThe+resource+was+successfully+created.&phone=1+555+555+5555&transaction_state=success&requested_amount_currency=ZAR&postal_code=M4P1E8&request_id=1a51c877-ba4e-bd5a-a06a-23051c9575fa&
+----
+
+.NVP debit Response (Failure)
+[source,subs=attributes+]
+----
+psp_name=demo&country=CA&custom_css_url=&merchant_account_resolver_category=&response_signature=11f54b912f4ae33a53b4572dfdb9e3f77dc4e849a770b1561f15c2fc233986b3&city=Toronto&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9MDQ0OGZkZjMtZjk2ZS00NjA2LWE5ZDAtMTM4OTljNzhmY2ZmCmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTgwMjA4MTU1MDEwCm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD1iMGZjODkwZS04ZDI2LTQwZDQtOTdiMy1mZDE3Mjk1NWJmYjIKdHJhbnNhY3Rpb25fc3RhdGU9ZmFpbGVkCmlwX2FkZHJlc3M9MTI3LjAuMC4xCnRyYW5zYWN0aW9uX3R5cGU9ZGViaXQKcmVxdWVzdF9pZD0wODBiODE0ZC1mYTRmLWI5N2EtNTUyMi0yNjVkOWJkOWQ2ZjkK.kTTuVVwMDWfvndjt3R%2FPxOk22X%2FGCnj3hrJuQXrJfAI%3D&locale=en&requested_amount=10.010000&completion_time_stamp=20180208155010&provider_status_description_1=&authorization_code=&merchant_account_id=8ab4479d-0455-44d6-b2ce-55c5fe360de6&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40{domain}&transaction_id=0448fdf3-f96e-4606-a9d0-13899c78fcff&provider_transaction_id_1=NA&status_severity_1=error&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=500.1050&status_description_1=Provider+had+a+system+error.++Please+try+again+later.&phone=1+555+555+5555&transaction_state=failed&requested_amount_currency=ZAR&postal_code=M4P1E8&request_id=080b814d-fa4f-b97a-5522-265d9bd9d6f9
+----
+
+.NVP Notification (Failure)
+[source,subs=attributes+]
+----
+country=CA&merchant_account_resolver_category=&response_signature=11f54b912f4ae33a53b4572dfdb9e3f77dc4e849a770b1561f15c2fc233986b3&city=Toronto&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9MDQ0OGZkZjMtZjk2ZS00NjA2LWE5ZDAtMTM4OTljNzhmY2ZmCmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTgwMjA4MTU1MDEwCm1hc2tlZF9hY2NvdW50X251bWJlcj0KdG9rZW5faWQ9CmF1dGhvcml6YXRpb25fY29kZT0KbWVyY2hhbnRfYWNjb3VudF9pZD1iMGZjODkwZS04ZDI2LTQwZDQtOTdiMy1mZDE3Mjk1NWJmYjIKdHJhbnNhY3Rpb25fc3RhdGU9ZmFpbGVkCmlwX2FkZHJlc3M9MTI3LjAuMC4xCnRyYW5zYWN0aW9uX3R5cGU9ZGViaXQKcmVxdWVzdF9pZD0wODBiODE0ZC1mYTRmLWI5N2EtNTUyMi0yNjVkOWJkOWQ2ZjkK.kTTuVVwMDWfvndjt3R%2FPxOk22X%2FGCnj3hrJuQXrJfAI%3D&locale=en&requested_amount=10.010000&completion_time_stamp=20180208155010&provider_status_description_1=&authorization_code=&merchant_account_id=8ab4479d-0455-44d6-b2ce-55c5fe360de6&provider_transaction_reference_id=&street1=123+test&state=ON&first_name=John&email=john.doe%40{domain}&transaction_id=cdc5f955-3749-41ff-aaae-0e9558936eef&provider_transaction_id_1=6110ed11-8477-4d78-a50e-1f021c33ddbb&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=debit&status_code_1=500.2101&status_description_1=mygate-virtual%3AThe+service+provider+declined+the+transaction.&phone=1+555+555+5555&transaction_state=failed&requested_amount_currency=ZAR&postal_code=M4P1E8&request_id=1a51c877-ba4e-bd5a-a06a-23051c9575fa&
+----
+
+//-
