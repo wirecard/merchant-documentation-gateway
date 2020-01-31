@@ -1,0 +1,3197 @@
+[#Klarna]
+== REST API
+_Klarna_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+[#Klarna_CountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | DE, AT, NL, SE, NO, DK, FI
+| Currencies   | EUR, SEK, DKK, NOK
+|===
+
+[#Klarna_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _Klarna Invoice and Klarna Installments_
+notifications are encoded and which formats and methods can be used for
+requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format   | XML, JSON
+                         | Methods  | POST, GET
+   h| IPN Encodement   2+| Base64
+|===
+
+[#Klarna_TransactionTypes]
+=== Transaction Types
+
+For
+<<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+
+|===
+|Transaction Type |Description |Link to the sample
+
+|_authorization_ |Performs a risk check of the order and order
+reservation. An order reservation guarantees also the payment once
+activated.
+|<<Klarna_Samples_authorization, _authorization_ samples>>
+
+|_adjust-authorization_ |Updates an order which has been already
+reserved but not activated yet.
+|<<Klarna_Samples_adjustAuthorization, _adjust-authorization_ samples>>
+
+|_authorization-renewal_ |Extends the reservation period for an order
+which has been already reserved but not activated yet.
+|<<Klarna_Samples_authorizationRenewal, _authorization-renewal_ samples>>
+
+|_void-authorization_ |Cancels an reserved and not yet activated order.
+No further operations on the order are possible after cancellation.
+|<<Klarna_Samples_voidAuthorization, _void-authorization_ samples>>
+
+|_capture-authorization_ |Full or partial activation of an reserved
+order. Once reserved the invoice is generated and sent to the
+end consumer. The order amount will be paid out to the merchant
+according to the agreed billing period.
+|<<Klarna_Samples_captureAuthorization, _capture-authorization_ samples>>
+
+|_refund-capture_ |Full or partial refund for an activated order with
+additional fees optionally.
+|<<Klarna_Samples_refundCapture, _refund-capture_ samples>>
+|===
+
+[#Klarna_TestCredentials]
+=== Test Credentials
+
+[cols="h,"]
+|===
+| URLs (Endpoints)    | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+
+| Merchant Account ID | 8ea482bc-796c-42b4-a698-9a2db4b2edef
+| Username            | 16390-testing
+| Password            | 3!3013=D3fD8X7
+| Secret Key          | 11cbbbf6-93fa-4514-a9a5-359385607041
+|===
+
+[#Klarna_AcceptanceChecks]
+=== Acceptance Checks
+
+Every shop integration needs to pass a special set of acceptance checks
+on the Wirecard test environment before going live. <<ContactUs, Merchant Support>> provides the description of the tests to be executed to the
+merchant by email. Once the test results are verified and confirmed that
+they are passed successfully the merchant will receive access
+credentials for the production environment and can proceed with the
+integration.
+
+The following test data needs to be used for the acceptance tests in
+order to trigger specific behavior.
+
+[#Klarna_AcceptanceChecks_DE]
+==== For DE
+
+.Acceptance Checks Fields for Germany
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                  |Approved          |Denied            |Pending Approved             |Pending Denied
+
+|payment/account-holder/gender              |m                 |m                 |m                            |m
+|payment/account-holder/date-of-birth       |1960-07-07        |1960-07-07        |1960-07-07                   |1960-07-07
+|payment/account-holder/first-name          |Testperson-de     |Testperson-de     |Testperson-de                |Testperson-de
+|payment/account-holder/last-name           |Approved          |Denied            |Approved                     |Denied
+|payment/account-holder/address/street1     |Hellersbergstraße |Hellersbergstraße |Hellersbergstraße            |Hellersbergstraße
+|payment/account-holder/address/street2     |14                |14                |14                           |14
+|payment/account-holder/address/postal-code |41460             |41460             |41460                        |41460
+|payment/account-holder/address/city        |Neuss             |Neuss             |Neuss                        |Neuss
+|payment/account-holder/phone               |01522113356       |01522113356       |01522113356                  |01522113356
+|payment/account-holder/email               |\your@email.com   |\your@email.com   |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_AT]
+==== For AT
+
+.Acceptance Checks Fields for Austria
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                  |Approved            |Denied              |Pending Approved             |Pending Denied
+
+|payment/account-holder/gender              |m                   |f                   |m                            |f
+|payment/account-holder/date-of-birth       |1960-04-14          |1980-04-14          |1960-04-14                   |1980-04-14
+|payment/account-holder/first-name          |Testperson-at       |Testperson-at       |Testperson-at                |Testperson-at
+|payment/account-holder/last-name           |Approved            |Denied              |Approved                     |Denied
+|payment/account-holder/address/street1     |Klarna-Straße 1/2/3 |Klarna-Straße 1/2/3 |Klarna-Straße 1/2/3          |Klarna-Straße 1/2/3
+|payment/account-holder/address/street2     |                    |                    |                             |
+|payment/account-holder/address/postal-code |8071                |8070                |8071                         |8070
+|payment/account-holder/address/city        |Hausmannstätten     |Hausmannstätten     |Hausmannstätten              |Hausmannstätten
+|payment/account-holder/phone               |0676 2600000        |0676 2600000        |0676 2600000                 |0676 2600000
+|payment/account-holder/email               |\your@email.com     |\your@email.com     |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_DK]
+==== For DK
+
+.Acceptance Checks Fields for Denmark
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                     |Approved               |Denied                 |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |0801363945             |0801373501             |0801363945                   |0801373501
+|payment/account-holder/date-of-birth          |1960-07-07             |1960-07-07             |1960-07-07                   |1960-07-07
+|payment/account-holder/first-name             |Testperson-dk          |Testperson-dk          |Testperson-dk                |Testperson-dk
+|payment/account-holder/last-name              |Approved               |Denied                 |Approved                     |Denied
+|payment/account-holder/address/street1        |Sæffleberggate 56,1 mf |Sæffleberggate 56,1 mf |Sæffleberggate 56,1 mf       |Sæffleberggate 56,1 mf
+|payment/account-holder/address/postal-code    |6800                   |6800                   |6800                         |6800
+|payment/account-holder/address/city           |Varde                  |Varde                  |Varde                        |Varde
+|payment/account-holder/phone                  |20 123 456             |20 123 456             |20 123 456                   |20 123 456
+|payment/account-holder/email                  |\your@email.com        |\your@email.com        |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_FI]
+==== For FI
+
+.Acceptance Checks Fields for Finland
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                     |Approved        |Denied          |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |190122-829F     |190122-333F     |190122-829F                  |190122-333F
+|payment/account-holder/first-name             |Testperson-fi   |Testperson-fi   |Testperson-fi                |Testperson-fi
+|payment/account-holder/last-name              |Approved        |Denied          |Approved                     |Denied
+|payment/account-holder/address/street1        |Kiväärikatu 10  |Kiväärikatu 10  |Kiväärikatu 10               |Kiväärikatu 10
+|payment/account-holder/address/postal-code    |28100           |28100           |28100                        |28100
+|payment/account-holder/address/city           |Pori            |Pori            |Pori                         |Pori
+|payment/account-holder/phone                  |0401234567      |0401234567      |0401234567                   |0401234567
+|payment/account-holder/email                  |\your@email.com |\your@email.com |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_NL]
+==== For NL
+
+.Acceptance Checks Fields for the Netherlands
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                  |Approved        |Denied          |Pending Approved             |Pending Denied
+
+|payment/account-holder/gender              |m               |m               |m                            |m
+|payment/account-holder/date-of-birth       |1970-07-10      |1970-07-10      |1970-07-10                   |1970-07-10
+|payment/account-holder/first-name          |Testperson-nl   |Testperson-nl   |Testperson-nl                |Testperson-nl
+|payment/account-holder/last-name           |Approved        |Denied          |Approved                     |Denied
+|payment/account-holder/address/street1     |Neherkade       |Neherkade       |Neherkade                    |Neherkade
+|payment/account-holder/address/street2     |1               |1               |1                            |1
+|payment/account-holder/house-extension     |XI              |XI              |XI                           |XI
+|payment/account-holder/address/postal-code |2521VA          |2521VA          |2521VA                       |2521VA
+|payment/account-holder/address/city        |Gravenhage      |Gravenhage      |Gravenhage                   |Gravenhage
+|payment/account-holder/phone               |0612345678      |0612345678      |0612345678                   |0612345678
+|payment/account-holder/email               |\your@email.com |\your@email.com |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_NO]
+==== For NO
+
+.Acceptance Checks Fields for Norway
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                     |Approved          |Denied            |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |01087000571       |01087000148       |01087000571                  |01087000148
+|payment/account-holder/first-name             |Testperson-no     |Testperson-no     |Testperson-no                |Testperson-no
+|payment/account-holder/last-name              |Approved          |Denied            |Approved                     |Denied
+|payment/account-holder/address/street1        |Sæffleberggate 56 |Sæffleberggate 56 |Sæffleberggate 56            |Sæffleberggate 56
+|payment/account-holder/address/postal-code    |0563              |0563              |0563                         |0563
+|payment/account-holder/address/city           |Oslo              |Oslo              |Oslo                         |Oslo
+|payment/account-holder/phone                  |40 123 456        |40 123 456        |40 123 456                   |40 123 456
+|payment/account-holder/email                  |\your@email.com   |\your@email.com   |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_AcceptanceChecks_SE]
+==== For SE
+
+.Acceptance Checks Fields for Sweden
+[cols="e,,,,"]
+|===
+|{payment-gateway-abbr} Field                                     |Approved        |Denied          |Pending Approved             |Pending Denied
+
+|payment/account-holder/social-security-number |410321-9202     |411028-8083     |410321-9202                  |411028-8083
+|payment/account-holder/first-name             |Testperson-se   |Testperson-se   |Testperson-se                |Testperson-se
+|payment/account-holder/last-name              |Approved        |Denied          |Approved                     |Denied
+|payment/account-holder/address/street1        |Stårgatan 1     |Stårgatan 1     |Stårgatan 1                  |Stårgatan 1
+|payment/account-holder/address/postal-code    |12345           |12345           |12345                        |12345
+|payment/account-holder/address/city           |Ankeborg        |Ankeborg        |Ankeborg                     |Ankeborg
+|payment/account-holder/phone                  |0765260000      |0765260000      |0765260000                   |0765260000
+|payment/account-holder/email                  |\your@email.com |\your@email.com |\pending_accepted@klarna.com |\pending_denied@klarna.com
+|===
+
+[#Klarna_Workflows]
+=== Workflows
+
+[#Klarna_Workflows_authorization]
+==== authorization
+image::images/11-13-klarna/Klarna_Workflow_Authorization.png[Klarna Workflow authorization,height=250]
+
+- Merchant starts with an _authorization_ of the payment by sending a
+transaction of the type _authorization_ to {payment-gateway}
+containing the order data like amount, order number and order items
+along with information about the consumer which includes name, billing
+and shipment address, client IP address and optionally some additional
+information based on the merchant category.
+- Wirecard performs a risk check for the payment using Klarna service
+call _reserve_amount_.
+- If Klarna authorizes the payment, it is guaranteed for the merchant
+once captured.
+- If Klarna cannot guarantee the payment, the _authorization_ is
+rejected with a corresponding error code.
+- The result of the risk check is returned with the status code inside
+the _authorization_ response to the merchant.
+
+//-
+
+[#Klarna_Workflows_pendingAuthorization]
+==== pending-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_PendingAuthorization.png[Klarna Workflow pending-authorization,height=250]
+
+- In case no immediate decision can be made and a manual check of the
+payment must be performed by Klarna. In this case the {payment-gateway} creates a transaction of the type _pending-authorization_
+instead and returns it in the response. It means the _authorization_ is
+pending and cannot be immediately activated.
+- Wirecard takes care of the requesting the actual status of a pending
+_authorization_ and will notify the merchant system about the status
+change using the standard
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> (IPN) mechanism.
+With such a notification
+an _authorization_ transaction with the corresponding state
+_success/failed_ and status code and description is sent to the merchant
+system asynchronously.
+- This new _authorization_ transaction is stored in the system and has
+the parent transaction ID referencing the pending-authorization
+transaction.
+- The check of the _authorization_ status is performed every 2 hours and
+thus the IPN can only be sent out in regular time periods.
+- The maximum time period for a decision at Klarna is 24 hours after the
+_authorization_ and thus a corresponding IPN will be delivered within 26
+hours.
+- It still can occur that no IPN is received after 26 hours e.g. due to
+a technical error. The merchant has the possibility to check the status
+of a _pending-authorization_ using the request retrieving transaction by
+the request ID used for the _authorization_ as described here
+<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Request ID>>.
+In case a manual decision has been made, the
+new _authorization_ transaction is returned with the response. If not,
+the HTTP code 404 is returned.
+- Please contact Wirecard Customer Support if a pending-authorization
+transaction still has no corresponding _authorization_ transaction after
+26 hours.
+
+//-
+
+[#Klarna_Workflows_authorizationRenewal]
+==== authorization-renewal
+
+image::images/11-13-klarna/Klarna_Workflow_AuthorizationRevewal.png[Klarna Workflow authorization-renewal,height=250]
+
+NOTE: It is only possible to extend the reservation expiry date after it has
+already expired.
+
+- An _authorization_ is valid by default for 14 days.
+- After the _authorization_ is expired, it cannot be activated, but can
+be prolonged using the _authorization-renewal_ transaction using Klarna
+service call _extend_expiry_date_.
+- A new expiration data is returned with the _authorization-renewal_
+response.
+
+//-
+
+[#Klarna_Workflows_adjustAuthorization]
+==== adjust-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_AdjustAuthorization.png[Klarna Workflow adjust-authorization,height=250]
+
+NOTE: A risk check can be performed with every update, if the total order
+amount is increased. A new risk check can lead to rejection of the
+_authorization_ adjustment. In this case the last _authorization_ is
+still valid and can be updated or captured.
+
+- An order can be updated before it is activated.
+- Multiple updates are possible.
+- Merchant sends an _adjust-authorization_ transaction with parent
+transaction ID referencing the previous _authorization_ or
+_adjust-authorization_ transaction. Wirecard is using Klarna call
+_update._
+ The following data can be updated: order number, the order items and
+thus the amount, the consumer's name, billing and shipment address.
+- The data sent with the _adjust-authorization_ transaction will replace
+the data from the parent _authorization_ /_adjust-authorization_
+transaction.
+- The result of the adjustment is returned with the status code inside
+the _adjust-authorization_ response to the merchant.
+
+//-
+
+[#Klarna_voidAuthorization]
+==== void-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_VoidAuthorization.png[Klarna Workflow void-authorization,height=250]
+
+NOTE: A partial captured reservation still can be cancelled. In this case only
+not yet captured order items are cancelled.
+
+- It is possible to cancel a payment authorization before it is fully
+captured.
+- It should be performed in case the goods or service are not available
+or the consumer would like to cancel his order.
+- Not cancelled authorizations can influence the risk decisions for the
+further payments of a particular consumer or even other consumers.
+- Merchant sends a _void-authorization_ transaction with parent
+transaction ID referencing the _authorization_/_adjust-authorization_
+transaction to be cancelled. Wirecard is using Klarna call
+_cancel_reservation_.
+- A pending-authorization can be cancelled as well.
+- The cancellation can be approved or rejected which is reported by the
+transaction state and status code in the response.
+- The reservation is not valid after cancellation any longer and cannot
+be updated or activated.
+
+//-
+
+[#Klarna_captureAuthorization]
+==== capture-authorization
+
+image::images/11-13-klarna/Klarna_Workflow_CaptureAuthorization.png[Klarna Workflow capture-authorization,height=250]
+
+NOTE: In case of the payment instructions, the merchant is responsible to send
+by himself the invoices to his consumers. The Klarna bank account
+requisites, where the payment should be provided to, can be taken from
+the payment instructions.
+
+- Merchant must capture an _authorization_ when the goods or services
+are ready to be delivered.
+- This call will inform Wirecard and Klarna using _activate_ call that
+the order is being shipped.
+- Depending on the merchant configuration Klarna will then send an
+invoice or payment instructions to the consumer according to the
+provided invoice delivery option: via email, via post or it can be
+downloaded and enclosed in the delivered package.
+- The download link is provided regardless of the invoice delivery
+option inside the response. The link is valid for 30 days and will be
+removed afterwards.
+- Once _authorization_ is captured the due date for payment is set. The
+default invoice due date is 14 days after activation.
+- The payout to merchant will only occur for the captured payments.
+- To capture an order merchant sends a _capture-authorization_
+transaction with parent transaction ID referencing the
+_authorization_/_adjust-authorization_ transaction to be captured.
+- If no order items are provided with the _capture-authorization_
+transaction, this is a full capture, i.e. all order items of the
+referenced transaction are activated and must be delivered.
+- Multiple partial captures are possible by sending
+_capture-authorization_ transactions with order items to be activated.
+- Please note that no new articles can be added.
+- The price of the existing articles cannot be changed as well,
+otherwise the _capture-authorization_ transaction will be rejected.
+- With every partial capture a new invoice and payment instructions are
+generated and sent out.
+
+//-
+
+[#Klarna_refundCapture]
+==== refund-capture
+
+image::images/11-13-klarna/Klarna_Workflow_RefundCapture.png[Klarna Workflow refund-capture,height=250]
+
+- If a consumer returns all or some items, the merchant needs to issue a
+refund by sending a _refund-capture_ transaction with parent transaction
+ID referencing the _capture-authorization_ transaction to be refunded.
+Wirecard is using the Klarna call _credit_part_.
+- For every separate captured payment (invoice) made by a
+_capture-authorization_ transaction a separate refund must be issued by
+a _refund-capture_ transaction.
+- If no order items are provided with the _refund-capture_ transaction,
+a full refund of the referenced captured payment will be executed.
+- For partial refunds order items to be refunded need to be provided in
+the request.
+- The price of the articles to be refunded cannot be changed, otherwise
+the _refund-capture_ transaction will be rejected.
+- It is also possible to issue a so-called good-will refund which is a
+new discount item in the _refund-capture_ transaction. It can be also
+used to issue change vouchers. The new order item must explicitly have
+the type _discount_ in order to be processed as good-will refund,
+otherwise it will be rejected as not existing item to be refunded.
+- The other possibility is to add some additional shipment or handling
+fees for a refund. It increases the order amount but the fee amount
+itself cannot go over the total amount of the refunded items. To add
+additional fees that may occur at the merchant side (shipping fee or
+handling fee) merchant has to provide new order item(s) with the type
+_shipment_fee_ or _handling_fee._
+
+//-
+
+[#Klarna_revokeCapture]
+==== revoke-capture
+
+In case of fraud if the Merchant has violated the Klarna shipping
+policies, Klarna might revoke the payment guarantee afterwards. In this
+case the corresponding payment amount will be subtracted from the
+payout. A new transaction of the type _revoke-capture_ referencing  the
+_capture-authorization_ transaction will be created internally, the
+amount of the revoke transaction will be equal to the amount of the
+referenced _capture_ transaction.
+
+[#Klarna_adjustCapture]
+==== adjust-capture
+
+In case of fraud where Klarna fulfills the payment guarantee, the amount
+paid out to the merchant will be reduced by the VAT value. A new
+transaction of the type _adjust-capture_ referencing  the
+_capture-authorization_ transaction will be created internally, the
+amount of the adjust transaction will be equal to the VAT amount of the
+referenced _capture_ transaction.
+
+[#Klarna_VoucherHandling]
+==== Voucher Handling
+
+Vouchers can be provided as order items with the type _discount_ in the
+_authorization_/_adjust-authorization_ request. Every voucher must have
+its unique article number. The voucher amount cannot be higher than the
+total amount of the articles.
+
+[#Klarna_VoucherHandling_captureVoucher]
+===== capture Voucher
+
+In case of full _capture_ vouchers are captured among with the other
+articles.
+
+In case of partial _capture_ the captured voucher amount cannot be
+higher than the total amount of all captured articles. The merchant can
+use the following options for voucher handling in partial _capture_
+scenario:
+
+[#Klarna_VoucherHandling_ReCalculation]
+===== Re-Calculation and Split of Voucher Amount Based on Partially Activated Article
+
+.General formula for calculation
+----
+voucher proportion for single article = single article amount / amount of all articles voucher is related to * total voucher amount
+----
+
+.Example Basket
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher C (discount item) = 10 Euro (10% of total basket amount)
+
+//-
+
+.Example Adjustment authorization
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher for Article A: 5/100*10 = 0,5 Euro
+- Voucher for Article B: 95/100*10 = 9,5 Euro
+
+//-
+
+.Example Partial capture:
+- Article A = 5 Euro
+- Voucher for Article A = 0,5 Euro
+
+//-
+
+[#Klarna_ReCalculate_AvoidNegative]
+===== Re-Calculate and Split Voucher to avoid Negative Invoice for Partial Activation
+
+.Example Basket
+- Voucher for article A: 5 Euro (<= max. amount of partial
+activation)
+- Voucher for article B: 5 Euro (remaining voucher amount after
+subtracting value
+- of voucher of partial activation)
+
+//-
+
+.Example Adjustment authorization
+- Article A = 5 Euro
+- Article B = 95 Euro
+- Voucher for article A = 5 Euro
+- Voucher for article B = 5 Euro
+
+//-
+
+.Example Partial capture
+- Article A = 5 Euro
+- Voucher for Article A = 5 Euro
+
+//-
+
+NOTE: In case of uneven amounts the calculation and rounding of amounts should
+be done with 2 decimal numbers. Since Klarna ignores more than 2 decimal
+digits this is important to guarantee identical prices in the
+_authorization_ and in the order in the shop system.
+
+If the voucher is based on the overall basket amount and a partial
+capture (article + voucher) is going to be performed, followed by a
+cancellation of the remaining (not captured) articles, the merchant has
+the possibility to change (decrease) the amount of the voucher before
+activation using adjust authorization request. After a capture it will
+not be possible to decrease the amount of the already captured voucher.
+
+Voucher is refunded like all other articles (using refund-capture call
+without any order items or including all order items). It must be
+possible to identify every voucher through its unique article number. If
+you refund a voucher, it means its amount is subtracted from the total
+refund amount.
+
+[#Klarna_PartialVoucherRefund]
+==== Partial Voucher Refund
+
+- If other articles are to be refunded, a remaining voucher must not
+lead to a negative invoice amount.
+- A refund of a voucher may not lead to an increased total invoice
+amount. This would be a special case which needs additional contractual
+agreements and general approving for a merchant by Wirecard and Klarna
+Business Underwriting beforehand, otherwise the call would be rejected.
+- In case of a partial refund, the merchant might want to reduce a given
+voucher. In this case the voucher can either be refunded completely and
+a new voucher be added in the credit_part call, or a correcting
+voucher/article can be added to decrease the total discount.
+
+//-
+
+The following example depicts both cases:
+
+.Reservation
+- Article A = 100 Euro
+- Article B = 100 Euro
+- Voucher C = 20 Euro (10% on basket given for baskets exceeding 150 Euros)
+
+//-
+
+.Activation
+- Article A = 100 Euro
+- Article B = 100 Euro
+- Voucher C = 20 Euro
+
+//-
+
+NOTE: Consumer returns article A, total basket amount is lower than
+150 Euro, therefore merchant does not want to give a voucher anymore or
+wants to decrease the voucher.
+
+.Option 1 - remove voucher completely
+- Refund
+* Article A = 100 Euro
+* Voucher C = 20 Euro
+
+//-
+
+.Option 2 - remove voucher completely and add new lower voucher
+- Refund
+* Article A = 100 Euro
+* Voucher C = 20 Euro
+* Add new voucher D (new item with discount type) = 10 Euro
+
+//-
+
+.Option 3 - keep voucher and add fee item to decrease overall given discount
+- Refund
+* Refund A = 100 Euro
+* Add a new item with the fee type to decrease Voucher = 10 Euro
+
+//-
+
+NOTE: If the decrease of the voucher is based on the overall basket
+amount, a calculation as in the first example should be performed.
+
+[#Klarna_Fields]
+=== Fields
+
+The following elements are either mandatory *M*, optional *O* or
+conditional *C* in a transaction process.
+
+[#Klarna_Fields_authorization]
+.authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request   |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id |M |M |Alphanumeric |36 |Unique identifier for a
+merchant account |
+
+|request-id |M |M |Alphanumeric |150 |This is the identification number
+of the request. |It has to be unique for each request.
+
+|transaction-type |M |M |Enumeration |30 |The type for the transaction -
+_authorization_ |
+
+|requested-amount |M |M |Numeric |18,3 |Amount of the order to be
+reserved. The amount of the decimal place is dependent of the currency.
+|The requested amount must be equal to the amount sum of all order
+items.
+
+|requested-amount@currency |M |M |Alphanumeric |3 |Amount currency of
+the order to be reserved. |Currency, country of the consumer and
+language must match.
+
+|account-holder |M |M |Complex |  |The end consumer. |
+
+|account-holder.social-security-number |C |C |Alphanumeric |14 |Social
+security number of the end consumer. |Mandatory for SE, DM, FI, NO.
+
+|account-holder.date-of-birth |C |C |Date |  |Birth date of the
+end consumer. |Mandatory for DE, AT, NL.
+
+|account-holder.first-name |M |M |Alphanumeric |32 |First name of the
+end consumer. |
+
+|account-holder.last-name |M |M |Alphanumeric |32 |Last name of the
+end consumer. |
+
+|account-holder.email |M |M |Alphanumeric |64 |Email address of the
+end consumer. |
+
+|account-holder.gender |C |C |Alphanumeric |1 |Gender of the
+end consumer. |Mandatory for DE, AT, NL.
+
+|account-holder.phone |M |M |Alphanumeric |32 |The phone number of the
+end consumer. |Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|account-holder.address |M |M |Complex |  |The address of the
+end consumer. |
+
+|account-holder.address.street1 |M |M |Alphanumeric |128 |Street name of
+the end consumer. |
+
+|account-holder.address.street2 |M |M |Alphanumeric |128 |House number
+of the end consumer. |Mandatory for DE and NL.
+
+|account-holder.address.house-extension |C |C |Alphanumeric |32 |House
+extension of the end consumer. |Mandatory for NL.
+
+|account-holder.address.city |M |M |Alphanumeric |32 |City of the
+end consumer. |
+
+|account-holder.address.country |M |M |Alphanumeric |3 |Country of the
+end consumer. |Currency, country of the consumer and language must
+match.
+
+|account-holder.address.postal-code |M |M |Alphanumeric |16 |Postal code
+of the the end consumer. |
+
+|shipping |M |M |Complex |  |The shipping information of the recipient.
+|
+
+|shipping.first-name |M |M |Alphanumeric |32 |First name of the
+recipient. |Must be identical to the first name of the invoice recipient
+(account holder).
+
+|shipping.last-name |M |M |Alphanumeric |32 |Last name of the recipient.
+|Must be identical to the last name of the invoice recipient (account
+holder).
+
+|shipping.email |M |M |Alphanumeric |64 |Email address of the recipient.
+|
+
+|shipping.phone |M |M |Alphanumeric |32 |The phone number of the
+recipient. |Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|shipping.address |M |M |Complex |  |The address of the recipient. |
+
+|shipping.address.street1 |M |M |Alphanumeric |128 |Street name of the
+recipient. |
+
+|shipping.address.street2 |M |M |Alphanumeric |128 |House number of the
+recipient. |Mandatory for DE and NL.
+
+|shipping.address.house-extension |C |C |Alphanumeric |32 |House
+extension of the recipient. |Mandatory for NL.
+
+|shipping.address.city |M |M |Alphanumeric |32 |City of the recipient.
+|
+
+|shipping.address.country |M |M |Alphanumeric |3 |Country of the
+recipient. |Country of the consumer and of the recipient must be the
+same.
+
+|shipping.address.postal-code |M |M |Alphanumeric |16 |Postal code of
+the the recipient. |
+
+|ip-address |M |M |Alphanumeric |15 |Global (internet) IP address of the
+consumer's computer. |
+
+|order-number |O |O |Alphanumeric |64 |Order number of the merchant. |
+
+|order-detail |O |O |Alphanumeric |  |Message or other important
+information to the consumer on the invoice. |Requires a setting which
+can be made by <<ContactUs, Merchant Support>>.
+
+|descriptor |O |O |Alphanumeric |256 |Message or other important
+information to the consumer on the invoice. |Requires a setting which
+can be made by <<ContactUs, Merchant Support>>.
+
+|locale |O |O |Alphanumeric |5 |Language to be used on the invoice. If
+not provided derived from the consumer's country. |Currency, country of
+the consumer and language must match.
+
+|order-items |M |M |Complex |  |List of order items. |
+
+|order-items.order-item |M |M |Complex |  |Order item. |
+
+|order-items.order-item.quantity |M |M |Numeric |  |Quantity of the
+order item. |
+
+|order-items.order-item.article-number |M |M |Alphanumeric |256 |Article
+ID unique for the order. |
+
+|order-items.order-item.name |M |M
+|Alphanumeric |256 |Order item name. |
+
+|order-items.order-item.amount |M |M |Numeric |18,3 |Price of one order
+item unit. |
+
+|order-items.order-item.amount@currency |M |M |Alphanumeric |3 |Currency
+of the order item. |Order item currency must match the order currency
+(requested amount currency).
+
+|order-items.order-item.tax-rate |M |M |Numeric |5,2 |Tax rate as
+percentage value or the order item. |
+
+|order-items.order-item.discount |O |O |Numeric |18,3 |The discount
+value as percentage value for one order item. |Currently not supported
+and should not be used. Please calculate the order item value with
+discount if needed.
+
+|order-items.order-item.type |O |O |Enumeration |  |The type of the
+order item: _shipment_fee, handling_fee, discount_. If not provided, it
+is treated as a regular article. |Discount is currently not supported
+yet and will be treated as a regular article.
+
+|additional-merchant-data |O |O |Alphanumeric |  |Special data might be
+needed for specific merchant categories like travel or event tickets in
+addition to order items. The benefit for the merchant is that Klarna
+will be better able to score the merchant's consumers which in turn will
+result in a higher acceptance rate. It will be decided before the
+integration if additional data is required. For details regarding the
+content and format of this field please see
+<<Klarna_AdditionalMerchantData, Extra Merchant Data>> chapter. |
+
+|transaction-id |  |M |Alphanumeric |36 |Transaction ID is the unique
+identifier for a transaction. It is generated by Wirecard. |
+
+|request-id |M |M |Alphanumeric |150 |Identification number of the
+request generated by merchant. It has to be unique for each request. |
+
+|transaction-state |  |M |Alphanumeric |12 |Transaction status _success_
+/ _failed._ |
+
+|completion-time-stamp |  |M |DateTime |  |Timestamp of completion of
+request. |
+
+|statuses |  |M |Complex |  |List of transaction statuses. |
+
+|statuses.status |  |M |Complex |  |Transaction status. |
+
+|statuses.status.code |  |M |Alphanumeric |12 |Status code of the
+transaction. |
+
+|statuses.status.description |  |M |Alphanumeric |256 |Description to
+the status code of the transaction. |
+
+|statuses.status.severity |  |M |Enumeration |20 |This field gives
+information if a status is a _warning_, an _error_ or an _information_.
+|
+
+|statuses.status@provider-code |  |O |Alphanumeric |34 |Original Klarna
+error code |
+
+|statuses.status@provider-message |  |O |Alphanumeric |  |Error message
+to be shown to the end consumer as required by Klarna |
+
+|statuses.status@provider-transaction-id |  |O |Alphanumeric |36 |Klarna
+reservation number |
+
+|notifications.notification@url |O |O |Alphanumeric |256 |URL to be used
+for the Instant Payment Notification for pending reservations.
+It overwrites the notification URL that is set up in the merchant
+configuration. |
+
+|custom-fields.custom-field/@field-name |C |C |Alphanumeric |36 |The
+name of the custom field keeping the value of the selected Klarna pclass
+which is defining the corresponding installment plan. |Mandatory for
+payment method _klarna-install_. Must have the hardcoded value
+"klarna.pclass".
+
+|custom-fields.custom-field/@field-value |C |C |Alphanumeric |256 |The
+value of the custom field keeping the value of the selected Klarna
+pclass which is defining the corresponding installment plan. |Mandatory
+for payment method _klarna-install_. The value of the Klarna pclass -
+Klarna's identifier of the chosen installment plan (for details please
+see
+<<Klarna_InstallmentCalculator, Klarna Installment Calculator service for guaranteed payment on installments>>).
+
+|payment-methods.payment-method-name |M |M |Alphanumeric |15 |Name of
+the payment method: _klarna-invoice_, _klarna-install_ |
+|===
+
+[#Klarna_Fields_adjustAuthorization]
+.adjust-authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _adjust-authorization_.
+|
+
+|requested-amount
+|M
+|M
+|Numeric
+|18,3
+|Amount of the changed order. The amount of the decimal place is
+dependent of the currency.
+|The requested amount must be equal to the amount sum of all order items.
+
+|requested-amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Amount currency of the changed order.
+|Currency, country of the consumer and language must match.
+
+|account-holder
+|O
+|O
+|Complex
+|
+|The end consumer whose data has changed.
+|
+
+|account-holder.social-security-number
+|C
+|C
+|Alphanumeric
+|14
+|Social security number of the end consumer.
+|Mandatory for SE, DM, FI, NO.
+
+|account-holder.date-of-birth
+|C
+|C
+|Date
+|
+|Birth date of the end consumer.
+|Mandatory for DE, AT, NL.
+
+|account-holder.first-name
+|M
+|M
+|Alphanumeric
+|32
+|First name of the end consumer.
+|
+
+|account-holder.last-name
+|M
+|M
+|Alphanumeric
+|32
+|Last name of the end consumer.
+|
+
+|account-holder.email
+|M
+|M
+|Alphanumeric
+|64
+|Email address of the end consumer.
+|
+
+|account-holder.gender
+|C
+|C
+|Alphanumeric
+|1
+|Gender of the end consumer.
+|Mandatory for DE, AT, NL.
+
+|account-holder.phone
+|M
+|M
+|Alphanumeric
+|32
+|The phone number of the end consumer.
+|Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|account-holder.address
+|M
+|M
+|Complex
+|
+|The address of the end consumer.
+|
+
+|account-holder.address.street1
+|M
+|M
+|Alphanumeric
+|128
+|Street name of the end consumer.
+|
+
+|account-holder.address.street2
+|M
+|M
+|Alphanumeric
+|128
+|House number of the end consumer.
+|Mandatory for DE and NL.
+
+|account-holder.address.house-extension
+|C
+|C
+|Alphanumeric
+|32
+|House extension of the end consumer.
+|Mandatory for NL.
+
+|account-holder.address.city
+|M
+|M
+|Alphanumeric
+|32
+|City of the end consumer.
+|
+
+
+|account-holder.address.country
+|M
+|M
+|Alphanumeric
+|3
+|Country of the end consumer.
+|Currency, country of the consumer and language must match.
+
+|account-holder.address.postal-code
+|M
+|M
+|Alphanumeric
+|16
+|Postal code of the the end consumer.
+|
+
+|shipping
+|O
+|O
+|complex
+|
+|The changed shipping data of the recipient.
+|
+
+
+|shipping.first-name
+|M
+|M
+|Alphanumeric
+|32
+|First name of the recipient.
+|
+
+|shipping.last-name
+|M
+|M
+|Alphanumeric
+|32
+|Last name of the recipient.
+|
+
+|shipping.email
+|M
+|M
+|Alphanumeric
+|64
+|Email address of the recipient.
+|
+
+|shipping.phone
+|M
+|M
+|Alphanumeric
+|32
+|The phone number of the recipient.
+|Phone numbers need to be validated. Click
+<<Klarna_phoneNumberValidation, here>>
+for details.
+
+|shipping.address
+|M
+|M
+|Complex
+|
+|The address of the recipient.
+|
+
+|shipping.address.street1
+|M
+|M
+|Alphanumeric
+|128
+|Street name of the recipient.
+|
+
+|shipping.address.street2
+|M
+|M
+|Alphanumeric
+|128
+|House number of the recipient.
+|Mandatory for DE and NL.
+
+|shipping.address.house-extension
+|C
+|C
+|Alphanumeric
+|32
+|House extension of the recipient.
+|Mandatory for NL.
+
+|shipping.address.city
+|M
+|M
+|Alphanumeric
+|32
+|City of the recipient.
+|
+
+|shipping.address.country
+|M
+|M
+|Alphanumeric
+|3
+|Country of the recipient.
+|Country of the consumer and of the recipient must be the same.
+
+|shipping.address.postal-code
+|M
+|M
+|Alphanumeric
+|16
+|Postal code of the the recipient.
+|
+
+|order-number
+|O
+|O
+|Alphanumeric
+|64
+|Changed order number of the merchant.
+|
+
+|order-items
+|O
+|O
+|Complex
+|
+|Changed list of order items.
+|The provided order items will completely replace those from the parent
+transaction.
+
+|order-items.order-item
+|O
+|O
+|Complex
+|
+|Order item.
+|
+
+|order-items.order-item.quantity
+|M
+|M
+|Numeric
+|
+|Quantity of the order item.
+|
+
+|order-items.order-item.article-number
+|M
+|M
+|Alphanumeric
+|256
+|Article ID unique for the order.
+|
+
+|order-items.order-item.name
+|M
+|M
+|Alphanumeric
+|256
+|Order item name.
+|
+
+|order-items.order-item.amount
+|M
+|M
+|Numeric
+|18,6
+|Price of one order item unit.
+|
+
+|order-items.order-item.amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Currency of the order item.
+|Order item currency must match the order currency (requested amount
+currency).
+
+|order-items.order-item.tax-rate
+|M
+|M
+|Numeric
+|5,2
+|Tax rate as percentage value or the order item.
+|
+
+|order-items.order-item.discount
+|O
+|O
+|Numeric
+|18,2
+|The discount value as percentage value for one order item.
+|Currently not supported and should not be used. Please calculate the
+order item value with discount if needed.
+
+|order-items.order-item.type
+|O
+|O
+|Enumeration
+|
+|The type of the order item: _shipment_fee, handling_fee, discount_. If
+not provided, it is treated as a regular article.
+|Discount is currently not supported and will be treated as a regular
+article.
+
+|transaction-id
+|
+|M
+|Alphanumeric
+|36
+|Transaction ID is the unique identifier for a transaction. It is
+generated by Wirecard.
+|
+
+|transaction-state
+|
+|M
+|Enumeration
+|12
+|Transaction status _success_ / _failed_
+|
+
+|completion-time-stamp
+|
+|M
+|DateTime
+|
+|Timestamp of completion of request.
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+|
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+|
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction.
+|
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_authorizationRenewal]
+.authorization-renewal
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _authorization-renewal_
+|
+
+|expiration-date
+|
+|M
+|dateTime
+|
+|The new expiration timestamp
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+|
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+|
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Text
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction to be prolonged.
+|
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_voidAuthorization]
+.void-authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _void-authorization_
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+|
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+|
+
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Alphanumeric
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction to be voided.
+|
+
+|payment-methods.payment-method-name
+|M
+|M
+|Alphanumeric
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_captureAuthorization]
+.capture-authorization
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Enumeration
+|30
+|The type for a transaction – _capture-authorization_
+|
+
+|requested-amount
+|M
+|M
+|Numeric
+|18,3
+|Amount of the changed order. The amount of the decimal place is
+dependent of the currency.
+|The requested amount must be equal to the amount sum of all order items.
+
+|requested-amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Amount currency of the changed order.
+|Currency, country of the consumer and language must match.
+
+|descriptor
+|O
+|O
+|Alphanumeric
+|256
+|Message or other important information to the consumer on the invoice/
+payment instructions.
+|Requires a setting which can be made by <<ContactUs, Merchant Support>>.
+
+|invoice.delivery-method
+|O
+|O
+|Enumeration
+|
+|The delivery method of the invoice/payment instructions. Possible
+values: mail, email.
+|Regardless of this element the link to the invoice/payment instructions
+document is provided in payment-methods/payment-method/@url.
+
+|invoice.invoice-number
+|
+|M
+|Alphanumeric
+|32
+|The OCR number identifying the captured order
+|
+
+|invoice.invoice_url
+|
+|M
+|Alphanumeric
+|2000
+|The link to the Klarna invoice/payment instructions document in PDF
+format to download.
+|The URL is valid for 30 days after creation. After this time it will be
+deleted.
+
+|order-detail
+|O
+|O
+|Alphanumeric
+|
+|Message or other important information to the consumer on the
+invoice/payment instructions.
+|Requires a setting which can be made by <<ContactUs, Merchant Support>>.
+
+|order-number
+|O
+|O
+|Alphanumeric
+|64
+|Order number of the merchant if not provided with the authorization.
+|
+
+|order-items
+|O
+|O
+|Complex
+|
+|The list of the order items for partial capture.
+|
+
+|order-items.order-item
+|O
+|O
+|Complex
+|
+|Order item.
+|
+
+|order-items.order-item.quantity
+|M
+|M
+|Numeric
+|
+|Quantity of the order item.
+|
+
+|order-items.order-item.article-number
+|M
+|M
+|Alphanumeric
+|256
+|Article ID unique for the order.
+|
+
+|order-items.order-item.name
+|M
+|M
+|Alphanumeric
+|256
+|Order item name.
+|
+
+|order-items.order-item.amount
+|M
+|M
+|Numeric
+|18,6
+|Price of one order item unit.
+|Must be equal to the price in the authorization/adjust-authorization
+call.
+
+|order-items.order-item.amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Currency of the order item.
+|Order item currency must match the order currency (requested amount
+currency).
+
+|shipping.tracking-number
+|O
+|O
+|Alphanumeric
+|64
+|Tracking number for the outgoing parcel
+|
+
+|shipping.tracking-url
+|O
+|O
+|Alphanumeric
+|2000
+|URL to the shipping company's page for the outgoing parcel
+|
+
+|shipping.shipping-company
+|O
+|O
+|Alphanumeric
+|64
+|The name of the shipping company for the outgoing parcel
+|
+
+|shipping.shipping-method
+|O
+|O
+|Enumeration
+|
+a|
+.Use one of the following options
+- store_pick_up - An online purchase is picked up in the
+merchants own physical store.
+- home_delivery -  Goods are sent home directly to consumer's
+home address via an external shipping company. This can either be a
+traceable or a non-traceable shipment.
+- registered_box - Goods are sent to a delivery box where the
+consumer needs to be registered to pick them up. Example: DHL
+Packstation.
+- unregistered_box - Goods are sent to a delivery box where the
+consumer does not need to be registered to pick them up. Example: Itella
+smartpost, Hermes PaketShop.
+- pick_up_point - Goods are sent to a manned pick-up point by an
+external shipping company. External personnel hands over goods to the
+consumer.
+- own_delivery - Goods are sent home directly to consumers home
+address via merchants own delivery service.
+
+//-
+
+|
+
+|shipping.return-tracking-number
+|O
+|O
+|Alphanumeric
+|64
+|Tracking number for the return parcel
+|
+
+|shipping.return-tracking-url
+|O
+|O
+|Alphanumeric
+|2000
+|URL to the shipping company's page for the return parcel
+|
+
+|shipping.return-shipping-company
+|O
+|O
+|Alphanumeric
+|36
+|The name of the shipping company for the return parcel
+|
+
+|transaction-id
+|
+|M
+|Alphanumeric
+|36
+|Transaction ID is the unique identifier for a transaction.
+|It is generated by Wirecard.
+
+|transaction-state
+|
+|M
+|Alphanumeric
+|12
+|Transaction status _success_ / _failed_
+|
+
+|completion-time-stamp
+|
+|M
+|DateTime
+|
+|Timestamp of completion of request.
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+|
+
+|statuses.status
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+|
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|statuses.status@provider-transaction-id
+|
+|O
+|Alphanumeric
+|36
+|Klarna invoice number (OCR number)
+|
+
+|invoice/invoice-number
+|
+|M
+|Alphanumeric
+|36
+|Klarna invoice number (OCR number)
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction.
+|
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_refundCapture]
+.refund-capture
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|request-id
+|M
+|M
+|Alphanumeric
+|150
+|Identification number of the request.
+|It has to be unique for each request.
+
+|transaction-type
+|M
+|M
+|Alphanumeric
+|30
+|The type for a transaction – _refund-capture_
+|
+
+|requested-amount
+|M
+|M
+|Numeric
+|18,3
+|Amount of the changed order. The amount of the decimal place is
+dependent of the currency.
+|The requested amount must be equal to the amount sum of all order items.
+
+|requested-amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Amount currency of the changed order.
+|Currency, country of the consumer and language must match.
+
+|order-items
+|O
+|O
+|Complex
+|
+|List of order items to be refunded.
+|
+
+|order-items.order-item
+|O
+|O
+|Complex
+|
+|Order item.
+|
+
+|order-items.order-item.quantity
+|M
+|M
+|Numeric
+|
+|Quantity of the order item.
+|
+
+|order-items.order-item.article-number
+|M
+|M
+|Alphanumeric
+|256
+|Article ID unique for the order.
+|
+
+|order-items.order-item.name
+|M
+|M
+|Alphanumeric
+|256
+|Order item name.
+|
+
+|order-items.order-item.amount
+|M
+|M
+|Numeric
+|18,6
+|Price of one order item unit.
+|
+
+|order-items.order-item.amount@currency
+|M
+|M
+|Alphanumeric
+|3
+|Currency of the order item.
+|Order item currency must match the order currency (requested amount
+currency).
+
+|order-items.order-item.tax-rate
+|M
+|M
+|Numeric
+|5,2
+|Tax rate as percentage value or the order item.
+|
+
+|order-items.order-item.type
+|O
+|O
+|Enumeration
+|
+a|
+.Order item types
+- shipment_fee, handling_fee – marks the item as a new additional
+fee decreasing the total refund amount
+- discount – marks the item as a voucher (good-will refund)
+increasing the total refund amount.
+
+//-
+
+|If not provided, the item is treated as an existing item to be refunded.
+
+|transaction-id
+|
+|M
+|Alphanumeric
+|36
+|Transaction ID is the unique identifier for a transaction. It is
+generated by Wirecard.
+|
+
+|transaction-state
+|
+|M
+|Alphanumeric
+|12
+|Transaction status _success_ / _failed_
+|
+
+|completion-time-stamp
+|
+|M
+|DateTime
+|
+|Timestamp of completion of request.
+|
+
+|statuses
+|
+|M
+|Complex
+|
+|List of transaction statuses
+|
+
+|statuses.staus
+|
+|M
+|Complex
+|
+|Transaction status.
+|
+
+|statuses.status.code
+|
+|
+|M
+|Alphanumeric
+|12
+|Status code of the transaction.
+
+|statuses.status.description
+|
+|M
+|Alphanumeric
+|256
+|Description to the status code of the transaction.
+|
+
+|statuses.status.severity
+|
+|M
+|Enumeration
+|20
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code
+|
+
+|statuses.status@provider-message
+|
+|O
+|Text
+|
+|Error message to be shown to the end consumer as required by Klarna
+|
+
+|parent-transaction-id
+|M
+|M
+|Alphanumeric
+|36
+|Transaction ID of the parent authorization or adjust-authorization
+transaction.
+|
+
+|payment-methods.payment-method-name
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_, _klarna-install_
+|
+|===
+
+[#Klarna_Fields_getAdress]
+.get-address
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|get-address-request.merchant-account-id
+|M
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|get-address-request.payment-method
+|M
+|M
+|Enumeration
+|15
+|Name of the payment method: _klarna-invoice_ or _klarna-install_.
+|
+
+|get-address-request.social-security-number
+|M
+|M
+|Alphanumeric
+|14
+|Social security number of the end consumer which addresses have to be
+returned by the service.
+|It has the following format for SE: (yy)yymmdd-nnnn where yymmdd – the
+date of birth of the consumer. It can be sent with or without dash "-"
+or with or without the two first numbers in the year.
+
+|get-address-request.country
+|M
+|M
+|Alphanumeric
+|3
+|Country of the end consumer.
+|Currently only SE is supported.
+
+|get-address-request.ip-address
+|M
+|M
+|Alphanumeric
+|15
+|Global (internet) IP address of the consumers computer.
+|
+
+|get-address-response.addresses
+|
+|M
+|Complex
+|
+|The list of found addresses.
+|
+
+|get-address-response.addresses.address
+|
+|M
+|Complex
+|
+|The found address.
+|
+
+|get-address-response.addresses.address.first-name
+|
+|M
+|Alphanumeric
+|32
+|First name of the person registered for the current address.
+|
+
+|response.addresses.address.last-name
+|
+|M
+|Alphanumeric
+|32
+|Last name of the person registered for the current address.
+|
+
+|get-address-response.addresses.address.street
+|
+|M
+|Alphanumeric
+|128
+|Street name + house number of the found address.
+|
+
+|get-address-response.addresses.address.house-number
+|
+|M
+|Alphanumeric
+|
+|Empty for Klarna.
+|
+
+|get-address-response.addresses.address.postal-code
+|
+|M
+|Alphanumeric
+|16
+|Postal code of the found address.
+|
+
+|get-address-response.addresses.address.city
+|
+|M
+|Alphanumeric
+|32
+|City of the found address.
+|
+|===
+
+[#Klarna_Fields_installmentCalculator]
+.installment-calculator
+[cols="e,,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description |Usage remarks
+
+|installment-calculator-request.merchant-account-id
+|M
+|
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|installment-calculator-request.payment-method
+|M
+|
+|Enumeration
+|15
+|Name of the payment method: _klarna-install_
+|
+
+|installment-calculator-request.amount
+|M
+|
+|Numeric
+|18,3
+|Amount of the order.
+|The amount of the decimal place is dependent of the currency.
+
+|installment-calculator-request.amount@currency
+|M
+|
+|Alphanumeric
+|3
+|Amount currency of the order.
+|
+
+|installment-calculator-request.locale
+|M
+|
+|Alphanumeric
+|5
+|Locale code containing country and language code. E.g. de_de. The
+language defines the localized labels of the result fields.
+|
+
+|installment-calculator-response.merchant-account-id
+|
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account.
+|
+
+|installment-calculator-response.payment-method
+|
+|M
+|Enumeration
+|15
+|Name of the payment method: klarna-install
+|
+
+|installment-calculator-response.amount
+|
+|M
+|Numeric
+|18,3
+|Amount of the order.
+|The amount of the decimal place is dependent of the currency.
+
+|installment-calculator-response.amount@currency
+|
+|M
+|Alphanumeric
+|3
+|Amount currency of the order.
+|
+
+|installment-calculator-response.locale
+|
+|M
+|Alphanumeric
+|5
+|Locale code containing country and language code. E.g. de_de. The
+language defines the localized labels of the result fields.
+|
+
+|installment-calculator-response.state
+|
+|M
+|Enumeration
+|
+|The state of the response: success, failed.
+|
+
+|installment-calculator-response.statuses
+|
+|M
+|Complex
+|
+|List of response statuses.
+|
+
+|installment-calculator-response.statuses.status
+|
+|M
+|Complex
+|
+|Response status
+|
+
+|installment-calculator-response.statuses.status@code
+|
+|M
+|Alphanumeric
+|12
+|The status code of the response. For the complete list of status codes
+please see
+<<StatusCodes, Status Codes and Transaction Status>>.
+|
+
+|installment-calculator-response.statuses.status@description
+|
+|M
+|Alphanumeric
+|256
+|The description to the status code of the response.
+|
+
+|installment-calculator-response.statuses.status@severity
+|
+|M
+|Enumeration
+|
+|This field gives information if a status is a warning, an error or
+an information.
+|
+
+|installment-calculator-response.statuses.status@provider-code
+|
+|O
+|Alphanumeric
+|34
+|Original Klarna error code.
+|
+
+|installment-calculator-response.statuses.status@provider-message
+|
+|O
+|Alphanumeric
+|
+|The original Klarna error message.
+|It does not need to be shown to the end consumer.
+
+|installment-calculator-response.installments
+|
+|O
+|Complex
+|
+|List of available installment plans.
+|
+
+|installment-calculator-response.installments.installment
+|
+|O
+|Complex
+|
+|Installment plan.
+|
+
+|installment-calculator-response.installments.installment.product-id
+|
+|M
+|Numeric
+|
+|The Klarna ID uniquely identifying the corresponding payment option /
+installment plan.
+|
+
+|installment-calculator-response.installments.installment.name
+|
+|O
+|Alphanumeric
+|
+|Name of the payment option in English.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.terms
+|
+|O
+|Alphanumeric
+|
+|Absolute URL to the terms for this payment method.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.logo
+|
+|O
+|Alphanumeric
+|
+|Absolute URL to the logo used for this payment method.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.type
+|
+|O
+|Alphanumeric
+|
+|Payment option group: invoice for payment on invoice and for "Buy now,
+pay in X months", part_payment for payment by installments.
+|
+
+|installment-calculator-response.installments.installment.type@title
+|
+|O
+|Alphanumeric
+|
+|Title to display the payment option group in the corresponding language.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.details
+|
+|O
+|Complex
+|
+|The details of the installment plan.
+|
+
+|installment-calculator-response.installments.installment.details.interest-rate
+|
+|O
+|Alphanumeric
+|
+|Interest rate for payment option.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.interest-rate@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the interest rate in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.interest-rate@symbol
+|
+|
+|Alphanumeric
+|
+|The unit of the interest rate. Usually %.
+|
+
+|installment-calculator-response.installments.installment.details.monthly-invoice-fee
+|
+|O
+|Alphanumeric
+|
+|Monthly administrator invoice fee.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.monthly-invoice-fee@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the monthly invoice fee in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.monthly-invoice-fee@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the monthly invoice fee.
+|Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details.setup-fee
+|
+|O
+|Alphanumeric
+|
+|The start fee of the installment.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.setup-fee@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the setup fee in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.setup.fee@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the setup fee.
+|Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details.monthly-pay
+|
+|O
+|Alphanumeric
+|
+|Calculated monthly payment. For the flexible installment plans for
+Germany, Sweden, Finland and Norway it contains the minimal monthly
+payment amount.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.monthly-pay@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the monthly payment in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.monthly-pay@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the monthly payment.
+|Usually the currency code in the corresponding language.
+
+|installment-calculator-response.installments.installment.details.annual-percentage-rate
+|
+|O
+|Alphanumeric
+|
+|Calculated annual percentage rate.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.annual-percentage-rate@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the annual percentage rate in the corresponding
+language.
+|
+
+|installment-calculator-response.installments.installment.details.annual-percentage-rate@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the annual percentage rate. Usually %.
+|
+
+|installment-calculator-response.installments.installment.details.months
+|
+|O
+|Alphanumeric
+|
+|Number of installments (months) for payment option.
+|Only available for fixed installment plans.
+
+|installment-calculator-response.installments.installment.details.months@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the number of installments (months) in the
+corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.month
+|
+|O
+|Alphanumeric
+|
+|The name of the month when the order must be paid in English.
+|Only available for Pay now, pay in X months.
+
+|installment-calculator-response.installments.installment.details.month@label
+|
+|O
+|Alphanumeric
+|
+|The name of the month in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.total-credit-purchase-price
+|
+|O
+|Alphanumeric
+|
+|The total amount that is payable for this purchase, including starting
+fee, administrative fees and interest rates.
+|Value is displayed in localized format depending on the locale.
+
+|installment-calculator-response.installments.installment.details.total-credit-purchase-price@label
+|
+|O
+|Alphanumeric
+|
+|Title to display the total amount in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.details.total-credit-purchase-price@symbol
+|
+|O
+|Alphanumeric
+|
+|The unit of the total amount.
+|Usually the currency code in the corresponding language
+
+|installment-calculator-response.installments.installment.details.minimum-amount
+|
+|O
+|Alphanumeric
+|
+|Minimum purchase amount for the payment option.
+|Only available for Netherlands, Austria, and Denmark.
+
+|installment-calculator-response.installments.installment.title
+|
+|O
+|Alphanumeric
+|
+|Title to display the payment option in the corresponding language.
+|
+
+|installment-calculator-response.installments.installment.description
+|
+|O
+|Alphanumeric
+|
+|Detailed information about payment option.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.use-case
+|
+|O
+|Alphanumeric
+|
+|Calculation example of payment option.
+|Only available for Germany, Sweden, Finland and Norway.
+
+|installment-calculator-response.installments.installment.expiration-date
+|
+|O
+|Alphanumeric
+|
+|Payment option expiry date in the format YYYY-MM-DD.
+|This is used for Buy now, pay in X months. Only available for
+Netherlands, Austria, and Denmark.
+|===
+
+[#Klarna_phoneNumberValidation]
+=== Phone Number Validation
+
+For the transaction types _authorization_ and _adjust-authorization_,
+both the consumer's phone number ``account-holder.phone`` and the
+phone number that corresponds to the shipping address
+``shipping.phone`` are mandatory. +
+
+include::{root}/include/Klarna-phoneNumberValidation.adoc[]
+
+[#Klarna_Features]
+=== Features
+
+[#Klarna_AdditionalMerchantData]
+==== Additional Merchant Data
+
+Extra Merchant Data (EMD) is additional data variables that a merchant
+can send in to Wirecard in the API call in excess of the goods list. The
+added value from the merchant's perspective is that Klarna will to a
+higher extent have the possibility of scoring the merchant's consumers,
+which in turn will result in an improved likelihood of higher acceptance
+rate. It also allows Klarna to gain valuable data in segments/concepts
+where it otherwise would be hard for Klarna to operate in (for example
+business concepts such as travel, digital goods, marketplaces etc.).
+
+The content of this field is a JSON alphanumeric presenting the
+hierarchical additional merchant data for Klarna. Please contact your
+Wirecard sales account manager in order to clarify what packages are
+required for your integration.
+
+[#Klarna_FrontendIntegrationRequirements]
+==== Frontend Integration Requirements
+
+image::images/11-13-klarna/Klarna_Workflow_FrontendIntegrationRequirements.png[Klarna Workflow Frontend Integration Requirements,height=250]
+
+Klarna has detailed requirements for the look & feel style of the
+integration on the shop's checkout page. These requirements must be
+fulfilled and will be checked in scope of the integration acceptance
+checks with Klarna. The description of the requirements can be found on
+the following Klarna online developer portal pages:
+
+|===
+|Requirement |URL
+
+|Guidelines |https://developers.klarna.com/kpm/guidelines/
+|Consumer terms and conditions |https://developers.klarna.com/kpm/consumer-terms-and-conditions/
+|Country specific requirements |https://developers.klarna.com/kpm/country-specific/
+|Logos |https://developers.klarna.com/kpm/logos/
+|Tool tips |https://developers.klarna.com/kpm/tooltip/
+|===
+
+NOTE: The merchant requires the Klarna _Merchant ID_ in order to be able to
+use some of the solutions. Please contact your Wirecard account manager
+in order to get the Klarna _Merchant ID_.
+
+[#Klarna_getAddress]
+==== get-address for Swedish Consumers
+
+image::images/11-13-klarna/Klarna_Workflow_Get-Address.png[Klarna Workflow get-address for Swedish Customers,height=250]
+
+For the Swedish private persons Klarna requires exact match of the
+address data in the ``authorization``/``adjust-authorization`` requests. In case
+of some deviations, the internal risk check might fail and the
+transaction gets rejected. In order to avoid the address mismatches
+Wirecard and Klarna offer a special online service which retrieves the
+official address(es) of the consumer by his social security number. The
+found address(es) need to be displayed on the checkout page to the
+consumer where he needs to choose and confirm one. The confirmed address
+should be used in the corresponding ``authorization``/``adjust-authorization``
+request.
+
+Please note the following requirements:
+
+- The function can only used for private consumers with a Swedish social
+security number.
+- Consumer data is only retrieved for Klarna's payment methods in the
+checkout.
+- The function may not be used for consumer registration out of payment
+scope.
+- The function may only be used after providing the consumer with
+Klarna's terms & conditions.
+- The Get Address UI elements and received data must disappear if the
+consumer chooses another payment method.
+- The consumer needs to actively press a button to collect the data, it
+may not be triggered by completion of a form field.
+- The button is not allowed to be named Get Address (hämta address).
+Approved names: Fetch (Hämta), Continue (Fortsätt), Search (Sök),
+Proceed (Vidare).
+//-
+
+[#Klarna_getAddress_TestCredentials]
+===== get-address Test Credentials
+
+.URLs (Endpoints)
+[cols="1h,3"]
+|===
+|Test URL       |``\https://{test-instance-hostname}/engine/rest/utils/getaddress``
+|Production URL |``\https://{instance-hostname}/engine/rest/utils/getaddress``
+|===
+
+.Test Credentials
+[cols="1h,3"]
+|===
+|Merchant Account ID |8ea482bc-796c-42b4-a698-9a2db4b2edef
+|Username            |16390-testing
+|Password            |3!3013=D3fD8X7
+|Countries           |SE
+|===
+
+.Communication Formats
+[cols="1h,3"]
+|===
+| Format   | XML
+| Methods  | POST
+|===
+
+[#Klarna_InstallmentCalculator]
+==== Installment Calculator for Guaranteed Payment on Installment
+
+image::images/11-13-klarna/Klarna_Workflow_InstallmentCalculator.png[Klarna Workflow of Installment Calculator,height=250]
+
+The Installment Calculator service can be used to retrieve the available
+installment plans offered by Klarna. Merchant sends the order amount and
+the ISO locale code including country and language, and retrieves the
+list of available installment plans for these input data. The available
+installment plans (also called payment options) need to be shown to the
+buyer on the checkout page. When the buyer chooses the appropriate
+installment plan, its pclass needs to be sent with the payment
+authorization request to the {payment-gateway}. For Germany,
+Sweden, Finland and Norway there are additional UI related information
+returned in the response (e.g. the description of the particular
+installment plan localized for the corresponding locale) which helps
+displaying the installment plans on the checkout page. Please note the
+country specific requirements for displaying the installment plans and
+additional information and confirmations on the shop checkout page
+described in chapter https://developers.klarna.com/en/de/kpm/guidelines
+(Link for presentation guidelines in Germany, please use country
+selector at the top of the page to change to guidelines for other
+countries). For the flexible installment plans there is no calculation
+of monthly payment amount, annual percentage rate and total purchase
+amount performed and thus these fields are not returned for the
+corresponding installment plan in the response. Although for Germany,
+Sweden, Finland, Norway and Denmark the field *use-case* still
+contains a text with the calculation example.
+
+[#Klarna_InstallmentCalculator_TestCredentials]
+===== Installment Calculator Test Credentials
+
+.URLs (Endpoints)
+[cols="1h,3"]
+|===
+|Test URL       |``\https://{test-instance-hostname}/engine/rest/utils/getaddress``
+|Production URL |``\https://{instance-hostname}/engine/rest/utils/getaddress``
+|===
+
+.Test Credentials
+[cols="1h,3"]
+|===
+|Merchant Account ID |8ea482bc-796c-42b4-a698-9a2db4b2edef
+|Username            |16390-testing
+|Password            |3!3013=D3fD8X7
+|Countries           |DE, AT, NL, SE, NO, DK, FI
+|Currencies          |EUR, SEK, DKK, NOK
+|===
+
+.Communication Formats
+[cols="1h,3"]
+|===
+| Format   | XML
+| Methods  | POST
+|===
+
+[#Klarna_Samples]
+=== Samples
+[#Klarna_Samples_authorization]
+==== authorization
+
+.XML Klarna Invoice Authorization request for DE (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_de_DE_fc5d7e.xml[]
+----
+
+.XML Klarna Invoice Authorization Response for DE (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_de_DE.xml[]
+----
+
+.XML Klarna Installments Authorization request for DE (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-install_authorization_request_success_de_DE.xml[]
+----
+
+.XML Klarna Installments Authorization Response for DE (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-install_authorization_response_success_de_DE.xml[]
+----
+
+.XML Klarna Invoice Authorization request for NL (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_nl_NL.xml[]
+----
+
+.XML Klarna Invoice Authorization Response for NL (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_nl_NL.xml[]
+----
+
+.XML Klarna Invoice Authorization request for AT (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_de_AT.xml[]
+----
+
+.XML Klarna Invoice Authorization response for AT (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_de_AT.xml[]
+----
+
+.XML Klarna Invoice Authorization request for SE (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_sv_SE.xml[]
+----
+
+.XML Klarna Invoice Authorization Response for SE (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_sv_SE.xml[]
+----
+
+.XML Klarna Invoice Authorization request for NO (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_nb_NO.xml[]
+----
+
+.XML Klarna Invoice Authorization Response for NO (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_nb_NO.xml[]
+----
+
+.XML Klarna Invoice Authorization request for FI (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_fi_FI.xml[]
+----
+
+.XML Klarna Invoice Authorization Response for FI (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_fi_FI.xml[]
+----
+
+.XML Klarna Invoice Authorization request for DK (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_da_DK.xml[]
+----
+
+.XML Klarna Invoice Authorization Response for DK (successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response_success_da_DK.xml[]
+----
+
+.XML Authorization Request (Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request__de_DE.xml[]
+----
+
+.XML Authorization Response (Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_response__de_DE.xml[]
+----
+
+.XML Pending Authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization_request_success_de_DE_671aa8.xml[]
+----
+
+.XML Pending Authorization Response(Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_pending-authorization_response_success_de_DE.xml[]
+----
+
+[#Klarna_Samples_adjustAuthorization]
+==== adjust-authorization
+
+.XML Adjust Authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_adjust-authorization_request_success_4f7d426f.xml[]
+----
+
+.XML Adjust Authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_adjust-authorization_response_success_de_DE_4f7d426f.xml[]
+----
+
+.XML Adjust Authorization Request (Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_adjust-authorization_request__4b417698.xml[]
+----
+
+.XML Adjust Authorization Response (Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_adjust-authorization_response__nl_NL_4b417698.xml[]
+----
+
+[#Klarna_Samples_authorizationRenewal]
+==== authorization-renewal
+
+.XML Authorization Renewal Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization-renewal_request_success_7965e582.xml[]
+----
+
+.XML Authorization Renewal Response(Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization-renewal_response_success_nb_NO_7965e582.xml[]
+----
+
+.XML Authorization Renewal Request (Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization-renewal_request__fe2d42db.xml[]
+----
+
+.XML Authorization Renewal Response(Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_authorization-renewal_response__fi_FI_fe2d42db.xml[]
+----
+
+[#Klarna_Samples_voidAuthorization]
+==== void-authorization
+
+.XML Void Authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_void-authorization_request_success_b9e50fc5.xml[]
+----
+
+.XML Void Authorization Response(Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_void-authorization_response_success_de_DE_b9e50fc5.xml[]
+----
+
+[#Klarna_Samples_captureAuthorization]
+==== capture-authorization
+
+.XML Full Capture Authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_capture-authorization_request_success_35bdae97.xml[]
+----
+
+.XML Full Capture Authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_capture-authorization_response_success_de_DE_35bdae97.xml[]
+----
+
+.XML Partial Capture Authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_capture-authorization_request_success_b9e50fc5.xml[]
+----
+
+.XML Partial Capture Authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_capture-authorization_response_success_de_DE_b9e50fc5.xml[]
+----
+
+[#Klarna_Samples_refundCapture]
+==== refund-capture
+
+.XML Full Refund Capture Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_refund-capture_request_success_82e6ce09.xml[]
+----
+
+.XML Full Refund Capture Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_refund-capture_response_success_82e6ce09.xml[]
+----
+
+.XML Partial Refund Capture Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_refund-capture_request_success_b8b35f2d.xml[]
+----
+
+.XML Partial Refund Capture Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/klarna-invoice_refund-capture_response_success_de_DE_b8b35f2d.xml[]
+----
+
+[#Klarna_Samples_getAddress]
+==== get-address
+
+NOTE: The ``get-address`` request is being sent to
+``\https://{test-instance-hostname}/engine/rest/utils/getaddress``
+
+.XML Get Address Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesgetAddress_GetAddressRequestSuccessful.xml[]
+----
+
+.XML Get Address Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesgetAddress_GetAddressResponseSuccessful.xml[]
+----
+
+[#Klarna_Samples_klarnaInstall]
+==== klarna-install
+
+NOTE: The _Installment Calculator_ request is being sent to
+``\https://{test-instance-hostname}/engine/rest/utils/installmentcalculator``
+
+.XML Installment Calculator Request for DE (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorRequestFor_DE_Successful.xml[]
+----
+
+.XML Installment Calculator Response for DE (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFor_DE_Successful.xml[]
+----
+
+.XML Installment Calculator Request for DK (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorRequestFor_DK_Successful.xml[]
+----
+
+.XML Installment Calculator Response for DK (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFor_DK_Successful.xml[]
+----
+
+.XML Installment Calculator Request for NO (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorRequestFor_NO_Successful.xml[]
+----
+
+.XML Installment Calculator Response for NO (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFor_NO_Successful.xml[]
+----
+
+NOTE: Please request the Installment Calculator for Finland with a minimum
+amount of 100 Euros.
+
+.XML Installment Calculator Request for FI (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorRequestFor_FI_Successful.xml[]
+----
+
+.XML Installment Calculator Response for FI (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFor_FI_Successful.xml[]
+----
+
+.XML Installment Calculator Request for SE (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorRequestFor_SE_Successful.xml[]
+----
+
+.XML Installment Calculator Response for SE (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFor_SE_Successful.xml[]
+----
+
+.XML Installment Calculator Request for AT
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorRequestFor_AT.xml[]
+----
+NOTE: Payment on installments not available
+
+.XML Installment Calculator Response for AT
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFor_AT.xml[]
+----
+NOTE: payment on installments not available
+
+.XML Installment Calculator Response (failed - connection issue)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFailedConnectionIssue.xml[]
+----
+
+.XML Installment Calculator Response (failed - provider response issue)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/KlarnaSamplesklarnaInstall_InstallmentCalculatorResponseFailedProviderResponseIssue.xml[]
+----
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+//-
