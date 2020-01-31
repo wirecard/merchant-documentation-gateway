@@ -82,7 +82,7 @@ We provide JSON examples for each step of this process. You can find them below.
 [cols="20h,80"]
 |===
 |Authorization
-a| Use the username and password as given in your {payment-provider-name} contract to _Base64_ encode the authorization.
+a| Use the username and password as given in your {payment-provider-name} contract to base64-encode the authorization.
 
 For example, the authorization header for `user:password` is:
 [source]
@@ -120,20 +120,20 @@ m| value
 | String 
 | M
 | 36 
-| A unique identifier assigned to every merchant account (by _{payment-provider-name}_).
+| A unique identifier assigned to every merchant account by _{payment-provider-name}_.
 
 3+| request-id 
 | String 
 | M
 | 64 
-| A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random request-id. +
-Allowed characters: `[a-z0-9-_ ]`
+| A unique identifier assigned to every request by the merchant. It is used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random _request-id_. +
+Allowed characters: `[a-z0-9-_ ]`.
 
 3+| transaction-type 
 | String 
 | M
 | 36
-a| The requested transaction type. Available transaction type for _{payment-method-name}_ is _{transaction-type}_.
+a| The requested transaction type. The available type for _{payment-method-name}_ is _{transaction-type}_.
 
 //-
 
@@ -149,7 +149,7 @@ Use `.` (decimal point) as the separator.
 | String 
 | M
 | 3 
-| The currency of the requested/contested transaction amount. For _{payment-method-name}_ payments, the currency must be set to ``EUR``.
+| The currency of the requested/contested transaction amount. For _{payment-method-name}_ payments, the currency must be set to _EUR_.
 Format: 3-character abbreviation according to ISO 4217.
 
 | payment-methods 
@@ -158,7 +158,7 @@ m| name
 | String 
 | M 
 | 256 
-| The name of the payment method used. Set this value to _{payment-method-name}_.
+| The name of the payment method used. Set this field to _{payment-method-name}_.
 
 .2+| bank-account
 2+m| iban
@@ -166,18 +166,18 @@ m| name
 | O
 | 34
 | The international bank account number (IBAN) required in a bank transfer. It is an international standard for identifying bank accounts across national borders. The current standard is ISO 13616:2007, which indicates SWIFT as the formal registrar. +
-Allowed characters: [a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}. +
-If IBAN was sent in the request then this value should be displayed/prefilled on the consumer bank. But yes, it depends on the consumer bank.
+Allowed characters: `[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}`. +
 
-
+If you include this field and the IBAN value, the value can be displayed on the _{payment-method-name}_ redirect page. This varies from one consumer bank to another.
 
 2+m| bic
 | String 
 | O 
 | 15 
-| The bank identifier code (BIC) in bank transfer. +
-Allowed characters: ([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3}). +
-If you enter the BIC, the redirect to the _{payment-method-name}_ is initiated. If not, the WPP v2 displays a field/sandbox for entering the BIC.
+| The bank identifier code (BIC) in a bank transfer. +
+Allowed characters: `([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})`. +
+
+If you include this field, the redirect to _{payment-method-name}_ is initiated. If not, the WPP v2 displays a field for entering the BIC.
 
 3+| success-redirect-url 
 | String 
@@ -236,25 +236,25 @@ include::samples/json/WPP_giropayTransactionTypeDebit_3ParseAndProcessThePayment
 
 2+| transaction-id 
 | String 
-| A unique identifier assigned for every transaction. This information is returned in the response only.
+| A unique identifier assigned to every transaction. This information is returned in the response only.
 
 2+| transaction-state 
 | String 
 a| The current transaction state. +
 Possible values:
 
-- ``in-progress``
-- ``success``
-- ``failed``
+- _in-progress_
+- _success_
+- _failed_
 
 //-
 
-Typically, a transaction starts with state ``in-progress`` and finishes with state either ``success`` or ``failed``. This information is returned in the response only.
+Typically, a transaction starts with _in-progress_ and ends with either _success_ or _failed_. This information is returned in the response only.
 
 2+| completion-time-stamp 
 | Timestamp 
 | The UTC/ISO time-stamp documents the time and date when the transaction was executed. +
-Format: YYYY-MM-DDThh:mm:ss (ISO).
+Format: `YYYY-MM-DDThh:mm:ss` (ISO).
 
 .3+| status 
 | description 
@@ -263,21 +263,22 @@ Format: YYYY-MM-DDThh:mm:ss (ISO).
 
 | severity    
 | String 
-a| The definition of the status message. Possible values:
+a| The definition of the status message. +
+Possible values:
 
-- ``information``
-- ``warning``
-- ``error``
+- _information_
+- _warning_
+- _error_
 
 //-
 
 | code 
 | String 
-| Status code of the status message.
+| The code of the status message.
 
 2+| parent-transaction-id 
 | String 
-| The ID of the transaction referenced as a parent.
+| Identifier referencing the _transaction-id_ of a previous transaction.
 
 2+| api-id       
 | String 
@@ -285,10 +286,7 @@ a| The definition of the status message. Possible values:
 
 2+| provider-transaction-reference-id
 | String
-| Unique transaction reference ID assigned by the provider. +
-This field is returned in the response if the communication to the provider was made. giropay has returned them as part of payment notification to EE. 
-So, once redirect to Giropay is made, they are returned in the response.
-
+| Unique identifier of a transaction reference, assigned by the provider. +
 
 2+| provider-transaction-id
 | String
