@@ -1,0 +1,187 @@
+[#Seamless_ValidationLanguagesCustomTemplates]
+== Validation, Language and Custom Templates
+
+[#Seamless_FormValidation]
+=== Form Validation
+
+Merchant can request form validity by using function.
+
+The only parameter is the name of the callback function.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessFormIsValid({
+ onValidationResult : processValidationResult
+});
+
+----
+endif::[]
+
+Merchant can validate the form input anytime calling function.
+
+The only parameter is the name of the callback function. Otherwise,
+the form is validated always on form submit.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessValidateForm({
+ onValidationResult : processValidationResult
+});
+----
+endif::[]
+
+[#Seamless_ChangeLanguage]
+=== Change Language
+
+Merchant can change form's locale using function.
+
+The only parameter is the language ISO code.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessChangeLocale("en");
+----
+endif::[]
+
+[#Seamless_CustomTemplates]
+=== Custom Templates
+
+Merchants are able to specify their own custom templates to be used
+instead of Wirecard's default payment form. The template consists of
+HTML content, CSS and JavaScript parts. The following template is an
+example of a merchant's custom template that uses bootstrap and
+form validation libraries. First, the HTML part is inserted into the ``<body>``
+tag of the page, so it is a simple HTML form:
+
+[source,html,subs=attributes+]
+----
+<h3 data-i18n="cc_form_title">Billing information</h3>
+<form id="seamless-form" data-wd-validate-form="true" th:object="${payment}">
+  <div class="row">
+    <div class="form-group col-xs-12">
+      <div class="card-types btn-group" data-toggle="buttons">
+        <label class="btn btn-default active"> <input type="radio"
+          class="ee-request-nvp" name="card_type" value="visa"
+          checked="checked" data-fv-wdcardtype="true"
+          data-fv-wdcardtype-message="select_valid_card_type"
+          data-fv-wdcardtype-creditcardfield="account_number" /> <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/1280px-Visa_Inc._logo.svg.png"
+          alt="Visa" />
+        </label> <label class="btn btn-default"> <input type="radio"
+          class="ee-request-nvp" name="card_type" value="mastercard" /> <img
+          src="https://lh5.googleusercontent.com/-_o1E3Ie8C8Y/U1YW_49rhBI/AAAAAAAAAbI/vGfq1_kakSU/w800-h800/mastercard-logo-in-jokerman-font.png"
+          alt="Mastercard" />
+        </label> <label class="btn btn-default"> <input type="radio"
+          class="ee-request-nvp" name="card_type" value="diners" /> <img
+          src="http://www.golf.co.nz/uploads/diners-logo-transparent.png"
+          alt="Diners" />
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-8">
+      <div class="form-group">
+        <input type="text" class="form-control ee-request-nvp"
+          id="account_number" name="account_number" placeholder="Card number"
+          data-i18n="card_number" data-fv-wdcreditcard="true"
+          data-fv-wdcreditcard-message="enter_creditcard_number"
+          data-fv-wdcreditcard-cardtypefield="card_type"
+          data-fv-wdcreditcard-cvvfield="card_security_code"
+          data-fv-wdcreditcard-allowedcardtypes="visa,mastercard,diners"
+          data-fv-onsuccess="FormValidation.WDHelper.onCardNumberSuccess"
+          data-fv-onerror="FormValidation.WDHelper.onCardNumberError" />
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="form-group">
+        <input type="text" class="form-control ee-request-nvp"
+          id="card_security_code" name="card_security_code" placeholder="CVV"
+          data-fv-wdcvv="true" data-fv-wdcvv-message="enter_cvv"
+          data-fv-wdcvv-creditcardfield="account_number"
+          data-i18n="card_security_code" />
+      </div>
+    </div>
+  </div>
+  <div id="expiry-date-div" class="row">
+    <div class="col-sm-8"></div>
+    <div class="col-sm-2">
+      <div class="form-group">
+        <input type="number" class="form-control ee-request-nvp"
+          id="expiration_month" name="expiration_month" placeholder="Month"
+          data-i18n="expiration_month" data-fv-notempty="true"
+          data-fv-notempty-message="enter_value" data-fv-wdexpirymonth="true"
+          data-fv-wdexpirymonth-message="invalid_expiry_date"
+          data-fv-wdexpirymonth-yearfield="expiration_year" />
+      </div>
+    </div>
+    <div class="col-sm-2">
+      <div class="form-group">
+        <input type="number" class="form-control ee-request-nvp"
+          id="expiration_year" data-fv-notempty="true"
+          data-fv-notempty-message="enter_value" data-fv-wdexpiryyear="true"
+          data-fv-wdexpiryyear-message="invalid_expiry_date"
+          data-fv-wdexpiryyear-yearscount="20"
+          data-fv-wdexpiryyear-monthfield="expiration_month"
+          name="expiration_year" placeholder="Year"
+          data-i18n="expiration_year" />
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-group">
+        <input type="text" class="form-control ee-request-nvp"
+          id="first_name" name="first_name"
+          placeholder="Cardholder first name" data-i18n="first_name"
+          th:value="*{accountHolder} ? *{accountHolder.firstName}" />
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-group">
+        <input type="text" class="form-control ee-request-nvp"
+          id="last_name" name="last_name" placeholder="Cardholder last name"
+          data-fv-notempty="true" data-fv-notempty-message="enter_value"
+          data-i18n="last_name"
+          th:value="*{accountHolder} ? *{accountHolder.lastName}" />
+      </div>
+    </div>
+  </div>
+</form>
+----
+
+
+The HTML part may be completed with a CSS stylesheet:
+
+[source,css,subs=attributes+]
+----
+body {
+  font-family: Verdana;
+  font-size: 12px;
+  padding: 20px;
+}
+input {
+  width: 100%;
+}
+.btn {
+  outline: none !important;
+}
+.card-types .btn {
+  height: 40px
+}
+.card-types .btn img {
+  width: 40px;
+}
+.card-types .form-control-feedback {
+  right: -40px !important;
+  top: 1px !important;
+}
+----
+
+Each merchant may provide multiple templates and specify which one to
+use when rendering the Seamless form.
+
+NOTE: Please contact merchant support in order to set up custom templates.
