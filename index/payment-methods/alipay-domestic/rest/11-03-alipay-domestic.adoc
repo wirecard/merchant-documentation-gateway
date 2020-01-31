@@ -1,0 +1,239 @@
+[#API_AlipayDomestic]
+== REST API
+_Alipay Domestic_ is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#API_AlipayDomestic_General_PaymentMode]
+=== Countries and Currencies
+[width=75%,stripes=none,cols="1h,3"]
+|===
+| Countries | China
+| Currencies | CNY
+|===
+
+[#API_AlipayDomestic_General_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _Alipay Domestic_ notifications are encoded
+and which languages and methods can be used for requests and responses.
+[width=75%,cols=",,",stripes=none]
+|===
+.2+h| Requests/Responses |Format  |XML, JSON, NVP
+                         |Methods |POST
+h| IPN Encodements     2+|Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_AlipayDomestic_TransactionTypes]
+=== Transaction Types
+
+For transaction type details which are not given here look at
+<<AppendixB,  Transaction Types>>.
+
+[cols="e,",stripes=none]
+|===
+| Transaction Type | Link to the Sample
+
+|_debit_ |See <<API_AlipayDomestic_Samples_Debit, samples>>
+
+|_refund-debit_ |
+|===
+
+[#AlipayDomestic_TestCredentials]
+=== Test Credentials
+
+[cols="15,55,30",stripes=none]
+|===
+.2+h| URL(s) Endpoints
+|For the transaction type _debit._
+|``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+|For the transaction types _refund-debit_ and _refund-request._
+|``\https://{test-instance-hostname}/engine/rest/payments/``
+
+h| Merchant Account ID (MAID)
+2+| 3ed75e0a-d70a-421f-a047-c70ba54b9317
+
+h| Username
+2+| 16390-testing
+
+h| Password
+2+| 3!3013=D3fD8X7
+
+h| Secret Key
+2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
+|===
+
+[#API_AlipayDomestic_TestCredentials_Additional]
+==== Additional Test Credentials on _Alipay Domestic_ Environment
+
+Please contact chinapaymentgateway@wirecard.com for an Alipay buyer test account.
+
+[#API_AlipayDomestic_Workflow]
+=== Workflow
+
+._debit_ Workflow
+image::images/11-03-alipay-domestic/AlipayDom_Workflow_debit.png[Alipay Domestic _debit_ Workflow]
+
+. Consumer adds items to shopping basket.
+. Consumer selects Payment Method _Alipay Domestic._
+. Merchant initiates a _debit_ transaction.
+. _Alipay Domestic_ responds with a redirection URL to the merchant.
+. Merchant redirects consumer to _Alipay Domestic._
+. Consumer enters his account data and confirms the payment.
+. _Alipay Domestic_ processes the transaction.
+. _{payment-gateway-abbr}_ receives transaction status.
+. _{payment-gateway-abbr}_ sends transaction status to merchant and redirects the
+consumer to the merchant.
+. Merchant receives the transaction's status and displays the
+completion of the payment process to the consumer.
+
+[#API_AlipayDomestic_Fields]
+=== Fields
+
+The fields required for Alipay are the same fields as
+the <<RestApi_Fields, REST API Fields>>.
+
+[#API_AlipayDomestic_Samples]
+=== Samples
+
+[#API_AlipayDomestic_Samples_Debit]
+==== _debit_
+
+[#API_AlipayDomestic_Samples_Debit_Xml]
+===== XML
+
+.XML debit Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay_debit_request_success_en.xml[]
+----
+
+.XML debit Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay_debit_response_success_en.xml[]
+----
+
+.XML debit Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay_debit_notification_success_en_12ba0604.xml[]
+----
+
+.XML debit Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay_debit_request_failure.xml[]
+----
+
+.XML debit Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay_debit_response_failure.xml[]
+----
+
+[#API_AlipayDomestic_Samples_Debit_Nvp]
+===== NVP
+
+.NVP debit Request (Successful)
+
+[source,subs=attributes+]
+----
+POST https://{test-instance-hostname}/engine/rest/paymentmethods/ HTTP/1.1Accept-Encoding: gzip,deflate
+Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+Accept: text/plain
+Content-Length: 307
+Host: sandbox-engine.thesolution.com
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+merchant_account_id=4fd7149f-14cd-4a67-a8cb-d54044504cc8&request_id=demo-9424&transaction_type=debit&requested_amount_currency=CNY&requested_amount=1.01&first_name=John&last_name=Doe&email=john.doe@{domain}&order_number=15957&order_detail=TestProduct&locale=en&ip_address=127.0.0.1&payment_method=alipay
+----
+
+.NVP debit Response (Successful)
+
+[source,subs=attributes+]
+----
+HTTP/1.1 201 CreatedServer: nginx
+Date: Wed, 17 Jun 2015 13:58:46 GMT
+Content-Length: 1181
+Connection: keep-alive
+Content-Language: en-US
+
+order_number=15957&payment_method_url=https%3A%2F%2Fmapi.alipay.com%2Fgateway.do%3Fsign_type%3DMD5%26partner%3D2088101568358171%26_input_charset%3Dutf-8%26service%3Dcreate_direct_pay_by_user%26notify_url%3Dhttps%253A%252F%252Fsandbox-engine.thesolution.com%252Fengine%252Fnotification%252Falipay%252F%2B%26return_url%3Dhttps%253A%252F%252Fsandbox-engine.thesolution.com%252Fengine%252Fnotification%252Falipay%252Fredirect%252Ff86aa01d-14f8-11e5-87be-00163e5411b5%252F%26out_trade_no%3Df86aa01d-14f8-11e5-87be-00163e5411b5%26payment_type%3D1%26subject%3D15957%26total_fee%3D1.01%26buyer_email%3Djohn.doe%2540wirecard.com%26sign%3Dd8668eea74f6bd87a8d9e8458a8efc16&transaction_type=debit&locale=en&completion_time_stamp=20150617135845&status_code_1=201.0000&status_severity_1=information&transaction_state=success&transaction_id=f86aa01d-14f8-11e5-87be-00163e5411b5&first_name=John&merchant_account_id=4fd7149f-14cd-4a67-a8cb-d54044504cc8&ip_address=127.0.0.1&order_detail=TestProduct&request_id=demo-2664&requested_amount=1.01&requested_amount_currency=CNY&email=john.doe%40{domain}&status_description_1=The+resource+was+successfully+created.&last_name=Doe&payment_method=alipay&
+----
+
+.NVP debit Notification (Successful)
+
+[source,subs=attributes+]
+----
+Content-Type: text/plainX-Request-Id: 302e2bc6-6017-49f0-8525-6ecf32f6664d
+Host: requestb.in
+Content-Length: 782
+User-Agent: Jakarta Commons-HttpClient/3.1
+Total-Route-Time: 0
+Payment.Request-Id: c21d76ed-1d3d-5eee-e64f-aa0f6bced54d
+Notification.Url: http://requestb.in/11h0jul1
+Connection: close
+Connect-Time: 0
+Breadcrumbid: ID-staging-tomcat-n102-36990-1434638258564-0-4025
+Via: 1.1 vegur
+Payment.Transaction-Id: 916d9ac8-16c2-11e5-87be-00163e5411b5
+
+phone=1+555+555+5555&transaction_type=debit&locale=&status_severity_1=information&status_code_1=201.0000&completion_time_stamp=20150619203422&state=ON&transaction_state=success&city=Toronto&merchant_account_id=4fd7149f-14cd-4a67-a8cb-d54044504cc8&first_name=John&requested_amount_currency=CNY&status_description_1=alipay%3AThe+resource+was+successfully+created.&response_signature=dc72eb8184a9d6aa3914d6fb8753ab8b30ae633324ec08da7693e1ba71446370&street1=123+test&transaction_id=916d9ac8-16c2-11e5-87be-00163e5411b5&country=CA&ip_address=127.0.0.1&request_id=c21d76ed-1d3d-5eee-e64f-aa0f6bced54d&provider_transaction_reference_id=&requested_amount=1.010000&email=john.doe%40{domain}&provider_transaction_id_1=2012111319234154&postal_code=M4P1E8&last_name=Doe&authorization_code=&
+----
+
+.NVP debit Request (Failure)
+
+[source,subs=attributes+]
+----
+POST https://{test-instance-hostname}/engine/rest/paymentmethods/ HTTP/1.1Accept-Encoding: gzip,deflate
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+Accept: text/plain
+Content-Length: 312
+Host: sandbox-engine.thesolution.com
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+merchant_account_id=7bc76f18-67f4-4080-943b-dbce27459aa5&request_id=demo-6835&transaction_type=debit&requested_amount_currency=&requested_amount=1.01&first_name=John&last_name=Doe&email=john.doe@{domain}&order_number=15957&order_detail=TestProduct&locale=en&ip_address=127.0.0.1&payment_method=alipay
+----
+
+.NVP debit Response (Failure)
+
+[source,subs=attributes+]
+----
+HTTP/1.1 201 CreatedServer: nginx
+Date: Wed, 17 Jun 2015 19:35:25 GMT
+Content-Length: 474
+Connection: keep-alive
+Content-Language: en-US
+
+order_number=15957&transaction_type=debit&locale=en&status_code_1=400.1012&status_severity_1=error&transaction_state=failed&first_name=John&merchant_account_id=7bc76f18-67f4-4080-943b-dbce27459aa5&ip_address=127.0.0.1&order_detail=TestProduct&request_id=demo-6835&requested_amount=1.01&email=john.doe%40{domain}&status_description_1=The+Requested+Amount+Currency+has+not+been+provided.++Please+check+your+input+and+try+again.&last_name=Doe&payment_method=alipay&
+----
+
+.NVP debit Notification (Failure)
+
+[source,subs=attributes+]
+----
+Content-Type: text/plainX-Request-Id: 4c5a9b45-61cb-4d00-b00c-ec12f3314d29
+Host: requestb.in
+Content-Length: 807
+User-Agent: Jakarta Commons-HttpClient/3.1
+Total-Route-Time: 0
+Payment.Request-Id: b084ff49-d7ed-dc11-70b5-285197d02677
+Notification.Url: http://requestb.in/11h0jul1
+Connection: close
+Connect-Time: 1
+Breadcrumbid: ID-staging-tomcat-n102-36990-1434638258564-0-4069
+Via: 1.1 vegur
+Payment.Transaction-Id: 0362410c-16c3-11e5-87be-00163e5411b5
+
+phone=1+555+555+5555&transaction_type=debit&locale=&status_severity_1=error&status_code_1=500.1999&completion_time_stamp=20150619203733&state=ON&transaction_state=failed&city=Toronto&merchant_account_id=4fd7149f-14cd-4a67-a8cb-d54044504cc8&first_name=John&requested_amount_currency=CNY&status_description_1=alipay%3AThe+acquirer+returned+an+unknown+response.++Contact+Technical+Support.&response_signature=1ad9240967ddb2fa3cbae7cf9ea01037f59e3e795c674e9358e8af1d280016dc&street1=123+test&transaction_id=0362410c-16c3-11e5-87be-00163e5411b5&country=CA&ip_address=127.0.0.1&request_id=b084ff49-d7ed-dc11-70b5-285197d02677&provider_transaction_reference_id=&requested_amount=1.010000&email=john.doe%40{domain}&provider_transaction_id_1=2012111319234154&postal_code=M4P1E8&last_name=Doe&authorization_code=&
+----
+
+//-
