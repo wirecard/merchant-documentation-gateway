@@ -30,7 +30,7 @@ DEBUG=YES #unset to disable
 
 source buildscripts/global.sh
 
-INITDIR="$(pwd)"
+export INITDIR="$(pwd)"
 BUILDFOLDER_PATH="/tmp/build"
 
 # WIRECARD_REPO_NAME=merchant-documentation-gateway
@@ -47,7 +47,7 @@ WL_REPO_PATH="${INITDIR}/${WL_REPO_ORG}/${WL_REPO_NAME}"
 WL_REPO_SSHKEY_PATH="$(mktemp -d)"/repo.key
 
 export INDEX_FILE='index.adoc' # will be overwritten for NOVA, see NOVA_INDEX
-ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
+ASCIIDOCTOR_CMD_COMMON="asciidoctor ${INDEX_FILE} --failure-level=WARN -a systemtimestamp=$(date +%s) -a root=${INITDIR} -a linkcss -a toc=left -a docinfo=shared -a icons=font -r asciidoctor-diagram"
 
 
 function increaseErrorCount() {
@@ -108,12 +108,6 @@ function cloneWhitelabelRepository() {
   else
     GIT_SSH_COMMAND="ssh -i ${WL_REPO_SSHKEY_PATH}" git clone --depth=1 git@ssh.github.com:${WL_REPO_ORG}/${WL_REPO_NAME}.git "${WL_REPO_PATH}"
   fi
-
-  debugMsg "Create info files"
-  if [[ -z $SKIP ]]; then
-    node buildscripts/util/create-info-files.js
-  fi
-
   return $?
 }
 
@@ -152,7 +146,8 @@ function createPartnerFolder() {
   debugMsg "Creating ${BUILDFOLDER_PATH}/${PARTNER}"
 
   if [[ "${2}" == "NOVA" ]]; then
-    NOVA="NOVA"
+    export NOVA="NOVA"
+    echo "exporting NOVA env"
     mkdir -p "${BUILDFOLDER_PATH}/${PARTNER}"
   fi
 
@@ -237,6 +232,12 @@ function buildPartner() {
   createPartnerFolder "${PARTNER}" "${NOVA}"
   cd "${BUILDFOLDER_PATH}/${BPATH}"
 
+  if [[ ${SKIP_MERMAID} == "true" ]]; then
+    timed_log "SKIPPING MERMAID CREATION: --skip-mermaid is set"
+  else
+    setUpMermaid
+  fi
+
   setUpMermaid
 
   if [[ "${PARTNER}" != "WD" ]] && [[ -z ${NOVA} ]]; then
@@ -319,11 +320,33 @@ function main() {
     PARTNER="WD"
   fi
 
+  COMMIT_MSG=$(git log -1 --pretty=%B | head -n 1)
+
+  if [[ ${COMMIT_MSG} == *'[wd]'* ]]; then
+    debugMsg 'Commit message contains [wd]'
+    WDONLY="true"
+    debugMsg '-> Only WD will be built'
+    if [[ ${WDONLY} == 'true' && ${PARTNER} != 'WD' ]]; then
+      debugMsg '-> Skipping build for '${PARTNER}
+      return 0
+    fi
+  fi
+
+  if [[ ${COMMIT_MSG} == *'[quick]'* ]]; then
+    debugMsg 'Commit message contains [quick]'
+    # can also be set with cli argument
+    SKIP_MERMAID="true"
+    debugMsg '-> Mermaid diagram creation will be skipped'
+  fi
+
   # check arguments that are passed
   while (("$#")); do
     case "$1" in
     -s | --skip)
       SKIP="true"
+      ;;
+    -sm | --skip-mermaid)
+      SKIP_MERMAID="true"
       ;;
     -sn | --skip-nova)
       SKIP_NOVA="true"
@@ -334,6 +357,7 @@ function main() {
     -h | --help)
       echo "Options:"
       echo "* [-s|--skip] skip basic tests, only build"
+      echo "* [-sm|--skip-mermaid] skip mermaid diagram build"
       echo "* [-sn|--skip-nova] skip NOVA docs build"
       echo "* [-f|--force] force all resources to be generated, i.e. mermaid diagrams"
       echo "* [--pdf] build pdf"
@@ -363,12 +387,19 @@ function main() {
     shift
   done
 
-  cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
-
-  PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
-  if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}" && [[ "${PARTNER}" != "WD" ]]; then
-    debugMsg "partner ${PARTNER} not in partners list"
-    exit 0
+  if [[ ${PARTNER} == 'WD' ]]; then
+    debugMsg "Skipping WL Repo checkout for partner ${PARTNER}"
+  else
+    cloneWhitelabelRepository || exitWithError "Failed to clone whitelabel repository."
+    PARTNERSLIST_FILE="${WL_REPO_PATH}/partners_list"
+    if ! grep "^${PARTNER}" "${PARTNERSLIST_FILE}" && [[ "${PARTNER}" != "WD" ]]; then
+      debugMsg "partner ${PARTNER} not in partners list"
+      exit 0
+    fi
+  fi
+  debugMsg "Create info files"
+  if [[ -z $SKIP ]]; then
+    node buildscripts/util/create-info-files.js
   fi
 
   # prepare master template

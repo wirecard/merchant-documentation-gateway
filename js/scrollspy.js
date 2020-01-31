@@ -24,7 +24,7 @@ function updateMiniTOC() {
   }
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
-  const navTitle = sectionHeadElement.text();
+  const navTitle = shortenForTOC(sectionHeadElement.text());
   // create MiniToc
   var _tmpMiniToc = $('<ul>', {
     id: 'minitoc'
@@ -63,7 +63,7 @@ function updateMiniTOC() {
   if (subsectionTitles.length) {
     subsectionTitles.each(function () {
       const subsectionElement = $(this);
-      const subsectionTitle = subsectionElement.text();
+      const subsectionTitle = shortenForTOC(subsectionElement.text());
       const sectionID = subsectionElement.attr('id');
       var miniTocElement = $('<li>');
       miniTocElement.attr('data-content-id', sectionID);

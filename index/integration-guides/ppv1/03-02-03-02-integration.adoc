@@ -1,0 +1,78 @@
+[#Seamless_Integration]
+== Seamless Integration
+
+Integration is done via JavaScript library which merchants include in
+their checkout page:
+
+[source,html,subs=attributes+]
+----
+<script src="https://{test-instance-hostname}/engine/hpp/paymentPageLoader.js" type="text/javascript"></script>
+----
+
+ifdef::env-wirecard[]
+[#Seamless_Integration_Library]
+There are three functions provided by the library:
+
+- <<Seamless_Integration_Library_RenderForm, Render the form>>: ``seamlessRenderForm()``
+- <<Seamless_Integration_Library_SubmitForm, Submit the form>>: ``seamlessSubmitForm()``
+- <<Seamless_Integration_Library_SubmitPaymentRequest, Submit a payment request>>: ``seamlessPay()``
+
+//-
+
+NOTE: You can optionally use ``ElasticPaymentPage`` instead of ``{payment-page-function}``, e.g. call ``ElasticPaymentPage.seamlessRenderForm()``.
+
+[#Seamless_Integration_Library_RenderForm]
+.Render the form
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessRenderForm({
+    requestData : requestData, // <1>
+    wrappingDivId : "seamless-target", // <2>
+    onSuccess : processSucceededResult // <3>
+    onError : processErrorResult // <4>
+});
+----
+
+Renders the form. Parameters are
+
+<1> ``requestData``: request data object, same as for Hosted Payment Page and similar to REST API integration
+<2> ``wrappingDivId``: ID of the HTML element where the form will be rendered
+<3> ``onSuccess``: callback on successful render
+<4> ``onError``: callback if an error occurred
+
+[#Seamless_Integration_Library_SubmitForm]
+.Submit the form
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessSubmitForm({
+    requestData : requestData, // <1>
+    onSuccess : processSucceededResult, // <2>
+    onError : processErrorResult // <3>
+});
+----
+
+Submits the form. Parameters are
+
+<1> ``requestData``: additional request data (optional)
+<2> ``onSuccess``: callback on successful form submission
+<3> ``onError``: callback when an error occurred submitting the form
+
+[#Seamless_Integration_Library_SubmitPaymentRequest]
+.Submit the payment request
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessPay({
+    requestData : requestData, // <1>
+    onSuccess : processSucceededResult, // <2>
+    onError : processErrorResult // <3>
+});
+----
+
+Submits the payment request. Parameters are
+
+<1> ``requestData``: request data object, same as for Hosted Payment Page and similar to REST API integration
+<2> ``onSuccess``: callback on successful payment request
+<3> ``onError``: callback if an error occurred submitting the payment request
+
+NOTE: The only parameter of the functions in case of both success and error is ``response``.
+endif::[]

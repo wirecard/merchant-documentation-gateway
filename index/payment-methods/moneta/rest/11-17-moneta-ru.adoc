@@ -1,0 +1,204 @@
+[#monetaRu]
+== REST API & {payment-page-v1}
+_moneta.ru_ is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#monetaRu_PaymentModeCountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | AM, AZ, BY, EE, KZ, KG, LV, LT, MD, RU, TJ, UA, UZ
+| Currencies   | EUR, USD, RUB
+|===
+
+[#monetaRu_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _moneta.ru_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format   | XML, NVP
+                         | Methods  | POST, GET
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+
+[#monetaRu_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given
+here, look at <<AppendixB,  Transaction Types>>.
+
+[cols="e,"]
+|===
+| Transaction Type | Link to the Sample
+
+| check-signature  |
+| credit           | <<monetaRu_Samples_credit, credit samples>>
+| debit            | <<monetaRu_Samples_debit, debit samples>>
+| refund-debit     | <<monetaRu_Samples_refundDebit, refund-debit samples>>
+|===
+
+[#monetaRu_TestCredentials]
+=== Test Credentials
+
+
+.Test Credentials for moneta.ru
+[stripes=none]
+|===
+.2+h|URLs (Endpoints)       .2+| REST API | For transaction types ``credit`` and ``debit``. | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+                                          | For transaction types ``refund-debit``.         | ``\https://{test-instance-hostname}/engine/rest/payments/``
+h| Merchant Account ID       3+| 6f3109c3-4ab1-46ea-88c0-093b324184da
+h| Username                  3+| 16390-testing
+h| Password                  3+| 3!3013=D3fD8X7
+h| Secret Key (Payment Page) 3+| f6486298-85b0-40a2-956f-eaa52f6b6aa5
+|===
+
+[#monetaRu_AdditionalTestCredentials]
+==== On _moneta.ru_ Environment
+
+[%autowidth,cols="h,"]
+|===
+| Email             | \test.account@wirecard.com
+| Password          | Monetabuy123
+| Payment Password  | 02041
+|===
+
+[#monetaRu_Workflow]
+=== Workflow
+
+image::images/11-17-moneta-ru/moneta-ru-workflow.png[moneta.ru Workflow]
+
+[#monetaRu_Fields]
+=== Fields
+
+The fields used for _moneta.ru_ requests, responses and notifications are
+the same as the <<RestApi_Fields, REST API Fields>> with the following exceptions:
+
+[#monetaRu_Fields_debit]
+==== debit
+
+Please refer to the <<RestApi_Fields, API field list>>
+or the request example for the fields required in a debit transaction.
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[cols="e,,,,,,,"]
+|===
+| Field  | Request | Response | Notification | Data Type    | Size | Values           | Description
+
+| locale | M       | M        | O            | Alphanumeric | 2    | ``en`` or ``ru`` | Language that the moneta page will be rendered in. Default: ``en``.
+|===
+
+[#monetaRu_Fields_credit]
+==== credit
+
+Please refer to the <<RestApi_Fields, API field list>>
+or the request example for the fields required in a credit transaction.
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[cols="e,,,,,,,"]
+|===
+| Field            | Request | Response | Notification | Data Type    | Size | Value Range | Description
+
+|wallet/account-id | M       | M        | O            | Alphanumeric | 100  | Numeric     | Identifier of the Account Holder's Moneta Wallet Account.
+|===
+
+[#monetaRu_Samples]
+=== Samples
+
+NOTE: For XML we do not list any notification samples. See <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN Notification Examples>>, for notification samples.
+
+[#monetaRu_Samples_debit]
+==== debit
+
+.XML debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_debit_request_success_en.xml[]
+----
+
+.XML debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_debit_response_success_en.xml[]
+----
+
+.XML debit Request (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_debit_request_failure.xml[]
+----
+
+.XML debit Response (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_debit_response_failure.xml[]
+----
+
+[#monetaRu_Samples_credit]
+==== credit
+
+.XML credit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_credit_request_success.xml[]
+----
+
+.XML credit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_credit_response_success.xml[]
+----
+
+.XML credit Request (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_credit_request_failure.xml[]
+----
+
+.XML credit Response (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_credit_response_failure.xml[]
+----
+
+[#monetaRu_Samples_refundDebit]
+==== refund-debit
+
+.XML refund-debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_refund-debit_request_success_fc6bc03d.xml[]
+----
+
+.XML refund-debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_refund-debit_response_success_en_fc6bc03d.xml[]
+----
+
+.XML refund-debit Request (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_refund-debit_request_failure_fc6bc03d.xml[]
+----
+
+NOTE: The merchant receives an _XML refund-debit Response (Failure)_, if the
+acquirer did not respond due to e.g. a server downtime.
+
+.XML refund-debit Response (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/moneta_ru_refund-debit_response_failure_en_fc6bc03d.xml[]
+----
+
+//-

@@ -1,0 +1,165 @@
+[#RestApi_Simulations]
+== Simulations
+
+ifdef::env-wirecard[]
+NOTE: Simulations can only be processed with credit cards!
+endif::[]
+
+[#RestApi_Simulations_Transaction]
+=== Transaction
+
+A Merchant Account can send a special message, requesting that the
+result echoes back a specific set of Transaction Statuses. The following
+characteristics apply:
+
+- Any merchant account can be used for test simulation, in
+production or any other environment.
+- Existing fields can be populated with information notifying the
+engine that this is a test transaction. This allows standard payment
+attributes to be used in a Merchant's existing Order Management,
+Internet Booking Engine, Virtual Terminal, or any other client
+applications.
+- Test Transactions are never settled.
+- It is possible to simulate a successful transaction by sending a
+transaction status of "20x.xxxx". Any other requested Transaction Status
+Code will result in a transaction state of 'failed'.
+- It is possible to simulate a timeout scenario by delaying the
+response from the engine by client application's timeout setting.
+//-
+
+At times, it may be required to simulate one or more valid Transaction
+Statuses. The client application indicates that it wishes to have
+certain Transaction Statuses echoed back, and the Payment Service does
+so in the response.
+
+Following is the behavior:
+
+- Any invalid/empty transaction statuses are not simulated. See the
+table of <<StatusCodes_InDetail, valid transaction statuses>>.
+- The simulation is valid for Credit Card only.
+- The payment being requested does not go to any acquirer/provider.
+The transaction status simulation is typically used to simulate the
+status from the acquirer/provider.
+- The engine performs basic data validation in order to store the
+data in the database. In case of any failure, the requested transaction
+statuses are NOT echoed back. The validation errors are returned
+instead.
+- The transaction can be searched in the reporting site.
+- All other aspects of the payment processing are respected,
+including Instant Payment Notification, Reconciliation Services, etc.
+- All test transactions will have the last transaction status of
+"100.5555 warning: Your transaction is in test mode."
+- Merchant Account must have a test token assigned to enable
+transaction status simulation.
+//-
+
+IMPORTANT: If "100.5555" is not returned, the Transaction was NOT in Transaction
+Processing Test Mode, and was processed live. Watch for this to ensure
+the intended effect.
+
+ifdef::env-wirecard[]
+See <<RestApi_Samples_CreditCardOnly_Transaction, the conditions>> to simulate a set of transaction status.
+endif::[]
+
+[#RestApi_Simulations_Transactions_Conditions]
+==== Conditions
+
+- The tag <accountholder/address/street1> must contain the valid
+transaction status to be simulated.
+- The tag <account-holder/last-name> must contain an issued test token
+to enable the simulation of transaction status. If multiple transaction
+status are required, you can add a comma-delimited set of transaction
+status.
+//-
+
+ifdef::env-wirecard[]
+[#RestApi_Simulations_Transactions_Samples]
+==== Samples for a Transaction Simulation
+
+See <<RestApi_Samples_CreditCardOnly_Transaction, samples>> for transaction simulation.
+endif::[]
+
+[#RestApi_Simulations_Timeout]
+=== Timeout
+
+At times, it may be required to simulate the system not responding to
+the client application for an extended period of time. The client
+application must specify that a timeout value of n milliseconds by using
+the <last-name> field in conjunction with the _Test Token_. The value of
+n should be more than the client application's timeout setting.
+
+[#RestApi_Simulations_Timeout_Conditions]
+==== Conditions
+
+- The tag <accountholder/address/street1> must contain a valid
+transaction status and a defined timeout period in milliseconds. If
+multiple transaction status are required, you can add a comma-delimited
+set of transaction status.
+- The tag <account-holder/last-name> must contain an issued test token
+to enable a timeout simulation.
+//-
+
+ifdef::env-wirecard[]
+[#RestApi_Simulations_Timeout_Samples]
+==== Samples for a Timeout Simulation
+
+See <<RestApi_Samples_CreditCardOnly_Timeout, samples>> for timeout simulation.
+endif::[]
+
+[#RestApi_Simulations_ReferencedTransaction]
+=== Reference Transaction
+
+At times, it may be required to simulate a transaction followed by
+another one referencing the first, such as a credit card authorization
+followed by a capture. In the reference transactions <street1> field is
+not used. As such, the client application indicates the expected status
+of the referenced transaction in the initial transaction. E.g. excepted
+status code of a capture transaction must be indicated in the initial
+authorization. This is indicated in the <street1> field with a grammar
+including a short form of the transaction type. The ordering of the
+status codes in the tag <accountholder/address/street1> is significant.
+Payment Service analyses the transaction type in a payment workflow or
+group and applies the status code as mentioned in the original
+transaction and returns it to the client application.
+
+[cols="60,40"]
+|===
+| Transaction Type | Short Form
+
+|authorization-only |AO
+|authorization |A
+|capture-authorization |CA
+|purchase |P
+|void-capture |VC
+|void-purchase |VP
+|check-risk |C
+|===
+
+[#RestApi_Simulations_ReferencedTransactions_Conditions]
+==== Conditions
+
+- The status codes must be set during the first transaction request.
+- The tag <accountholder/address/street1> must contain two valid
+transaction status for both transactions.
+//-
+
+[#RestApi_Simulations_ReferencedTransactions_Example]
+==== Example
+
+The client application would like to simulate a successful zero dollar
+authorization, followed by credit card declined during the charge:
+
+. Zero Dollar Authorization: 201.0000
+. Purchase: 500.1053
+//-
+
+This expected status codes were set during the ZDA request as follows:
+
+<street1>AO-201.0000,P-500.1053</street1>
+
+ifdef::env-wirecard[]
+[#RestApi_Simulations_ReferencedTransactions_Samples]
+==== Samples for a Reference Transaction Simulation
+
+See <<RestApi_Samples_CreditCardOnly_ReferencedTransaction, samples>> for reference transaction simulation.
+endif::[]

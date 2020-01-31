@@ -1,0 +1,96 @@
+[#PP_PaymentSolutions]
+== Payment Solutions
+
+[#PPv1_PaymentSolutions_PaybyLink]
+=== Pay by Link
+
+Merchants can offer payment on Hosted Payment Page (HPP) using a <<PPv1_PaymentSolutions_InvoiceviaEmail, hyperlink from their own newsletter or an email>>.
+The hyperlink redirects the consumer to a credit card
+form within HPP in order to supply consumer's card data. Additionally,
+the merchant can accept MOTO (Mail Order/Telephone Order) payments and
+remain PCI SAQ-A compliant. Pay by Link can also be used with the
+<<PPv2_Features_PaybyLink, {payment-page-v2-abbr}>> integration.
+
+[#PPV1_PaymentSolutions_PaybyLink_Hyperlink]
+==== Hyperlink Expiration Timestamp
+
+Merchant can offer payment on Hosted Payment Page (HPP) which has been
+provided by hyperlink functionality for custom limited time by sending
+``hyperlink_expiration_time_stamp`` in request. Timestamp is in ISO 8601
+format consisting of combined date and time in UTC:
+YY-MM-DDTHH:MM:SS±HH:MM.
+
+[#PPv1_PaymentSolutions_PaybyLink_Hyperlink_HowTo]
+.How-To
+
+For XML and JSON Requests:
+
+In order to generate payment link, send credit card payment request to
+REST API, specifically ``paymentmethods`` endpoint without entering card
+information. If request does not include all necessary parameters to
+execute the payment, URL to HPP card form is returned in the response.
+If request contains also optional ``hyperlink-expiration-time-stamp``
+field, hyperlink will be valid until provided timestamp instead of
+default value of 30 minutes.
+
+For XML and JSON Responses:
+
+The response contains the actual path stored at ``<payment-method url>``
+which renders card payment form. This path needs to be copied to
+customer.
+
+.XML authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/creditcard_authorization_request_success_119235.xml[]
+----
+
+.XML authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/creditcard_authorization_response_success_1d5050.xml[]
+----
+
+.JSON authorization Request (Successful)
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv1PaymentSolutionsPaybyLinkHyperlinkHowTo_JSON_AuthorizationRequestSuccessful.json[]
+----
+
+.JSON authorization Response (Successful)
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv1PaymentSolutionsPaybyLinkHyperlinkHowTo_JSON_AuthorizationResponseSuccessful.json[]
+----
+
+[#PPv1_PaymentSolutions_PaybyLink_Limitations]
+==== Limitations
+
+. The payment hyperlink is valid until provided expiration timestamp.
+If expiration timestamp is not provided, hyperlink is valid only 30
+minutes, then the request ID expires.
+. The payment hyperlink may be used only once.
+. Merchant must generate own ``<request-id>`` as for every request.
+. Redirect URL must be specified. If merchant hasn't been configured
+on merchant level configuration, redirect URL must be sent via request.
+
+//-
+
+[#PPv1_PaymentSolutions_InvoiceviaEmail]
+=== Invoice via Email
+
+_Invoice via Email_ allows the merchant to send the consumer a generated
+payment link automatically via email (or manually via other
+devices/units of the merchant's choice).
+
+[#PPv1_PaymentSolutions_InvoiceviaEmail_Workflow]
+==== Workflow
+
+image::images/03-02-12-payment-solutions/Workflow_InvoiceviaEmail.png[Workflow Email via Invoice]
+
+. The merchant logs in to the https://{enterprise-portal-url}[{enterprise-portal-name}].
+. The merchant provides the required payment information.
+. The merchant generates the URL.
+. The merchant sends the URL to the consumer.
+
+//-
