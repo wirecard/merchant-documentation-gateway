@@ -1,0 +1,619 @@
+[#BatchProcessingApi_Integration]
+== Batch Processing API
+
+These specifications are intended for integrators.
+
+[#BatchProcessingApi_TestCredentials]
+=== Test Credentials
+
+It is possible to test batch transaction processing on the TEST
+environment using the credentials below. For more information, please
+contact <<ContactUs, Merchant Support>>.
+
+[#BatchProcessingApi_SEPATransactions]
+==== _SEPA_ Transactions
+
+[%autowidth,cols="h,"]
+|===
+| SFTP Folder                   | Please contact <<ContactUs, Merchant Support>>
+| TEST Merchant Account ID      | 0f3dfbdd-df34-454f-9f2a-6c46e43ce6af
+| Username when using ReST API  | 3878-MerchantTest
+| Password when using ReST API  | 2m125m7Z`n824V
+|===
+
+[#BatchProcessingApi_CreditCardTransactions]
+==== _Credit Card_ Transactions
+
+[%autowidth,cols="h,"]
+|===
+| SFTP Folder              | Please contact <<ContactUs, Merchant Support>>
+| TEST Merchant Account ID | d0b01877-a4e2-4d50-9316-6190d4a008d4
+|===
+
+WARNING: For security reasons, it is recommended to avoid using live _Credit Card_
+data when processing test batch files. Please always use
+<<API_CC_TestCards, TEST _Credit Card_ data>>.
+
+[#BatchProcessingApi_Workflow]
+=== Workflow
+
+image::images/05-00-batch-processing-api/workflow-batch-processing-api.png[Batch Processing API Workflow]
+
+. The Merchant Operator applies <<BatchProcessingApi_PGP, Pretty Good Privacy>>
+(PGP) encryption using Wirecard's public key and uploads the encrypted request
+file via SFTP to the ``from/new`` folder (eg: ``from<foldername>/new`` folder).
+. The Batch Processing Service retrieves the request file and moves
+the original request file from the ``new`` to the ``processed`` subfolders
+if the upload was successful (eg: ``from<foldername>/new`` subfolder to
+the ``from<foldername>/processed`` subfolder). In case of uploading error,
+the request file is moved to the ``error`` subfolder (eg:
+``from<foldername>/error``)
+. The Batch Processing Service processes each transaction in the
+request file and generates a PGP encrypted response file using the
+Merchant's Public Key.
+. When processing was successful, the encrypted response file is
+deposited in the ``to<foldername>/new`` folder on the SFTP server. In
+case processing failed due to a corrupted request file, the request file
+is stored into folder ``to<foldername>/error``.
+. The merchant operator retrieves the encrypted response file and
+decrypts it using their private key.
+
+//-
+
+[#BatchProcessingApi_SFTPforBatchProcessing]
+=== SFTP for Batch Processing
+
+SFTP (Secure File Transfer Protocol) is used to securely transfer files
+between the merchant and the Batch Processing Service.
+
+[#BatchProcessingApi_ServerDirectoryStructure]
+==== Server Directory Structure
+
+Once logged onto the SFTP server, the merchant or partner is
+automatically connected by its customer or partner number (e.g. ``C0001``)
+to the file repository, set up by Wirecard. In the root window of the
+remote SFTP server site (Wirecard server) the following subdirectories
+are available:
+
+.Remote SFTP Server
+image::images/05-00-batch-processing-api/sftp-server-directory-structure.png[SFTP Server Directory Structure]
+
+The folders ``from<foldername>`` (eg: ``fromC0001`` or ``fromP0001``) and
+``to<foldername>`` (eg: ``toC0001`` or ``toP0001``) are important for the batch
+processing. They are used for upload (``from<foldername>``) and download
+(``to<foldername>``) files by the merchant.
+
+Folder ``from<foldername>`` contains the following three subfolder.
+
+.Remote SFTP Server Subfolders
+image::images/05-00-batch-processing-api/sftp-server-directory-structure-subfolder.png[SFTP Server Directory Structure of Subfolders]
+
+- ``error`` The folder to where the request file is moved
+by the batch server in case an upload problem occurred.
+- ``new`` The folder where the Merchant uploads his
+(encrypted) request files.
+- ``processed`` The folder to where the correctly processed request files are
+moved by the batch service.
+
+//-
+
+Folder ``to<foldername>`` contains the same named subfolders used for
+
+- ``error`` The folder where the batch processing service
+stores the request file in case of the request file was corrupted.
+- ``new`` The folder where the batch processing service
+deposits the encrypted response file.
+- ``processed`` The folder where the Merchant stores the response file after
+it is picked up.
+
+//-
+
+The response file contains ``success`` and ``failed`` transactions.
+
+
+[#BatchProcessingApi_UploadDownload]
+=== Upload/Download
+
+[#BatchProcessingApi_UploadRequestFiles]
+==== Upload Request Files
+
+. Login to SFTP server.
+. Open folder ``from<foldername>``
+. Copy your batch files to the subfolder ``new``.
+
+//-
+
+[#BatchProcessingApi_DownloadResponseFiles]
+==== Download Response Files
+
+. Login to SFTP server.
+. Open the folder ``to<foldername>``
+. Retrieve the response files from the subfolder ``new`` and save them
+to your local machine.
+. Move the response files from subfolder ``new`` to subfolder
+``processed``, in order to keep track of your already retrieved files.
+
+//-
+
+WARNING: Wirecard stores the old copies of your processed batch files on the
+Wirecard file server for up to 3 months. After that time period they
+will be deleted automatically. It is at your discretion to
+use this file repository.
+
+[#BatchProcessingApi_ProcessingTime]
+==== Processing Time
+
+Processing of batch files begins at 8:00 am CET. Each customer's file
+will be picked up and processed individually. Processing time may vary
+depending on the number of customers using this service.
+
+The response file will be available in the subfolder
+``to<foldername>/new`` for pick up as soon as the request file has been
+fully processed.
+
+[#BatchProcessingApi_URLandCredentials]
+==== URL and Credentials
+
+The URL and credentials for the SFTP Server must be provided prior to
+production integration. Please contact <<ContactUs, Merchant Support>> if you
+did not receive your credentials.
+
+[#BatchProcessingApi_Files]
+=== Files
+
+[#BatchProcessingApi_Files_Specifications]
+==== Specifications
+
+Request and response files must meet the following criteria:
+
+- Encrypted with PGP (mandatory for files including _Credit Card_
+transactions)
+- Formatted as ``.csv``
+- This means, only comma (``,``) is accepted as separator!
++
+IMPORTANT: A field value *must not* contain a comma!
+
++
+- Linefeed: ``LF`` (Unix format) must be used as separator for the
+different transactions
+- Include header columns for each field
+- Encoded in UTF-8
+- The different parameters must be defined in the order given in the
+table <<BatchProcessingApi_Request_Sepa, Batch Processing SEPA>>.
+
+//-
+
+Please refer to the <<BatchProcessingApi_Sample, Sample>> for Batch Processing.
+
+[#BatchProcessingApi_Request]
+===== Request
+
+Batch processing has been designed to accept transactions for several
+payment methods. Field requirements vary by different payment methods.
+
+[#BatchProcessingApi_Request_CreditCard]
+====== _Credit Card_
+
+The <<BatchProcessingApi_Fields_CreditCard, _Credit Card_ Fields table>>
+describes the fields that must be provided for _Credit Card_ transaction requests.
+
+- The fields must be defined in the ``.csv`` file in the order given in the
+following table to allow correct processing.
+- CSV format requires that each field must be specified. Empty fields
+(optional fields or fields not used by _Credit Card_) have to be defined
+as empty values separated by commas: ``,,``.
+
+//-
+
+.Example
+----
+…3.33,EUR,4012000300001003,…
+----
+
+WARNING: Batch processing for _Credit Card_ does not support submitting the CVV/CVC.
++
+To process _Credit Card_ transactions via batch, it is recommended to
+first submit an online _authorization_ transaction via API and follow-up
+with a _capture_ transaction via batch. A _capture_ must be submitted
+with a parent-Transaction ID referring to a successful _authorization_
+transaction.
++
+Please refer to <<CreditCard, _Credit Card_>> for more information. The names
+used in the batch service may differ from the field names given in the API
+documentation. For details see the
+<<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>> table.
+
+[#BatchProcessingApi_Request_Sepa]
+====== SEPA
+
+Batch processing has been designed to accept transactions for several
+payment methods. Field requirements vary by different payment methods.
+
+The <<BatchProcessingApi_Fields_Sepa, Batch API SEPA Fields Table>> describes
+the fields that must be provided for SEPA transaction requests.
+
+- The fields must be defined in the ``.csv`` file in the order given in the
+following table to allow correct processing.
+- CSV format requires that each field must be specified. Empty fields
+(optional fields or fields not used by SEPA) have to be defined as empty
+values separated by commas: ``,,``.
+
+//-
+
+.Example
+----
+ …121.22,EUR,,DE42512308000000060004,…
+----
+
+Please refer to <<SEPADirectDebit, SEPA DD>> and <<SEPACreditTransfer, SEPA CT>>
+for more information. The names used in the batch service may
+differ from the field names given in the API documentation. For details
+see the <<BatchProcessingApi_FieldNameMapping, Batch API Field Name Mapping>>
+table.
+
+[#BatchProcessingApi_Request_FileNaming]
+====== Request File Naming
+
+Request files must be given a unique batch ID using the following
+format:
+
+``requestbatchid.timestamp.request.csv.pgp``
+
+.Example
+----
+batchsample001.201201011801.*request*.csv.pgp
+----
+
+- Where timestamp is in the format of ``YYYYMMDDhhmm`` and in UTC timezone.
+- The request batch ID will be included in the response filename and
+within the response file content.
+- PGP encryption is optional.
+
+//-
+
+WARNING: If the file is encrypted, the extension ``.pgp`` must be added to the file
+name!
+
+[#BatchProcessingApi_Response]
+===== Response
+
+[#BatchProcessingApi_Response_FileNaming]
+====== Response File Naming
+
+Response files will be named after the request file including the
+request batch ID, timestamp and customer number:
+
+``requestbatchid.timestamp.<foldername>.response.csv.pgp``
+
+.Meaning
+- Extension ``.pgp`` will only be added if PGP encryption was requested.
+- ``<foldername>`` is the merchants' number (SFTP User), eg: ``C0001``
+
+//-
+
+.Example
+- Request file: ``batchsample001.201201011801.request.csv.pgp``
+- Corresponding response file: ``batchsample001.201201011801.C0001.response.csv.pgp``
+
+//-
+
+[#BatchProcessingApi_Fields]
+=== Fields
+
+[#BatchProcessingApi_Fields_CreditCard]
+==== _Credit Card_ Request
+
+[cols="20e,10,10,10,50a"]
+|===
+| Field                          | Cardinality | Datatype     | Size | Description
+
+| merchant_account_id            | M           | Alphanumeric | 36   | Account ID of the merchant.
+| request_id                     | M           | Alphanumeric | 150  | Unique request ID for each Transaction (= Merchant Transaction ID).
+| payment_method_id              | M           | Alphanumeric | 15   | Payment method.
+
+NOTE: Only SEPA DD, SEPA CT and _Credit Card_ are allowed.
+
+| transaction_type               | M           | Alphanumeric | 30   | Transaction type (direct relationship to payment method).
+| parent_transaction_id          | O           | Alphanumeric | 36   | Transaction ID of authorization or parent transaction, if either transaction is available and should be referred to.
+| requested_amount               | O           | Numeric      | 15   | Amount in decimal number. Max length = total number of digits.
+
+NOTE: The number of digits after the decimal point depends on the currency.
+Example: 100.000 INR (Indian Rupee) but 100.00 EUR
+
+| requested_amount_currency      | O           | Alphanumeric | 3    | Currency.
+| account_number                 | O           | Alphanumeric | 36   | This is the card account number of the end consumer. It is mandatory if ``card-token`` is not used.
+| iban                           | Empty       | Alphanumeric | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| bic                            | Empty       | Alphanumeric | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| token_id                       | O           | Alphanumeric | 36   | This is the token corresponding to ``account_number`` of the end consumer. It is mandatory if ``account_number`` is not specified. It is unique per instance.
+| card_type                      | O           | See <<AppendixD, Card Types>> defined in API | 15 | This is the consumer's card type.
+| expiration_month               | O           | Numeric      | 2    | This is the expiration month of the consumer's credit card.
+| expiration_year                | O           | Numeric      | 2    | This is the expiration year of the consumer's credit card.
+| first_name                     | O           | Alphanumeric | 32   | First name of consumer.
+| last_name                      | O           | Alphanumeric | 32   | Last name of consumer.
+| email                          | O           | Alphanumeric | 64   | E-mail of consumer.
+| gender                         | O           | Alphanumeric | 1    | Gender of consumer.
+
+NOTE: ``f`` and ``m`` are allowed values.
+
+| date_of_birth                  | O           | YYYY-MM-DD   | 10   | Consumer's date of birth
+| phone                          | O           | Alphanumeric | 32   | Consumer's phone number
+| street1                        | O           | Alphanumeric | 70   | Street information part 1 of consumer.
+
+NOTE: This field is optional, but mandatory if ``city`` or ``country`` is specified.
+
+| street2                        | O           | Alphanumeric | 128  | Street information part 2
+| city                           | O           | Alphanumeric | 32   | City of consumer
+
+NOTE: This field is optional, but mandatory if ``street1`` or ``country`` is
+specified.
+
+| state                          | O           | Alphanumeric | 32   | State of consumer
+| country                        | O           | Alphanumeric | 3    | Country of consumer.
+
+NOTE: This field is optional, but mandatory if ``street1`` or ``city`` is
+specified
+
+| postal_code                    | O           | Alphanumeric | 16   | Postal code of consumer
+| entry_mode                     | O           | Alphanumeric | -    | This is information about the channel used for this transaction.
+
+NOTE: Can be one of the following: ``mail-order``, ``telephone-order``, ``ecommerce``,
+``mcommerce`` or ``pos``.
+
+| ip_address                     | O          | Alphanumeric | 15   | IP address
+| order_number                   | O          | Alphanumeric | 64   | Order number
+| order_detail                   | O          | Alphanumeric | 1024 | Order detail
+| descriptor                     | O          | Alphanumeric | 100  | Description of the transaction. It identifies the transaction.
+| creditor_id                    | E          | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| mandate_id                     | E          | Empty        | 35   | "Provide empty value" for this field by using the construct ``,,``.
+| mandate_signature_date         | E          | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| due_date                       | E          | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| custom_field_name_1            | O          | Alphanumeric | 36   | Name of custom field 1.
+| custom_field_value_1           | O          | Alphanumeric | 256  | Value of custom field 1. In this field the merchant can send additional information.
+| custom_field_name_2            | O          | Alphanumeric | 36   | Name of custom field 2.
+| custom_field_value_2           | O          | Alphanumeric | 256  | Value of custom field 2. In this field the merchant can send additional information.
+| custom_field_name_3            | O          | Alphanumeric | 36   | Name of custom field 3.
+| custom_field_value_3           | O          | Alphanumeric | 256  | Value of custom field 3. In this field the merchant can send additional information.
+| notification_transaction_state | O          |              | 12   | Transaction notification state. For datatype please refer to <<AppendixC, Transaction States>>.
+| notification_url               | O          | Alphanumeric | 256  | URL for notification
+| merchant_crm_id                | O          | Alphanumeric | 64   | CRM (Customer-Relationship-Management) ID of Merchant
+| periodic_type                  | O          | Alphanumeric | 11   | This is information about the periodicity of this transaction.
+
+NOTE: Can be one of the following: ``installment``, ``recurring``.
+
+| sequence_type                  | E          | Empty        | 10   | "Provide empty value" for this field by using the construct ``,,``. For a sample, please look at the <<BatchProcessingApi_Sample, Batch Processing Sample>>.
+|===
+
+For a sample, please look at the <<BatchProcessingApi_SEPAandCreditCard, Request Sample for Batch Processing>>.
+
+[#BatchProcessingApi_Fields_Sepa]
+==== _SEPA_ Request
+
+[cols="20,10,10,10,50a",options="header"]
+|===
+| Field                          | Cardinality | Datatype     | Size | Description
+
+| merchant_account_id            | M           | Alphanumeric | 36   | Account ID of the merchant.
+| request_id                     | M           | Alphanumeric | 150  | Unique request ID for each Transaction (= Merchant Transaction ID).
+| payment_method_id              | M           | Alphanumeric | 15   | Payment method.
+
+NOTE: Only SEPA DD, SEPA CT and _Credit Card_ are allowed.
+
+| transaction_type               | M           | Alphanumeric | 30   | Transaction type (direct relationship to payment method).
+| parent_transaction_id          | O           | Alphanumeric | 36   | Transaction ID of authorization or parent transaction, if either transaction is available and should be referred to.
+| requested_amount               | O           | Numeric      | 15   | Amount in decimal number. Max length = total number of digits.
+
+NOTE: The number of digits after the decimal point depends on the currency.
+100.000 INR (Indian Rupee) but 100.00 EUR
+
+| requested_amount_currency      | O           | Alphanumeric | 3    | Currency
+
+NOTE: Currently only ``EUR`` is allowed.
+
+| account_number                 | E           | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| iban                           | O           | Alphanumeric | 34   | Account holder IBAN.
+| bic                            | O           | Alphanumeric | 11   | Account holder BIC (BIC may have 8 or 11 characters).
+| token_id                       | E           | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| card_type                      | E           | See <<AppendixD, Card Types>> defined in API | 0   | "Provide empty value" for this field by using the construct ``,,``.
+| expiration_month               | E           | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| expiration_year                | E           | Empty        | 0    | "Provide empty value" for this field by using the construct ``,,``.
+
+| first_name                     | O           | Alphanumeric | 32   | First name of consumer.
+| last_name                      | O           | Alphanumeric | 32   | Last name of consumer.
+| email                          | O           | Alphanumeric | 64   | E-mail of consumer.
+| gender                         | O           | Alphanumeric | 1    | Gender of consumer.
+
+NOTE: Only ``f`` or ``m`` are allowed values.
+
+| date_of_birth                  | O           | YYYY-MM-DD   | 10   | Consumer's date of birth.
+| phone                          | O           | Alphanumeric | 32   | Consumer's phone number.
+| street1                        | O           | Alphanumeric | 70   | Street information part 1 of consumer. This field is optional, but mandatory if ``city`` or ``country`` is specified.
+| street2                        | O           | Alphanumeric | 128  | Street information part 2.
+| city                           | O           | Alphanumeric | 32   | City of consumer. This field is optional, but mandatory if ``street1`` or ``country`` is specified.
+| state                          | O           | Alphanumeric | 32   | State of consumer.
+| country                        | O           | Alphanumeric | 3    | Country of consumer. This field is optional, but mandatory if ``street1`` or ``city`` is specified.
+| postal_code                    | O           | Alphanumeric | 16   | Postal code of consumer.
+| entry_mode                     | E           | Alphanumeric | 0    | "Provide empty value" for this field by using the construct ``,,``.
+| ip_address                     | O           | Alphanumeric | 15   | IP address.
+| order_number                   | O           | Alphanumeric | 64   | Order number.
+| order_detail                   | O           | Alphanumeric | 1024 | Order detail.
+| descriptor                     | O           | Alphanumeric | 100  | Description of the transaction. It identifies the transaction.
+| creditor_id                    | O           | Alphanumeric | 35   | Creditor ID.
+| mandate_id                     | O           | Alphanumeric | 35   | Mandate ID.
+| mandate_signature_date         | O           | YYYY-MM-DD   | 10   | Sign Date of Mandate. Mandate signature date is always today or in the past.
+| due_date                       | O           | YYYY-MM-DD   | 10   | Due Date of transaction.
+
+NOTE: Due Date is always in the future.
+
+If this field is left empty, Wirecard will automatically calculate the
+due date. For more information about 'due date' please refer to
+<<SEPADirectDebit_Fields_SpecificFields_DueDate, Due Date>>.
+
+| custom_field-name_1            | O           | Alphanumeric | 36   | Name of custom field 1.
+| custom_field_value_1           | O           | Alphanumeric | 256  | Value of custom field 1. In this field the merchant can send additional information.
+| custom_field-name_2            | O           | Alphanumeric | 36   | Name of custom field 2.
+| custom_field_value_2           | O           | Alphanumeric | 256  | Value of custom field 2. In this field the merchant can send additional information.
+| custom_field-name_3            | O           | Alphanumeric | 36   | Name of custom field 3.
+| custom_field_value_3           | O           | Alphanumeric | 256  | Value of custom field 3. In this field the merchant can send additional information.
+| notification_transaction_state | O           | -            | 12   | Transaction notification state. For datatype please refer to <<AppendixC, Transactions States>>.
+| notification_url               | O           | Alphanumeric | 256  | URL for notification
+| merchant_crm_id                | O           | Alphanumeric | 64   | CRM (Customer-Relationship-Management) ID of Merchant
+| periodic_type                  | O           | Alphanumeric | 11   | Periodic type - Supported for recurring Direct Debit not for Credit.
+
+NOTE: Only ``recurring`` is allowed.
+This field is optional, but if this field is defined, ``sequence_type``
+must also be provided.
+
+| sequence_type                  | C           | Alphanumeric | 10   | Sequence type, if periodic type is set to recurring.
+
+NOTE: Only ``first``, ``recurring`` or ``final`` are allowed values.
+
+This field is only required, if ``periodic_type`` is defined.
+|===
+
+For a sample, please look at the <<BatchProcessingApi_SEPAandCreditCard, Request Sample for Batch Processing>>
+
+[#BatchProcessingApi_Fields_SepaCC]
+==== Response
+
+NOTE: Response fields are the same for _SEPA_ and _Credit Card_.
+
+[cols="20e,10,10,10,50a"]
+|===
+| Field                          | Cardinality | Datatype     | Size | Description
+
+| batch_id                       |  Mandatory  | Alphanumeric | 36   | Batch internal ID for the request.
+| transaction_id                 |  Mandatory  | Alphanumeric | 36   | The transaction ID represents the end-to-end flow of a transaction and   is used to identify transactions within the banking system. It is generated by Wirecard.
+| request_id                     |  Mandatory  | Alphanumeric | 150   | Unique request ID for each Transaction (= Merchant Transaction ID)
+| transaction_type               |  Mandatory  |              | 30   | Transaction type (direct relationship to payment method); ONLY pending-credit or pending-debit are allowed. Please refer to Transaction States
+| requested_amount               |  Mandatory  | Numeric      | 15   a| Amount in decimal number. Max length = total number of digits.
+
+NOTE: The number of digits after the decimal point depends on the currency.
+
+Example: 100.000 INR (Indian Rupee) but 100.00 EUR
+| requested_amount_currency      |  Mandatory  |              |  3   | Currency, currently only EUR allowed. Please refer to Currencies
+| notification_transaction_state |  Mandatory  |              | 12   | Transaction notification state.  Please refer to Transaction States
+| transaction_state              |  Mandatory  |              | 12   | Please refer to Transaction States
+| token_id                       |  Optional   | Alphanumeric | N/A  | empty value.
+| status_code                    |  Mandatory  | Alphanumeric | N/A  a| See Transaction Status.
+
+NOTE: If multiple codes are applicable, a pipe separated list of codes will be supplied.
+
+| status_description             |  Mandatory  |              | N/A  a| See Transaction Status.
+
+NOTE: If multiple codes are applicable, a pipe separated list of codes will be supplied.
+
+Example:
+
+"The First Name has not been provided.  Please check your input and try again.
+\|The Last Name has not been provided. Please check your input and try again."
+| completion_time_stamp          |  Mandatory  |              | N/A  | ISO 8601 – combined date and time in UTC. Example: "2014-06-24T09:56:50+00:00"
+| order_number                   |  Optional   | Numeric      | 64   | Order number
+
+|===
+
+For a sample, please look at the <<BatchProcessingApi_SEPAandCreditCard, Request Sample for Batch Processing>>
+
+[#BatchProcessingApi_FieldNameMapping]
+=== Field Name Mapping
+
+.Request Fields Mapping
+|===
+| Name in Batch Processing manual | Name in API documentation
+
+| merchant_account_id             | merchant-account-id
+| request_id                      | request-id
+| payment_method_id               | payment-method
+| transaction_type                | transaction-type
+| parent_transaction_id           | parent-transaction-id
+| requested_amount                | requested-amount
+| requested_amount_currency       | requested-currency
+| account_number                  | account-number
+| iban                            | iban
+| bic                             | bic
+| token_id                        | token-id
+| card_type                       | card-type
+| expiration_month                | expiry-month
+| expiration_year                 | expiry-year
+| first_name                      | first-name
+| last_name                       | last-name
+| email                           | email
+| gender                          | gender
+| date_of_birth                   | date-of-birth
+| phone                           | phone
+| street1                         | street1
+| street2                         | street2
+| city                            | city
+| state                           | state
+| country                         | country
+| postal_code                     | postal-code
+| entry_mode                      | entry-mode
+| ip_address                      | ip-address
+| order_number                    | order-number
+| order_detail                    | order-detail
+| descriptor                      | descriptor
+| creditor_id                     | creditor-id
+| mandate_id                      | mandate-id
+| mandate_signature_date          | mandate-signature-date
+| due_date                        | due-date
+| custom_field_name_1             | field-name (1)
+| custom_field_value_1            | field-value (1)
+| custom_field_name_2             | field-name (2)
+| custom_field_value_2            | field-value (2)
+| custom_field_name_3             | field-name (3)
+| custom_field_value_3            | field-value (3)
+| notification_transaction_state  | transaction-state
+| notification_url                | notification-url
+| merchant_crm_id                 | merchant-crm-id
+| periodic_type                   | periodic-type
+| sequence_type                   | sequence-type
+|===
+
+.Response Fields Mapping
+|===
+| Name in Batch Processing manual | Name in API documentation
+
+| batch_id                        | N/A
+| transaction_id                  | transaction-id
+| request_id                      | request-id
+| transaction_type                | transaction-type
+| requested_amount                | requested-amount
+| requested_amount_currency       | requested-amount-currency
+| notification_transaction_state  | transaction-state
+| token_id                        | token-id
+| status_code                     | status-code
+| status_description              | status-description
+| completion_time_stamp           | completion-time-stamp
+|===
+
+
+[#BatchProcessingApi_Sample]
+Sample Request and Response for Batch Processing
+
+
+[#BatchProcessingApi_SEPAandCreditCard]
+SEPA and _Credit Card_
+
+
+The following samples contain one _SEPA DD_ recurring first
+Transaction, one _SEPA CT_, and one _Credit Card_ transaction:
+
+.CSV SEPA DD, SEPA CT and CC Request
+[source,csv,subs=attributes+]
+----
+merchant_account_id,request_id,payment_method_id,transaction_type,parent_transaction_id,requested_amount,requested_amount_currency,account_number,iban,bic,token_id,card_type,expiration_month,expiration_year,first_name,last_name,email,gender,date_of_birth,phone,street1,street2,city,state,country,postal_code,entry_mode,ip_address,order_number,order_detail,descriptor,creditor_id,mandate_id,mandate_signature_date,due_date,custom_field_name_1,custom_field_value_1,custom_field_name_2,custom_field_value_2,custom_field_name_3,custom_field_value_3,notification_transaction_state,notification_transaction_url,merchant_crm_id,periodic_type,sequence_type
+0f3dfbdd-df34-454f-9f2a-6c46e43ce6af,201801021111,sepadirectdebit,pending-debit,,4.44,EUR,,DE42512308000000060004,WIREDEMMXXX,,,,,John,Smith,johnsmith@exampleemail.com,M,,,Example Street 1,,Munich,,DE,80333,,,987654321,test detail,testdescriptor SEPADebit,DE98ZZZ09999999999,12345678,2017-12-12,,,,,,,,,,,recurring,first
+0f3dfbdd-df34-454f-9f2a-6c46e43ce6af,201801024567,sepacredit,pending-credit,,5.55,EUR,,DE42512308000000060004,WIREDEMMXXX,,,,,John,Smith,johnsmith@exampleemail.com,M,,,Example Street 1,,Munich,,DE,80333,,,111444777,test detail,testdescriptor SEPACredit,,,,,,,,,,,,,,,
+d0b01877-a4e2-4d50-9316-6190d4a008d4,201801020812,creditcard,capture,,3.33,EUR,4012000300001003,,,,visa,11,2019,Jane,Smith,janesmith@exampleemail.com,F,,,Example Street 2,,Munich,,DE,,,,123456789,,testdescriptorCC,,,,,,,,,,,,,,,
+----
+
+.CSV SEPA DD, SEPA CT and CC Response
+[source,csv,subs=attributes+]
+----
+batch_id,transaction_id,request_id,transaction_type,requested_amount,requested_amount_currency,transaction_state,token_id,status_code,status_description,completion_time_stamp,order_number
+A0041984A21A11E4BF3E39F7227D0BCB,0f3dfbdd-df34-454f-9f2a-6c46e43ce6af,201801021111,pending-debit,4.44,EUR,success,,201.0000,The resource was successfully created.,2018-01-02T09:39:57+00:00,987654321
+A0041984A21A11E4BF3E39F7227D0BCB,0f3dfbdd-df34-454f-9f2a-6c46e43ce6af,201801024567,pending-credit,5.55,EUR,success,,201.0000,The resource was successfully created.,2018-01-02T09:39:57+00:00,111444777
+A0041984A21A11E4BF3E39F7227D0BCB,d0b01877-a4e2-4d50-9316-6190d4a008d4,201801020812,capture,3.33,EUR,success,,201.0000,The resource was successfully created.,2018-01-02T09:39:57+00:00",123456789
+----
+
+
+//-

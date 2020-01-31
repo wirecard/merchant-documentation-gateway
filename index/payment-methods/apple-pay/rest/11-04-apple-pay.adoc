@@ -1,0 +1,334 @@
+[#ApplePay]
+== REST API
+
+NOTE: Apple Pay is fully PSD2 compliant. +
+{payment-provider-name} ensures that our merchants will stay PSD2 compliant without any additional change in the implementation process.
+
+[#ApplePay_Introduction]
+=== Introduction
+
+_Apple Pay_ supports credit and debit cards from the three major payment
+organisations, namely American Express, MasterCard and Visa. When using
+_Apple Pay_ in a shop, restaurant or other retailer, the name, credit
+card number and security code are not visible to others.
+
+_Apple Pay_ can be set up easily, with the consumer adding their
+credit or debit card linked to the iTunes Store to their account.
+
+Transactions are authorized with a unique number which is used by the
+device account number. Instead of the security code on the back of the
+card, _Apple Pay_ generates a dynamic security code to guarantee the
+security of every transaction.
+
+In-app online shopping with the iPhone is at your fingertips. Consumers
+can pay for physical goods and services including clothes, electronics,
+health and beauty artifacts, tickets and much more with Touch ID. The
+payment process is confirmed in a single touch. The consumer need not
+enter any account, dispatch or invoicing information. The card data is
+handled with confidentiality meaning online retailers will not be
+granted access.
+
+
+[#ApplePay_TestAccount]
+=== Test Account
+
+Since _Apple Pay_ is a proprietary service, you have to have an Apple
+Merchant ID and a Certificate Signing Request (csr-file) available
+before you can setup _Apple Pay_.
+
+* If you already have an Apple Merchant ID, you only need a CSR file.
+See <<ApplePay_Workflow_ExistingAppleMerchantAccount, Apple Merchant Account exists>>.
+* If you do not have an Apple Merchant ID, you need both, an Apple
+Merchant ID and a CSR file. Wirecard's
+<<ContactUs, Merchant Support>> will generate an Apple
+Merchant ID for you. See <<ApplePay_Workflow_NoAppleMerchantAccount, Apple Merchant Account does not exist>>.
+
+//-
+
+You can find additional information in
+https://developer.apple.com/library/content/ApplePay_Guide/Configuration.html[Apple's own documentation].
+
+If you have any questions, feel free to contact our <<ContactUs, Merchant Support>>.
+
+After you've set up your accounts:
+
+. https://developer.apple.com/support/apple-pay-sandbox/[Add a test card]
+to the wallet app.
+
+. Integrate paymentSDK into your application.
+
+. Conduct testing.
+
+. Add a live card to the Wallet app and switch the {payment-gateway} instance to production mode (do not forget to
+use production credentials - _MAID/SK/AppleMerchantID/csr_).
+
+//-
+
+[#ApplePay_Introduction_General]
+=== General Information
+
+[#ApplePay_Introduction_General_PaymentMode]
+==== Payment Mode, Countries and Currencies
+
+This table illustrates which payment mode _Apple Pay_ belongs
+to. It also provides detailed information about the countries and
+currencies, which are relevant for _Apple Pay_.
+
+//-
+
+[%autowidth]
+|===
+s|Payment Mode |<<PaymentMethods_PaymentMode_Wallet, Wallet>>, <<PaymentMethods_PaymentMode_MobilePayment, Mobile Payment>>
+s|Countries |International
+s|Currencies |EUR, GBP, CHF
+|===
+
+//-
+
+[#ApplePay_Introduction_General_CommunicationFormats]
+==== Communication Formats
+
+This table illustrates how _Apple Pay_ notifications are
+encoded and which languages and methods can be used for requests and
+responses.
+
+[%autowidth]
+|===
+.2+h|Requests/Responses | Format | XML
+                        | Methods | POST, GET
+h|IPN Encodement      2+| Base64
+|===
+
+[#ApplePay_TransactionTypes]
+=== Transaction Types
+
+|===
+|Transaction Type ({payment-gateway-abbr} <<ApplePay_TransactionTypes_Footnote, ^(*)^>>) |Transaction Type (Apple Pay) |Link to the sample
+
+|_authorization_ |Authorizations
+|<<ApplePay_Samples_Authorization, _authorization_ sample>>
+|_purchase_ |One-Time
+|<<ApplePay_Samples_Purchase, _purchase_ sample>>
+|_capture-authorization_ |Partial shipment
+|<<ApplePay_Samples_CaptureAuthorization, _capture-authorization_ sample>>
+|_refund-capture_, _refund-purchase_ |Refund
+|<<ApplePay_Samples_Refund, _refund_ sample>>
+|_void-authorization_ |Void
+|<<ApplePay_Samples_Void, _void_ sample>>
+|===
+
+//-
+
+[#ApplePay_TransactionTypes_Footnote]
+(*) {payment-gateway-abbr} = {payment-gateway}
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+[#ApplePay_TestCredentials]
+=== Test Credentials
+
+[NOTE]
+===
+.Test merchant account
+
+There is no public merchant-account available. Apple Pay can be enabled
+to a specific merchant provided that they have a CSR and an Apple
+Merchant Account.
+===
+
+[%autowidth]
+[%noheader]
+[cols=",,"]
+|===
+.2+|URLs (Endpoints)
+|To Test Environment
+|``\https://{test-instance-hostname}/engine/rest/payments/``
+|To Production Environment
+|``\https://{instance-hostname}/engine/rest/payments/``
+|Apple Merchant ID
+2+|The merchant needs an Apple Merchant ID (merchant identifier), which can be
+generated in the Apple Developer Portal. For details see
+"Create a merchant identifier" in
+https://developer.apple.com/documentation/passkit/apple_pay/setting_up_apple_pay_requirements[Setting Up Apple Pay Requirements.]
+Just as well, you may ask Wirecard's <<ContactUs, Merchant Support>> to
+generate an Apple Merchant ID for you, see
+<<ApplePay_Workflow_NoAppleMerchantAccount, Apple Merchant ID does not exist>>.
+|csr-file
+2+|The merchant can use _Apple Pay_ only if the Apple Merchant ID is associated
+with a Certificate Signing Request (csr-file). This csr-file is generated by
+Wirecard's <<ContactUs, Merchant Support>>, see
+<<ApplePay_TestCredentials_GenerateaCsrFileviaAppleMerchantID, Generate a csr-file via Apple Merchant ID>>.
+|===
+
+[#ApplePay_TestCredentials_GenerateaCsrFileviaAppleMerchantID]
+==== Generate a csr-file via Apple Merchant ID
+
+[cols="a,a"]
+[frame="none"]
+[grid="none"]
+|===
+|[#ApplePay_Workflow_ExistingAppleMerchantAccount]
+.Apple Merchant Account exists
+image::images/11-04-apple-pay/ApplePay_MAID_Workflow_AppleAccount_yes.png[Existing Apple Merchant Account]
+|[#ApplePay_Workflow_NoAppleMerchantAccount]
+.Apple Merchant Account does not exist
+image::images/11-04-apple-pay/ApplePay_MAID_Workflow_AppleAccount_no.png[No existing Apple Merchant Account]
+|===
+
+[#ApplePay_Workflow]
+=== Workflow
+
+image::images/11-04-apple-pay/ApplePay_Workflow_short.png[Apple Pay Payment Flow, width=950]
+
+[#ApplePay_Fields]
+=== Fields
+
+`cryptogram-value` is optional in the response. +
+
+All the other fields used for _Apple Pay_ requests, responses and
+notifications are the same as the <<RestApi_Fields, REST API Fields>>.
+
+[#ApplePay_Samples]
+=== Samples
+
+[NOTE]
+===
+Apple provides payment data in JSON format. This payment data can be
+used as cryptogram value when using an iOS device. To use the cryptogram
+value with ReST API the merchant must encode it to Base64.
+
+See _Apple Pay_ encryption details:
+
+https://developer.apple.com/documentation/apple_pay_on_the_web/applepaypaymenttoken/1916115-paymentdata
+
+https://developer.apple.com/documentation/passkit/pkpaymenttoken/1617000-paymentdata?language=objc
+===
+
+[#ApplePay_Samples_Authorization]
+
+==== _authorization_
+
+.XML _authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_authorization_request_success.xml[]
+----
+
+.XML _authorization_ Response (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_authorization_response_success.xml[]
+----
+
+[#ApplePay_Samples_ReferencedAuthorization]
+
+==== _referenced-authorization_
+
+.XML _referenced-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ApplePaySamplesReferencedAuthorization_ReferencedAuthorizationRequestSuccessful.xml[]
+----
+
+.XML _referenced-authorization_ Response (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_referenced-authorization_response_success_recurring_126cf4e3.xml[]
+----
+
+[#ApplePay_Samples_CaptureAuthorization]
+
+==== _capture-authorization_
+
+.XML _capture-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ApplePaySamplesCaptureAuthorization_CaptureAuthorizationRequestSuccessful.xml[]
+----
+
+.XML _capture-authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_capture-authorization_response_success_2f0a5103.xml[]
+----
+
+[#ApplePay_Samples_Purchase]
+
+==== _purchase_
+
+.XML _purchase_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_generic_purchase_request_success.xml[]
+----
+
+.XML _purchase_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_purchase_response_success.xml[]
+----
+
+[#ApplePay_Samples_ReferencedPurchase]
+
+==== _referenced-purchase_
+
+.XML _referenced-purchase_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ApplePaySamplesReferencedPurchase_ReferencedPurchaseRequestSuccessful.xml[]
+----
+
+.XML _referenced-purchase_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_referenced-purchase_response_success_recurring_e835c6e2.xml[]
+----
+
+[#ApplePay_Samples_Refund]
+
+==== _refund-capture_
+
+.XML _refund-capture_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ApplePaySamplesRefund_RefundCaptureRequestSuccessful.xml[]
+----
+
+.XML _refund-capture_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_refund-capture_response_success_407288d0.xml[]
+----
+
+[#ApplePay_Samples_Void]
+
+==== _void-authorization_
+
+.XML _void-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ApplePaySamplesVoid_VoidAuthorizationRequestSuccessful.xml[]
+----
+
+.XML _void-authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/apple-pay_creditcard_void-authorization_response_success_dd9e64b7.xml[]
+----
+
+//-

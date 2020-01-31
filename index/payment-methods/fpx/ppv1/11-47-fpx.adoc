@@ -1,0 +1,135 @@
+[#FPX]
+== {payment-page-v1}
+_FPX_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+NOTE: This payment method is available for integration with <<PP, {payment-page-v1}>> only. 
+
+[#FPX_GeneralInformation_Countries]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries | Malaysia 
+| Currencies | MYR
+|===
+
+[#FPX_GeneralInformation_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _FPX_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+[width=75%,cols="h,",stripes=none]
+|===
+| *Requests/Responses* | NVP Format
+| *IPN Encodement*     | Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#FPX_TransactionTypes]
+=== Transaction Types
+
+{payment-page-v1} supports the transaction type _purchase_ only.
+
+[#FPX_TestCredentials]
+=== Test Credentials
+
+[cols="35,65",stripes=none]
+|===
+h| URL (Endpoint)
+|``\https://test.{domain}.sg/engine/hpp/``
+h| Merchant Account ID (MAID)
+| 5f544f9f-c56a-4242-8ce7-d6422ca3599d
+h| Secret Key 
+| 0fbb1b24-6082-42d4-891e-cf9202083dcf
+|===
+
+[#FPX_TestCredentials_AdditionalTestCredentials]
+==== Additional Test Credentials on _FPX_ Environment 
+
+[cols="35,65",stripes=none]
+|===
+.2+h| Bank Selection 
+| SBI BANK A (to obtain a positive test case)
+| SBI BANK B/C (to obtain negative test case)
+h| Username | 1234
+h| Password | 1234
+|===
+
+[#FPX_Workflow]
+=== Workflow
+
+[mermaid, FPX_workflow,svg,subs=attributes+]
+----
+sequenceDiagram
+    participant Consumer
+    participant Merchant
+    participant {payment-gateway-abbr}
+    participant FPX
+Consumer->>Merchant: proceeds to checkout
+Merchant->>{payment-gateway-abbr}: sends payment request
+{payment-gateway-abbr}->>Consumer: asks consumer to select a payment method
+Consumer->>{payment-gateway-abbr}: selects FPX
+{payment-gateway-abbr}->> Consumer: shows {payment-page-v1-abbr} with available banks for FPX
+Consumer->>{payment-gateway-abbr}: selects bank
+{payment-gateway-abbr}->>Consumer: redirects consumer to FPX page
+FPX->>Consumer: redirects consumer to bank page
+Consumer->>FPX: logs in on bank page and completes payment
+FPX->>{payment-gateway-abbr}: sends transaction status
+{payment-gateway-abbr}->>Merchant: sends notification
+{payment-gateway-abbr}->>Consumer: redirects to status page
+----
+
+. Consumer adds items to shopping basket and proceeds to checkout.
+. Merchant sends consumer's payment request to {payment-gateway-abbr} for processing.
+. Consumer selects payment method _FPX_.
+. {payment-gateway-abbr} displays list of available banks for _FPX._
+. Consumer selects the preferred bank.
+. {payment-gateway-abbr} redirects consumer to _FPX_ page showing the details of the bank the consumer has selected.
+. _FPX_ sends consumer to bank page.
+. Consumer logs in and completes payment on bank page.
+. {payment-gateway-abbr} receives transaction status from _FPX_.
+. {payment-gateway-abbr} sends notification with transaction status to the merchant.
+. {payment-gateway-abbr} redirects consumer back to the shop where the merchant displays the status of the payment process.
+
+//-
+
+[#FPX_Fields]
+=== Fields
+
+The fields used for _FPX_ requests, responses and notifications are the
+same as for REST API and Payment Page. Please refer to: <<RestApi_Fields, REST API Fields>> or <<PaymentPageSolutions_Fields, Payment Page>>.
+
+[#FPX_Samples]
+=== Sample
+
+To test _FPX_, use the following JavaScript snippet.
+
+NOTE: For details on hash-generation, go to our *{payment-page-v1-abbr} Security* section, see <<PP_Security_RequestSignature, Request Signature>> and <<PP_Security_SecretKeyExchange, Secret Key Exchange>>.
+
+._purchase_ Request (successful)
+
+[source,javascript,subs=attributes+]
+
+----
+ var requestedData = {
+    "request_time_stamp" : getTimeStamp(), //get current timestamp
+    "request_id" : generateUid(), //generate unique ID
+    "merchant_account_id" : "5f544f9f-c56a-4242-8ce7-d6422ca3599d",
+    "transaction_type" : "purchase",
+    "requested_amount" : "500",
+    "requested_amount_currency" : "MYR",
+    "success_redirect_url" : "https://{pp-redirect-url-success}",
+    "cancel_redirect_url" : "https://{pp-redirect-url-cancel}",
+    "fail_redirect_url" : "https://{pp-redirect-url-error}",
+    "ip_address" : "127.0.0.1",
+    "secret_key" : "0fbb1b24-6082-42d4-891e-cf9202083dcf",
+    "psp_name" : "demo",
+    "first_name" : "Test",
+    "last_name" : "User",
+    "attempt_three_d" : "false",
+    "request_signature" : "", //generate request signature
+    "payment_method" : "fpx",
+    "order_number" : "20190919063932"
+}
+{payment-page-function}.hostedPay(requestData);
+----
+
+//-

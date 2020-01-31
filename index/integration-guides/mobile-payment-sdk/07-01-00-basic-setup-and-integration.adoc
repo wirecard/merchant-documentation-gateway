@@ -1,0 +1,291 @@
+[#MobilePaymentSDK_BasicSetup]
+== Basic Setup
+
+[#MobilePaymentSDK_BasicSetup_Android]
+=== Android
+
+The device needs to be non-rooted and run at least Android 4.1 (Jelly
+Bean / API Level 16) for _MPSDK_ to work.
+
+.There are two ways to set up the framework on Android
+. <<MobilePaymentSDK_BasicSetup_Android_DependencyManager, Using a Dependency Manager>>
+. <<MobilePaymentSDK_BasicSetup_Android_AndroidStudio, Importing Through Android Studio>>
+
+//-
+
+[#MobilePaymentSDK_BasicSetup_Android_DependencyManager]
+==== Using a Dependency Manager
+
+With this option, you will be getting _paymentSDK_ straight from the
+repository using https://jitpack.io/[JitPack].
+
+First of all, you need to create your project in the Android studio.
+Then you add the following code to your ``build.gradle`` file:
+
+[source,java]
+----
+repositories {
+     maven { url "https://jitpack.io" }
+ }
+ dependencies {
+     compile 'com.github.wirecard:paymentSDK-Android:2.7.1'
+ }
+----
+
+Some of our consumers prefer an alternative version of _MPSDK_ which
+does not feature the card scanner capability (i.e. scanning the card
+information using the phone's camera).
+
+If that's you, add this dependency instead:
+
+[source,java]
+----
+dependencies {
+    compile 'com.github.wirecard:paymentSDK-Android:2.7.1-cardScannerDisabled'
+ }
+----
+
+
+[#MobilePaymentSDK_BasicSetup_Android_AndroidStudio]
+==== Importing in Android Studio
+
+After you download the MPSDK package from
+https://github.com/wirecard/paymentSDK-Android[our GitHub repository],
+use the Android Studio's _Import .JAR/.AAR Package_ option
+located in File -> New -> New Module.
+
+Then, add the _MPSDK_ module as a dependency to your ``build.gradle`` file
+as shown in the example:
+
+[source,java]
+----
+dependencies {
+   ...
+   compile project(':paymentsdk')
+   ...
+ }
+----
+
+[#MobilePaymentSDK_BasicSetup_Android_ExternalLibraries]
+==== External Libraries
+
+Our SDK uses various 3rd party libraries which you will need to include
+in your ``build.gradle`` file. These should be kept at their latest stable
+versions:
+
+[source,java]
+----
+dependencies {
+       ...
+       compile 'com.android.support:appcompat-v7:26.0.1'
+       compile 'com.zapp.library:merchant:1.1.0'
+       compile 'org.iban4j:iban4j:3.2.1'
+       compile 'com.android.support:customtabs:26.1.0' //only for card and PayPal payments
+       compile 'com.squareup.retrofit2:retrofit:2.3.0'
+       compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+       compile 'com.squareup.okhttp3:logging-interceptor:3.8.0'
+       compile('com.squareup.retrofit2:converter-simplexml:2.3.0') {
+         exclude module: 'stax'
+         exclude module: 'stax-api'
+         exclude module: 'xpp3'
+ }
+
+cardIOEnabledCompile 'io.card:android-sdk:5.5.1'
+
+// iban validator
+compile 'org.iban4j:iban4j:3.2.1'
+// ocr
+compile 'com.google.android.gms:play-services-vision:11.6.2'
+// tracker
+compile 'org.piwik.sdk:piwik-sdk:2.0.0'
+       ...
+ }
+----
+
+Including ``io.card:android-sdk`` is optional when using the alternative
+_MPSDK_ version (without the card scanner feature).
+
+It is important that you adjust ``com.android.support:appcompat`` to the
+latest version of the support library.
+
+[#MobilePaymentSDK_BasicSetup_Android_Manifest]
+==== _AndroidManifest_ Setup
+
+_MPSDK_ requires these permissions to function:
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKBasicSetupAndroidManifest_MobilePaymentSDKBasicSetupAndroidAndroidStudioImportingThroughAndroidStudio.xml[]
+----
+
+If you plan on using the card scanner feature, you will need to:
+
+- add these permissions
++
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKBasicSetupAndroidManifest.xml[]
+----
++
+- add this activity into your _AndroidManifest_ file
++
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKBasicSetupAndroidManifest_1.xml[]
+----
++
+If you do not require the card scanner capability in your app,
+you can safely omit this step.
++
+For card and _PayPal_ payments, also add:
++
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKBasicSetupAndroidManifest_2.xml[]
+----
+
+[#MobilePaymentSDK_BasicSetup_Android_Proguard]
+==== Proguard
+
+If you are using https://www.guardsquare.com/en/products/proguard[Proguard], you
+will need to add the following rules into your ``proguard-rules.pro`` file:
+
+.Rules for Proguard
+[source,subs=attributes+]
+----
+ -dontwarn org.simpleframework.**
+ -dontwarn io.card.**
+ -dontwarn okhttp3.**
+ -dontwarn okio.**
+ -dontwarn retrofit2.**
+ -dontwarn de.wirecard.paymentsdk.**
+
+ -keepattributes Signature
+ -keepattributes Exceptions
+ -keepattributes JavascriptInterface
+ -keepattributes *Annotation*
+
+ -keep class org.simpleframework.** { *; }
+ -keep interface org.simpleframework.** { *; }
+
+ -keep class okhttp3.** { *;}
+
+ -keep class okio.** { *; }
+ -keep interface okio.** { *; }
+
+ -keep class retrofit2.** { *; }
+
+ -keep class io.card.**
+ -keepclassmembers class io.card.** {
+      *;
+ }
+
+ -keep class de.wirecard.paymentsdk.** { *; }
+ -keep interface de.wirecard.paymentsdk.** { *; }
+----
+
+If you are using the alternative version without the card
+scanner feature, you can leave out this part:
+
+[source,subs=attributes+]
+----
+ -keep class io.card.**
+ -keepclassmembers class io.card.** {
+      *;
+----
+
+[#MobilePaymentSDK_BasicSetup_iOS]
+=== iOS
+
+The device cannot be jail-broken and must run at least iOS 7 for
+_paymentSDK_ to work. It is recommended to use the latest stable version
+of Xcode.
+
+Download the pod at
+our link:https://github.com/wirecard/paymentSDK-iOS[GitHub repository] and
+add it to your ``Podfile``:
+
+.Podfile
+[source,subs=attributes+]
+----
+pod 'paymentSDK'
+----
+
+[#MobilePaymentSDK_BasicSetup_Security]
+==== Security
+
+[#MobilePaymentSDK_BasicSetup_Security_AuthenticationbySignature]
+==== Authentication by Signature
+
+When a payment goes through, there's a lot of data to be exchanged
+between various endpoints. Payment information changes hands between
+your system (the merchant), the consumer's device, and Wirecard
+Processing Gateway. To ensure that this information is not tampered
+with, we need to put safeguards in place.
+
+We do this by employing a _digital signature_, which is used for all
+messages targeting the {payment-gateway}. This signature is a mathematical
+cipher, which - if validated - proves that the message was created by a
+known sender and was not altered while being transmitted.
+
+[#MobilePaymentSDK_BasicSetup_Security_SecretKey]
+==== Secret Key
+
+You will use your Secret Key when generating the digital signature mentioned above.
+
+The Secret Key is only used in server-side code for either:
+
+- _generating_ the server _request_ signature
+- _validating_ the server _response_ signature
+
+//-
+
+If you did not receive your Secret Key at the time you were setting up
+your merchant account with us, please contact <<ContactUs, Merchant Support>> and ask for Secret Key generation.
+
+We ask you to *never* share your Secret Key with anyone, or store it
+inside your application or phone. This is crucial to ensure the security
+of your transactions.
+
+[#MobilePaymentSDK_BasicSetup_Security_Signature]
+[#MobilePaymentSDK_BasicSetup_Security_Signaturev2]
+==== Signature v2
+
+You will be generating the signature on your own server's backend, as it
+is the only place where you will store your Secret Key.
+
+See <<PP_Security_SignatureV2, Signature v2>> for more information.
+
+Note that when generating the signature for MPSDK, you can leave out
+payload fields related to Payment Page
+(``redirect_url``, ``custom_css_url``, ``ip_address``). This means that
+you only use the mandatory fields:
+
+.Signature v2 Payload Example (for MPSDK)
+[source,subs=attributes+]
+----
+HS256
+request_time_stamp=2017-03-23T09:14:51Z
+merchant_account_id=33f6d473-3036-4ca5-acb5-8c64dac862d1
+request_id=A7B51ED4-9EB0-48D1-82AA-2145A7792C6B
+transaction_type=authorization
+requested_amount=1.01
+requested_amount_currency=EUR
+----
+
+[#MobilePaymentSDK_BasicSetup_Security_Signaturev1]
+==== Signature v1 (DEPRECATED)
+
+Although we link the Signature v1 documentation here, it is now
+considered the legacy version. For all intents and purposes, if you
+haven't used _MPSDK_ before, *use Signature v2*.
+
+Signature v1 docs link link:https://paymentsdk.github.io/p_2_2_signature.html[here] .
+
+[#MobilePaymentSDK_BasicSetup_Security_3DS]
+==== 3D Secure
+
+3D Secure flow & implementation is handled implicitly by _MPSDK_. There
+is only the on-demand option to omit the 3D Secure protocol (it is
+activated by default for merchants). For a detailed flow,
+see <<AppendixF, this link>>.
