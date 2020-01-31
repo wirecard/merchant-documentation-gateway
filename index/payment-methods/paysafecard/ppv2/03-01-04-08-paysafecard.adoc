@@ -1,0 +1,789 @@
+
+[#PPv2_paysafecard]
+== {payment-page-v2}
+
+[#PPv2_paysafecard_General]
+=== General Information
+
+This is a reference page for _paysafecard_. Here you find all the
+information necessary for integrating this payment method in
+your Hosted and Embedded Payment Page.
+
+.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
+
+NOTE: Visit one of the integration guides
+(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
+a step-by-step guide before continuing.
+
+All <<PPv2, {payment-page-v2-abbr}>> integrations share a
+<<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
+
+Below, you find example requests for <<PPv2_paysafecard_TransactionType_debit, _debit_>>,
+<<PPv2_paysafecard_TransactionType_authorization, _authorization_>> and
+<<PPv2_paysafecard_TransactionType_capture, _capture-authorization_>>
+including field lists with short descriptions.
+
+These requests are designed for the testing environment and do not
+use real information.
+
+NOTE: For production, you need to use production credentials. For details
+contact our <<ContactUs, merchant support>>.
+
+All given requests return successful responses.
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> section.
+
+For response verification examples, see
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+
+[#PPv2_paysafecard_About]
+=== About _paysafecard_
+
+_paysafecard_ is a well-known prepaid electronic payment method for mainly
+online shopping e.g. in gaming, social media & communities and music, film &
+entertainment industries. _paysafecard_ is currently available in many
+countries and languages all over the world. It offers a broad selection
+of currencies to choose from.
+
+Consumers either purchase a _paysafecard_ voucher which contains a
+16-digit PIN from sales outlets or from authorized online PIN shops, or
+alternatively, create a _my paysafecard account_ defining their personal
+username and password.
+
+_paysafecard_ PINs can be used multiple times for paying in online shops
+or for topping up the _my paysafecard account_.
+
+Using _my paysafecard_ during the payment process in an online shop, you
+do not have to reenter the PIN again, only username and password are
+required.
+
+Paying with _paysafecard_, the consumer enters the 16 digit number and the
+amount tendered is deducted from the _paysafecard_ balance. Thus, the same
+PIN code can be used multiple times. For larger sums, it is possible to
+combine various _paysafecard_ PINs. Combining PINs also allows consumers
+to use up any remaining credit on a _paysafecard_ PIN. The current balance
+of each _paysafecard_ as well as its transaction history and production
+date can be viewed at the official _paysafecard_ site by entering the
+respective 16 digit PIN code.
+
+Payments for goods or services other than EUR are converted into EUR at
+the conversion rate at the time of purchase. The conversion fee varies
+depending on the original currency and end currency and it varies from
+country to country. The currency conversion rates for foreign currencies
+are always available on the _paysafecard_ web site.
+
+[#PPv2_paysafecard_TestCredentials]
+=== Test Credentials
+
+Test credentials for transaction types <<PPv2_paysafecard_TransactionType_debit, _debit_>>,
+<<PPv2_paysafecard_TransactionType_authorization, _authorization_>> and
+<<PPv2_paysafecard_TransactionType_capture, _capture-authorization_>>.
+
+[cols="35h,65"]
+|===
+| URI (Endpoint)
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID)
+| 4c0de18e-4c20-40a7-a5d8-5178f0fe95bd
+| Username
+| 70000-APITEST-AP
+| Password
+| qD2wzQ_hrc!8
+| Secret Key (used for response verification)
+| bb1f2975-827b-4aa8-bec6-405191d85fa5
+|===
+
+[#PPv2_paysafecard_TestCredentials_Additional]
+.Test Credentials for _paysafecard_ Sandbox
+
+[cols="15h,85"]
+|===
+| 16-digit PIN
+|3105 6626 4830 5874
+|===
+
+[#PPv2_paysafecard_Countries]
+=== Countries and Currencies
+
+_paysafecard_ can be used in the following countries and with the listed
+currencies:
+
+[width="100%",cols="20%,20%,60%",]
+|===
+.5+h|Countries |Europe
+|Austria, Belgium, Bulgaria, Croatia, Cyprus, Czech Republic, Denmark,
+Finland, France, Georgia, Germany, Greece, Hungary, Ireland, Italy,
+Latvia, Lithuania, Luxembourg, Malta, Montenegro, The Netherlands,
+Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden,
+Switzerland, Turkey, UK
+
+|North & South America
+|Argentina, Brazil, Canada, Mexico, Peru, Uruguay, USA
+
+|Middle East
+|Kuwait, Saudi Arabia, UAE
+
+|Oceania
+|Australia, New Zealand
+
+|Africa
+|Egypt
+
+2+h|Currencies |AED, ARS, AUD, BRL, CAD, CHF, CZK, DKK, EGP, EUR, GBP,
+GEL, HRK, HUF, KWD, MXN, NOK, NZD, PEN, PLN, RON, SAR, SEK, TRY, USD,
+UYU
+|===
+
+[#PPv2_paysafecard_TransactionType_debit]
+=== Transaction Type _debit_
+
+A _debit_ transaction charges the consumer's _paysafecard_ account with the
+specified amount and transfers it immediately.
+
+For a successful _debit_ transaction:
+
+. Create a payment session (initial _debit_ request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<PPv2_paysafecard_TestCredentials, Endpoint>> for _paysafecard_ payments.
+
+.Initial Request
+
+The initial request creates the payment session. If it is
+successful, you receive a URL as a response which redirects to the payment form.
+
+.Request Headers
+
+[cols="20,80"]
+|===
+h| Authorization
+| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+h| Content-Type
+| application/json
+|===
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="5e,5,5,5,5,45"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
+
+Allowed characters:  [a-z0-9-_]
+
+2+|transaction-type |String |Required |n/a a|The requested transaction type, i.e.
+``debit``.
+
+Available transaction types for _paysafecard_:
+
+- ``authorization``
+- ``capture-authorization``
+- ``debit``
+
+//-
+
+.2+|requested-amount  e|value |Numeric |Required |9.2 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount. For _paysafecard_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+|account-holder e|merchant-crm-id |String |Required |64 |Unique ID identifying
+the consumer of your online shop, e.g. from your CRM system. +
+The parameter must not be a human readable email address. However, if an
+email address is used, you have to hash it beforehand.
+|payment-method e|name |String |required |256 |The name of the payment method used for the transaction, i.e. ``paysafecard``
+
+2+|notification-url |String |Optional ||The URL to which {payment-gateway}
+sends the transaction outcome.
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+|===
+
+[#PPv2_paysafecard_TransactionType_debit_redirect]
+.2. Redirect the Consumer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeDebitRedirect_2RtCttPPIRU.json[]
+----
+
+[cols="25e,15,60"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form (hosted by _paysafecard_). Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as  _failed_, but the ``status description`` indicates it
+was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>﻿﻿
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeDebitRedirect_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="10e,10,10,70"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by {payment-provider-name}). You receive a unique merchant account ID for
+each payment method.
+2+|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
+of your online shop, e.g. from your CRM system.
+2+|transaction-type |String |The requested transaction type, here: ``debit``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent. As a _debit_ transaction is internally split into sub-transactions,
+the ``parent-transaction-id`` serves to link these sub-transactions.
+|payment-method e|name |String |The name of the payment method
+used for the transaction, here: ``paysafecard``.
+2+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+2+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later.
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
+date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
+.2+|requested-amount  e|value |Numeric |The full amount that was
+requested/contested in the transaction.
+|currency |String a|The currency of the requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+.3+|status e|description |String a|The description of the
+transaction status message.
+
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String a|Status code of the status message. +
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
+after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+after having cancelled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
+after an unsuccessful payment,
+e.g. ``\https://{pp-redirect-url-error}``
+|===
+
+[#PPv2_paysafecard_TransactionType_authorization]
+=== Transaction Type _authorization_
+
+An _authorization_
+
+- reserves funds on a consumer's _paysafecard_ account (e.g. until the
+merchant ships/delivers the goods/services).
+- does not trigger money transfer.
+
+//-
+
+To transfer money, the amount has to be captured with the transaction
+type _capture-authorization_.
+
+For a successful _authorization_ transaction
+
+. Create an _authorization_ session (initial _authorization_ request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+<<PPv2_paysafecard_TestCredentials, Endpoint>> for _paysafecard_ payments.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+_paysafecard_ payment form.
+
+.Request Headers
+
+[cols="20,80"]
+|===
+h| Authorization
+| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+h| Content-Type
+| application/json
+|===
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="5e,5,5,5,5,45"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
+
+Allowed characters:  [a-z0-9-_]
+
+2+|transaction-type |String |Required |n/a a|The requested transaction type, i.e.
+``authorization``.
+
+Available transaction types for _paysafecard_:
+
+- ``authorization``
+- ``capture-authorization``
+- ``debit``
+
+//-
+
+.2+|requested-amount  e|value |Numeric |Required |9.2 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount. For _paysafecard_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+|account-holder e|merchant-crm-id |String |Required |64 |Unique ID identifying
+the consumer of your online shop, e.g. from your CRM system. +
+The parameter must not be a human readable email address. However, if an
+email address is used, you have to hash it beforehand.
+|payment-method e|name |String |required |256 |The name of the payment method used for the transaction, i.e. ``paysafecard``
+
+2+|notification-url |String |Optional ||The URL to which {payment-gateway}
+sends the transaction outcome.
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+|===
+
+
+.2. Redirect the Consumer to the Payment Page (Sample Response URL)
+
+The response to this initial _authorization_ request is the
+``payment-redirect-url``.
+Proceed with <<PPv2_paysafecard_TransactionType_debit_redirect, step 2>> in a
+similar way as described for _debit_.
+
+.3. Parse and Process the _authorization_ Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeAuthorization_3PaPtaRDPR.json[]
+----
+
+[cols="10e,10,10,70"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by {payment-provider-name}). You receive a unique merchant account ID for
+each payment method.
+2+|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
+of your online shop, e.g. from your CRM system. The parameter must not be a human
+readable email address. However, if an email address is used, you have to hash it
+beforehand.
+2+|transaction-type |String |The requested transaction type, i.e. ``authorization``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent (e.g. the transaction ID of a previous internal get-url).
+|payment-method e|name |String |The name of the payment method
+used for the transaction, here: ``paysafecard``.
+2+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+2+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later. +
+The transaction ID of an authorization is the parent transaction ID of the following
+capture-authorization request.
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
+date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
+.2+|requested-amount  e|value |Numeric |The full amount that was
+requested/contested in the transaction.
+|currency |String a|The currency of the requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+.3+|status e|description |String a|The description of the
+transaction status message.
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String a|Status code of the status message. +
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
+after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+after having cancelled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
+after an unsuccessful payment,
+e.g. ``\https://{pp-redirect-url-error}``
+|===
+
+
+[#PPv2_paysafecard_TransactionType_capture]
+=== Transaction Type _capture-authorization_
+
+A capture-authorization transfers funds reserved by a
+prior <<PPv2_paysafecard_TransactionType_authorization, _authorization_>> 
+request from the consumer's account.
+You can refer to a preceding _authorization_ with the
+field ``parent-transaction-id``. The ``transaction-id`` from an
+_authorization_ response is the ``parent-transaction-id`` of the
+following _capture-authorization_ request.
+
+<<PPv2_paysafecard_TestCredentials, Endpoint>> for _paysafecard_ payments.
+
+.Initial Request
+
+The initial request creates the payment session. If it is
+successful, you receive a URL as a response which redirects to the
+_paysafecard_ payment form.
+
+.Request Headers
+
+[cols="20,80"]
+|===
+h| Authorization
+| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+h| Content-Type
+| application/json
+|===
+
+._capture-authorization_ (request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeCapture_CaptureAuthorizationRequest.json[]
+----
+
+[cols="5e,5,5,5,5,45"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
+
+Allowed characters:  [a-z0-9-_]
+
+2+|transaction-type |String |Required |n/a a|The requested transaction type, i.e.
+``authorization``.
+
+Available transaction types for _paysafecard_:
+
+- ``authorization``
+- ``capture-authorization``
+- ``debit``
+
+//-
+2+|parent-transaction-id |String | Required | 36 | The ID of the transaction being referenced
+as a parent (e.g. the transaction ID of a previous internal get-url).
+.2+|requested-amount  e|value |Numeric |Required |9.2 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount. For _paysafecard_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+|account-holder e|merchant-crm-id |String |Required |64 |Unique ID identifying
+the consumer of your online shop, e.g. from your CRM system. +
+The parameter must not be a human readable email address. However, if an
+email address is used, you have to hash it beforehand.
+|payment-method e|name |String |required |256 |The name of the payment method used for the transaction, i.e. ``paysafecard``
+
+2+|notification-url |String |Optional ||The URL to which {payment-gateway}
+sends the transaction outcome.
+2+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+2+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+|===
+
+
+._capture-authorization_ (response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardTransactionTypeCapture_CaptureAuthorizationResponse.json[]
+----
+
+[cols="10e,10,10,70"]
+|===
+2+|Field (JSON) |Data Type |Description
+
+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by {payment-provider-name}). You receive a unique merchant account ID for
+each payment method.
+2+|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+|account-holder e|merchant-crm-id |String |Unique ID identifying the consumer
+of your online shop, e.g. from your CRM system. The parameter must not be a human
+readable email address. However, if an email address is used, you have to hash it
+beforehand.
+2+|transaction-type |String |The requested transaction type, i.e. ``capture-authorization``.
+2+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent, i.e. the transaction ID of the preceding authorization.
+|payment-method e|name |String |The name of the payment method
+used for the transaction, i.e. ``paysafecard``.
+2+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+2+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later.
+2+|completion-time-stamp |Date a|The UTC/ISO time-stamp documenting the time and
+date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
+.2+|requested-amount  e|value |Numeric |The full amount that was
+requested/contested in the transaction.
+|currency |String a|The currency of the requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+.3+|status e|description |String a|The description of the
+transaction status message.
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String a|Status code of the status message. +
+See the <<StatusCodes, complete list of status codes and descriptions>>.
+2+|api-id |String |Identifier of the currently used API.
+2+|success-redirect-url |String a|The URL to which the consumer is redirected
+after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+after having cancelled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+2+|fail-redirect-url |String a|The URL to which the consumer is redirected
+after an unsuccessful payment,
+e.g. ``\https://{pp-redirect-url-error}``
+|===
+
+
+[#PPv2_paysafecard_void]
+*_void-authorization_*
+
+You may cancel an _authorization_ using the <<RestApi, REST API>> if the
+_authorization_ was successful and has neither been captured nor voided before.
+
+Only the whole authorized amount may be voided.
+
+For a void process you must provide a ``parent-transaction-id``. This is the
+``transaction-id`` of the preceding _authorization_. You can gather it from the
+response to a successful authorization.
+
+[#PPv2_paysafecard_JSONNVPFields]
+=== NVP Field Reference
+
+NVP equivalents for JSON fields (for migrating merchants).
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+[#PPv2_paysafecard_JSONNVPFields_request]
+.JSON Structure for _paysafecard_ Requests
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardJSONNVPFieldsRequest_JSON_StructureForPayboxRequests.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount |value |requested-amount ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|merchant_crm_id |merchant-crm-id |account-holder ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|ip_address |ip-address |payment ({ })
+|===
+
+
+.Response-Only Fields
+[#PPv2_paysafecard_JSONNVPFields_response]
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PaysafecardJSONNVPFieldsResponse_ResponseOnlyFields.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|transaction_id |transaction-id |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|api_id |api-id |payment ({ })
+|status_description_n |status ([ {} ])/ description |statuses ({ })
+|status_severity_n |status ([ {} ])/ severity |statuses ({ })
+|status_code_n |status ([ {} ])/ code |statuses ({ })
+|===
+
+//-

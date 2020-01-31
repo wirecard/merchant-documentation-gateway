@@ -1,0 +1,215 @@
+ifdef::env-wirecard[]
+[#GeneralPlatformFeatures_Surcharging]
+== Surcharging
+
+Surcharging is a feature for <<PP, {payment-page-v1}>> (HPP and EPP) and
+<<RestApi, REST API>>.
+Aimed at merchants who would like to charge additional fees for certain types of
+payments, this feature guarantees transparency on surcharge rates for
+consumers. 
+
+NOTE: In Australia, this feature complies with the
+link:https://www.rba.gov.au/payments-and-infrastructure/review-of-card-payments-regulation/q-and-a/card-payments-regulation-qa-conclusions-paper.html[RBA's surcharging standards].
+
+[#GeneralPlatformFeatures_Surcharging_SurchargeRates]
+Surcharge rates (given as either a fixed amount or percentage) vary
+depending on region, card type indicator, card type and payment method.
+
+- Region:
+* Domestic
+* International
+- Card type indicator:
+* Credit
+* Debit
+* Prepaid
+- Card type:
+* Visa
+* Mastercard
+* Amex
+* JCB
+* UPI
+
+- Alternative payment method (if required):
+* <<POLi, POli>>
+* <<API_AlipayCrossBorder, Alipay Cross-border>>
+* <<API_PaymentMethods_PayPal, PayPal>>
+
+//-
+
+[#GeneralPlatformFeatures_Surcharging_Setup]
+=== Merchant Account Setup
+
+To enable this feature, <<ContactUs, contact merchant support>>.
+
+Your account must be set up as follows:
+
+- Your merchant account must be configured to enable surcharging.
+- Your country must be defined in your merchant account.
+- Surcharge rates must be configured by region, card type indicator, card type, and payment method.
+
+//-
+
+[#GeneralPlatformFeatures_Surcharging_SurchargeAmount]
+=== Surcharge Amount
+
+The surcharge amount is the amount added to the original transaction amount (price of a good or service). It is calculated based on the respective <<GeneralPlatformFeatures_Surcharging_SurchargeRates, surcharge rates>>. Depending on the originial transaction amount, the surcharge amount varies. The sum of the surcharge amount and the original transaction amount results in the final amount payable.
+
+NOTE: Partial Refund/Capture is not allowed for surcharge transactions. Surcharge transactions must be refunded/captured in full.
+
+The surcharge amount can be determined in two ways:
+
+.. Auto-calculate the surcharge amount based on the configured surcharge rates.
+.. Calculate the surcharge amount yourself and include the value directly as part of the purchase request.
++
+NOTE: Including the ``<surcharge-amount>`` as part of the purchase request overwrites your merchant account configuration.
+
+//-
+
+[#GeneralPlatformFeatures_Surcharging_Workflow]
+=== Workflow
+
+Depending on how the surcharge amount is determined, the workflow varies.
+
+.. If you decide to auto-calculate the surcharge amount based on the configured surcharge rates:
++
+<<PP, {payment-page-v1}>>
+
+- send a _purchase_ request without including a predefined surcharge amount.
+
++
+
+<<RestApi, REST API>>
+
+- send a _calculate-fee_ request and retrieve the surcharge amount from the response first, then 
+- insert the retrieved value in the _purchase_ request and send the request thereafter. 
++
+
+.. If you decide to calculate the surcharge amount yourself, include the value directly as part of the _purchase_ request (<<PP, {payment-page-v1}>> and
+<<RestApi, REST API>>). 
+
+//-
+
+Below, we provide  <<GeneralPlatformFeatures_Surcharging_Samples_CalculateFee, _calculate-fee_>> and <<GeneralPlatformFeatures_Surcharging_Samples_Purchase, _purchase_>> samples for REST API.
+
+[#GeneralPlatformFeatures_Surcharging_IntegrationOptions]
+=== Supported Integration Options
+
+- <<PP, {payment-page-v1}>>
+* <<PP_HPP, Hosted Payment Page>>
+* <<PP_EPP, Embedded Payment Page>>
+- <<RestApi, REST API>>
+
+//-
+
+[#GeneralPlatformFeatures_Surcharging_TestCredentials]
+=== Test Credentials
+
+|===
+h| URL (Endpoint) |  ``\https://{rest-api-test-endpoint}``
+h| Merchant Account ID (MAID) | 66f26bcf-e032-44ec-ad6b-d363a261c375
+h| Username | 16390-testing
+h| Password | 3!3013=D3fD8X7
+h| Secret Key | b37e50b3-6827-4bb2-9f3e-276b2e319b7b
+|===
+
+[#GeneralPlatformFeatures_Surcharging_Fields]
+=== Fields
+
+Mandatory (M) or optional (O).
+
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|merchant-account-id  |M  |String |36 | Unique identifier assigned to every merchant account.
+|request-id |M |String| 32 a| Unique identifier assigned to every request (by the merchant). Used when searching for or referencing it later. _{{$guid}}_ serves as a placeholder for a random request-id. Allowed characters: +
+a - z +
+0 - 9 +
+-_
+|transaction-type |M  |String |n/a  | Requested transaction type. + 
+For a complete list of transaction types, please see <<AppendixB, Transaction Types>>.
+|requested-amount |M |Decimal |18,2 | Full amount that is requested/contested in a transaction. The number of decimals depends on the currency.
+|requested-amount@currency |M  |String |3  | Currency in which a transaction is received and processed.
+|account-holder/last-name |M  |String  |32 | Last name of the account holder.
+|account-holder/email |O  |String  |64 | Email address of the account holder.
+|card/account-number  |M - or Card Token  |String |36 | Embossed or encoded number that identifies the card issuer to which a transaction is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In case of credit card, this is the primary account number.
+|card/expiration-month  |M - or Card Token  |Number|2  | 2-digit representation of the expiration month of the account-number.
+|card/expiration-year |M - or Card Token  |Number |4  | 4-digit representation of the expiration year of the account-number.
+|card/card-security-code  |Depending on merchant account settings |String |4  | Security feature for credit or debit card transactions providing increased protection against credit card or debit card fraud. The card security code is located on the back of Mastercard, Visa and Discover credit or debit cards and is typically a separate group of 3 digits towards the right of the signature strip. On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right.
+|card/card-type |M |String  |15 | Card scheme accepted by the processing system. This includes physically issued cards.
+|surcharge/surcharge-amount | O   | Decimal | 18,6 | Amount added to the original transaction amount based on the respective surcharge rates. The number of decimals depends on the currency.
+|payment-methods/payment-method@name  |O  |String  |256  | Name of the payment method.
+|descriptor |O |String | n/a | Description of the transaction for account holder's
+bank statement purposes.
+|merchant-account-id@ref |M  |String  |n/a  | Reference URL to the merchant account. Can be used to retrieve merchant account details over a browser. This information is returned in the response only.
+|transaction-id |M |String |36 | Unique identifier assigned to every transaction (by {payment-provider-name}). Used when searching for or referencing it later. This information is returned in the response only.
+|transaction-state  |M  |String |n/a  a| Current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state ``in-progress`` and finishes with state either ``success`` or ``failed``. This information is returned in the response only.
+|completion-time-stamp  |M  |Timestamp |n/a  | The UTC/ISO time-stamp
+documents the time and date when the transaction was executed.
+
+Format: ``YYYY-MM-DDThh:mm:ssZ`` (ISO). 
+
+This information is returned in the response only.
+
+|statuses/status@code  |M  |String  |12 | Status code of the status message. This is primarily used in conjunction with the transaction state to determine the exact details of the status of the transaction. This information is returned in the response only.
+|statuses/status@description |M |String |256 | Description of the transaction status message. This information is returned in the response only.
+|statuses/status@severity |M |String |20 a| Definition of the status message. +
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error`` 
+
+//-
+|card-token/token-id  |O |String  |16 | Unique identifier assigned to every card token. This is a surrogate value for the primary account number. This information is returned in the response only.
+|card-token/masked-account-number |M  |String |16 | Masked account number. This information is returned in the response only.
+|authorization-code |O  |String |24 | Code generated by the card issuing bank as proof that the transaction request was acknowledged or declined. This information is returned in the response only.
+|api-id |O  |String |36 | Identifier for the currently used API. This information is returned in the response only.
+|original-requested-amount | O  | Decimal | 18,6 | Full amount that is requested/contested in the original transaction. The number of decimals depends on the currency. This information is returned in the response only.
+|original-requested-amount@currency |O |String |3 | Currency in which the original transaction is received and processed. This information is returned in the response only.
+|===
+
+[#GeneralPlatformFeatures_Surcharging_Samples]
+=== Samples
+
+[#GeneralPlatformFeatures_Surcharging_Samples_CalculateFee]
+==== calculate-fee
+
+.XML Request
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeatures_Surcharging_CalculateFee_request.xml[]
+----
+
+.XML Response
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeatures_Surcharging_CalculateFee_response.xml[]
+----
+
+[#GeneralPlatformFeatures_Surcharging_Samples_Purchase]
+==== purchase
+.XML Request
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeatures_Surcharging_request.xml[]
+----
+
+.XML Response
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeatures_Surcharging_response.xml[]
+----
+
+endif::[]
+
+//-

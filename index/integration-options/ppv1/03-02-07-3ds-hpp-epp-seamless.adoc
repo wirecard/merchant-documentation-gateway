@@ -1,0 +1,502 @@
+[#PP_3DSecure]
+== 3D Secure
+
+3D Secure payment can be processed via all the three Payment Page
+integrations: HPP, EPP or Seamless. The main benefit is a simple credit
+card payment request. The payment page automatically performs all
+necessary steps to check 3D enrollment of the card, redirects to the
+cardholder's bank and processes a response.
+
+*3D Secure 2 is now also available* and set to become the prime
+authentication method for online card payments, thanks to a number of
+updates that improve not only the security, but also the consumer
+experience of 3D Secure 1 (3DS).
+
+The workflow remains the same but <<PP_3DSecure_2_Fields, *3D Secure 2 requires additional fields*>>. 
+
+[#PP_3DSecure_Preconditions]
+=== Preconditions
+
+In order to process card payments with a 3D Secure verification,
+following *two preconditions* must be met:
+
+.. The initial payment request needs to contain ``attempt_three_d`` attribute set to
+``true``.
++
+[%autowidth]
+|===
+|Field |Required |Datatype |Value |Description
+
+| attempt_three_d  
+| Optional 
+| Boolean  
+| true/false 
+| Indicates that the Transaction Request should proceed with the 3D Secure workflow if the [Card Holder] is enrolled. Otherwise, the transaction proceeds without 3D Secure.
+|===
++
+
+ifdef::env-wirecard[]
+.Sample Request
+[source,html,subs=attributes+]
+----
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <title>
+      Demo shop
+    </title>
+    <script src="https://{test-instance-hostname}/engine/hpp/paymentPageLoader.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <form>
+      <input id="{pay-button-name}_pay_btn" type="button" onclick="pay()" value="Pay Now">
+       <script type="text/javascript">
+        function pay() {
+        var requestedData = {
+            merchant_account_id: "61e8c484-dbb3-4b69-ad8f-706f13ca141b",
+            request_id: "c68b9039-968d-1c6b-d9f6-27e9ab2bcb3e",
+            request_time_stamp: "20150226084718",
+            payment_method: "creditcard",
+            transaction_type: "purchase",
+            requested_amount: "2.56",
+            requested_amount_currency: "EUR",
+            locale: "en",
+            attempt_three_d: "true",
+            request_signature: "kg44730486d159df0bc2e8dea22bd175395636a37b0da0ef785"
+         }
+        {payment-page-function}.hostedPay(requestedData);
+        }
+      </script>
+    </form>
+  </body>
+</html>
+----
+endif::[]
++
+.. The *merchant account needs to have 3D Secure transactions enabled* (contact <<ContactUs, Merchant Support>> for queries).
+
+//-
+---
+
+[#PP_3DSecure_2_Fields]
+=== 3D Secure 2 - Additional Request Fields
+
+To create a payment session with *Credit Card using 3D Secure 2 authentication*, you need to *include additional 3D Secure 2 fields in your initial request*.
+
+NOTE: We recommend sending optional fields, such as `account-holder` phone numbers and `shipping.address`. If you submit this information, it is more likely that the Issuer authenticates the consumer without requesting <<CreditCard_PSD2_SCA, Strong Customer Authentication>>.
+
+Need more information on 3D Secure 2? Head to our <<CreditCard_3DS2, general introduction to 3D Secure 2>> or check out the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
+
+[%autowidth,cols=",,,,"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|merchant_tokenization_flag
+|Mandatory
+|Boolean
+|
+|Indicator whether or not a card token is stored on merchant side.
+
+|card_account_type
+|Optional
+|String
+|2
+a|The type of account, e.g. for a multi-account card product. +
+Possible values: ``01``, ``02``, ``03`` +
+``01`` = Not Applicable. +
+``02`` = Credit. +
+``03``= Debit. +
+Include this field: 
+
+- If you want consumers to select the account type they are using before completing their purchase.
+- For certain markets, e.g. Brazil.
+
+//-
+Otherwise, the field is optional.
+
+|authentication_method
+|Optional
+|String
+|2
+|Type of consumer login in the merchant's shop. +
+ Possible values: ``01``, ``02``, ``03``, ``04``, ``05``, ``06`` +
+ ``01`` = Guest checkout (i.e. the consumer is not logged in). +
+ ``02`` = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
+ ``03`` = Login with Federated ID. +
+ ``04`` = Login with card issuer credentials. +
+ ``05`` = Login with third-party authentication. +
+ ``06`` = Login with FIDO authenticator.  
+
+|authentication_timestamp
+|Optional
+|YYYY-MM-DDThh:mm:ssZ
+|20
+|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ssZ``.
+ For guest checkout, the DateTime is now. +
+
+|challenge_indicator
+|Optional
+|String
+|2
+|Indicates whether a challenge is requested for this transaction. +
+ Possible values: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = No preference. +
+ ``02`` = No challenge requested. +
+ ``03`` = Challenge requested: Merchant Preference. +
+ ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
+ (e.g. for one-click checkout, first recurring payment, installments, UCOF). +
+ NOTE: If the element is not provided, the ACS will interpret this as ``01`` = No preference.
+
+|account_creation_date
+|Optional
+|Date
+|10
+|Registration date of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|account_update_date
+|Optional
+|Date
+|10
+|Date that the consumer last made changes to their account in the merchant's shop. For example,
+ changes to billing and shipping address, new payment account, new email address. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|account_password_change_date
+|Optional
+|Date
+|10
+|Date that the consumer last changed/reset their password in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|shipping_address_first_use
+|Optional
+|Date
+|10
+|Date that the consumer first used this shipping address in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|transactions_last_day
+|Optional
+|Numeric
+|9
+|Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours.
+ Does not include merchant-initiated transactions.
+
+|transactions_last_year
+|Optional
+|Numeric
+|9
+|Number of transactions (successful, failed, and canceled) that the consumer has attempted within the past year.
+ Does not include merchant-initiated transactions.
+
+|card_transactions_last_day
+|Optional
+|Numeric
+|9
+|Number of cards the consumer has attempted to add to their account in the merchant's shop for card-on-file payments
+ (one-click checkout) in the past 24 hours.
+
+|purchases_last_six_months
+|Optional
+|Numeric
+|9
+|Number of successful orders by the consumer in the merchant's shop within the past six months.
+
+|suspicious_activity
+|Optional
+|Boolean
+|
+|Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud).
+
+|card_creation_date
+|Optional
+|Date
+|10
+|Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments
+ (one-click checkout). Accepted format: ``YYYY-MM-DD``. +
+ For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout),
+ the date is now.
+
+|merchant_crm_id
+|Optional
+|String
+|64
+|Consumer identifier in the merchant's shop.
+ Requests that contain payment information from the same consumer in the same shop must contain the same string.
+
+|city
+|Mandatory
+|String
+|50
+|City of the consumer's billing address. 
+
+|country
+|Mandatory
+|String
+|2
+|Country of the consumer's billing address. 
+
+|street1
+|Mandatory
+|String
+|50
+|Line 1 of the street address of the consumer's billing address. 
+
+|street2
+|Optional
+|String
+|50
+|Line 2 of the street address of the consumer's billing address.
+
+|street3
+|Optional
+|String
+|50
+|Line 3 of the street address of the consumer's billing address. 
+
+|postal_code
+|Mandatory
+|String
+|16
+|ZIP/postal code of the consumer's billing address.
+
+|state
+|Optional
+|String
+|3
+|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard. +
+
+|email
+|Mandatory
+|String
+|256
+|The consumer's email address as given in the merchant's shop.
+
+|phone
+|Optional
+|String
+|18
+|Home phone number provided by the consumer. 
+
+|mobile_phone
+|Optional
+|String
+|18
+|Mobile phone number provided by the consumer.
+
+|work_phone
+|Optional
+|String
+|18
+|Work phone number provided by the consumer.
+
+|first_name
+|Mandatory
+|String
+|32
+|The first name provided by the consumer as part of the credit card details.
+
+|last_name
+|Mandatory
+|String
+|32
+|The last name provided by the consumer as part of the credit card details.
+
+|shipping_shipping_method
+|Optional
+|String
+|restriction-based enumeration value
+a|The shipping method chosen by the consumer.
+ Merchants must use the shipping indicator value that applies most accurately to the shipping method. If the consumer checks out two or more items, use the shipping indicator value for physical goods. If all are digital goods, use the shipping indicator value that matches the most expensive item.+
+ Accepted values are:
+
+ - ``home_delivery``: Ship to consumer's billing address. +
+ - ``verified_address_delivery``: Ship to another address known to and verified by the merchant. +
+ - ``other_address_delivery``: Ship to an address that differs from the consumer's billing address. +
+ - ``store_pick_up``: "Ship to Store" / Pick-up at local store (store address in shipping address fields). +
+ - ``digital_goods``: Digital goods (includes online services, electronic gift cards, and redemption codes). +
+ - ``digital_tickets``: Travel and event tickets, not shipped. +
+ - ``other_verified``: Other (e.g. gaming, digital services, e-media subscriptions)
+
+|shipping_city
+|Optional
+|String
+|50
+|City of the consumer's shipping address. Please provide this field even if billing city is identical.
+
+|shipping_country
+|Optional
+|String
+|2
+|Country of the consumer's shipping address.
+Please provide this field even if billing country is identical.
+Format: ISO 3166-1 alpha-2 country code.
+
+|shipping_street1
+|Optional
+|String
+|50
+|Line 1 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping_street2
+|Optional
+|String
+|50
+|Line 2 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping_street3
+|Optional
+|String
+|50
+|Line 3 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping_postal_code
+|Optional
+|String
+|16
+|ZIP/postal code of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping_state
+|Optional
+|String
+|3
+|State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
+ Enter this field even if the billing address is identical.
+
+|risk_info_delivery_timeframe
+|Optional
+|String
+|2
+|The approximate delivery time. +
+ Accepted values are: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = Electronic delivery +
+ ``02`` = Same-day delivery +
+ ``03`` = Overnight delivery +
+ ``04`` = Two-day or more delivery
+
+|risk_info_delivery_mail
+|Optional
+|String
+|254
+|The consumer's email address used for electronic delivery of digital goods.
+
+|risk_info_reorder_items
+|Optional
+|String
+|2
+|The consumer has previously ordered the same item.
+ Accepted values are: ``01``, ``02`` +
+ ``01`` = First-time order +
+ ``02`` = Reorder
+
+|risk_info_availability
+|Optional
+|String
+|2
+|The consumer is placing an order for merchandise that is not yet available and will be released in the future.
+ Accepted values are: ``01``, ``02`` +
+ ``01`` = Currently available +
+ ``02`` = Future availability
+
+|risk_info_preorder_date
+|Optional
+|Date
+|10
+|Expected shipping date for pre-ordered goods. Accepted format: ``YYYY-MM-DD``.
+
+|risk_info_gift_amount
+|Optional
+|Decimal
+|18,2
+|For prepaid and gift card purchase only. The amount paid with a specific gift card. The field allows decimal values (e.g. 10.50).
+
+|risk_info_gift_amount_currency
+|Optional
+|String
+|3
+|For prepaid and gift card purchase only. The ISO 4217 three-digit currency code of the gift card. 
+
+|recurring_expire_date
+|Optional
+|Date
+|10
+|For recurring payments. **Required only for authentication of the first transaction.** Date after which further recurring payments with this card are no longer allowed. Accepted format: ``YYYY-MM-DD``.
+
+|recurring_frequency
+|Optional
+|Numeric
+|4
+|For recurring payments. **Required only for authentication of the first transaction.** Indicates the minimum number of days between individual authorizations.
+
+|number_of_installment
+|Optional
+|Numeric
+|3
+|For installment payments. **Required only for authentication of the first transaction.** Indicates the maximum number of authorizations permitted for installment payments.
+
+|iso_transaction_type
+|Optional
+|String
+|2
+|Identifies the transaction type. The values are derived from ISO 8583.
+ Accepted values are: ``01``, ``03``, ``10``, ``11``, ``28`` +
+ ``01`` = Goods/ Service Purchase +
+ ``03`` = Check Acceptance +
+ ``10`` = Account Funding +
+ ``11`` = Quasi-Cash Transaction +
+ ``28`` = Prepaid Activation and Load
+
+|three_d_version
+|Optional
+|String
+|5
+|Identifies the version of 3D Secure authentication used for the transaction.
+ Accepted values are: ``1.0``, or ``2.1``. If the value is not entered in the request, the field defaults to ``1.0``.
+
+|three_d_ds_transaction_id
+|Optional
+|String
+|36
+|Unique transaction identifier assigned by the Directory Server to identify a single transaction.
+Required for external 3D Secure servers not provided by {payment-provider-name}. Format: see IETF RFC 4122.
+
+|three_d_riid
+|Optional
+|String
+|2
+|For 3D Secure 2.2. Indicates the type of 3RI request. +
+Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
+``01`` = Recurring transaction +
+``02`` = Installment transaction +
+``03`` = Add card +
+``04`` = Maintain card information +
+``05`` = Account
+|===
+
+[#PP_3DSecure_Workflow]
+=== The 3D Secure Workflow of the Payment Page
+
+The workflow of 3D secure behaves almost identical for HPP, EPP and
+Seamless.
+
+Two differences can be observed. One after a successful check of a card
+enrollment and another one after a successful authentication check.
+
+See workflow graphic for details.
+
+[#PP_3DSecure_Workflow_Graphic]
+.Workflow Graphic
+
+image::images/03-02-07-3ds-hpp-epp-seamless/workflow.png[3D Secure Workflow]
+
+.Submit Form for Redirect
+[source,html,subs=attributes+]
+----
+<form action="{acs_URL}" method="post" enctype="application/x-www-form-urlencoded" id="acsform">
+    <input type="hidden" name="PaReq" value="{pareq}"/>
+    <input type="hidden" name="TermUrl" value="https://{test-instance-hostname}/engine/rest/hpp/acs/{transaction_id}/"/>
+    <input type="hidden" name="MD" value="merchant_account_id={MAID}&transaction_type=purchase&nonce3d={nonce3d}"/>
+</form>
+----
+NOTE: Values in curly brackets {} are variables which you need to replace with the values of the response.

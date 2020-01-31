@@ -1,0 +1,471 @@
+[#PPv2_eps]
+== {payment-page-v2}
+
+[#PPv2_eps_General]
+=== General Information
+
+This is a reference page for _eps_. Here you find all
+the information necessary for integrating this payment method into
+your Hosted and Embedded Payment Page.
+
+.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
+
+NOTE: Visit one of the integration guides
+(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
+a step-by-step guide before continuing.
+
+All <<PPv2, {payment-page-v2-abbr}>> integrations share a
+<<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
+
+Below, you find example requests for the available transaction type
+<<PPv2_eps_TransactionType_debit, _debit_>>, 
+including field lists with short descriptions.
+
+These requests are designed for the testing environment and do not
+use real information.
+
+NOTE: For production, you need to use production credentials. For details
+contact <<ContactUs, merchant support>>.
+
+All given requests return successful responses.
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> 
+section.
+
+For response verification examples, see
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+
+[#PPv2_eps_About]
+=== About _eps_
+
+eps-Überweisung (**e**lectronic **p**ayment **s**tandard), _eps_ for short, is
+an online payment method provided to consumers of Austrian banks. _eps_ utilizes
+the established popular payment methods for online shopping in Austria. _eps_
+is one of the most popular payment methods for online shopping in Austria.
+
+The _eps_ e-payment standard is the interface between online payment
+systems for irrevocable payments, adopted by online shops as well as
+public authorities like E-Government.
+
+Selecting a bank in a merchant's web store, the consumer is redirected
+from the merchant's web store to their bank's online banking window.
+
+If no bank is selected in the merchant's web store, the bank selection
+is done during redirect and the consumer is redirected to their bank's
+online banking window after selecting a bank from the SO (Scheme
+Operator, central routing instance for eps) bank list.
+
+Successfully logging on to their respective account using their account
+number and PIN, the consumer needs to confirm the transaction using
+a TAN.
+
+After the consumer has confirmed the payment with TAN (or other commonly
+used approval mechanism within internet banking), _eps_ confirms the
+payment-sending payment result and details to the PSP system.
+
+The consumer clicks the "Back to shop" link in the online banking window
+and is redirected back to the merchant's web shop.
+
+[#WPP_eps_Banks]
+=== Banks Participating in __eps-Überweisung__
+include::{root}/include/list-eps-banks.adoc[]
+
+[#WPP_eps_giropay]
+=== _giropay_ interoperability
+
+SO-implemented interlink to _eps-giropay_ scheme in Germany.
+If the merchant's contract allows to process those interoperability
+transactions, all _eps-giropay_ participating banks in Germany can also be
+reached with a technical _eps_ transaction. To enable _giropay_
+interoperability, the merchant has to register _giropay_ directly with
+_eps_. In some cases, this is a free add-on. If _giropay_ is activated by
+_eps,_ the bank selection page shows the German bank institutes next to
+the Austrian ones.
+
+[#PPv2_eps_TestCredentials]
+=== Test Credentials
+
+Test Credentials for Transaction Type <<PPv2_eps_TransactionType_debit, _debit_>>.
+
+.Merchant Credentials
+[cols="35,65"]
+|===
+h| URI (Endpoint)
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+h| Merchant Account ID (MAID)
+| 1f629760-1a66-4f83-a6b4-6a35620b4a6d
+h| Username
+| 16390-testing
+h| Password
+| 3!3013=D3fD8X7
+h| Secret Key (used for response verification)
+| 20c6a95c-e39b-4e6a-971f-52cfb347d359
+|===
+
+[#PPv2_eps_TestCredentials_Additional]
+.Test Credentials for _eps_ sandbox
+
+[cols="25,25,50"]
+|===
+.2+h| Ärzte- und Apotheker Bank
+|BIC
+|BWFBATW1XXX
+|Login data
+|Click to continue - no input needed.
+3+h| or
+.2+h| Stuzza Bank
+|BIC
+|STUZZATWXXX
+|Login data
+|On request available from <<ContactUs, merchant support>>.
+|===
+
+
+[#PPv2_eps_TransactionType_debit]
+=== Transaction Type _debit_
+
+A _debit_ transaction charges the account holder's bank account with the
+specified amount and transfers it immediately.
+
+For a successful _debit_ transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+find them below.
+
+<<PPv2_eps_TestCredentials, Endpoint>> for _eps_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it is
+successful, you receive a URL as a response which redirects to the
+payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic MTYzOTAtdGVzdGluZzozITMwMTM9RDNmRDhYNw==
+| Content-Type  | application/json
+|===
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_EpsTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+
+[cols="30e,5,5,5,5,5,45"]
+|===
+3+|Field (JSON) |Data Type |Cardinality |Size |Description
+
+2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}). You receive a unique
+``merchant-account-id`` for each payment method.
+3+|request-id |String |Required |64 a|A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters: [a-z0-9-_]
+3+|transaction-type |String |Required |n/a |The requested transaction type. For
+_eps_ payments, the transaction-type must be set to ``debit``.
+.2+|requested-amount  2+e|value |Numeric |Required |18.2 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+2+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+|payment-methods e|payment-method e|name |String |Required | 15 |The name of the
+payment method used. Set this value to ``eps``.
+.2+|bank-account 2+e|bic |String |Optional |8 or 11 a|The bank identifier code (BIC)
+of the account owner (consumer).
+
+Allowed characters and format: ([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})
+
+2+|iban |String |Optional |34 a|The international bank account
+number (IBAN) of the account owner (consumer).
+
+Allowed characters and format:  [a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}
+
+.2+|account-holder 2+|first-name |String |Optional |32 |The first name of the
+account holder.
+2+|last-name |String |Required |32 |The last name of the account holder.
+3+|descriptor |String |Optional |140 a|The descriptor is the text
+representing an order on the bank statement issued to your consumer by their
+bank. It provides information for the consumer, as it associates a specific
+_debit_ on the consumer's account to a specific purchase in your shop.
+
+Limit of 35 characters for structured purpose or 140 characters for
+unstructured purpose. Applied only if not already configured during merchant
+setup.
+
+Supports only limited character set:
+
+[a-zA-Z0-9],
+
+€ - $ § % ! = # ~ ; + / ? : ( ) . , ' & > < " * { } [ ] @ \ _ ° ^ \|
+
+Ä Ö Ü ä ö ü ß
+
+The _space_ key.
+
+3+|order-number |String |Optional |32 a|Merchant-side order number.
+
+Allowed characters: [a-zA-Z0-9+]
+
+3+|locale |String |Optional |2 |A 2-letter code which indicates what language
+the payment page is rendered in (ISO 639-1).
+3+|notification-url |String |Optional |256|The URL to which {payment-gateway} sends the transaction outcome.
+3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is
+redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer
+is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+|===
+
+.2. Redirect the Consumer to the Payment Page (Initial Debit Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_EpsTransactionTypeDebit_2RtCttPPIDR.json[]
+----
+
+
+[cols="15e,10,75"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> 
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_EpsTransactionTypeDebit_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="30e,5,5,5,55"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+3+|merchant-account-id |String |A unique identifier assigned to every merchant
+account (by {payment-provider-name}). You receive a unique merchant account ID for each
+payment method.
+3+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later.
+3+|request-id |String |A unique identifier assigned by the merchant to each
+request. Used when searching for or referencing it later.
+3+|transaction-type |String |The requested transaction type. Must be ``debit``
+for _eps_ payments.
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+3+|completion-time-stamp |DateTime a|The UTC/ISO time-stamp documents the
+time and date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss.sssZ (ISO).
+.3+|status 2+e|code |String |Status code of the status message.
+
+2+|description |String |The description of the transaction status message.
+Click here  for a complete list of status descriptions.
+
+2+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+.2+|requested-amount 2+e|currency |String |The currency of the
+requested/contested transaction amount.
+2+|value |Numeric |The full amount that was requested/contested in the
+transaction.
+3+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent. As a _debit_ transaction is internally split into sub-transactions,
+the parent-transaction-id serves to link these sub-transactions.
+3+|order-number |String |Merchant-side order number as set in the request.
+.2+|account-holder 2+e|first-name |String |The first name of the account holder.
+2+|last-name |String |The last name of the account holder.
+3+|ip-address |String a|The internet protocol address of the account holder as
+recorded by the entity receiving the transaction attempt from the account holder.
+ Supported IP versions: IPv4 and IPv6.
+|payment-methods e|payment-method |name |String |The name of the payment method
+used.
+.2+|bank-account 2+|iban |String |The international bank account number (IBAN)
+of the account holder.
+2+|bic |String |The bank identifier code (BIC) of the account holder.
+3+|api-id |String |Identifier of the currently used API.
+3+|locale |String |A code which indicates what language the payment page is
+rendered in (according to ISO 639-1).
+3+|descriptor |String |The descriptor is the text representing an order on the
+bank statement issued to your consumer by their bank. It provides information
+for the consumer, as it associates a specific _debit_ on the consumer's account
+to a specific purchase in your shop.
+3+|notification-url |String |The URL to which {payment-gateway} sends
+the transaction outcome.
+3+|success-redirect-url |String a|The URL to which the consumer is redirected
+after a successful payment,
+e.g. \https://{pp-redirect-url-success}
+
+3+|fail-redirect-url |String a|The URL to which the consumer is redirected
+after an unsuccessful payment,
+e.g. \https://{pp-redirect-url-error}
+
+3+|cancel-redirect-url |String a|The URL to which the consumer is redirected
+after having cancelled a payment,
+e.g. \https://{pp-redirect-url-cancel}
+|===
+
+[#PPv2_eps_refund]
+=== Transaction Type _refund_
+
+Basically, _eps_ with {payment-page-v2-abbr} supports _debit_ only. For refunds,
+use <<SEPACreditTransfer, SEPA Credit Transfer>> (if SEPA Credit Transfer is
+activated for your merchant account) through our <<RestApi, REST API>>.
+
+You must provide the necessary data:
+
+- ``parent-transaction-id``: This is the transaction ID of the preceding
+debit. You can gather it from the response to a successful debit.
+- ``amount`` (can be either the total amount for refunding the full
+amount, or a partial amount for a partial refund).
+
+//-
+
+If the ``parent-transaction-id`` is not available, the following fields
+are mandatory:
+
+- ``iban``
+- ``bic`` (only required by some acquirers)
+- ``amount`` (can be either the total amount for refunding the full
+amount, or a partial amount for a partial refund)
+
+//-
+
+[#PPv2_eps_JSONNVPFields]
+=== JSON/NVP Field Reference
+
+NVP equivalents for JSON fields (for migrating merchants).
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+[#PPv2_eps_JSONNVPFields_request]
+.JSON Structure for _eps_ Requests
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_EpsJSONNVPFieldsRequest_JSON_StructureForEpsRequests.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|merchant_account_id |value |merchant-account-id
+|request_id |request-id |payment
+|transaction_type |transaction-type |payment
+|requested_amount_currency |currency |requested-amount
+|requested_amount |value |requested-amount
+|payment_method |payment-method ([ ])/name |payment-methods
+|bank_account_bic |bic |bank-account
+|bank_account_iban |iban |bank-account
+|first_name |first-name |account-holder
+|last_name |last-name |account-holder
+|descriptor |descriptor |payment
+|order_number |order-number |payment
+|locale |locale |payment
+|success_redirect_url |success-redirect-url |payment
+|fail_redirect_url |fail-redirect-url |payment
+|cancel_redirect_url |cancel-redirect-url |payment
+|ip_address |ip-address |ip-address
+|===
+
+
+.Response-Only Fields
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_EpsJSONNVPFieldsRequest_ResponseOnlyFields.json[]
+----
+
+[#PPv2_eps_JSONNVPFields_response]
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|api_id |api-id |payment
+|parent_transaction_id |parent-transaction-id |payment
+|transaction_state |transaction-state |payment
+|transaction_id |transaction-id |payment
+|completion_time_stamp |completion-time-stamp |payment
+|status_severity_n |status ([ {} ])/ severity |statuses
+|status_code_n |status ([ {} ])/ code |statuses
+|status_description_n |status ([ {} ])/ description |statuses
+|===
+
+//-

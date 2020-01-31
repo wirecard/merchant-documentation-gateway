@@ -1,0 +1,593 @@
+[#PPv2_SEPADirectDebit]
+== {payment-page-v2}
+
+[#PPv2_SEPADirectDebit_General]
+=== General Information
+
+This is a reference page for _SEPA Direct Debit_. Here you find all the information
+necessary for integrating this payment method into your Hosted and Embedded Payment Page.
+
+.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
+
+NOTE: Visit one of the integration guides
+(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
+a step-by-step guide before continuing.
+
+All <<PPv2, {payment-page-v2-abbr}>> integrations share a
+<<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
+
+Below, you find example requests for the available transaction type <<PPv2_SEPADirectDebit_TransactionType_debit, _debit_>>,
+including field lists with short descriptions.
+
+These requests are designed for the testing environment and do not
+use real information.
+
+NOTE: For production, you need to use production credentials. For details
+contact <<ContactUs, merchant support>>.
+
+All given requests return successful responses.
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+section.
+
+For response verification examples, see
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+
+
+[#PPv2_SEPADirectDebit_About]
+=== About _SEPA Direct Debit_
+
+The Single Euro
+Payments Area (SEPA) is an initiative of the European banking industry
+that makes electronic payments across the euro area as easy as domestic
+payments within one country. The payments are processed under the same
+basic conditions, rights, and obligations regardless of their location.
+
+SEPA Direct Debit is a payment method which authorizes a transaction
+before it transfers money from the consumer account to the merchant.
+
+
+[#PPv2_SEPADirectDebit_TestCredentials]
+=== Test Credentials
+Test credentials for the transaction type <<PPv2_SEPADirectDebit_TransactionType_debit, _debit_>>.
+
+[cols="35h,65"]
+|===
+| URI (Endpoint)             | ``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID) | 4c901196-eff7-411e-82a3-5ef6b6860d64
+| Username                   | 70000-APITEST-AP
+| Password                   | qD2wzQ_hrc!8
+| Secret Key (used for response verification) | ecdf5990-0372-47cd-a55d-037dccfe9d25
+|===
+
+[#PPv2_SEPADirectDebit_TestCredentials_RequestValues]
+.SEPA-specific Request Values
+
+[cols="35h,65"]
+|===
+| Creditor ID           | DE98ZZZ09999999999
+|===
+
+image::images/03-01-04-10-sepa-direct-debit/sepadirectdebit_testing.jpg[SEPA Direct Debit testing]
+
+
+[#PPv2_SEPADirectDebit_TransactionType_debit]
+=== Transaction Type _debit_
+
+A _debit_ transaction charges the specified amount from the account
+holder's bank account and marks it for immediate transfer.
+
+For a successful _debit_ transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+find them below.
+
+<<PPv2_SEPADirectDebit_TestCredentials, Endpoint>> for _SEPA Direct Debit_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it is
+successful, you receive a URL as a response which redirects to the payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<SEPADirectDebit, _SEPA Direct Debit_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<PPv2_SEPADirectDebit_JSON_NVPFields, JSON/NVP Field Reference>> section at the bottom.
+
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebitTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+
+[cols="15e,10,10,10,5,50"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later. `{{$guid}}` serves as a
+placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+2+| transaction-type          | String | Required | 36 | The requested transaction type.
+.2+| requested-amount e| value | Numeric | Required | 11 | The full amount that is requested/contested in a transaction. 2 decimal
+places allowed.
+
+Use . (decimal point) as the separator.
+
+                       | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For _SEPA Direct Debit_
+                         payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+| payment-method      e| name     | String | Optional | 15 | The name of the payment method used for the transaction. Set this value to ``sepadirectdebit``.
+2+| mandate-id | String | Required | 35 | The ID of the Direct Debit mandate. You must generate this value yourself.
+2+| creditor-id | String | Required | 35 | The Creditor ID of the merchant.
+|===
+
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64-encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more details on redirection targets after payment and transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebitTransactionTypeDebit_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="15e,10,10,65"]
+|===
+2+| Field (JSON) | Data Type | Description
+
+2+| iban          | String | The International Bank Account Number (IBAN).
+2+| request-id    | String | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later.
+2+| first-name    | String | The first name of the account holder.
+2+| last-name     | String | The last name of the account holder.
+2+| due-date      | YYYY-MM-DD | The date on which the mandated transaction is due.
+2+| transaction-type | String  | The requested transaction type.
+2+| provider-transaction-reference-id | String | An identifier used to match and reference all transactions belonging to a
+single Direct Debit payment lifecycle.
+  | payment-method e| name | String | The name of the payment method used for the transaction.
+2+| transaction-state | String a| The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes
+with state either _success_ or _failed_. This information is returned in
+the response only.
+2+| transaction-id | String | A unique identifier assigned to every transaction (by {payment-provider-name}). Used
+when searching for or referencing to it later.
+2+| completion-time-stamp | YYYY-MM-DD-Thh:mm:ss | The UTC/ISO time-stamp documents the time and date when the transaction
+was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount.
+For _SEPA Direct Debit_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+                      | value | Numeric  | The full amount that is requested/contested in a transaction. 2 decimals
+allowed.
+.3+| status e| description | String | The description of the transaction status message.
+            | severity    | String a| The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+            | code        | String | Status code of the status message.
+  | merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| api-id      | String | Identifier of the currently used API.
+2+| mandate-id  | String | The ID of the Direct Debit mandate. You must generate this value yourself.
+2+| signed-date | YYYY-MM-DD | The date the Direct Debit mandate was signed.
+2+| creditor-id | String | The Creditor ID of the merchant.
+|===
+
+
+[#PPv2_SEPADirectDebit_RecurringTransactions]
+=== Recurring Transactions
+
+Use {payment-page-v2-abbr} to create the first transaction in a series of recurring
+transactions. Then use our <<RestApi, REST API>> for all the following transactions (these need to reference the
+first one).
+
+To register an initial (first) recurring transaction, use a normal debit
+request (like the one in the example above) and add these two fields:
+
+- ``periodic-type`` , set to value ``recurring`` or ``installment``.
+- ``sequence-type`` , set to value ``first``.
+
+//-
+
+The periodic and sequence information indicates that this is the first
+transaction in a series. There are no other requirements for the
+request.
+
+The ``provider-transaction-reference-id`` returned in the
+response contains the ID used to reference all transactions belonging to
+a specific recurring group.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+find them below.
+
+<<PPv2_SEPADirectDebit_TestCredentials, Endpoint>> for _SEPA Direct Debit_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it is
+successful, you receive a URL as a response which redirects to the payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<SEPADirectDebit, _SEPA Direct Debit_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<PPv2_SEPADirectDebit_JSON_NVPFields, JSON/NVP Field Reference>> section at the bottom.
+
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebitRecurringTransactions_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="15e,10,10,10,5,50"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later. ``{{$guid}}`` serves as a
+placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+2+| transaction-type          | String | Required | 36 | The requested transaction type.
+.2+| requested-amount e| value | Numeric | Required | 11 | The full amount that is requested/contested in a transaction. 2 decimal
+places allowed.
+
+Use . (decimal point) as the separator.
+
+                       | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For _SEPA Direct Debit_
+                         payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+| payment-method      e| name     | String | Optional | 15 | The name of the payment method used. Set this value to ``sepadirectdebit``.
+2+| mandate-id         | String | Required | 35 | The ID of the Direct Debit mandate. You must generate this value
+yourself.
+2+| creditor-id        | String | Required | 35 | The Creditor ID of the merchant.
+2+| periodic-type      | String | Conditional | 9 | Required for recurring transactions. Indicates if (and how) payment
+occurs more than once.
+2+| sequence-type      | String | Conditional | 9 | Required for recurring transactions. Indicates the phase of a
+recurring transaction.
+|===
+
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebitRecurringTransactions_2RtCttPPIRU.json[]
+----
+
+[cols="15e,10,75"]
+|===
+| Field (JSON) | Data Type | Description
+
+| payment-redirect-url | String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64-encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more details on redirection targets after payment and transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebitRecurringTransactions_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="15e,10,10,65"]
+|===
+2+| Field (JSON) | Data Type | Description
+
+2+| iban          | String | The International Bank Account Number (IBAN).
+2+| request-id    | String | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later.
+2+| first-name    | String | The first name of the account holder.
+2+| last-name     | String | The last name of the account holder.
+2+| due-date      | YYYY-MM-DD | The date on which the mandated transaction is due.
+2+| transaction-type | String  | The requested transaction type.
+.2+| periodic e| periodic-type | String | Indicates if (and how) payment occurs more than once.
+              | sequence-type | String | Indicates the phase of a recurring transaction.
+2+| provider-transaction-reference-id | String | An identifier used to match and reference all transactions belonging to a
+single Direct Debit payment lifecycle.
+  | payment-method e| name | String | The name of the payment method used for the transaction.
+2+| transaction-state | String a| The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state _in-progress_ and finishes
+with state either _success_ or _failed_. This information is returned in
+the response only.
+2+| transaction-id | String | A unique identifier assigned to every transaction (by {payment-provider-name}). Used
+when searching for or referencing to it later.
+2+| completion-time-stamp | YYYY-MM-DD-Thh:mm:ss | The UTC/ISO time-stamp documents the time and date when the transaction
+was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+| requested-amount e| currency | String | The currency of the requested/contested transaction amount.
+For _SEPA Direct Debit_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+                      | value | Numeric  | The full amount that is requested/contested in a transaction. 2 decimals
+allowed.
+.3+| status e| description | String | The description of the transaction status message.
+            | severity    | String a| The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+            | code        | String | Status code of the status message.
+  | merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| api-id      | String | Identifier of the currently used API.
+2+| mandate-id  | String | The ID of the Direct Debit mandate. You must generate this value yourself.
+2+| signed-date | YYYY-MM-DD | The date the Direct Debit mandate was signed.
+2+| creditor-id | String | The Creditor ID of the merchant.
+|===
+
+
+[#PPv2_SEPADirectDebit_B2BScheme]
+=== B2B Scheme
+
+To use the SEPA B2B scheme for Direct Debit, add the ``b2-b`` field to the
+request and set its value to ``true``.
+
+The default value is ``false`` so unless you send this field in the
+request as ``true``, the payment proceeds with the default scheme.
+
+NOTE: For more information on SEPA schemes, click
+<<SEPADirectDebit_Samples_Debit_B2b, here>>.
+
+
+.SEPA Direct Debit Example Request with B2B Scheme Enabled
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebitB2BScheme_SEPA_DirectDebitExampleRequestWith_B2B_SchemeEnabled.json[]
+----
+
+[cols="15e,10,10,10,5,50"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+| merchant-account-id e| value | String | Required | 36 | A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later. ``{{$guid}}`` serves as a
+placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+2+| transaction-type          | String | Required | 36 | The requested transaction type.
+.2+| requested-amount e| value | Numeric | Required | 11 | The full amount that is requested/contested in a transaction. 2 decimal
+places allowed.
+
+Use . (decimal point) as the separator.
+
+                       | currency | String | Required | 3 | The currency of the requested/contested transaction amount. For _SEPA Direct Debit_
+                         payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+| payment-method      e| name     | String | Optional | 15 | The name of the payment method used. Set this value to ``sepadirectdebit``.
+2+| mandate-id         | String | Required | 35 | The ID of the Direct Debit mandate. You must generate this value
+yourself.
+2+| creditor-id        | String | Required | 35 | The Creditor ID of the merchant.
+2+| b2-b | Boolean | Conditional | N/A | Required for B2B payments. Indicates whether the B2B scheme is used for the payment.
+|===
+
+ 
+[#PPv2_SEPADirectDebit_PostProcessing]
+=== Post-Processing Operations 
+ 
+{payment-page-v2-abbr} is best used to deal with one-off payments (e.g. regular,
+independent _debit_ transactions) or the initial transaction in a chain of
+them (e.g. a first _authorization_ in a chain of recurring transactions).
+However, when it comes to referencing a transaction for any kind of
+post-processing operation - such as a refund of one of your _debit_ transactions 
+- use our <<RestApi, REST API>> directly.
+
+WARNING: A direct refund through {payment-page-v2-abbr} is not possible for _SEPA Direct Debit_ so you have to
+obtain your consumer's banking information and send the refund using
+_SEPA Credit Transfer_. +
+Check the REST API <<SEPACreditTransfer, _SEPA Credit Transfer_ specification>> for details on
+_SEPA Direct Debit_ specific post-processing operations.
+
+
+[#PPv2_SEPADirectDebit_JSON_NVPFields]
+=== JSON/NVP Field Reference
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+.JSON Structure for SEPA Direct Debit Requests
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebit_JSON_NVPFields_JSON_StructureFor_SEPA_DirectDebitRequests.json[]
+----
+
+[#PPv2_SEPADirectDebit_JSON_NVPFields_Request]
+
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount |value |requested-amount (\{ })
+|requested_amount_currency |currency |requested-amount ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|bank_account_iban |iban |bank-account ({ })
+|mandate_mandate_id |mandate-id |mandate ({ })
+|mandate_signed_date |signed-date |mandate ({ })
+|creditor_id |creditor-id |payment ({ })
+|periodic_type |periodic-type |periodic ({ })
+|sequence_type |sequence-type |periodic ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|b2b |b2-b |payment ({ })
+|===
+
+
+.Response-Only Fields
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SEPADirectDebit_JSON_NVPFieldsRequest_ResponseOnlyFields.json[]
+----
+
+
+[#PPv2_SEPADirectDebit_JSON_NVPFields_Response]
+[cols="e,e,e"]
+|===
+| Field (NVP) | Field (JSON) | JSON Parent
+
+| provider_transaction_reference_id | provider-transaction-reference-id |payment ({ })
+
+| transaction_state | transaction-state | payment ({ })
+
+| transaction_id | transaction-id | payment ({ })
+
+| completion_time_stamp | completion-time-stamp | payment ({ })
+
+| status_code_n | status ([ {} ])/ code | statuses ({ })
+
+| status_description_n | status ([ {} ])/ description |statuses ({ })
+
+| status_severity_n | status ([ {} ])/ severity |statuses ({ })
+
+| api_id | api-id |payment ({ })
+|===

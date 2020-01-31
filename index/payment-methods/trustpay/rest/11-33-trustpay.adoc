@@ -1,0 +1,264 @@
+[#TrustPay]
+== REST API & {payment-page-v1}
+_TrustPay_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>> or <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>> (depending on 3rd party provider/bank).
+
+[#TrustPay_PaymentModeCountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | CZ, SK
+| Currencies   | CZK, EUR
+|===
+
+[#TrustPay_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _TrustPay_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format  | XML
+                         | Methods | POST, GET
+   h| IPN Encodement   2+| Base64
+|===
+
+[#TrustPay_TransactionTypes]
+=== Transaction Types
+
+_TrustPay_ uses the two transaction types: <<TrustPay_Samples, debit>>
+and ``pending-debit``.
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+[cols="e,"]
+|===
+|Transaction Type | Link to the Sample
+
+| debit           | <<TrustPay_Samples, _debit_ sample>>
+| pending-debit   |
+|===
+
+[#TrustPay_TestCredentials]
+=== Test Credentials
+
+[cols="h,"]
+|===
+| URL (Endpoint)             | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) | 0f78d81a-a67f-44b6-9384-f11860fda6b9
+| Username                   | 16390-testing
+| Password                   | 3!3013=D3fD8X7
+| Secret Key                 | 44d0aa47-5d46-45aa-91b3-f3846a99be09
+|===
+
+[#TrustPay_Workflow]
+=== Workflow
+
+[#TrustPay_debitTransaction]
+==== _debit_ Transaction
+
+image::images/11-33-trustpay/TrustPay_workflow_debit.png[TrustPay workflow for debit]
+
+. The consumer initiates a payment.
+. The merchant redirects the consumer to the _TrustPay_ site.
+. The consumer selects the country of origin and a bank.
+. The consumer opens the personal internet banking page.
+. The consumer fills out the online banking page.
+. _TrustPay_ redirects the consumer to the merchant's success/failure
+page (depending on notification's content).
+
+//-
+
+[#TrustPay_Fields]
+=== Fields
+
+The fields used for _TrustPay_ requests, responses and notifications
+are the same as the REST API Fields. Please refer to
+the <<RestApi_Fields, ReST API Fields>> or the request example for the fields required in a
+_debit_ transaction.
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[cols="e,,,,,,"]
+|===
+| Field | Request | Response | Notification | Data Type | Size | Description
+
+| account-holder.address.country | M |  |  | Alphanumeric | 2 |Country identifier of a payer.
+| merchant-account-id | M | M | M | Alphanumeric | 36 |Unique identifier for a merchant account.
+| request-id | M | M | M | Alphanumeric | 150 a| This is the identification number of the request. It has to be unique for each request.
+
+| transaction-type | M | M | M | Alphanumeric | 30 | This is the type for a transaction.
+| requested-amount | M | M | M | Numeric | 18,2 | This is the amount of the transaction. The amount of the decimal place is dependent
+of the currency.
+| payment-methods.payment-method@name | M |  | M | Alphanumeric | 15 | The name of the Payment Method is ``trustpay``.
+| payment-methods.payment-method@url |  | M |  | Alphanumeric | 256 | A redirect URL of the payment method.
+| locale | O | O | O | Alphanumeric | 2 | Country identifier of a payer.
+| requested-amount currency | M | M | M | Alphanumeric | 3 | Currency unit.
+|===
+
+[#TrustPay_Features]
+=== Features
+
+[#TrustPay_DirectBankingExtension]
+==== Direct Banking Extension
+
+[#TrustPay_DirectBankingExtension_Introduction]
+===== Introduction
+
+The _Direct Online Banking_ feature of _TrustPay_'s merchant API allows
+the merchant to display bank payment options directly on the website,
+providing a fully customizable solution. By integrating the direct
+banking functionality, *the consumer does not have to be redirected to the*
+*_TrustPay_* *site to choose a bank*. In case of online payments, the
+consumer is instead *redirected directly to the bank* selected on
+merchant's site.
+
+[#TrustPay_DirectBankingExtension_Workflow]
+===== Workflow
+
+image::images/11-33-trustpay/TrustPay_directbankingextension_workflow.png[TrustPay Direct Banking Extension workflow.png]
+
+This workflow is almost identical to <<TrustPay_debitTransaction, _debit_ Transaction>>, except that the consumer doesn't need to select a bank.
+
+[#TrustPay_DirectBankingExtension_Fields]
+===== Fields
+
+The following elements are used for sending a request for the direct
+banking extension for _TrustPay._
+
+[cols="e,,,,"]
+|===
+| Fieldname | Cardinality | Datatype | Size | Description
+
+| account-holder.address.country | O | Alphanumeric | 2 |Country identifier of a payer.
+| custom-fields.custom-field@name="gwkey" | M | Alphanumeric | 256 | Dynamic gateway key of a bank to be returned.
+| success-redirect-url | M |Alphanumeric | 256 |The redirect URL for successful payments.
+| fail-redirect-url | M | Alphanumeric | 256 | The redirect URL for failed payments.
+|===
+
+[#TrustPay_DirectBankingExtension_Samples]
+===== Samples
+
+Look for samples with <<TrustPay_Samples_SelectedGatewayTestPaySK, Selected Gateway of "TestPaySK">>.
+
+[#TrustPay_OfflinePayment]
+==== Offline Payment
+
+Due to the fact the _TrustPay_ offers offline payments, Wirecard has
+introduced a _pending-debit_ transaction type for this method. The
+reason is that some banks don't settle payments during weekends and
+public holidays so waiting time for a notification from the bank may
+take several days.
+
+The _pending-debit_ transaction helps the merchant to confirm the
+consumer's payment close to the payment process.
+
+The General payments sequence is:
+
+. ``get-url``
+. ``pending-debit``
+. ``debit``
+
+//-
+
+The following scenarios are covered:
+
+[#TrustPay_OfflinePayment_SuccessfulWorkflow]
+===== Successful Workflow
+
+image::images/11-33-trustpay/TrustPay_workflow_pending_debit_debit_success.png[TrustPay workflow for pending debit and debit]
+
+. The consumer initiates a payment.
+. TrustPay redirects the consumer to the merchant and sends a
+notification to the merchant.
+. If the merchant receives the notification prior to the redirect of
+the consumer:
+.. The merchant forwards the notification to _{payment-gateway-abbr}_.
+.. {payment-gateway-abbr} creates a _debit_ transaction and a _pending-debit_ transaction.
+.. {payment-gateway-abbr} writes both transactions to the DB.
+.. {payment-gateway-abbr} sends a _debit_ response to the merchant.
+.. The merchant redirects the consumer to the successful TrustPay page
+. If the merchant receives the redirect of the consumer prior to the
+notification:
+.. The merchant creates a _pending-debit_ transaction.
+.. The merchant sends the _pending-debit_ transaction to _{payment-gateway-abbr}_.
+.. The merchant redirects the consumer to the successful TrustPay page.
+.. {payment-gateway-abbr} sends the _debit_ response to the merchant.
+
+//-
+
+[#TrustPay_OfflinePayment_FailureWorkflow]
+===== Failure Workflow
+
+In case of failure the merchant creates a failed _pending-debit_. _{payment-gateway-abbr}_
+doesn't create a _debit_ and the merchant redirects the consumer to the
+failure page.
+
+[#TrustPay_Samples]
+=== Samples
+
+[#TrustPay_Sample_debit]
+==== _debit_
+
+.debit Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_request_success_d3dad6.xml[]
+----
+
+.debit Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_response_success_1fc184.xml[]
+----
+
+.Success Notification
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_notification_success_6e2e230b.xml[]
+----
+
+.debit Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_request_failure.xml[]
+----
+
+.debit Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_response_failure.xml[]
+----
+
+[#TrustPay_Samples_SelectedGatewayTestPaySK]
+==== XML Samples with Selected Gateway of "TestPaySK"
+
+.debit Request "TestPaySK" (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_request_success_b25243.xml[]
+----
+
+.debit Response "TestPaySK" (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_response_success_548b14.xml[]
+----
+
+.debit Notification "TestPaySK" (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/trustpay_debit_notification_success.xml[]
+----
+
+//-
