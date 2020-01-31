@@ -1,0 +1,836 @@
+[#StatusCodes]
+== Status Codes and Statuses
+
+- <<#StatusCodes_Categorizations, Categorizations>>
+- <<#StatusCodes_InDetail, Status Codes in Detail>>
+//-
+
+
+NOTE: The status code IDs used in this table are based on https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html[RFC 2616].
+
+[#StatusCodes_Categorizations]
+=== Categories
+
+[cols="1,3v,8"]
+|===
+| Range    | Severity               | Description
+
+ifndef::env-nova[]
+| 100.xxxx | Information \| Warning | Additional information
+endif::[]
+| 200.xxxx
+
+  201.xxxx | Success                | Success Codes
+| 400.xxxx | Information \| Warning | Internal validation (merchant will be billed)
+| 500.xxxx | Information \| Warning | Error between external Third Party Provider and {payment-provider-name} (merchant will not be billed)
+| 999.xxxx | Error                  | System or database error
+|===
+
+NOTE: A detailed description about certain severities is placed
+https://cwiki.apache.org/confluence/display/HTTPD/CommonHTTPStatusCodes[here.]
+
+[#StatusCodes_InDetail]
+=== Status Codes in Detail
+
+For the payment method _Credit Card_ we provide special card numbers for
+ifndef::env-nova[]
+ifdef::env-wirecard[]
+Amex, DINERS, DISCOVER, JCB, 
+endif::[]
+MAESTRO, 
+endif::[]
+Mastercard and VISA to test a variety of status codes.
+
+Those status codes you can test (mostly codes that begin with 500.1xxx),
+are marked bold and provide a link that points directly to the
+<<API_CC_TestCards, list of all the possible card numbers>>, 3D and Non-3D,
+associated with the testable status codes.
+
+[cols="20e,10,20,50"]
+|===
+| ID       | Severity    | Name                    | Description
+
+ifndef::env-nova[]
+| 100.0000 | information | Transaction In Progress | Transaction Processing has begun, and the outcome of the Transaction is not yet known.
+| 100.0001 | information | Data Reconciliation Matches | The data matches with a reconciling data source.
+| 100.0002 | information | Data Reconciliation Mismatch | The data does not match with a reconciling data source.
+| 100.0003 | information | Amount Reconciliation Mismatch | The transaction amount does not match with a reconciling data source.
+| 100.0004 | information | State Reconciliation Mismatch | The transaction state (``success`` or ``fail``) does not match with a reconciling data source.
+| 100.0005 | warning     | Disputed Transaction ID not located | The Disputed Transaction was not located, but the Provider Account was located.
+| 100.0006 | warning     | Disputed Transaction failed | The Disputed Transaction has the state of failed, the dispute record is still applied.
+| 100.0007 | warning     | Disputed Transaction Amount too high. | The Disputed amount is higher than the Transaction's Funded Amount. (Funded Amount is the amount due to the merchant).
+| 100.0008 | warning     | Disputed Transaction Account Number Mismatch | The Disputed Account Number does not match, but the Provider Transaction ID does match.
+| 100.0101 | information | FPS case created | A case has been created during the fraud check. Please perform a manual verification.
+| 100.1000 | information | Gateway settlement in progress. | Gateway settlement is in the middle of processing, please try again later.
+| 100.5555 | information | Test Transaction | Test Transaction.
+endif::[]
+| 200.0000 | information | Request successful | The request completed successfully.
+| 200.1077 | information | Card/Cardholder eligible for 3-D authentication process. | Card is eligible for the ACS authentication process. If the consumer has not yet activated his card for 3-D Secure processing, his issuer may offer activation during shopping.
+| 200.1078 | information | Successful with 3D Full Authentication | The payment was successful, and the 3D Secure Authentication occurred.
+| 200.1079 | information | Successful with 3D Attempted Authentication | The payment was successful, and the 3D Secure Authentication was attempted, but not confirmed or denied.
+| 200.1080 | information | Successful with 3D Failed Authentication | The payment was successful, and the 3D Secure Authentication failed.
+| 200.1081 | information | Successful with 3D Authentication Error | The payment was successful, and the 3D Secure Authentication had an error and could not be confirmed.
+| 200.1083 | information | Cardholder Successfully authenticated. | Cardholder Successfully authenticated.
+| 200.1084 | information | Proof of authentication attempt was generated. | Proof of authentication attempt was generated.
+| 200.1085 | information | Email Sent | The email has been sent to the recipient.
+a| *201.0000*
+
+<<API_CC_TestCards_3D_Success, 3D>>, <<API_CC_TestCards_Non3D_Success, Non-3D>>
+ | information | Creation Success | The resource was successfully created.
+| 201.0020 | information | Overpayment - request succeed. | Request successful, but overpaid amount is not settled automatically and requires further action on Bitpay Merchant dashboard.
+| 201.0021 | warning     | Creation successful with warning | The resource was successfully created, but provider raised a warning.
+| 201.1125 | information | Successful notification received from the bank. | Successful notification received from the bank.
+| 201.1126 | information | Successful confirmation received from the bank. | Successful confirmation received from the bank.
+| 201.1127 | information | External Provider: Token successfully created | External Provider: Token successfully created.
+| 201.1128 | information | Duplicate notification received from the bank | Duplicate notification received from the bank. No action needed.
+| 302.0000 | error       | URL Redirection Status Code | URL Redirection Status Code.
+| 400.1000 | error       | Invalid Account Number (Luhn) | Luhn Check failed on the credit card number. Please check your input and try again.
+| 400.1001 | error       | No Account Number | The Account Number has not been provided. Please check your input and try again.
+| 400.1002 | error       | Invalid Account Number Length | The Account Number does not have the correct length.  Check Credit Card Number.
+| 400.1003 | error       | Invalid Account Number Expiry Month | The Expiration Month is invalid. Please check your input and try again.
+| 400.1004 | error       | Invalid Account Number Expiry Year | The Expiration Year is invalid. Please check your input and try again.
+| 400.1005 | error       | No Card Type | The Card Type has not been provided or is incorrect.
+| 400.1006 | error       | No Card Security Code | The Card Security Code has not been provided. Please check your input and try again.
+| 400.1007 | error       | No Account Holder | The account holder information has not been provided. Please check your input and try again.
+| 400.1008 | error       | No Merchant Account Identifier | The Merchant Account Identifier has not been provided. Please check your input and try again.
+| 400.1009 | error       | Invalid Transaction Type | The Transaction Type is invalid. Please check your input and try again.
+| 400.1010 | error       | No Request Id | The Request Identifier has not been provided. Please check your input and try again.
+| 400.1011 | error       | No Requested Amount | The requested amount has not been provided. Please check your input and try again.
+| 400.1012 | error       | No Requested Amount Currency | The requested amount Currency has not been provided. Please check your input and try again.
+| 400.1013 | error       | Requested Amount Below Minimum | The requested amount is below the minimum required for this Merchant Account. Please check your input and try again.
+| 400.1014 | error       | No First Name | The First Name has not been provided. Please check your input and try again.
+| 400.1015 | error       | No Last Name | The Last Name has not been provided. Please check your input and try again.
+| 400.1016 | error       | Invalid Email | The Email Address is syntactically incorrect. Please check your input and try again.
+| 400.1017 | error       | Account Number not Numeric | The Account Number is not numeric, it should only have digits. Please check your input and try again.
+| 400.1018 | error       | Duplicate Request Id | The same Request Id for the Merchant Account is being tried a second time. Please use another Request Id.
+| 400.1019 | error       | Unrecognized Merchant Account Id | This Merchant Account Identifier does not exist, or is not assigned to this Processing User. Please contact Merchant Support.
+| 400.1020 | error       | Unrecognized Parent Transaction Id | The Parent Transaction Id does not exist. Please check your input and try again.
+| 400.1021 | error       | No Parent Transaction Id | The Parent Transaction Id is required, and not provided. Please check your input and try again.
+| 400.1022 | error       | Parent Transaction Id not Successful | The Parent Transaction Id was not successful, the operation is not possible. Please do not try again.
+| 400.1023 | error       | Parent Transaction Transaction Type not Valid for Current Request | The Transaction Type of the Parent Transaction is invalid for the current operation. Please do not try again.
+| 400.1024 | error       | Invalid Parent Transaction Id | The Parent Transaction Id is invalid. Please check your input and try again.
+| 400.1025 | error       | Parent Transaction Merchant Account Mismatch | The Parent Transaction Id does not exist for this Merchant Account Identifier. Please check your input and try again.
+| 400.1026 | error       | Parent transaction currency mismatch | The Currency of the Parent Transaction ID does not match the Currency of the current operation. Please check your input and try again.
+| 400.1027 | error       | Amount threshold exceeded for the parent transaction | The requested amount exceeds the Parent Transaction Amount. Please check your input and try again.
+| 400.1028 | error       | Token or account number is invalid. | The Token or Account Number is invalid. Please check your input and try again.
+| 400.1029 | error       | Card token does not match with the masked card number | The Card Token does not match the masked Account Number. Please check your input and try again.
+| 400.1030 | error       | Invalid Currency | The Currency is invalid. Please check your input and try again.
+| 400.1031 | error       | Malformed Request | Malformed request.  Syntax of the request is invalid. Please check your input and try again.
+| 400.1032 | warning     | No Chargeback Id | The Chargeback Id has not been provided.
+| 400.1033 | error       | No Chargeback Date | The Chargeback Date has not been provided.
+| 400.1034 | warning     | No Chargeback Amount | The Chargeback Amount has not been provided.
+| 400.1035 | error       | No Chargeback Reason Code | The Chargeback Reason Code has not been provided.
+| 400.1036 | warning     | No Chargeback Provider Transaction Id | The Chargeback Provider Transaction Id has not been provided.
+| 400.1037 | warning     | No Chargeback Provider Account | The Chargeback Provider Account has not been provided.
+| 400.1038 | warning     | Provider Transaction Id not found | The Provider Transaction Id does not exist.
+| 400.1039 | error       | Duplicate Chargeback | This chargeback has already been posted.  This is another chargeback being posted.
+| 400.1040 | warning     | Disputed Transaction already Refunded | The disputed transaction has already been refunded.
+| 400.1041 | warning     | Chargeback flow is misordered | Chargeback flow is in disorder. An expected previous chargeback is missing.
+| 400.1042 | warning     | Different Chargeback Currency | Chargeback is in a different currency than the disputed transaction.
+| 400.1043 | warning     | Different Chargeback Amount | Chargeback amount is different than the disputed transaction.
+| 400.1044 | warning     | Chargeback over 6 months old | The Chargeback Date is more than 6 months after the disputed transaction.
+| 400.1045 | warning     | Chargeback Account Number mismatch | The Chargeback Account Number's last 4 digits do not match the disputed transaction.
+| 400.1046 | error       | Invalid Country Code | The Country Code is invalid. Please check your input and try again.
+| 400.1047 | error       | Invalid Request Id | The Request Id is greater than 150 characters in length. Please check your input and try again.
+| 400.1048 | error       | No Provider Account | This Merchant Account does not have a Provider Account associated with it. Please contact Merchant Support.
+| 400.1049 | error       | Bad Credential | Invalid username and/or password Please check your input and try again.
+| 400.1050 | warning     | Chargeback transaction on 3D Secure | Chargeback transaction on 3D Secure.
+| 400.1051 | error       | Order Number Existed | Order Number has already been paid. Please do not try again.
+| 400.1052 | error       | Currency not supported | Currency is not supported.
+| 400.1053 | warning     | Chargeback Case Expired | Chargeback Case Expired.
+| 400.1054 | error       | Invalid Card Issue Number | The Card Issue Number is invalid. Please check your input and try again.
+| 400.1055 | error       | Invalid Card Issue Start Month | The Card Issue Start Month is invalid. Please check your input and try again.
+| 400.1056 | error       | Invalid Card Issue Start Year | The Card Issue Start Year is invalid. Please check your input and try again.
+| 400.1072 | error       | No provider route | No providers found for the account. Merchant Account is not configured properly. Please contact Merchant Support.
+| 400.1079 | error       | Failed to synchronize with Tokenization (remote) Server | Failed to synchronize with Tokenization (remote) Server. Please contact Merchant Support.
+| 400.1081 | error       | No Bank Account IBAN | The Bank Account IBAN information has not been provided. Please check your input and try again.
+| 400.1082 | error       | No Bank Account BIC | The Bank Account BIC information has not been provided. Please check your input and try again.
+| 400.1083 | error       | No Mandate ID | The Mandate ID information has not been provided. Please check your input and try again.
+| 400.1084 | error       | Mandate ID Invalid | The Mandate ID is invalid. Please check your input and try again.
+| 400.1085 | error       | No Mandate Signed Date | The Mandate Signed Date information has not been provided. Please check your input and try again.
+| 400.1086 | error       | No Mandate Signed City | The Mandate Signed City information has not been provided. Please check your input and try again.
+| 400.1087 | error       | No Mandate Signature Image | The Mandate Signature Image information has not been provided. Please check your input and try again.
+| 400.1088 | error       | Mandate Not Granted | The mandate has not been granted by the user.
+| 400.1089 | error       | Target Window is invalid | The Target window is invalid. Please check your configuration and try again.
+| 400.1097 | error       | The Merchant CRM Id | The Merchant CRM ID is invalid. Please check your input and try again.
+| 400.1098 | error       | Invalid Creditor ID | The Creditor ID is invalid. Please check your input and try again.
+| 400.1099 | error       | Payment method URL building failed | Unable to resolve the payment method or the URL building for payment method failed. Please contact Merchant Support.
+| 400.1100 | error       | Duplicate notification received from the bank | Duplicate notification received from the bank.  No action needed.
+| 400.1102 | error       | Digital signature validation failed. | Digital signature validation failed. Please ensure that you are using a valid key for signature generation.
+| 400.1103 | error       | Nonexistent Record | Update failed due to nonexistent record  No action needed.
+| 400.1105 | error       | Invalid Credentials | Username and/or Password contain non-ascii character(s). Please check your input and try again.
+| 400.1106 | error       | Duplicate Parent Transaction Id found | Duplicate Parent Transaction Id found. Please check your input and try again.
+| 400.1107 | error       | Duplicate Velocity Rule | Time Period Code, Measure Action Code, Velocity Type Code, Single Card Flag, Time Period Code, Measure Action Code, Velocity Type Code, Single Card Flag  Please check your input and try again.
+| 400.1108 | error       | Duplicate Sequence Number | Created Failed. Duplicate Merchant Account, Sequence Number  Please check your input and try again.
+| 400.1109 | error       | Invalid Alternative Payment Method | Invalid Payment Method. Please check your input and try again.
+| 400.1110 | error       | Invalid Bank Account Data | Use either Bank Account and Bank Code or IBAN and BIC. Please check your input and try again.
+| 400.1111 | error       | IBAN or BIC too long | IBAN or BIC are too long. Please check your input and try again.
+| 400.1112 | error       | Bank Account or Bank Code too long | Bank Account or Bank Code are too long. Please check your input and try again.
+| 400.1113 | error       | A value exceeds the allowed size | The transaction could not be processed because a value of a field is too long. Please check your input and try again.
+| 400.1114 | error       | Requested Amount Above Maximum | The requested amount is above the maximum required for this Merchant Account.
+| 400.1119 | error       | Velocity: Velocity Limit Reached, Merchant Account | The transaction was refused because this merchant account has reached a velocity limit.  Contact Merchant Support to adjust limits or wait and try again later.
+| 400.1120 | error       | Velocity: Velocity Limit Reached, Payer Account | The transaction was refused because the account paying has reached a limit. Contact Merchant Support to adjust limits or wait and try again later.
+| 400.1121 | error       | Velocity: Transaction is below minimum amount. | The transaction was refused because the amount is too low.  Contact Merchant Support to adjust limits or try another amount.
+| 400.1122 | error       | Velocity: Transaction is above maximum amount. | The transaction was refused because the amount is too high.  Contact Merchant Support to adjust limits or try another amount.
+| 400.1123 | error       | Request timestamp (UTC) cannot be blank or empty. | The transaction was refused because signature expiry cannot be checked. Please check your input and try again.
+| 400.1124 | error       | Signature is already expired. | The transaction was refused because signature is expired.  Ensure that the Request timestamp is in UTC, and that the timeout period has not passed.  Try again if too much time has passed.
+| 400.1125 | error       | No Processing Redirect URL | The Processing Redirect Url information has not been provided. Please check your input and try again.
+| 400.1126 | error       | No IP Address | The IP Address information has not been provided.
+| 400.1127 | error       | Parent Amount Mismatch | The Transaction Amount does not qualify to the parent transaction amount. Please try another amount.
+| 400.1128 | error       | Missing 3D Element | The Current transaction must have 3D element and a check-enrollment parent transaction id.
+| 400.1129 | error       | Invalid Descriptor length | The Descriptor is too long. Please check.
+| 400.1130 | error       | No expected fractional digits in the Amount | The Amount has not the expected number of fractional digits. Please check.
+| 400.1131 | error       | Invalid Processing URL length | The Processing URL is too long. Please check.
+| 400.1132 | error       | Invalid Order Number length | The Order Number is too long. Please check.
+| 400.1133 | error       | Plugin Validation Error | Plugin Validation Error.
+| 400.1134 | error       | No Provider Merchant Account | The Provider Merchant Account information has not been provided. Please check your input and try again.
+| 400.1135 | error       | No Username | The Username information has not been provided. Please check your input and try again.
+| 400.1136 | error       | No Password | The Password information has not been provided. Please check your input and try again.
+| 400.1137 | error       | No Provider Callback URL | The Provider Callback URL information has not been provided. Please check your input and try again.
+| 400.1138 | error       | No Payment Success Redirect URL | The Payment Success Redirect URL information has not been provided. Please check your input and try again.
+| 400.1139 | error       | No Payment Cancel Redirect URL | The Payment Cancel Redirect URL information has not been provided. Please check your input and try again.
+| 400.1140 | error       | No Payment Fail Redirect URL | The Payment Fail Redirect information has not been provided. Please check your input and try again.
+| 400.1141 | error       | Parent Card Mismatch | The transaction card info does not match the parent transaction card info. Please check your input and try again.
+| 400.1142 | error       | No Payment Cancel Redirect URL | No Payment Cancel Redirect URL information has not been provided. Please check your input and try again.
+| 400.1143 | error       | No Descriptor | The Descriptor has not been provided. Please check your input and try again.
+| 400.1144 | error       | Missing Mandatory Field | The request is missing a mandatory field. Please check your input and try again.
+| 400.1145 | error       | Invoice Number too long | Invoice Number is too long. Please check your input and try again.
+| 400.1146 | error       | Date format not correct | A date parameter has not the correct format. Please check your input and try again.
+| 400.1147 | error       | Track Data Account Number Mismatch | The track data account number does not match with the input account number. Please do not pass the account number when track data is provided.
+| 400.1148 | error       | Track Data Expiration Month Mismatch | The track data expiration month does not match with the input expiration month. Please do not pass the expiration month when track data is provided.
+| 400.1149 | error       | Track Data Expiration Year Mismatch | The track data expiration year does not match with the input expiration year. Please do not pass the expiration year when track data is provided.
+| 400.1150 | error       | Unsupported characters | Unsupported characters found in the request. Please check your input.
+| 400.1151 | error       | Invalid Date Range | End date cannot be earlier than the Start date.
+| 400.1153 | error       | Unknown Merchant Account | The merchant account couldn't be resolved based on the data provided. This might be caused by incomplete data or missing configuration.
+| 400.1163 | error       | Invalid Bank Account Data | For foreign bank accounts only IBAN and BIC are allowed. Please adjust your input and try again.
+| 400.1166 | warning     | Duplicate Dispute Record | This record was already disputed.
+| 400.1167 | warning     | Duplicate Reconciliation Record | This record was already reconciled.
+| 400.1168 | error       | No Order Number | The Order number is required, but not provided. Please check your input and try again.
+| 400.1169 | error       | Invalid language | The language or ``language_COUNTRY`` is invalid.
+| 400.1170 | error       | Invalid Periodic Type | The Periodic Type is invalid.
+| 400.1171 | warning     | Parent transaction consumer-id mismatch | The Consumer-Id of the Parent Transaction ID does not match the Consumer-Id of the current operation. Please check your input and try again.
+| 400.1172 | warning     | Parent transaction risk-reference-id mismatch | ``risk-reference-id`` of the Parent Transaction ID does not match the Risk-Reference-Id of the current operation. Please check your input and try again.
+| 400.1173 | warning     | Parent transaction order-number mismatch | ``order-number`` of the Parent Transaction ID does not match the Order-Number of the current operation.
+| 400.1174 | error       | Invalid Entry Mode | The Entry Mode is invalid.
+| 400.1175 | error       | Invalid Due Date | The Due Date is invalid.
+| 400.1176 | error       | Street1 is too long | The information submitted in Street1 is too long. Please re-submit.
+| 400.1177 | error       | IBAN and BIC countries do not match | The country codes of the IBAN and BIC are not the same. Please check your input and try again.
+| 400.1178 | warning     | Unable to confirm card type from card number | Unable to confirm card type from card number
+| 400.1179 | error       | Mismatch card type and card number | Mismatch card type and card number.
+| 400.1180 | error       | Request timestamp (GMT) is in future compared to time of the system (GMT). | The transaction was refused because signature expiry cannot be checked.
+| 400.1181 | error       | No personal identification number | The personal identification number has not been provided. Please check your input and try again.
+| 400.1182 | error       | No promotion code | The promotion code has not been provided. Please check your input and try again.
+| 400.1183 | error       | Invalid Sequence Type | The Sequence Type is invalid.
+| 400.1184 | error       | Invalid Mandate Signed Date | The Mandate Signed Date is invalid. Please check your input and try again.
+| 400.1185 | error       | Default transaction type not configured | There is no default auto-sale transaction configured for this payment method.
+| 400.1186 | error       | Order items overall amount is different to requested amount | Order items overall amount is different to requested amount. Please check your input and try again.
+| 400.1187 | error       | Every order item should have same currency as requested amount | Every order item should have same currency as requested amount. Please check your input and try again.
+| 400.1188 | error       | Automatic transaction type resolving has failed because of wrong configuration. | Automatic transaction type resolving has failed because of wrong configuration.
+| 400.1190 | warning     | Malformatted timeout string | Malformatted timeout string.
+| 400.1191 | warning     | Unrecognized requested status code | Unrecognized status code.
+| 400.1192 | error       | Wrong parent transaction test mode | Parent transaction is not a test transaction.
+| 400.1193 | information | Cancellation period expired | VOID is no longer possible. Transaction is currently being processed and / or has already been sent to the bank.
+| 400.1194 | error       | IBAN country code is invalid | IBAN country code is invalid.
+| 400.1195 | error       | IBAN is not SEPA compliant | IBAN is not SEPA compliant.
+| 400.1196 | error       | Invalid IBAN | IBAN is invalid.
+| 400.1197 | error       | BIC is invalid | BIC is invalid.
+| 400.1198 | error       | BIC is not SEPA compliant | BIC is not SEPA compliant.
+| 400.1199 | error       | Merchant account not properly configured | The Merchant Account is not properly configured for processing. Please contact Merchant Support.
+| 400.1200 | error       | Parent transaction was cancelled by merchant | Parent transaction was cancelled by merchant.
+| 400.1201 | error       | No Email | Email has not been provided. Please check your input and try again.
+| 400.1202 | error       | No Phone | Phone has not been provided. Please check your input and try again.
+| 400.1203 | error       | No Date of birth | Date of birth has not been provided. Please check your input and try again.
+| 400.1204 | error       | No Street1 | Street1 has not been provided. Please check your input and try again.
+| 400.1205 | error       | No City | City has not been provided. Please check your input and try again.
+| 400.1206 | error       | No Country | Country has not been provided. Please check your input and try again.
+| 400.1207 | error       | No Postal code | Postal code has not been provided. Please check your input and try again.
+| 400.1208 | error       | No Order items | No Order items have been provided. Please check your input and try again.
+| 400.1209 | error       | No Order item name | Order item name has not been provided. Please check your input and try again.
+| 400.1210 | error       | No Order item article number | Order item article number has not been provided. Please check your input and try again.
+| 400.1211 | error       | Missing or invalid order item amount | Order item amount has not been provided or value is not valid. Please check your input and try again.
+| 400.1212 | error       | No Order item quantity | Order item quantity has not been provided. Please check your input and try again.
+| 400.1213 | error       | Order item quantity is not valid | Order item quantity is no valid. Please check your input and try again.
+| 400.1214 | error       | Bank account missing. | Bank account missing.
+| 400.1215 | error       | Bank account data invalid. | Use either Bank Account and Bank Code or IBAN.
+| 400.1216 | error       | Bank name missing. | Bank name missing.
+| 400.1217 | error       | Bank name length invalid. | Bank name length invalid.
+| 400.1218 | error       | Bank code length invalid. | Bank code length invalid.
+| 400.1219 | error       | Bank code invalid. | Bank code invalid.
+| 400.1220 | error       | No Order item tax rate | Order item tax rate has not been provided. Please check your input and try again.
+| 400.1221 | error       | Invalid Order item tax amount | Order item tax amount is invalid. Please check your input and try again.
+| 400.1222 | error       | Ambiguous Order item tax | Ambiguous order item tax. Use either tax amount.
+| 400.1223 | error       | Invalid Order item tax rate | Order item tax rate is out of range. Please check your input and try again.
+| 400.1224 | error       | A value length is below minimum | The transaction could not be processed because a value is too short. Please check your input and try again.
+| 400.1225 | error       | Expiration Date is missing | Expiration date has not been provided. Please check your input and try again.
+| 400.1226 | error       | Invalid Request Id | Invalid Request Id.
+| 400.1227 | error       | Unrecognized User | This User Identifier does not exist.
+| 400.1228 | error       | Parent Transaction Payment Method Mismatch | The payment method of the parent transaction does not match the payment method of the current operation. Please check your input and try again.
+| 400.1229 | error       | Amount is not required | Amount is not required.
+| 400.1230 | error       | No order detail | Order detail has not been provided. Please check your input and try again.
+| 400.1231 | error       | Amount not supported | The amount requested is not supported.
+| 400.1232 | error       | Voucher Id. missing. | Voucher Id. missing.
+| 400.1233 | error       | Invalid Voucher Id. | Invalid Voucher Id.
+| 400.1234 | error       | Password must not be longer than 80 chars | Password must not be longer than 80 characters.
+| 400.1235 | error       | Description must not be empty | Description must not be empty.
+| 400.1236 | error       | Description must not be longer than 512 chars | Description must not be longer than 512 characters.
+| 400.1237 | error       | ContactId must not be empty | ContactId must not be empty.
+| 400.1238 | error       | ContactId must not be longer than 36 chars | ContactId must not be longer than 36 characters.
+| 400.1239 | error       | Username must not be empty | Username must not be empty.
+| 400.1240 | error       | Username must not be longer than 50 chars | Username must not be longer than 50 characters.
+| 400.1241 | error       | Password must not be empty | Password must not be empty.
+| 400.1242 | error       | Customer name in Chinese | First and last name must be in Chinese to use this payment method.
+| 400.1243 | error       | Missing branch city | Missing branch city. Please check your input and try again.
+| 400.1244 | error       | Invalid branch city length | Invalid branch city length. Please check your input and try again.
+| 400.1245 | error       | Invalid branch city | Invalid branch city. Please check your input and try again.
+| 400.1246 | error       | Invalid branch state length | Invalid branch state length. Please check your input and try again.
+| 400.1247 | error       | Missing branch state | Missing branch state. Please check your input and try again.
+| 400.1248 | error       | Invalid branch state | Invalid branch state. Please check your input and try again.
+| 400.1249 | error       | Invalid branch address length | Invalid branch address length. Please check your input and try again.
+| 400.1250 | error       | Missing branch address | Missing branch address. Please check your input and try again.
+| 400.1251 | error       | Invalid branch address | Invalid branch address. Please check your input and try again.
+| 400.1252 | warning     | Recognized country invalid. | Recognized ISO Country code (``instrument-country``) not valid according to database.
+| 400.1253 | error       | Instrument country not allowed. | Element ``instrument-country`` is not allowed in request.
+| 400.1254 | error       | Invalid installments data | Provided total amount is lower than requested amount. Please check your input and try again.
+| 400.1255 | error       | Order items not allowed | Order items are not allowed for this operation. Please check your input and try again.
+| 400.1256 | error       | Order item article number is not unique. | The order item article number must be unique. Please check your input and try again.
+| 400.1261 | error       | No mandate data has been provided. | No mandate has been provided for periodic recurring payment.
+| 400.1262 | error       | Merchant account SEPA configuration is missing. | Merchant account SEPA configuration is missing.
+| 400.1263 | error       | No creditorId has been provided. | No Creditor Id has been provided. Please check your input and try again.
+| 400.1264 | error       | Invalid consumer-id | ``consumer-id`` is empty or too long.
+| 400.1265 | error       | Please provide either Order Detail or IP Address. | Please provide either Order Detail or IP Address.
+| 400.1266 | error       | Parent order item type mismatch | The order item type does not match the order item type from the parent transaction.
+| 400.1267 | error       | Invalid date of birth | The date of birth is invalid. Please check your input and try again.
+| 400.1268 | error       | Consumer underage | Consumer is underage.
+| 400.1270 | error       | Company name is missing | Invalid request. Company name is missing.
+| 400.1271 | error       | No Street2 | Street2 has not been provided. Please check your input and try again.
+| 400.1272 | error       | No State | State has not been provided. Please check your input and try again.
+| 400.1300 | error       | Password field invalid | Password must be at least 7 characters and must include at least one letter and one numeric digit.
+| 400.1301 | error       | Password previously used | The new password must be different from the last 4 passwords used.
+| 400.1302 | error       | Shipping address missing. | Shipping address missing.
+| 400.1303 | error       | Shipping address first name missing. | Shipping address first name missing.
+| 400.1304 | error       | Shipping address last name missing. | Shipping address last name missing.
+| 400.1305 | error       | Account holder address missing. | Account holder address missing.
+| 400.1306 | error       | No Card | Card information has not been provided. Please check your input and try again.
+| 400.1307 | error       | Signature generation failed. | Signature generation failed. Please contact Merchant Support.
+| 400.1308 | error       | Gateway is not available for online payments. | Gateway is not available for online payments.
+| 400.1309 | error       | Invoice ID is not returned from _TrustPay_. | Invoice ID is not returned from _TrustPay_. Online payment cannot be processed.
+| 400.1310 | warning     | Provider's response signature is invalid. | Provider's response signature is invalid.
+| 400.1311 | error       | HPP payment method(s) restriction | Payment method(s) disabled via HPP.
+| 400.1312 | error       | Preauthorization transaction ID used already. | Provided preauthorization transaction ID has been used already.
+| 400.1313 | error       | Invalid IP address length | Length of IP address is not correct. Please check your input and try again.
+| 400.1314 | error       | Invalid custom field value | Invalid custom field value. Please check your input and try again.
+| 400.1315 | error       | Invalid payment option. | The provided payment option is invalid. Please check your input and try again.
+| 400.1316 | error       | Parent payment option mismatch. | The payment option of the parent transaction does not match the payment option of the current transaction. Please check your input and try again.
+| 400.1317 | error       | HSM Decryption Error | HSM Decryption Error.
+| 400.1318 | error       | HSM Provider Configuration Error | HSM Provider Configuration Error.
+| 400.1320 | error       | Billing agreement id is missing in response. | Billing agreement id is missing in response. Provider did not fill ``BILLINGAGREEMENTID``.
+| 400.1321 | error       | Invalid capture date | The provided capture date must be a valid date and can only be from the next day and max. plus 14 days.
+| 400.1322 | error       | Wallet Account ID must not be empty. | Wallet Account ID must not be empty. Provide a valid bitcoin address.
+| 400.1323 | error       | Wallet Account ID is not valid. | Wallet Account ID must be a valid bitcoin address.
+| 400.1330 | error       | Invalid Order Detail length | The order detail is too long. Please check your input and try again.
+| 400.1331 | error       | No Shipping | The shipping has not been provided. Please check your input and try again.
+| 400.1332 | error       | Shipping address street1 missing. | Shipping address street1 missing.
+| 400.1333 | error       | Shipping address city missing. | Shipping address city missing.
+| 400.1334 | error       | Shipping address postal code missing. | Shipping address postal code missing.
+| 400.1335 | error       | Shipping address country missing. | Shipping address country missing.
+| 400.1336 | error       | Shipping is not allowed. | Shipping is not allowed for express checkout.
+| 400.1337 | error       | Account holder not allowed. | Account holder is not allowed for express checkout.
+| 400.1341 | error       | Express Checkout Error | _Masterpass Express checkout_ fail, please redo the whole _Masterpass_ flow.
+| 400.1342 | error       | Merchant Initialization Error | _Masterpass_ merchant init service request cannot be initiated successfully.
+| 400.1343 | error       | Access Token Service Error (Pairing) | _Masterpass_ pairing/checkout service cannot be completed successfully.
+| 400.1344 | error       | Shopping Cart Service Error | _Masterpass_ shopping cart service request cannot be initiated successfully.
+| 400.1345 | error       | Checkout Service Error | _Masterpass_ checkout service cannot be completed successfully.
+| 400.1346 | error       | Precheckout Service Error | _Masterpass_ precheckout request cannot be completed successfully. Please initiate a new pairing request.
+| 400.1347 | error       | Request Express Checkout Error | _Masterpass express checkout_ service cannot be completed successfully.
+| 400.1348 | error       | Precheckout Service Error | _Masterpass_ precheckout request cannot be completed successfully. Please initiate a new pairing request.
+| 400.1349 | error       | Request Token Service Error (Pairing) | _Masterpass_ service request cannot be initiated successfully.
+| 400.1380 | information | Notification acknowledged. | Notification acknowledged.
+| 400.1381 | warning     | Notification timeout. | Notification timeout.
+| 400.1382 | warning     | Notification failed. | Notification failed.
+| 400.1390 | error       | Mandatory fields missing in sub-merchant-info | Mandatory fields missing in ``sub-merchant-info``.
+| 400.1391 | error       | Invalid request timestamp (UTC). | The transaction was refused because signature expiry cannot be checked. Please check your input and try again.
+| 400.1392 | error       | Invalid Merchant Account ID. | The transaction was refused because signature cannot be checked. Please check your input and try again.
+| 400.1393 | error       | Invalid currency. | The transaction was refused because signature currency cannot be checked. Please check your input and try again.
+| 400.1394 | error       | Invalid redirect URL. | The transaction was refused because signature cannot be checked. Please check your input and try again.
+| 400.1395 | error       | Invalid Custom CSS URL. | The transaction was refused because signature cannot be checked. Please check your input and try again.
+| 400.1396 | error       | Invalid request for generating signature. | The transaction was refused because signature cannot be checked. Please check your input and try again.
+| 400.1397 | error       | Tax Rate is not supported. | Tax Rate is not supported.
+| 400.1398 | error       | Invalid Order Number Format | The Order Number has an invalid format. Please check the allowed characters.
+| 400.1399 | error       | Invalid Descriptor Format | The Descriptor has an invalid format. Please check the allowed characters.
+| 400.1400 | error       | Endpoint is not supporting payment method | Endpoint is not supporting payment method.
+| 400.1401 | warning     | Deprecated currency | Currency ``BYR`` is not valid anymore. Please, use ``BYN`` instead.
+| 400.1402 | error       | No Voucher Code | The Voucher Code has not been provided. Please check your input and try again.
+| 400.1403 | error       | No Voucher Merchant brand id | The Voucher Merchant brand Id has not been provided. Please check your input and try again.
+| 400.1404 | error       | Wrong voucher state | Voucher is in wrong state, transition to new state failed.
+| 400.1405 | error       | Mismatch voucher merchant brand id | Mismatch voucher merchant brand id.
+| 400.1406 | error       | Merchant brand Id not found | Merchant brand Id not found.
+| 400.1407 | error       | Unknown voucher code | Unknown voucher code.
+| 400.1408 | error       | Voucher Locked | Voucher is locked. Unlock it and try again.
+| 400.1409 | error       | Shipping phone missing | Shipping phone is missing. Please check your input and try again.
+| 400.1410 | error       | Invalid shipping email | Invalid shipping email. Please check your input and try again.
+| 400.1411 | error       | Account holder address house number missing. | Account holder address house number is missing. Please check your input and try again.
+| 400.1412 | error       | No gender. | Gender has not been provided. Please check your input and try again.
+| 400.1413 | error       | Update is no longer possible | Transaction is currently being processed and / or has already been sent to the payment provider.
+| 400.1414 | error       | No social security number | Social security number has not been provided. Please check your input and try again.
+| 400.1415 | error       | Invalid social security number | Invalid social security number. Please check your input and try again.
+| 400.1416 | error       | No language | No language provided. Please check your input and try again.
+| 400.1417 | error       | Currency, country and language mismatch | Currency, country and language do not match. Please check your input and try again.
+| 400.1418 | error       | Payment, shipment and account holder country mismatch | The payment, shipment and account holder country must be the same. Please check your input and try again.
+| 400.1419 | error       | Shipping address house number missing | Shipping address house number is missing. Please check your input and try again.
+| 400.1420 | error       | Shipping email missing | Shipping email is missing. Please check your input and try again.
+| 400.1421 | error       | Matched Transaction | Transaction has already been matched.
+| 400.1422 | error       | Unmatched Transaction | Transaction has already been unmatched.
+| 400.1423 | error       | Transaction not found | Transaction not found.
+| 400.1424 | error       | Malformed additional merchant data | The additional merchant data is malformed and cannot be parsed. Please check your input and try again.
+| 400.1425 | error       | Unable to decrypt data. Possible misconfiguration. | Unable to decrypt cryptogram. Merchant account might not be configured properly. Please, contact Merchant Support.
+| 400.1426 | error       | Malformed cryptogram. | Cryptogram is malformed and cannot be processed. Please check your input and try again.
+| 400.1427 | error       | Mandatory fields missing in card-raw | Mandatory fields missing in ``card-raw``.
+| 400.1428 | warning     | External Provider: Expiration month must not be empty. | External Provider: Expiration month must not be empty.
+| 400.1429 | warning     | External Provider: Expiration year must not be empty. | External Provider: Expiration year must not be empty.
+| 400.1430 | warning     | External Provider: Invalid merchant configuration | External Provider: Invalid merchant configuration.
+| 400.1431 | warning     | External Provider: Credit card must not be null. | External Provider: Credit card must not be null.
+| 400.1432 | error       | Missing public Key Hash or Public Key Base64 Encoded | Missing either the public key hash or the public key base64 encoded. Please check your input and try again.
+| 400.1433 | error       | B2B field is not allowed | B2B is allowed only for _debit_ and _pending-debit_ transaction type with _SEPA Direct Debit_ payment method.
+| 400.1434 | error       | Invalid hyperlink expiration timestamp.  | The provided hyperlink expiration timestamp can only be from 1 minute to 6 months from now.
+| 400.1435 | error       | Invalid external token. | External token is invalid. Please check your input and try again.
+| 400.1436 | error       | Refund is not allowed. | Refund for Installment Payment is not allowed. Please contact technical support.
+| 400.1437 | error       | Invalid Installment Plan card used. | Card does not qualify for selected Installment Payment Plan. Try another card or another bank.
+| 400.1438 | error       | Invalid Installment Plan. | Amount not eligible for IPP transactions or invalid amount for selected tenure.
+| 400.1439 | error       | Unsupport Transaction Type for IPP. a|Installment Payment Plan does not support this transaction type. +
+Supported transaction types:
+
+* _purchase_
+* _void-purchase_
+//-
+| 400.1444 | error       | Payment already processed.  | Your transaction is complete. Your payment has been already processed.
+| 400.1454 | error       | Payment hyperlink expired.  | Hyperlink is already expired. The transaction was refused because your payment link has expired.
+| 400.1455 | error       | 3D processing failed due to enrollment status | 3D processing can not be done due to unsuccessful enrollment check.
+| 400.1456 | error       | Invalid risk-reference-id. | The ``risk-reference-id`` has an invalid value.
+| 400.1457 | error       | No Voucher Alternative Currency | The Voucher Alternative Currency has not been provided. Please check your input and try again.
+| 400.1458 | error       | Invalid Voucher Alternative Amount | The Voucher Alternative Amount is invalid. Please check your input and try again.
+| 400.4001 | error       | Invalid Multi Payments Request | Invalid number or combination of payments in Multi Payments request.
+| 400.4002 | error       | No Multi Payments Request Id | The Multi Payments Request ID has not been provided.
+| 400.4003 | error       | Invalid Multi Payments Request Id | The Multi Payments Request ID has incorrect length.
+| 400.4004 | error       | Invalid Multi Payments Merchant Account | Multi Payments Merchant Account Id or Merchant Account Resolver Category must be provided.
+| 400.4005 | error       | Duplicate Multi Payments Request Id | The Multi Payments Request ID has duplicates.
+| 400.4006 | error       | Invalid Multi Payments Merchant Account presence | Merchant Account Id or Merchant Account Resolver Category should not be provided for referenced payment.
+| 400.4007 | error       | Missing Payment Requests | Unreferenced Multi Payments should have least one Payment Request.
+| 400.4008 | error       | Invalid Multi Payments Currency | The Multi Payments Amount is not consistent with the requested Payments.
+| 400.4009 | error       | Invalid Multi Payments Amount | The Multi Payments Amount has not been provided. Please check your input and try again.
+| 400.4010 | error       | No Multi Payments Currency | The Multi Payments Currency has not been provided. Please check your input and try again.
+| 400.4011 | error       | No Multi Payments Amount | The Multi Payments Amount is invalid. Please check your input and try again.
+| 400.4012 | error       | Missing Payment Requests | Referenced Multi Payments should have no Payment Request.
+| 400.4013 | error       | Invalid Multi Payments Currency | The Multi Payments Currency is invalid. Please check your input and try again.
+| 400.4014 | error       | No Device | Device has not been provided. Please check your input and try again.
+| 400.4015 | error       | No Device Type | Device Type has not been provided or is invalid. Please check your input and try again.
+| 400.4016 | error       | No Device Operating System | Device Operating System has not been provided or is invalid. Please check your input and try again.
+| 400.4017 | error       | Browser info not correctly provided | Browser info not correctly provided. Please check your input and try again.
+| 401.1166 | error       | Authorization Required | User lacks valid authentication credentials for the target resource.
+| 403.1166 | error       | Access Denied | User doesn't have the access role for the requested operation.
+| 409.1073 | error       | Failed to create: Duplicate Card Type, Currency, Provider to Merchant Account | Creation Failed.  Duplicate Card Type, Currency, Provider and Merchant Account  Please check your input and try again.
+| 409.1074 | error       | Lock Version Conflict (Update) | Request cannot be processed due to a lock version conflict in an update operation. Please refresh your input and try again.
+| 409.1075 | information | Lock Version Conflict (Delete) | Request cannot be processed due to a lock version conflict in a deletion operation. Please refresh your input and try again.
+| 409.1076 | error       | Failed to Create Provider Route | Creation Failed. Merchant Account Provider Route. Please contact Merchant Support.
+| 409.1077 | error       | Failed to Update Provider Route | Update Failed. Merchant Account Provider Route. Please contact Merchant Support.
+| 409.1078 | error       | Duplicate Username | Username already in use. Pick another Username. Please check your input and try again.
+| 409.1101 | error       | Failed to create: Duplicate Provider, Payment Method and Currency to Merchant Account | Failed to create: Duplicate Provider, Payment Method and Currency to Merchant Account. Please check your input and try again.
+| 409.1104 | error       | Failed to create: Duplicate Airline Code and XPath Expression | Creation Failed. Duplicate Airline Code and XPath Expression. Please check your input and try again.
+| 409.1105 | error       | Acquirer: Too many merchant account identifiers supplied | Provide one of merchant account id, merchant account resolver category or parent transaction id.
+| 409.2000 | information | Aggregated Transaction | The transaction will be processed as an aggregated transaction.
+| 409.2001 | error       | Invalid Provider Account Id. | Invalid Provider Account Id.
+| 409.2002 | error       | Invalid MPI Merchant Account Id. | Invalid _MPI_ Merchant Account Id.
+| 409.2003 | error       | Invalid Provider Account Credit Card Id. | Invalid Provider Account Credit Card Id.
+| 409.2004 | error       | Invalid Provider Acquirer Id. | Invalid Provider Acquirer Id.
+| 409.2005 | error       | Invalid Scheme Region Id. | Invalid Scheme Region Id.
+| 409.2006 | error       | Invalid Provider Parameter Id. | Invalid Provider Parameter Id.
+| 409.2007 | error       | Data format error. | Data format error for field.
+| 409.2008 | error       | Invalid Id. | Invalid Id for field.
+| 409.2009 | error       | Unique Combination. | Unique combination of field.
+| 409.2010 | error       | Invalid Value. | Invalid value of field.
+| 409.2011 | error       | Androidpay Merchant Account Key Configuration Error | _Androidpay_ Key Generation failed.
+| 409.2012 | warning     | Androidpay Merchant Account Key Existed | There's already an active _Androidpay_ key for the merchant.
+| 409.2015 | error       | Transaction is too old | Referenced transaction has not been updated for 2 years, please send new initial transaction. 
+| 409.2020 | error       | Missing or invalid OTP. | Missing or invalid OTP.
+| 409.2025 | error       | Transaction is too old | Requested information is too old and has been moved to archive.
+| 500.1000 | error       | Tokenization Server Error | Error getting response from Tokenization (remote) Server. Please contact Merchant Support.
+| 500.1001 | error       | Unknown voucher id | Unknown voucher id.
+| 500.1002 | error       | Provider rejected payment | Provider rejected payment.
+| 500.1003 | error       | Invalid Voucher Balance | Invalid Voucher Balance.
+| 500.1004 | error       | Insufficient Voucher Balance | Insufficient Voucher Balance.
+| 500.1049 | error       | Provider Busy | Provider is busy. Please try again later.
+| 500.1050 | error       | Provider System Error | Provider had a system error. Please try again later.
+| 500.1051 | error       | Provider Rejected Transaction | A Provider refused to accept the transaction. Please check your input and try again.
+| 500.1052 | error       | Provider Unavailable | A Provider is unavailable. Please try again later.
+| 500.1053 | error       | Declined | The acquirer returned Declined. Please check with Issuer, or use different card.
+a| *500.1054*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Pick Up Card | The acquirer returned Pick up card. Please check with Issuer, or use different card.
+| 500.1055 | error       | Call Card Center | The acquirer returned Call card center. Please check with Issuer.
+| 500.1056 | error       | Issuer not Available | The acquirer returned Card center is not available. Please try again later.
+| 500.1057 | error       | Ineligible Transaction | The acquirer returned Error or Ineligible Transaction. Please contact Merchant Support.
+| 500.1058 | error       | Insufficient Funds | The acquirer returned Insufficient funds. Please check with Issuer, or use different card.
+| 500.1059 | error       | Invalid CVV | The acquirer returned Invalid Card Security Code. Please check your input and try again.
+a| *500.1060*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Denied Transaction Type | The acquirer returned Transaction Type not accepted. Please contact Merchant Support.
+a| *500.1061*
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Card Type not Supported | The card type is not processed by the authorization center. Please contact Merchant Support.
+a| *500.1062*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Expired Card | The acquirer returned Expired Card. Please check your input or use different card.
+a| *500.1063*
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Issuer: Voice Authorization Required | The acquirer returned Call Voice-authorization number, Initialization Data. Please check with Issuer.
+| 500.1064 | error       | Invalid Expiry Date | Invalid Expiry Date.
+| 500.1065 | error       | Stolen Card | The acquirer returned Stolen Card. Please check with Issuer, or use different card.
+a| *500.1066*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Issuer: Restricted Card | The acquirer returned Restricted Card. Try another card. Please check with Issuer, or use different card.
+a| *500.1067*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Issuer temporarily not reachable | The acquirer returned Card issuer temporarily not reachable. Please try again later.
+a| *500.1068*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Processing temporarily not possible | The acquirer returned Processing temporarily not possible. Please try again later.
+| 500.1069 | error       | Referral | Referral. Transaction was declined but could be approved with a verbal authorization. Please check with Issuer.
+| 500.1070 | error       | Issuer: Lost Card | The acquirer returned Lost Card. Please check with Issuer, or use different card.
+| 500.1071 | error       | AVS Check Failure | The acquirer returned AVS Check Failure. Please check billing address of the cardholder.
+a| *500.1072*
+
+<<API_CC_TestCards_3D_Error, 3D>>, <<API_CC_TestCards_Non3D_Error, Non-3D>>
+| warning     | Card Not Enrolled | Card not enrolled: The card is not enrolled / the cardholder is not participating in the 3-D Secure program.
+a| *500.1073*
+
+<<API_CC_TestCards_3D_Error, 3D>>
+| warning     | Unable to Verify Enrolment | Issuer unavailable: The card issuing system is not reachable. The 3-D secure process cannot be verified.
+a| *500.1074*
+
+<<API_CC_TestCards_3D_Error, 3D>>
+| warning     | MPI Error | System unavailable: The MPI system is not reachable. The 3-D secure process cannot be verified.
+| 500.1075 | information | Proof of authentication attempt was generated. | The payment reached the 3-D secure attempted status. The cardholder is not participating, but the attempt to authenticate was recorded. The transaction reached the liability shift and payment can be accepted.
+a| *500.1076*
+
+<<API_CC_TestCards_3D_Error, 3D>>
+| error       | Consumer failed or Cancelled authentication. | The cardholder not only cancelled but even denied the payment process. No liability shift is granted and payment should not be processed as consumer expressed his explicit denial.
+a| *500.1077*
+
+<<API_CC_TestCards_3D_Error, 3D>>
+| warning     | Authentication could not be completed due to technical or other problem | The 3-D systems are not reachable and authentication could not be performed. No liability shift is granted. Please try again later.
+| 500.1080 | error       | 3Ds Authentication MasterCard Formatted Error | 3Ds Authentication MasterCard Formatted Error.
+| 500.1085 | error       | A system error prevented completion of authentication. | A system error prevented authentication from completing. The card can be accepted for payment but no authentication information will be passed to authorization processing and no liability shift will take place. Please try again later.
+| 500.1086 | error       | Missing Mandatory Field | The acquirer is missing a mandatory field.  Resend with all fields correctly entered. Please check your input or use different card.
+| 500.1087 | error       | Connection to provider timed out. | The connection to the provider was never made and timed out. Please try again later.
+| 500.1088 | error       | Requested Function Not Supported | Requested Function not Supported. Please check your input and try again.
+| 500.1089 | error       | Refund not permitted | This acquirer does not support refunds. Please contact Merchant Support.
+a| *500.1091*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Suspicion of Manipulation | Suspicion of Manipulation. Please check with Issuer, or use different card.
+| 500.1092 | error       | Card not in authorizer's database. | Card not in authorizer's database. Please check with Issuer, or use different card.
+| 500.1093 | error       | Exceeds cash withdrawal floor limit. | Exceeds cash withdrawal floor limit. Please check with Issuer, or use different card.
+a| *500.1094*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Merchant Account not configured. | The Merchant Account is not properly configured for processing. Please contact Merchant Support.
+| 500.1095 | error       | Not in compliance with security regulations. | Not in compliance with security regulations. Please check with Issuer, or use different card.
+| 500.1096 | error       | Count threshold exceeded. | Count threshold exceeded.
+| 500.1097 | error       | Pin or Password failure limit reached. | Pin or Password failure limit reached.
+| 500.1098 | error       | Credit restriction violation. | Credit restriction violation. Please check with Issuer, or use different card.
+a| *500.1099*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Transaction processing refused. | Transaction processing refused. Please contact Merchant Support.
+| 500.1100 | error       | Card Number not permitted in Demo Mode. | Card Number not permitted in Demo Mode. Please contact Merchant Support.
+| 500.1101 | error       | Clearing file generated  | File generation was performed successfully.
+| 500.1102 | error       | TX submitted to financial partner | File was sent to the financial partner (bank).
+| 500.1103 | error       | TX successfully reconciled  | Transaction reconciliation successful.
+| 500.1104 | error       | Duplicate payment or transaction | Payment or transaction was identified as duplicate. Please do not try again.
+| 500.1105 | error       | Limit constraint  | The maximum amount of allowed bookings has been reached. Please try again later.
+| 500.1106 | error       | Debtor IBAN Country Restriction (country restriction for debtor bank account applies)  | The debtor IBAN is not allowed based on country restriction. Please check your input or use different card.
+| 500.1107 | error       | Transaction Cancelled by Merchant | Transaction was cancelled by the merchant. Please try again later.
+| 500.1108 | error       | Transaction was cancelled/aborted. | Transaction was cancelled/aborted. Please try again later.
+a| *500.1109*
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Malformed/Invalid Parameter | Malformed/Invalid Parameter. Please check your input.
+| 500.1110 | error       | Malformed/Invalid Signature | Malformed/Invalid Signature. Please check your input.
+| 500.1111 | error       | Account status was not updated  | Account status was not updated.   Please contact Merchant Support.
+| 500.1112 | error       | Account does not exist  | Account does not exist. Please contact Merchant Support.
+| 500.1113 | error       | Account already exists  | Account already exists. Please contact Merchant Support.
+| 500.1114 | error       | Transaction is 3D enrolled. | Transaction is 3D enrolled. Please submit using 3D Secure.
+| 500.1115 | error       | Currency not enabled for this merchant account. | Currency not enabled for this merchant account. Please contact Merchant Support.
+| 500.1116 | error       | Invalid Card | Invalid Card. Please check your input or use different card.
+a| *500.1117*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Terminal ID Unknown | Terminal ID Unknown. Please contact Merchant Support.
+a| *500.1118*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Invalid Transaction | Invalid Transaction.  Please check your input or use different card.
+| 500.1119 | error       | Velocity: The transaction was refused because merchant account has reached a velocity limit. | Payment rejected.
+| 500.1120 | error       | Velocity: Velocity Limit  The transaction was refused because Payer Account  paying has reached a limit. | Payment rejected.
+| 500.1121 | error       | Velocity: The transaction was refused because the amount below minimum  is too low. | Payment rejected.
+| 500.1122 | error       | Velocity: The transaction was refused because the amount above maximum  is too high. | Payment rejected.
+| 500.1123 | error       | Transaction type not supported | Could not determine Operation subtype.
+| 500.1127 | error       | Failed confirmation received from the third party | Failed confirmation received from the third party.
+| 500.1151 | error       | Terminal not ready | Terminal not ready.
+| 500.1152 | error       | Amount larger | The sum of the credited amount is larger than the original debit.
+| 500.1154 | error       | Invalid Amount | The amount requested is not valid.
+| 500.1155 | error       | Invalid Country Code | The Country Code is invalid.
+a| *500.1156*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Issuer: Declined | The issuer returned Declined. Please check with Issuer, or use different card.
+a| *500.1157*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Issuer: Stolen Card | The issuer returned Stolen Card. Please check with Issuer, or use different card.
+| 500.1158 | error       | Issuer: Busy, try again later | The issuer returned Processing temporarily not possible. Please try again later.
+a| *500.1159*
+
+<<API_CC_TestCards_Non3D_Error, Non-3D>>
+| error       | Issuer: Invalid Card | The issuer returned Invalid Card. Please check your input or use different card.
+| 500.1160 | error       | Issuer: Suspected Fraud | The issuer returned Suspected Fraud. Please check with Issuer, or use different card.
+| 500.1161 | error       | Issuer: Transaction Type not accepted | The issuer returned Transaction Type not accepted. Please contact Merchant Support.
+| 500.1162 | error       | Issuer: Expired Card | The issuer returned Expired Card. Please check your input or use different card.
+| 500.1164 | error       | Country not supported | Country is not supported.
+| 500.1166 | error       | Voucher Token Expired | Voucher redemption token is expired.
+| 500.1167 | error       | No Voucher Token id | The Voucher Token Id has not been provided. Please check your input and try again.
+| 500.1168 | error       | Voucher action failed | Voucher cannot be reserved/redeemed/reversed with the given token.
+| 500.1171 | error       | Payment reversed after review | Payment reversed after review.
+| 500.1172 | error       | Duplicate request | Duplicate request to provider.
+| 500.1173 | error       | Transaction result verification error | Transaction result verification error.
+| 500.1990 | error       | Error in provider communication | Error in provider communication.
+| 500.1999 | error       | Unknown response | The acquirer returned an unknown response.  Contact Merchant Support.
+| 500.2100 | error       | Request processing failure. | Request processing failure.
+| 500.2101 | error       | General error - provider refused the transaction. | Provider refused the transaction. For details please check ``provider-message``.
+| 500.2200 | error       | No response from process within timeout settings. | No response from process within timeout settings.
+| 500.2210 | error       | Merchant response timeout | No response from merchant within timeout settings.
+| 500.2220 | error       | Consumer response timeout | No response from consumer within timeout settings.
+| 500.2376 | error       | Cancellation period expired. | Cancellation period expired.
+| 500.2377 | error       | Already settled referenced authorization found. | Already settled referenced authorization found.
+| 500.2378 | error       | Requested debit exceeds the available authorized fund. | Requested debit exceeds the available authorized fund.
+| 500.2379 | error       | Inconsistent referenced transaction information found. | Inconsistent referenced transaction information found.
+| 500.2380 | error       | Account blacklist check failure. | Account blacklist check failure.
+| 500.2381 | error       | Refund period expired. | Refund period expired.
+| 500.2390 | error       | Mandate not found. | Mandate not found.
+| 500.2391 | error       | Debit transaction cancelled. | Debit transaction cancelled.
+| 500.2392 | error       | Credit transaction cancelled. | Credit transaction cancelled.
+| 500.2395 | error       | Authorization transaction cancelled | Authorization transaction cancelled.
+| 500.2396 | error       | Authorization transaction partially cancelled | Authorization transaction partially cancelled.
+| 500.2400 | error       | Debtor account closed | Debtor account closed.
+| 500.2401 | error       | insufficient funds/ no funds |insufficient funds / no funds.
+| 500.2402 | error       | Direct debit refuse by debtor/ payer disagree | Direct debit refuse by debtor/ payer disagree.
+| 500.2403 | error       | No authorization from debtor to his bank | No authorization from debtor to his bank.
+| 500.2409 | error       | Account blocked | Account blocked.
+| 500.2414 | error       | not direct debited | Not direct debited.
+| 500.2416 | error       | Bank cancellation | Bank cancellation.
+| 500.2417 | error       | Unknown account number | Unknown account number.
+| 500.2418 | error       | Unusable Bank Code | Invalid Bank Code.
+| 500.2419 | error       | unknown beneficiary | Unknown beneficiary.
+| 500.2420 | error       | unknown issuer | Unknown issuer.
+| 500.2421 | error       | claim yielded to other bank | Claim yielded to other bank.
+| 500.2422 | error       | no order to pay | No order to pay.
+| 500.2436 | error       | Unknown Account Holder | The First Name and Last name do not match the Account Number.
+| 500.2442 | error       | Debit not approved | Debit not approved.
+| 500.2443 | error       | Double payment | Double payment.
+| 500.2453 | error       | direct debit not possible | Direct debit not possible.
+| 500.2454 | error       | credit payment not possible | Credit payment not possible.
+| 500.2494 | error       | cancelled on request | Cancelled on request.
+| 500.2495 | error       | cancellation order executed | Cancellation order executed.
+| 500.2496 | error       | cancelled instead of bended | Cancelled instead of bended.
+| 500.2497 | error       | Amount Too Low | The requested amount is below the minimum required.
+| 500.2498 | error       | Amount Too High | The requested amount is above the maximum required.
+| 500.2499 | error       | Authentication Error or Failure | The authentication attempt failed and/or had an error.
+| 500.2500 | error       | Failed Authentication pin/phone/password/etc | The Account Holder failed to authenticate with pin, password, phone number, or some other mechanism.
+| 500.2501 | error       | Discount not allowed for current API version. | Discount not allowed for current API version.
+| 500.2502 | error       | Shipping costs not allowed for current API version. | Shipping costs not allowed for current API version.
+| 500.2503 | error       | Basket amount does not match or basket items are invalid. | Basket amount does not match or basket items are invalid.
+| 500.2504 | error       | Order (sum of open and delivered amounts) must not be negative. | Order (sum of open and delivered amounts) must not be negative.
+| 500.2505 | error       | Refund can not be processed. | Refund must be processed offline. Please contact Merchant support.
+| 500.2600 | error       | Undebit not possible. | Undebit not possible.
+| 500.2601 | error       | Partner ID not found. | Partner ID not found.
+| 500.2602 | error       | Promotion code is not valid. | Promotion code is not valid.
+| 500.2603 | error       | Provider account is not valid. | Provider account is not valid.
+| 500.2604 | error       | Max number of unsuccessful logins exceeded. | Maximum number of unsuccessful logins exceeded.
+| 500.2605 | error       | Requested version of function not supported | Requested version of function is not supported.
+| 500.2606 | error       | Session expired | Provider session has expired.
+| 500.2700 | error       | The mobile subscriber not identified | The mobile subscriber id (e.g. ``msisdn`` or ``ip-address``) could not be identified.
+| 500.2701 | error       | SMS delivery failed | The delivery of SMS has failed.
+| 500.3000 | error       | Risk: Rejected due to Suspicion of Fraud. | Rejected due to Suspicion of Fraud.
+| 500.3001 | warning     | Risk: Insufficient data for the verification. | Error in transaction request, check request data.
+| 500.3002 | error       | Risk: General risk management rejection | Risk: General risk management rejection.
+| 500.3003 | warning     | Country recognition failed. | _TrustPay_ transaction for country recognition was not found.
+| 500.3004 | error       | PaySafeCard timeout. | Cards allocation will be cancelled.
+| 500.3005 | error       | Unsupported currency conversion. | Currency conversion for requested currencies is not supported.
+| 500.3010 | error       | Invalid Payment Panel Style Specified. | Invalid Payment Panel Style Specified.
+| 500.3011 | error       | Missing or Invalid 'cmd=' value. | Missing or Invalid ``cmd=`` value.
+| 500.3012 | error       | Unsupported Price Point | Unsupported Price Point.
+| 500.3013 | error       | Bad Bind Credentials | Bad Bind Credentials.
+| 500.3014 | error       | Invalid Or Missing Currency Code | Invalid Or Missing Currency Code.
+| 500.3015 | error       | Invalid Or Missing Service-Id | Invalid Or Missing ``service-id``.
+| 500.3016 | error       | Invalid Dynamic Pricing Mode | Invalid Dynamic Pricing Mode.
+| 500.3017 | error       | Invalid Dynamic-match | Invalid ``dynamic-match``.
+| 500.3018 | error       | Invalid or missing Dynamic-deviation | Invalid or missing ``dynamic-deviation``.
+| 500.3019 | error       | Invalid or missing Dynamic-deviation-policy | Invalid or missing ``dynamic-deviation-policy``.
+| 500.3020 | error       | Invalid row-ref value | Invalid ``row-ref`` value.
+| 500.3021 | error       | No payment solution available | No payment solution available.
+| 500.3022 | error       | Boku undergoing maintenance | _Boku_ undergoing maintenance.
+| 500.3023 | error       | Failed - Consumer barred | Failed - Consumer barred.
+| 500.3024 | error       | Failed - external billing failure | Failed - external billing failure.
+| 500.3025 | error       | Failed - Transaction timed out | Failed - Transaction timed out.
+| 500.3026 | error       | Failed - Cancelled by consumer | Failed - Cancelled by consumer.
+| 500.3027 | error       | Part Paid - Expired without completing | Part Paid - Expired without completing.
+| 500.3028 | error       | Part Paid - Cancelled by user | Part Paid - Cancelled by user.
+| 500.3029 | error       | Regulatory Spend Limit Reached | Regulatory Spend Limit reached.
+| 500.3030 | error       | Merchant Spend Limit Reached | Merchant Spend Limit reached.
+| 500.3031 | error       | Service suspended | Service suspended.
+| 500.3032 | error       | Network currently unavailable | Network currently unavailable.
+| 500.3033 | error       | Invalid PIN | Invalid PIN.
+| 500.3034 | error       | Product issue (e.g. pending approval, etc) | Product issue (e.g. pending approval, etc).
+| 500.3035 | error       | Rejected Product Description | Rejected Product Description.
+| 500.3036 | error       | Subscription Already in Progress | Subscription Already in Progress.
+| 500.3037 | error       | Pre-paid account not supported | Pre-paid account not supported.
+| 500.3038 | error       | Pricepoint not supported on this network | Pricepoint not supported on this network.
+| 500.3039 | error       | Account not authorized for purchase | Account not authorized for purchase.
+| 500.3040 | error       | Invalid Zip Code | Invalid Zip Code.
+| 500.3041 | error       | Checkout Abandoned | Checkout abandoned.
+| 500.3042 | error       | Fulfillment failed | Fulfillment failed.
+| 500.3043 | error       | Consumer info validation error | Consumer info validation error.
+| 500.3044 | error       | Handset error | Handset error.
+| 500.3045 | error       | Subscriber not eligible | Subscriber not eligible.
+| 500.3046 | error       | Internal subscription error | Internal subscription error.
+| 500.3047 | error       | Internal operator Error | Internal operator Error.
+| 500.3048 | error       | Request not successful. Transaction declined. | Request not successful. Transaction declined.
+| 500.3049 | error       | Authorization was rejected by provider | Authorization was rejected by provider
+| 500.3050 | error       | Authorization request exceeded. | Authorization request has been exceeded.
+| 500.3051 | error       | Used for differed check. | Used for differed check. The PAN is blocked.
+| 500.3052 | error       | Invalid PAN or payment mean data. | Invalid PAN or payment mean data (ex: card security code).
+| 500.3053 | error       | Transaction unknown by Sips. | Transaction unknown by _Sips_.
+| 500.3054 | error       | Transaction pending. | Transaction pending.
+| 500.3055 | error       | Exceeded number of PAN attempts. | Exceeded number of PAN attempts.
+| 500.3056 | error       | Underpayment - request not successful. | Request not successful - underpaid, further action on _Bitpay_ Merchant dashboard required.
+| 500.3057 | error       | Confirmation URL contains local network address or a relativ server path. | Confirmation URL contains local network address or a relative server path.
+| 500.3058 | error       | IBAN provided not registered for merchant | IBAN provided not registered for merchant.
+| 500.3059 | error       | Transaction date given expired or is invalid | Transaction date given expired or is invalid.
+| 500.3060 | error       | Cross border transaction not permitted | Cross border transaction not permitted.
+| 500.3061 | error       | Merchant blacklisted | Merchant blacklisted.
+| 500.3062 | error       | Unpaid bills | Consumer has unpaid bills.
+| 500.3063 | error       | Invalid date of birth | The date of birth is invalid. Please check your input and try again.
+| 500.3064 | error       | Invalid social security number | The social security number is invalid. Please check your input and try again.
+| 500.3065 | error       | Consumer identity check failed | Consumer identity check has failed: person not found.
+| 500.3066 | error       | Consumer dead | Consumer is dead.
+| 500.3067 | error       | Consumer underage | Consumer is underage.
+| 500.3068 | error       | Consumer address verification failed | Consumer address verification has failed.
+| 500.3069 | error       | Invalid cell phone number | Cell phone number is invalid. Please check your input and try again.
+| 500.3070 | error       | Invalid phone number | Phone number is invalid. Please check your input and try again.
+| 500.3071 | error       | Email verification failed | Email verification has failed. Please check your input and try again.
+| 500.3072 | error       | Invalid order item list | Order item list is invalid. Please check your input and try again.
+| 500.3073 | error       | Invalid language | Language is invalid. Please check your input and try again.
+| 500.3074 | error       | Invalid gender | Gender is invalid. Please check your input and try again.
+| 500.3075 | error       | Invalid house number  | House number is invalid.
+| 500.3076 | error       | Account holder last name missing | Account holder last name is missing. Please check your input and try again.
+| 500.3077 | error       | Account holder first name missing | Account holder first name is missing. Please check your input and try again.
+| 500.3078 | error       | Invalid product | The requested product is invalid. Please check your input and try again.
+| 500.3079 | error       | Invalid subscription | The requested subscription is invalid. Please check your input and try again.
+| 500.3080 | error       | Unknown invoice | Unknown invoice.
+| 500.3081 | error       | Negative invoice | Negative invoice.
+| 500.3082 | error       | Invoice not active | Invoice not active.
+| 500.3083 | error       | Bad invoice status | Bad invoice status.
+| 500.3084 | error       | Invoice archived | Invoice archived.
+| 500.3085 | error       | Invoice suspect | Invoice suspect.
+| 500.3086 | error       | Invoice frozen | Invoice frozen.
+| 500.3087 | error       | Invoice pre-paid | Invoice pre-paid.
+| 500.3088 | error       | Old invoice | Old invoice.
+| 500.3089 | error       | Test mode | Test mode.
+| 500.3090 | error       | Invoice not passive | Invoice not passive.
+| 500.3091 | error       | Invalid invoice number | Invalid invoice number.
+| 500.3092 | error       | Invalid invoice | Invalid invoice.
+| 500.3093 | error       | Invalid IP | Invalid IP.
+| 500.3094 | error       | Unknown order item | Unknown order item. Please check your input and try again.
+| 500.3095 | error       | Reservation not found | Reservation not found.
+| 500.3096 | error       | Invalid order number | Invalid order number. Please check your input and try again.
+| 500.3097 | error       | Invalid reference number | Invalid reference number. Please check your input and try again.
+| 500.3098 | error       | Currency, country, identity document mismatch | Currency, country, identity document mismatch.
+| 500.3099 | error       | Invalid city | City is invalid. Please check your input and try again.
+| 500.3101 | error       | Risk: manual check rejection | The transaction has been rejected during the manual risk check.
+| 500.3102 | warning     | External Provider: Authentication error - API keys are incorrect | External Provider: Authentication error - API keys are incorrect.
+| 500.3103 | warning     | External Provider: Authorization error - not authorized to perform the attempted action | External Provider: Authorization error - not authorized to perform the attempted action.
+| 500.3104 | warning     | External Provider: Unexpected External Provider error | External Provider: Unexpected External Provider error.
+| 500.3105 | warning     | External Provider: Validation error | External Provider: Validation error.
+| 500.3106 | warning     | External Provider: Expiration date is required. | External Provider: Expiration date is required.
+| 500.3107 | warning     | External Provider: Expiration month is invalid. | External Provider: Expiration month is invalid.
+| 500.3108 | warning     | External Provider: Expiration year is invalid. | External Provider: Expiration year is invalid.
+| 500.3109 | warning     | External Provider: Credit card number is required. | External Provider: Credit card number is required.
+| 500.3110 | warning     | External Provider: Credit card number is invalid. | External Provider: Credit card number is invalid.
+| 500.3111 | warning     | External Provider: Credit card number must be 12-19 digits. | External Provider: Credit card number must be 12-19 digits.
+| 500.3112 | warning     | External Provider: Duplicate card exists in the vault. | External Provider: Duplicate card exists in the vault.
+| 500.3113 | warning     | External Provider: Credit card must include number. | External Provider: Credit card must include number.
+| 500.3114 | warning     | External Provider: Credit card type is not accepted by this merchant account. | External Provider: Credit card type is not accepted by this merchant account.
+| 500.3115 | warning     | External Provider: CVV must be 4 digits for American Express and 3 digits for other card types. | External Provider: CVV must be 4 digits for _American Express_ and 3 digits for other card types.
+| 500.3116 | warning     | External Provider: CVV is required. | External Provider: CVV is required.
+| 500.3117 | warning     | External Provider: CVV verification failed. | External Provider: CVV verification failed.
+| 500.3118 | warning     | External Provider: Email is an invalid format. | External Provider: Email is an invalid format.
+| 500.3119 | warning     | External Provider: Email is too long. | External Provider: Email is too long.
+| 500.3120 | warning     | External Provider: Phone is too long. | External Provider: Phone is too long.
+| 500.3121 | warning     | External Provider: First name is too long. | External Provider: First name is too long.
+| 500.3122 | warning     | External Provider: Last name is too long. | External Provider: Last name is too long.
+| 500.3123 | warning     | External Provider: Upgrade required error. | External Provider: Upgrade required error.
+| 500.3124 | warning     | External Provider: Too many requests error. | External Provider: Too many requests error.
+| 500.3125 | warning     | External Provider: Server error. | External Provider: Server error.
+| 500.4001 | error       | Multi Payments failed | Multi Payments request has failed.
+| 500.4002 | warning     | Transaction skipped | Transaction is skipped.
+| 500.4003 | warning     | Transaction not submitted | Transaction is not submitted.
+| 500.4004 | warning     | Rollback failed | Rollback failed.
+| 500.4005 | warning     | Rollback successful | Rollback was successful.
+| 500.4006 | warning     | Multi Payments notification access denied | User does not have the access role for Multi Payments notification processing. Please contact Merchant Support.
+| 500.4007 | warning     | Multi Payments notification processing error | Error occurred during Multi Payments notification processing. Please contact Merchant Support.
+| 500.4008 | error       | Card in black list | Blacklisted card.
+| 500.4009 | error       | Card not active | Card is not activated.
+| 500.4010 | error       | Card not found | The card was not found by the token.
+| 500.4011 | error       | Customer in blacklist | One of the consumers in the blacklist.
+| 500.4012 | error       | Customer not found | Consumer with this phone number not found.
+| 500.4013 | error       | Error crypt card | Card data encryption error.
+| 500.4014 | error       | Error save to DB | Save error in database.
+| 500.4015 | error       | File not found | When decrypting a file was not found.
+| 500.4016 | error       | Fraud error | This transaction is marked as fraud.
+| 500.4017 | error       | Limit user for card | The limit of the current card has been exceeded for different users.
+| 500.4018 | error       | Merchant not found | Merchant with such a name and password not found.
+| 500.4019 | error       | Session not found | Session for the card not found and it is not recurrent.
+| 500.4020 | error       | Wrong format file | Errors occurred during decryption, or csv format is incorrect.
+| 500.4021 | error       | Wrong params | Missing or empty merchant name, password, or the line in the ``.csv`` file has the wrong format.
+| 500.4022 | error       | Date expired | Attempt to add a card with an expired date.
+| 500.4023 | error       | Duplicate card | Attempt to add an already activated card with the same number.
+| 500.4024 | error       | Internal error | Internal error while encrypting the response.
+| 500.4026 | error       | Issuer: 'Not eligible for OCT' | The Issuer does not support the function.
+| 501.1088 | information | Requested Function Not Supported | The requested function is not supported.
+| 501.1090 | error       | Content Type not Supported. | The content type is not supported.
+| 999.9998 | error       | Database error | Database error.
+| 999.9999 | error       | System error | System error.
+ifndef::env-nova[]
+| A        | information | Street Address Match | Only Street Address match.
+| C        | information | Postal Code Match | Only Postal Code match.
+| CVC_M    | information | Matched (correct) CVC-2 | Matched (correct) CVC-2.
+| CVC_N    | information | Not valid CVC-2 | Not valid CVC-2.
+| CVC_P    | information | Processing not performed | Processing not performed.
+| CVC_S    | information | The CVV2 should be on the card but the merchant indicates it is not. | The CVV2 should be on the card but the merchant indicates it is not.
+| CVC_U    | information | Unregistered Issuer | Unregistered Issuer.
+| CVC_Y    | information | CVC-1 incorrect | CVC-1 incorrect.
+| CVC_Z    | information | Unknown | Unknown CVC status.
+| E        | information | Error | AVS not performed due to an error or insufficient data.
+| F        | information | Exact Match | Both address and postal code match.
+| N        | information | Not Match | Both Street Address and Postal Code does not match.
+| P        | information | Partial Match | Either Street Address or Postal Code do not match.
+| U        | information | AVS Unavailable | The address information is unavailable or the Issuer does not support AVS.
+| Z        | information | Unknown | Unknown AVS status.
+endif::[]
+|===
+
+//--

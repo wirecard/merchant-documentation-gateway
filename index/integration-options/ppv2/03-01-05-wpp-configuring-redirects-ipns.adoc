@@ -1,0 +1,177 @@
+
+[#PPSolutions_PPv2_ConfigureRedirects]
+== Redirects and IPNs
+
+[#PPv2_ConfiguringRedirectsIPNs_RedirectPages]
+=== Configuring the Redirect Pages 
+
+During and after the payment process, the consumer is redirected to a
+corresponding page (e.g. success page upon a successful payment). You
+can set the URLs for 'successful', 'failed' and 'canceled' page
+redirects. Each type of redirect must be defined on at least one level.
+There are multiple ways of how you can do this:
+
+. Default database URLs
+
+The default values for redirect URLs are configured during account setup
+(merchant configuration) and saved into the database. They are then loaded
+from the database each time you send a payment request (which means you
+do not have to send them in the request).
+
+NOTE: If you need to change the default values,
+contact <<ContactUs, merchant support>>.
+
+[start=2]
+. Specifying redirect URLs in the payment request
+
+//-
+
+WARNING: Any redirect URLs which are sent in a payment request override their
+respective database defaults.
+
+You can overwrite the default values by specifying the redirect links in
+the payment request:
+
+[%autowidth,cols="v,v,,,,v,"]
+|===
+ | Field (NVP)           | Field (JSON)         | Required | Data Type | Size  | JSON Parent   | Description
+
+e| success_redirect_url e| success-redirect-url | N        | String    | 2000 e| payment ({ }) | The URL to which the consumer is redirected after a successful payment.
+e| fail_redirect_url    e| fail-redirect-url    | N        | String    | 2000 e| payment ({ }) | The URL to which the consumer is redirected after an unsuccessful payment.
+e| cancel_redirect_url  e| cancel-redirect-url  | N        | String    | 2000 e| payment ({ }) | The URL to which the consumer is redirected after they cancel a payment.
+|===
+
+If you have no database defaults, you *must* include them in the
+request. Certain payment methods also require a specific redirect field
+(=> `redirect-url`) to be present in the request.
+
+
+[#PPv2_ConfiguringRedirectsIPNs_RedirectPages_RedirectURL]
+=== redirect-url field
+
+`redirect-url` overrides the database defaults for successful, failed  and canceled redirects.
+
+WARNING: Do not confuse this field with `payment-redirect-url`, which contains the payment URL.
+
+
+`redirect-url` covers all redirection options, i.e. regardless of
+whether the payment succeeds, fails or the consumer cancels, they are
+redirected to the URL specified in `redirect-url`:
+
+[%autowidth,cols="v,v,,,,v,"]
+|===
+ | Field (NVP)   | Field (JSON) | Required | Data Type | Size | JSON Parent   | Description
+
+e| redirect_url e| redirect-url | N        | String    | 256 e| payment ({ }) | The URL to which the consumer is redirected after a successful, failed or canceled payment if there are no alternatives available.
+|===
+
+`redirect-url` is only used as a fallback if there is
+no `success-redirect-url`, `cancel-redirect-url` or `fail-redirect-url` defined
+in the database or request.
+
+
+[#PPv2_ConfiguringRedirectsIPNs_RedirectPages_PendingRedirectURL]
+=== pending-redirect-url field
+
+Pending URL is a special variation of `success-redirect-url`. Certain
+payment methods require additional processing: even if the initial
+request is successful, the process is not complete yet.
+
+In this specific situation, {payment-gateway} returns a
+_pending-debit_ transaction type in the response: the payment is
+processed, but its current state is not final. Since this is not the
+final response, the consumer is redirected to the `pending-redirect-url`
+instead of the usual `success-redirect-url`.
+
+[%autowidth,cols="v,v,,,,v,"]
+|===
+ | Field (NVP)          | Field (JSON)         | Required | Data Type | Size | JSON Parent   | Description
+
+e| pending_redirect_url | pending-redirect-url | N        | String    | 256  | payment ({ }) | The URL to which the consumer is redirected when the response returns a _pending_ transaction type.
+|===
+
+
+[#PPv2_ConfiguringRedirectsIPNs_RedirectPages_Recap]
+=== Recap
+
+There are 3 levels for each type (canceled, successful, failed) of redirection:
+
+.  Redirect fields sent in the request
+(`success-redirect-url`, `fail-redirect-url` or `cancel-redirect-url`).
+.  The `redirect-url` field - covering all of the three options - used
+as a fallback if the above is not defined.
+.  The third level is defined in merchant configuration (database
+default), set up during merchant configuration.
+
+//-
+
+`pending-redirect-url` does not fit into these categories since it is
+a specific variation of the `success-redirect-url`. It is used when a
+payment request is successfully registered, but the response returns
+a _pending-xx_ transaction type, pending further processing (e.g.
+the payment is finished at a later time, or there is a delay).
+
+When the payment is processed, the consumer is redirected to
+the `success-redirect-url` page. `pending-redirect-url` can be sent in
+the request, or have a default value in the database like the others.
+
+The order of precedence starts at the top, i.e. if the first level
+redirects are not defined, the second level is checked. You need to
+define at least one level for each redirect, e.g. if you have no
+database defaults set, you must include the redirects in the request.
+
+Successful, failed and canceled redirects all *POST* payment response data
+to the redirection URL target.
+
+Here is an example payment request with defined redirects. You can
+substitute them for any of the redirects found here (or add more):
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_ConfiguringRedirectsIPNsRedirectPagesRecap_Ttlidimcd.json[]
+----
+
+[#PPv2_ConfiguringRedirectsIPNs_IPNs]
+== Configuring IPNs through {payment-page-v2-abbr} requests
+
+NOTE: This is only an example of how to configure extra IPNs through a {payment-page-v2-abbr}
+payment request. For information regarding automatic IPNs and other
+configuration options head over <<GeneralPlatformFeatures_IPN, here>>.
+
+You can set up additional IPNs by indicating them in a request. These
+are sent only per request (payment) and are not saved in your merchant
+configuration:
+
+.Example of IPN configuration in a payment request (JSON)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_ConfiguringRedirectsIPNsIPNs_ExampleOf_IPN_ConfigurationInAPaymentRequest_JSON.json[]
+----
+
+.Example of IPN configuration in a payment request (NVP)
+
+[source,subs=attributes+]
+----
+merchant_account_id=00f0b5ef-1241-4ab9-9eb1-8317b3dd9410
+request_id=e344681d-f002-45e0-83e4-345f9939221f
+transaction_type=authorization
+requested_amount=37.80
+requested_amount_currency=EUR
+ip_address=127.0.0.1
+locale=en
+notifications_format=application/json
+notification_transaction_state=success
+notification_url=https://www.yourdomain.com/success-notification-target
+notification_transaction_state_1=success
+notification_url_1=https://www.yourdomain.com/success-notification-target
+notification_transaction_state_2=failed
+notification_url_2=https://www.yourdomain.com/failed-notification-target
+notification_url_3=https://www.yourdomain.com/notification-target
+
+request_time_stamp=20180604074549
+request_signature_v2=WAUTH+SFMyNTYKY3VzdG9tX2Nzc191cmw9CnJlcXVlc3RfdGltZV9zdGFtcD0yMDE4LTA2LTA0VDA5OjQ1OjQ4KzAyOjAwCm1
+lcmNoYW50X2FjY291bnRfaWQ9MDBmMGI1ZWYtMTI0MS00YWI5LTllYjEtODMxN2IzZGQ5NDEwCnJlcXVlc3RlZF9hbW91bnRfY3VycmVuY3k9RVVSCmlwX
+2FkZHJlc3M9MTI3LjAuMC4xCnRyYW5zYWN0aW9uX3R5cGU9YXV0aG9yaXphdGlvbgpyZXF1ZXN0X2lkPWUzNDQ2ODFkLWYwMDItNDVlMC04M2U0LTM0NWY
+5OTM5MjIxZgpyZXF1ZXN0ZWRfYW1vdW50PTM3LjgwCnJlZGlyZWN0X3VybD0K.qzVwTDrCL%2F6zWXmV4f5KD9jXdV4K1v6c7WDQYtMx9Gc%3D
+----
