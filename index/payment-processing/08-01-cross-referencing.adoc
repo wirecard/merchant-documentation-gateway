@@ -1,0 +1,432 @@
+ifdef::env-wirecard[]
+[#GeneralPlatformFeatures_CrossRef]
+== Cross-Referencing
+
+You can cross-reference transactions by:
+
+- <<GeneralPlatformFeatures_CrossMerchant, Merchant account>>
+- <<#GeneralPlatformFeatures_CrossPayment, Payment method>>
+
+//-
+
+[#GeneralPlatformFeatures_CrossMerchant]
+=== Merchant Referencing
+
+It is possible to enable cross payment account references for a merchant
+in _{payment-gateway}._ It means a transaction from the merchant
+account A can reference another one from the merchant account B if its
+processing user has access rights also to the merchant account A. This
+is a typical scenario for marketplace portals where a consumer can allow
+to reuse his payment instrument for the further orders without the new
+authentication process (so-called one-click-payment).
+
+[#GeneralPlatformFeatures_CrossMerchant_Setup]
+==== Merchant Setup
+
+It is possible to reference a previous transaction using a different
+merchant account.
+
+[#GeneralPlatformFeatures_CrossMerchant_Setup_Precondition]
+.Precondition
+
+The general rule is:
+
+- The processing user used in the referencing transaction must have
+access rights to the merchant account of the referenced transaction.
+- The access rights to a particular merchant account for the given
+processing user must be established on the ACL level.
+
+//-
+
+In order to enable the cross reference feature for a merchant account
+the following global merchant parameter must be set to true:
+*global.crossreference.enabled*
+
+In order to see the cross referenced transactions in _{enterprise-portal-abbr}_, the _{enterprise-portal-abbr}_ user
+must also be granted to access the data of the referenced merchant
+account. If this is not the case, the cross referenced transactions are
+not shown inside the payment details list. i.e. the user cannot see the
+transaction data of other merchants even if their transactions are
+referencing the transactions of the others. This is a default setup
+situation for a merchant _{enterprise-portal-abbr}_ user.
+
+The billing logic for the cross referenced transactions is unchanged.
+The cross referenced transactions are billed for the corresponding
+merchant account used in the payment request.
+
+The merchant reconciliation report is unchanged as well. The cross
+referenced transactions are reported inside the reconciliation file for
+the corresponding merchant account.
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples]
+==== Samples
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples_Initial]
+.Initial Transaction
+
+NOTE: Note that the "periodic" attribute must be selected to mark which
+transaction is the first and will be referenced later.
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples_Initial_Xml]
+.XML get-url Request for i.e. "iDEAL"
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_get-url_request__installment_first_72d9c4.xml[]
+----
+
+.XML get-url Response for i.e. "iDEAL"
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_get-url_response__installment_first_8b4f66.xml[]
+----
+
+.XML Debit Notification for iDEAL
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_debit_notification__installment_first_08e109.xml[]
+----
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples_Initial_Json]
+.JSON get-url Request for i.e. "iDEAL"
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossMerchantSamplesInitialJson_JSON_GetUrlRequestForiDEAL.json[]
+----
+
+.JSON get-url Response for i.e. "iDEAL"
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossMerchantSamplesInitialJson_JSON_GetUrlResponseForiDEAL.json[]
+----
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples_Recurring]
+.Recurring Transaction
+
+NOTE: This is a request for SEPA Credit where periodic type is "recurring".
+This means that this is a referencing payment. Please note that the
+"parent-transaction-id" is the same as the one from the response of the
+"first" (parent) transaction.
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples_Recurring_Xml]
+.XML SEPA Credit Request Cross-Merchant Payment
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_request__recurring_recurring_3aa87578.xml[]
+----
+
+.XML SEPA Credit Response Cross-Merchant Payment
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_response__recurring_recurring_3aa87578.xml[]
+----
+
+.XML SEPA Credit Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_notification_success_recurring_recurring.xml[]
+----
+
+[#GeneralPlatformFeatures_CrossMerchant_Samples_Recurring_Json]
+.JSON SEPA Credit Request Cross-Merchant Payment
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossMerchantSamplesRecurringJson_JSON_SEPA_CreditRequestCrossMerchantPayment.json[]
+----
+
+.JSON SEPA Credit Response Cross-Merchant Payment
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossMerchantSamplesRecurringJson_JSON_SEPA_CreditResponseCrossMerchantPayment.json[]
+----
+[#GeneralPlatformFeatures_CrossPayment]
+=== Payment Methods
+
+Cross-Payment-Methods Referencing helps to reduce fraud in recurring
+payments, because the merchant can reference two payment methods.
+
+The initial transaction has to be performed with a method that requires
+access credentials from the customer.
+
+With the referencing of two payment methods the merchant can avoid that
+a SEPA Direct Debit transaction, if used as initial
+transaction, is returned after he has already provided the consumer with
+the purchased goods or services.
+
+The main reasons for returned SEPA Direct Debit transaction are:
+
+- "Bank account not existing"
+- "Invalid bank data"
+//-
+
+Cross-Payment-Methods Referencing is available, when the merchant has
+
+- several online banking payment methods configured within MAID.
+- installed {payment-gateway} backend and
+Payment Page integrations.
+//-
+
+Cross-Payment-Methods Referencing is executed in two steps:
+
+- The initial transaction is placed by the customer actively via one of
+the supported online banking payment methods:
+* Sofort.
+* iDEAL
+* giropay
+* eps-Überweisung
+//-
+
+If the initial transaction is successful, the bank details IBAN and BIC
+are saved in the database, but not returned in the response.
+
+NOTE: Not every bank provides bank account data. {payment-gateway}
+can only process bank account data if provided by the bank.
+
+- The subsequent transaction is a SEPA Direct Debit transaction.
+The merchant receives a transaction ID from the initial transaction
+which is used later to place a referenced SEPA Direct Debit transaction
+without knowing the bank account details as they are automatically
+connected to the transaction ID.
+
+This functionality allows e.g. easier subscription management.
+
+[WARNING]
+====
+ - All mandatory SEPA Direct Debit transaction fields must be provided in
+the initial transaction so that they can be used in the subsequent SEPA
+Direct Debit transaction. Mandatory SEPA fields are:
+* Mandate ID,
+* Mandate Signature Date
+* Creditor ID
+- The initial transaction must have a sequence type "first" to avoid a
+SEPA Direct Debit transaction with the sequence type "recurring" to
+be rejected by the system.
+- The subsequent transaction requires the sequence type "recurring".
+====
+
+A clear position for the "periodic" tag cannot be established. It can be
+set either <<GeneralPlatformFeatures_CrossPayment_Samples_Initial, in the initial transaction>> iDEAL
+or <<GeneralPlatformFeatures_CrossPayment_Samples_Subsequent, in the subsequent transaction>> within
+the SEPA Direct Debit.
+
+The advantages, setting it in the subsequent transaction are:
+
+- Integration of original payment method (e.g. iDEAL, Sofort., …) does
+not need to be amended.
+- If you are using SEPA as an additional payment option, the behavior
+where to send the periodic tags is identical.
+//-
+
+NOTE: API Endpoint for referenced transactions for alternative payment methods
+is always:
+\https://{test-instance-hostname}/engine/rest/payments
+
+[#GeneralPlatformFeatures_CrossPayment_Samples]
+==== Samples
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial]
+.Periodic In Initial Transaction
+
+This section describes a set of requests and responses in which the
+"periodic" tag is set right in the beginning, in the _Request Initial iDEAL_.
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_Xml]
+.XML get-url Request Initial iDEAL
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_get-url_request__installment_first_f11a91.xml[]
+----
+
+.XML get-url Response Initial iDEAL
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_get-url_response__installment_first_7f38b0.xml[]
+----
+
+.XML Debit Notification for Initial iDEAL
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_debit_notification__installment_first_e4e266.xml[]
+----
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_Json]
+.JSON get-url Request Initial iDEAL
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialJson_JSON_GetUrlRequestInitialiDEAL.json[]
+----
+
+.JSON get-url Response Initial iDEAL
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialJson_JSON_GetUrlResponseInitialiDEAL.json[]
+----
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringIdeal]
+.Recurring Transaction Referencing iDEAL Payment
+
+NOTE: Referenced SEPA payment does not contain mandatory fields in the
+request as these are taken from the initial iDEAL payment based on
+parent transaction ID.
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringIdeal_Xml]
+.XML SEPA Direct Debit Request Following
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_request__recurring_recurring_42d9e5e4.xml[]
+----
+
+.XML SEPA Direct Debit Response Following (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_response_success_recurring_recurring_b8b27f18.xml[]
+----
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringIdeal_Json]
+.JSON SEPA Direct Debit Request Following
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialRecurringIdealJson_JSON_SEPA_DirectDebitRequestFollowing.json[]
+----
+
+.JSON SEPA Direct Debit Response Following (Successful)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialRecurringIdealJson_JSON_SEPA_DirectDebitResponseFollowingSuccessful.json[]
+----
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa]
+.Recurring Transaction Referencing SEPA Credit
+
+NOTE: This scenario is for a cross-payment-methods referenced SEPA Credit
+transaction.
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa_Xml]
+.XML SEPA Credit Request Following
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_request__recurring_recurring_96468896.xml[]
+----
+
+.XML SEPA Credit Response Following
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_response__recurring_recurring_96468896.xml[]
+----
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa_Json]
+.JSON SEPA Credit Request Following
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialRecurringSepaJson_JSON_SEPA_CreditRequestFollowing.json[]
+----
+
+.JSON SEPA Credit Response Following
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeaturesCrossPaymentSamplesInitialRecurringSepaJson_JSON_SEPA_CreditResponseFollowing.json[]
+----
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Subsequent]
+==== Periodic In Subsequent Transaction
+
+This section describes a set of requests and responses in which the
+"periodic" tag is set at a subsequent request, the _SEPA Debit Recurring_#1.
+
+[#GeneralPlatformFeatures_CrossPayment_Samples_Subsequent_Xml]
+.XML debit Request Initial iDEAL
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_debit_request_.xml[]
+----
+
+.XML debit Response Initial iDEAL
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ideal_debit_response_.xml[]
+----
+
+NOTE: Receive Notification to get the transaction ID from the iDEAL debit to
+use as reference for SEPA transactions.
+
+.XML SEPA Credit Request
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_request__0ceed077.xml[]
+----
+
+.XML SEPA Credit Response
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepacredit_credit_response__0ceed077.xml[]
+----
+
+.XML SEPA Direct Debit Request Recurring #1
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_request__recurring_first_0ceed077.xml[]
+----
+
+.XML SEPA Direct Debit Response Recurring #1
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_response__recurring_first_0ceed077.xml[]
+----
+
+.XML SEPA Direct Debit Request Recurring #2
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_request__recurring_recurring_aaf7d691_930818.xml[]
+----
+
+.XML SEPA Direct Debit Response Recurring #2
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_response__recurring_recurring_aaf7d691_0afa2e.xml[]
+----
+
+.XML SEPA Direct Debit Request Recurring #3
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_request__recurring_recurring_aaf7d691_920542.xml[]
+----
+
+.XML SEPA Direct Debit Response Recurring #3
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sepadirectdebit_debit_response__recurring_recurring_aaf7d691_278830.xml[]
+----
+
+//-
+endif::[]

@@ -1,0 +1,773 @@
+[#MobilePaymentSDK_Android]
+== Integrating MPSDK on Android
+
+For downloading MPSDK and basic setup, refer to <<MobilePaymentSDK_BasicSetup_Android, Basic Setup>>.
+
+[#MobilePaymentSDK_Android_DoThisFirst]
+=== Do This First
+
+Regardless of the payment method, you need to create and initialize a
+``WirecardClient`` instance before anything else:
+
+_paymentSDK_ only works with non-rooted devices; if it detects a device
+that is rooted, it will throw an exception during initialization of the
+``WirecardClient`` object.
+
+[source,java]
+----
+WirecardClient wirecardClient;
+String environment = WirecardEnvironment.TEST.getValue();
+try {
+    wirecardClient = WirecardClientBuilder.newInstance(context, environment)
+                    .build();
+} catch (WirecardException exception) {
+    //device is rooted
+}
+----
+
+The example above also handles the "device is rooted" exception
+situation by using ``try`` and ``catch``.
+
+For credit card & PayPal payments, add this line when creating the
+payment object (e.g. ``WirecardCardPayment``):
+
+[source,java]
+----
+wirecardPayment.setProcessingURL("paymentsdkdemo://web.result");
+----
+
+[#MobilePaymentSDK_Android_AdditionalFeatures]
+=== Additional Features
+
+Features which are not bound to a single payment method are listed here:
+
+[#MobilePaymentSDK_Android_CheckingTransactionStatus]
+==== Checking Transaction Status
+
+You can use the ``checkPayment`` method to see the current status of your
+transaction
+
+.checkPayment Format
+[source,java]
+----
+wirecardClient.checkPayment(wirecardPayment, wirecardResponseListener);
+----
+
+Instead of ``wirecardPayment`` use the relevant payment object
+(e.g. ``wirecardCardPayment). ``It should contain the same request ID &
+MAID as the transaction you are checking.
+
+[#MobilePaymentSDK_Android_CreditCard]
+=== Credit Card
+
+
+[#MobilePaymentSDK_Android_FullscreenForm]
+==== Fullscreen Form
+
+NOTE: Do not forget to create and initialize an instance of
+the ``WirecardClient`` object before you go further, as explained at the
+start of this section.
+
+[#MobilePaymentSDK_Android_CreditCard_SimpleTransactions]
+===== Simple Transactions
+
+. Create and initialize the ``WirecardCardPayment`` object, which stores
+the transaction's payload & signature:
++
+[source,java]
+----
+WirecardCardPayment wirecardCardPayment = new WirecardCardPayment (signature, requestTimeStamp, requestID,merchantID, transactionType, amount, currency);
+----
++
+. Initialize the ``WirecardResponseListener`` object, which stores
+callback methods that let you know the result of the transaction, or any
+errors, should they occur:
++
+.WirecardResponseListener Initialization
+[source,java]
+----
+WirecardResponseListener wirecardResponseListener = new WirecardResponseListener() {
+    @Override
+    public void onResponse(WirecardPaymentResponse paymentResponse) {
+        // handle server response
+        if (paymentResponse.getTransactionState().equals(TransactionState.SUCCESS)) {
+            // handle successful transaction
+        } else {
+            // handle unsuccessful transaction
+        }
+    }
+    @Override
+    public void onError(WirecardResponseError responseError) {
+        // handle error
+        switch (responseError.getErrorCode()) {
+            case WirecardErrorCode.ERROR_CODE_GENERAL:
+                String detailedMessage = responseError.getErrorMessage();
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_INVALID_PAYMENT_DATA:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_NETWORK_ISSUE:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_USER_CANCELED:
+                //...
+                break;
+        }
+    }
+};
+----
++
+. Call the _``WirecardClient``_'s method ``makePayment`` to send the
+transaction request:
++
+[source,java]
+----
+wirecardClient.makePayment(wirecardCardPayment, wirecardResponseListener, paymentPageStyle);
+----
++
+You can customize the UI through resources of
+the ``paymentPageStyle`` object. We will revisit the 'how' at the end of
+this section.
++
+. Process the response. If everything went smoothly server-side,
+the ``onResponse`` method will be called. If any errors
+occurred, ``onError`` will be called instead.
+
+//-
+
+[#MobilePaymentSDK_Android_CreditCard_ReferencedTransactions]
+===== Referenced Transactions
+
+If you need to perform referenced transactions (i.e. one's using
+``token`` or ``parentTransactionID``), set them in
+the ``wirecardCardPayment`` instance:
+
+[source,java]
+----
+wirecardPayment.setParentTransactionID(parentTransactionID);
+----
+
+OR
+
+[source,java]
+----
+CardToken cardToken = new CardToken(tokenID, maskedAccountNumber);
+wirecardPayment.setCardToken(cardToken);
+----
+
+[#MobilePaymentSDK_Android_CustomizingtheUI]
+===== Customizing the UI
+
+Despite strict rules, we give you as much customization as possible
+within the limits of the PCI DSS standards.
+
+.You can customize the following
+- styling of the input fields
+- background color of the form & buttons
+- labels, hints, and their colors
+- icons for the supported card providers
+
+//-
+
+. To begin customizing, initialize ``PaymentPageStyle``:
++
+[source,java]
+----
+PaymentPageStyle style = new PaymentPageStyle();
+----
++
+. Then, provide your customized resources:
++
+[source,java]
+----
+PaymentPageStyle style = new PaymentPageStyle();
+           style.backgroundResourceId = R.color.yellow;
+           style.inputTextColor = context.getResources().getColor(R.color.red);
+           style.inputFieldColor = context.getResources().getColor(R.color.red);
+           style.inputHintTextColor = context.getResources().getColor(R.color.red_transparent);
+           style.payButtonBackgroundResourceId = R.color.blue;
+           style.toolbarResourceId = R.color.red;
+           style.inputLabelTextColor = context.getResources().getColor(R.color.blue);
+           style.scanButtonTextColor = context.getResources().getColor(R.color.red);
+           style.toolbarTextColor = context.getResources().getColor(R.color.yellow);
+           style.payButtonTextColor = context.getResources().getColor(R.color.yellow);
+
+           //!!!
+           Set<CardBrand> supportedCardBrands = new HashSet<>();
+           supportedCardBrands.add(CardBrand.MASTERCARD);
+           supportedCardBrands.add(CardBrand.AMEX);
+           style.supportedCardBrands = supportedCardBrands;
+
+           ...
+----
+
+//-
+
+NOTE: If you do not configure ``Set<CardBrand> supportedCardBrands`` at this
+point, all of the possible card brands will be considered supported by
+default.
+
+[#MobilePaymentSDK_Android_EmbeddedForm]
+==== Embedded Form
+
+NOTE: Do not forget to create and initialize an instance of
+the ``WirecardClient`` object before you go further, as explained at the
+start of this section.
+
+Since you're using an embedded component instead of rendering the whole
+page, there are some changes in the approach.
+
+You need to initialize the ``WirecardCardFormFragment`` component first:
+
+. In the XML layout, create a container where you will place the ``WirecardCardFormFragment`` :
++
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKAndroidEmbeddedForm_ThenProvideYourCustomizedResources.xml[]
+----
++
+. Create a new instance of this fragment:
++
+[source,java]
+----
+WirecardCardFormFragment wirecardCardFormFragment = new WirecardCardFormFragment.Builder(wirecardExtendedCardPayment).build();
+----
++
+. Add ``wirecardCardFormFragment`` into the container created in
+first step:
++
+[source,java]
+----
+getSupportFragmentManager()
+    .beginTransaction()
+    .add(R.id.container, wirecardCardFormFragment)
+    .commit();
+----
+
+//-
+
+Now you should be able to see the card component in your layout.
+
+[#MobilePaymentSDK_Android_CustomizingTheFormFragment]
+===== Customizing The Form Fragment
+
+To style the fragment,
+create ``WirecardCardFormFragment`` using ``WirecardCardFormFragment.Builder:``
+
+[source,java]
+----
+WirecardCardFormFragment wirecardCardFormFragment = new WirecardCardFormFragment.Builder(wirecardExtendedCardPayment)
+.setLocale("de")
+.setTextSize(12)
+.setHintColorID(hintColorID)
+.setTextColorID(textColorID)
+.setRequestFocus(true)
+.build();
+----
+
+To set supported card brands, use ``WirecardCardFormFragment.Builder``
+method ``setSupportedCardBrands(Set<CardBrand> supportedCardBrands)``:
+
+[source,java]
+----
+Set<CardBrand> supportedCardBrands = new HashSet<>();
+supportedCardBrands.add(CardBrand.MASTERCARD);
+supportedCardBrands.add(CardBrand.AMEX);
+
+builder.setSupportedCardBrands(supportedCardBrands);
+----
+
+NOTE: If you do not set the supported card brands, all of them are shown as
+supported by default.
+
+[#MobilePaymentSDK_Android_PaymentObject]
+===== Initializing the Payment Object
+
+After setting the fragment into the layout, the steps are similar to the
+normal process.
+
+The way you enable the payment object is almost identical to the full
+screen form approach; however, instead of ``WirecardCardPayment``,
+use ``WirecardExtendedCardPayment``:
+
+[source,java]
+----
+WirecardExtendedCardPayment wirecardExtendedCardPayment = new WirecardExtendedCardPayment(signature, requestTimeStamp, requestID, merchantID, transactionType, amount, currency);
+----
+
+Optionally, if a last name is required for successful transaction, add
+it to ``WirecardExtendedCardPayment``:
+
+[source,java]
+----
+CustomerData accountHolder = new CustomerData();
+accountHolder.setLastName(lastName);
+wirecardExtendedCardPayment.setAccountHolder(accountHolder);
+----
+
+[#MobilePaymentSDK_Android_InputStateListener]
+===== Initializing the Input State Listener
+
+As the name suggests, Input State Listener notifies you of any state
+changes in your card input fields (e.g. you can use this for showing
+text message or alerts for certain cases).
+
+To use it, follow these steps:
+
+. Create a ``WirecardInputFormsStateChangedListener`` instance:
++
+[source,java]
+----
+WirecardInputFormsStateChangedListener wirecardInputFormsStateChangedListener = new WirecardInputFormsStateChangedListener() {
+    @Override
+        public void onStateChanged(int code) {
+            switch(code){
+                case WirecardInputFormsStateChangedListener.CARD_NUMBER_FORM_FOCUS_GAINED:
+                    ...
+                    break;
+                case WirecardInputFormsStateChangedListener.EXPIRATION_MONTH_FORM_FOCUS_GAINED:
+                    ...
+                    break;
+                ...
+            }
+        }
+};
+----
++
+. Create a ``WirecardInputFormsStateManager`` instance. This
+manages communication between the input fields and the listener:
++
+[source,java]
+----
+WirecardInputFormsStateManager wirecardInputFormsStateManager = new WirecardInputFormsStateManager(context, wirecardInputFormsStateChangedListener);
+----
+
+//-
+
+``WirecardInputFormsStateManager`` provides two methods:
+
+- ``startReceivingEvents()``
+- ``stopReceivingEvents()``
+
+//-
+
+The manager wraps the BroadcastReceiver, so you can treat these two
+methods like
+BroadcastReceiver's ``registerReceiver()``/``unregisterReceiver()``.
+
+Regardless, call ``startReceivingEvents()`` in the ``onResume()`` method,
+and ``stopReceivingEvents()`` in the ``onPause()`` method:
+
+[source,java]
+----
+@Override
+public void onResume() {
+    super.onResume();
+    wirecardInputFormsStateManager.startReceivingEvents();
+}
+@Override
+public void onPause() {
+    super.onPause();
+    wirecardInputFormsStateManager.stopReceivingEvents();
+}
+----
+
+Here is a list of constants for fired events included
+in ``WirecardInputFormsStateChangedListener``:
+
+[cols= "m,"]
+|===
+| Constant                           | Event Description
+
+| CARD_NUMBER_FORM_FOCUS_GAINED      | card number input form gained focus
+| EXPIRATION_MONTH_FORM_FOCUS_GAINED | exp. month input form gained focus
+| EXPIRATION_YEAR_FORM_FOCUS_GAINED  | exp. year input form gained focus
+| SECURITY_CODE_FORM_FOCUS_GAINED    | security code (CVC/CID) input form gained focus
+| CARD_NUMBER_FORM_FOCUS_LOST        | card number input form focus lost
+| EXPIRATION_MONTH_FORM_FOCUS_LOST   | exp. month input form focus lost
+| EXPIRATION_YEAR_FORM_FOCUS_LOST    | exp. year input form focus lost
+| SECURITY_CODE_FORM_FOCUS_LOST      | security code (CVC/CID) input form focus lost
+| CARD_BRAND_UNSUPPORTED             | card number wasn't recognized after typing 3 numbers
+| CARD_NUMBER_INVALID                | card number has reached max length but card validity check wasn't successful
+| CARD_NUMBER_INCOMPLETE             | card number is not complete, user typing his number
+| CARD_NUMBER_VALID                  | card passes validity check
+| EXPIRATION_MONTH_INCOMPLETE        | expiration month is not complete yet. For example, user types one number, and jumps to expiration year field.
+| EXPIRATION_MONTH_VALID             | expiration month is valid. Note that we don't have event for invalid state, because user is able to enter only valid month.
+| EXPIRATION_YEAR_INCOMPLETE         | called when expiration year is not complete yet.
+| EXPIRATION_YEAR_VALID              | expiration year is valid. Note that we don't have event for invalid state, because user is able to enter only valid year.
+| SECURITY_CODE_INCOMPLETE           | security code is not complete yet
+| SECURITY_CODE_VALID                | security code is complete
+| CARD_VALID                         | all inputs(card number, expiration month, expiration year and security code) are valid. When you get this event, you can proceed to next step
+|===
+
+
+[#MobilePaymentSDK_Android_CreditCard_ExecutingTransactions]
+===== Executing Credit Card Transactions
+
+Before you execute the transaction, you need to get the data from the
+input fields to the handler:
+
+[source,java]
+----
+wirecardExtendedCardPayment = wirecardCardFormFragment.getWirecardExtendedCardPayment();
+----
+
+Now that ``WirecardExtendedCardPayment`` has the payment data, you can
+call ``WirecardClient``'s ``makePayment()`` method and execute the
+transaction.
+
+It is possible to clear all input fields (e.g. for situations where the
+app goes to background).
+
+``wirecardCardFormFragment.clearAllFields();``
+
+You can also get the card brand of the currently entered card number:
+
+``wirecardCardFormFragment.getCardBrand();``
+
+[#MobilePaymentSDK_Android_FavoritePaymentUseCaseExample]
+===== Favorite Payment Use Case Example
+
+You might want to offer users who have already made a purchase with you a
+streamlined way to pay, where they only enter the security code
+(CVC/CID) instead of all the data (which is now saved as the _card
+token_). You still need to follow all of the steps from
+the <<MobilePaymentSDK_Android_EmbeddedForm, Embedded Form>> section, but with some differences:
+
+. Add a card token (as is, or instead of cardholder's last name) to ``WirecardExtendedCardPayment``:
++
+[source,java]
+----
+wirecardExtendedCardPayment.setCardToken(new CardToken(token, maskedCardNumber));
+----
++
+. Create
+the ``WirecardCardFormFragment`` using ``WirecardCardFormFragment.Builder`` like
+this:
++
+[source,java]
+----
+wirecardCardFormFragment = new WirecardCardFormFragment.Builder(wirecardExtendedCardPayment)
+        .setCardBrand(cardBrand) //for example CardBrand.VISA
+        .setExpirationDate(expirationDate) // for example "1219"
+        .build();
+----
++
+. Same as in the previous example, you need to get the
+updated ``WirecardExtendedCardPayment``, now containing the security code
+from the input field:
++
+[source,java]
+----
+wirecardExtendedCardPayment = wirecardCardFormFragment.getWirecardExtendedCardPayment();
+----
++
+. Call _``WirecardClient``_'s ``makePayment()`` method to execute
+the transaction:
++
+[source,java]
+----
+wirecardClient.makePayment(WirecardExtendedCardPayment, wirecardResponseListener, paymentPageStyle);
+----
+
+//-
+
+
+[#MobilePaymentSDK_Android_PayPal]
+=== PayPal
+
+NOTE: Do not forget to create and initialize an instance of
+the ``WirecardClient`` object before you go further, as explained at the
+start of this section.
+
+[#MobilePaymentSDK_Android_PayPal_SimpleTransactions]
+==== Simple Transactions
+
+. Create and initialize ``WirecardPayPalPayment``:
++
+[source,java]
+----
+WirecardPayPalPayment wirecardPayment = new WirecardPayPalPayment(signature, requestTimeStamp, requestID, merchantID, transactionType, amount, currency);
+----
++
+. Initialize the ``WirecardResponseListener`` object, which stores
+callback methods that let you know the result of the transaction, or any
+errors, should they occur:
++
+.WirecardResponseListener Initialization
+[source,java]
+----
+WirecardResponseListener wirecardResponseListener = new WirecardResponseListener() {
+    @Override
+    public void onResponse(WirecardPaymentResponse paymentResponse) {
+        // handle server response
+        if (paymentResponse.getTransactionState().equals(TransactionState.SUCCESS)) {
+            // handle successful transaction
+        } else {
+            // handle unsuccessful transaction
+        }
+    }
+    @Override
+    public void onError(WirecardResponseError responseError) {
+        // handle error
+        switch (responseError.getErrorCode()) {
+            case WirecardErrorCode.ERROR_CODE_GENERAL:
+                String detailedMessage = responseError.getErrorMessage();
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_INVALID_PAYMENT_DATA:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_NETWORK_ISSUE:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_USER_CANCELED:
+                //...
+                break;
+        }
+    }
+};
+----
++
+. Call _``WirecardClient``_'s method ``makePayment`` to execute the
+transaction:
++
+[source,java]
+----
+wirecardClient.makePayment(wirecardPayPalPayment, wirecardResponseListener, paymentPageStyle);
+----
++
+. Process the response. If everything went smoothly
+server-side, ``wirecardResponseListener``'s ``onResponse`` method is
+called. If any errors occurred, ``onError`` will be called instead.
+
+//-
+
+[#MobilePaymentSDK_Android_PayPal_RecurringTransactions]
+==== Recurring Transactions
+
+If you require recurring transactions, set the ``Periodic`` object
+into the ``wirecardPayPalPayment`` instance:
+
+[source,java]
+----
+Periodic periodic = new Periodic(periodicType, sequenceType);
+wirecardPayPalPayment.setPeriodic(periodic);
+----
+
+[#MobilePaymentSDK_Android_SepaDD]
+=== SEPA Direct Debit
+
+NOTE: Do not forget to create and initialize an instance of
+the ``WirecardClient`` object before you go further, as explained at the
+start of this section.
+
+[#MobilePaymentSDK_Android_SepaDD_SimpleTransactions]
+==== Simple Transactions
+
+. Create and initialize ``WirecardSepaPayment``:
++
+[source,java]
+----
+WirecardSepaPayment payment = new WirecardSepaPayment (signature, requestTimeStamp, requestID, merchantID, transactionType, amount, currency, creditorId, mandateId, mandateSignedDate, merchantName, dueDate);
+----
++
+. Initialize the ``WirecardResponseListener`` object, which stores
+callback methods that let you know the result of the transaction, or any
+errors, should they occur:
++
+.WirecardResponseListener Initialization
+[source,java]
+----
+WirecardResponseListener wirecardResponseListener = new WirecardResponseListener() {
+    @Override
+    public void onResponse(WirecardPaymentResponse paymentResponse) {
+        // handle server response
+        if (paymentResponse.getTransactionState().equals(TransactionState.SUCCESS)) {
+            // handle successful transaction
+        } else {
+            // handle unsuccessful transaction
+        }
+    }
+    @Override
+    public void onError(WirecardResponseError responseError) {
+        // handle error
+        switch (responseError.getErrorCode()) {
+            case WirecardErrorCode.ERROR_CODE_GENERAL:
+                String detailedMessage = responseError.getErrorMessage();
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_INVALID_PAYMENT_DATA:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_NETWORK_ISSUE:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_USER_CANCELED:
+                //...
+                break;
+        }
+    }
+};
+----
++
+. Call _``WirecardClient``_'s method ``makePayment ``to execute the transaction:
++
+[source,java]
+----
+wirecardClient.makePayment(wirecardSepaPayment, wirecardResponseListener, paymentPageStyle);
+----
++
+. Process the response. If everything went smoothly
+server-side, ``wirecardResponseListener``'s ``onResponse`` method is
+called. If any errors occurred, ``onError`` is called instead.
+
+//-
+
+[#MobilePaymentSDK_Android_SepaDD_RecurringTransactions]
+==== Recurring Transactions
+
+If you require recurring transactions, set the ``Periodic`` object
+into the ``wirecardSepaPayment`` instance:
+
+[source,java]
+----
+Periodic periodic = new Periodic(periodicType, sequenceType);
+wirecardSepaPayment.setPeriodic(periodic);
+----
+
+[#MobilePaymentSDK_Android_PBBA]
+=== Pay by Bank app (PBBA)
+
+NOTE: Do not forget to create and initialize an instance of
+the ``WirecardClient`` object before you go further, as explained at the
+start of this section.
+
+[#MobilePaymentSDK_Android_PBBA_SimpleTransactions]
+==== Simple Transactions
+
+. Add a dependency for the Zapp merchant library. For more
+details on dependencies
+see <<MobilePaymentSDK_BasicSetup, Basic Setup and Integration>>:
++
+[source,java]
+----
+compile 'com.zapp.library:merchant:1.1.0'
+----
++
+. Create and initialize ``WirecardPBBAPayment``:
++
+[source,java]
+----
+WirecardPBBAPayment wirecardPayment = new WirecardPBBAPayment(signature, timestamp, requestID, merchantID, transactionType, amount, currency, zappTransactionType, zappDeliveryType, returnValue);
+----
++
+====
+[#MobilePaymentSDK_Android_PBBA_ImportantNotes]
+[discrete]
+====== Important notes
+- The only supported transaction type is ``debit``.
+- The only supported currency is ``GBP``.
+- IP address is mandatory for this payment method.
+
+- ``zappTransactionType`` is one of following options: ``BILLPT``, ``PAYMT``,
+``INVOICE``, ``DONATIONS ``.
+
+- ``zappDeliveryType`` is one of following options: ``COLLST``, ``DELTAD``, ``DIGDEL``,
+``SERVICE``, ``F2F``, ``NONE``.
+
+- ``ReturnValue`` is the URL scheme used in the bank application to redirect
+the consumer back to your application.
+
+- If a user cancels the ZAPP popup with the payment code ``BRN`` by pressing
+the *X* button at the top right, ``ERROR_CODE_USER_CANCELED`` is returned to
+let the merchant know that the user cancelled the transaction. Users
+cannot cancel a transaction if the CFI app is installed.
+====
++
+. Initialize the ``WirecardResponseListener`` object, which stores
+callback methods that let you know the result of the transaction, or any
+errors, should they occur:
++
+.WirecardResponseListener Initialization
+[source,java]
+----
+WirecardResponseListener wirecardResponseListener = new WirecardResponseListener() {
+    @Override
+    public void onResponse(WirecardPaymentResponse paymentResponse) {
+        // handle server response
+        if (paymentResponse.getTransactionState().equals(TransactionState.SUCCESS)) {
+            // handle successful transaction
+        } else {
+            // handle unsuccessful transaction
+        }
+    }
+    @Override
+    public void onError(WirecardResponseError responseError) {
+        // handle error
+        switch (responseError.getErrorCode()) {
+            case WirecardErrorCode.ERROR_CODE_GENERAL:
+                String detailedMessage = responseError.getErrorMessage();
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_INVALID_PAYMENT_DATA:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_NETWORK_ISSUE:
+                //...
+                break;
+            case WirecardErrorCode.ERROR_CODE_USER_CANCELED:
+                //...
+                break;
+        }
+    }
+};
+----
++
+. Update ``AndroidManifest.xml`` with a starting activity for
+the custom URL scheme:
++
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKAndroid_PBBA_ImportantNotes_WirecardResponseListenerInitialization.xml[]
+----
++
+To avoid app instability, add
+also ``android:configChanges="orientation|screenSize"`` to the
+activity record in your _AndroidManifest_ file:
++
+.Example Usage
+[source,java]
+----
+        <activity
+            android:name=".ui.activity.PaymentActivity"
+            android:label="Payment"
+            android:configChanges="orientation|screenSize" />
+----
++
+. You need to use ``PBBAButton`` for executing transactions
+(see ZAPP guidelines for more details):
++
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MobilePaymentSDKAndroid_PBBA_ImportantNotes_ExampleUsage.xml[]
+----
++
+. Call ``WirecardClient``'s method ``makePayment ``to execute the
+transaction:
++
+[source,java]
+----
+wirecardClient.makePayment(wirecardSepaPayment, wirecardResponseListener, paymentPageStyle);
+----
++
+. Next, either the PBBA dialog is shown or the banking application is opened.
+. Consumer makes the payment in the banking application and is
+redirected back to your application. The application returns success or
+timeout depending on the response.
+. Process the response. If everything went smoothly
+server-side, ``wirecardResponseListener``'s ``onResponse`` method is
+called. If any errors occurred, ``onError`` is called instead.
+
+//-

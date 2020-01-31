@@ -1,0 +1,538 @@
+[#payolution]
+== REST API
+_payolution_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#payolution_CountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols=",,",stripes=none]
+|===
+.3+h| Countries
+| Invoice B2C
+| AT, DE, CH, NL
+| Invoice B2B
+| AT, DE, CH
+| Installment
+| AT, DE, CH
+h| Currencies
+2+| EUR, CHF
+|===
+
+[#payolution_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _payolution_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+[width=75%,stripes=none,cols=",,"]
+|===
+.2+h|Requests/Responses
+|Format
+|XML
+|Methods
+|POST
+h|IPN Encodement
+2+|Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#payolution_Transactions]
+=== Transactions
+
+[#payolution_SpecificPaymentMethods]
+==== _payolution's_ Specific Payment Methods
+
+[%autowidth,stripes=none,cols="v,"]
+|===
+|Payment Method |Description
+
+|payolution-inv
+|Performs an invoice transaction. Used only for B2C transactions.
+|payolution-b2b
+|Performs an invoice transaction. Used only for B2B
+transactions. The company name must be provided and the consumer
+birthdate is not mandatory in this case.
+|payolution-inst
+|Performs an installment transaction. Can be used only
+for B2C transactions.
+|===
+
+[#payolution_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+[%autowidth,cols="v,,]
+|===
+| Transaction Type | Description | Link to the Samples
+
+| _authorization_
+| Performs creditworthiness check the moment the consumer places an order.
+| <<payolution_Samples_authorization, _authorization_ samples>>
+| _capture-authorization_
+| Used to capture the reserved funds the moment
+some or all goods are physically delivered to the consumer. Available
+only on successful authorization response which wasn't voided nor fully
+captured. Partial (and multiple) captures are allowed as long as the
+authorization limit is not exceeded.
+| <<payolution_Samples_captureAuthorization, _capture-authorization_ samples>>
+| _void-authorization_
+| Used when the consumer wishes to cancel some or
+all (not yet shipped) items from the order. Available only for a
+successful authorization response which has not yet been voided or
+captured. Partial and multiple voids are allowed until all ordered items
+are canceled or shipped.
+| <<payolution_Samples_voidAuthorization, _void-authorization_ samples>>
+|_refund-capture_
+| Used when the consumer wishes to return some or all
+delivered goods. Available on a successful capture-authorization.
+Partial and multiple refunds are allowed until all delivered items have
+been returned.
+| <<payolution_Samples_refundCapture, _refund-capture_ samples>>
+|===
+
+[#payolution_TestCredentials]
+=== Test Credentials
+
+[cols=",,"]
+[%autowidth]
+[stripes=none]
+|===
+.2+h| URLs (Endpoints)
+| For transaction type _authorization_.
+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+| For transaction types _capture-authorization_, _refund-capture_ and _void-authorization._
+| ``\https://{test-instance-hostname}/engine/rest/payments/``
+h| Merchant Account ID (MAID)
+2+| 2048677d-57f4-44b0-8d67-9014c6631d5f
+h| Username
+2+| 16390-testing
+h| Password
+2+| 3!3013=D3fD8X7
+h| Secret Key
+2+| 74bd2f0c-6d1b-4e9a-b278-abc34b83ab9f
+|===
+
+.Additional Test Credentials on _payolution_ Environment
+
+[%autowidth, cols= "h,"]
+|===
+|German Bank Account
+|IBAN: DE55203205008737970454 +
+BIC: DABADEHHXXX
+|Austrian Bank Account
+|IBAN: AT321936000136412018 +
+BIC: INGDAT21XXX
+|Swiss Bank Account
+|Not necessary on test environment.
+|Netherlands
+|Installment not supported for consumers from the Netherlands.
+|===
+
+[#payolution_Workflow]
+=== Workflow
+
+[#payolution_InvoiceB2C]
+==== Invoice B2C (_authorization, capture-authorization_)
+
+[NOTE]
+====
+_payolution_ sends the _authorization_ request with the _payolution_
+specific payment method "*payolution-inv*".
+
+For B2C transactions, the account holder's date of birth is mandatory.
+
+Invoice B2C captures the full amount only when *all the ordered goods*
+are ready for delivery.
+====
+
+image::images/11-23-payolution/payolution_InvoiceB2C_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
+
+[#payolution_InvoiceB2B]
+==== Invoice B2B (_authorization, capture-authorization_)
+
+[NOTE]
+====
+_Invoice B2B_ has the same structure as _Invoice B2C_.
+
+_Invoice B2B_ sends the _authorization_ request with the _payolution_
+specific payment method "*payolution-b2b*".
+
+For B2B transactions, a company name is required.
+
+Invoice B2B captures the full amount only when *all ordered goods* are
+ready for delivery.
+====
+
+image::images/11-23-payolution/payolution_InvoiceB2B_authorization_captureAuthorization.png[payolution Invoice B2B, width=950, align="right"]
+
+[#payolution_Installment]
+==== Installment (_authorization, capture-authorization_)
+
+[NOTE]
+====
+_Installment_ sends the _authorization_ request with the _payolution_
+specific payment method "*payolution-inst*".
+
+_Capture-authorization_ must be triggered *immediately after the
+authorization* response has arrived.
+====
+
+image::images/11-23-payolution/payolution_Installment_authorization_captureAuthorization.png[payolution Installment, width=950, align="right"]
+
+[#payolution_Reversal]
+==== Reversal (_void-authorization_)
+
+A reversal cancels an authorized order and blocks it for future
+captures. Only full reversals of the non-captured amount are supported.
+Reversals should not be possible for installment transactions (capture
+should follow authorization immediately).
+
+[NOTE]
+====
+_Reversal_ sends the _authorization_ request with the _payolution_
+specific payment method "*payolution-inv*".
+
+_Reversal_ sends a partial _capture_ request when *some of the
+items* are ready for delivery.
+
+Only the fully authorized amount that has not been captured can be
+voided. Partial void authorizations are not possible.
+====
+
+image::images/11-23-payolution/payolution_reversal_voidAuthorization.png[payolution Reversal, width=950, align="right"]
+
+[#payolution_Refund]
+==== Refund (_refund-capture_)
+
+[NOTE]
+====
+A refund request must be sent in case of goods returned by the consumer.
+
+Refunds can also be used for invoice reduction or settlement of faulty
+payments with the merchant account.
+
+The refund workflow applies to both Invoice and Installment
+transactions.
+====
+
+[NOTE]
+====
+_Refund_ sends the _authorization_ request with the _payolution_
+specific payment method "*payolution-inv*".
+
+_Refund_ sends a _capture_-_authorization_ request when *all the
+items* are ready for delivery.
+
+Multiple _captures_ are allowed in case that only part of the order is
+ready for delivery.
+
+Sends _refund-capture_ request with the amount of returned items.
+====
+
+image::images/11-23-payolution/payolution_refund_refundCapture.png[payolution Refund, width=950, align="right"]
+
+[#payolution_Fields]
+=== Fields
+
+The fields used for _payolution_ requests, responses and notifications
+are the same as the REST API fields. Please refer to the <<RestApi_Fields, REST API field list>>.
+
+Only the fields listed below have different properties, especially
+according to size.
+
+[#payolution_Fields_authorization]
+==== _authorization_
+
+The following elements are mandatory (M), optional (O) or conditional
+\(C) for an _authorization_ request for any
+of _payolution's_ specific payment methods
+(payolution-inv, payolution-b2b and payolution-inst).
+
+[cols="v,,,,"]
+[frame=all]
+[%autowidth]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|payment-methods/payment-method@name |M |xs:string |15 |Name of payment
+method is <payolution-inv>, <payolution-b2b> or <payolution-inst>.
+|account-holder/first-name |M |xs:string |32 |The first name of the
+account holder.
+|account-holder/last-name |M |xs:string |32 |The last name of the
+account holder.
+|account-holder/email |M |xs:string |64 |The email address of the
+account holder.
+|account-holder/date-of-birth |C |xs:string |10 |The date of birth of
+the account holder. Mandatory for B2C transactions. Optional for B2B
+transactions.
+|account-holder/phone |C |xs:string |32 |The phone number of the account
+holder. Mandatory for consumers from the Netherlands.
+|account-holder/address/street1 |M |xs:string |128 |The first line of
+the street address of the account holder.
+|account-holder/address/city |M |xs:string |32 |The city of the address
+of the account holder.
+|account-holder/address/country |M |xs:string |2 |The Country ID of the
+address of the account holder (ISO 3166-1 alpha-2).
+|account-holder/address/postal-code |M |xs:string |16 |The postal code
+or ZIP of the address of the account holder.
+|===
+
+[#payolution_Fields_CustomFieldsforB2BTransactions]
+==== Custom Fields for B2B Transactions
+
+Custom fields contain company information if the consumer is a business
+consumer. For B2B transactions only the company name is mandatory. All
+other fields are optional.
+
+[cols="v,,,,"]
+[frame=all]
+[%autowidth]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|custom-field@field-name="company-name" |M |xs:string |256 |Company name
+of consumer.
+|custom-field@field-name="company-uid" |O |xs:string |256 |VAT
+identification number of consumer.
+|custom-field@field-name="company-trade-register-number" |O |xs:string
+|256 |Trade register number of consumer.
+|custom-field@field-name="company-register-key" |O |xs:string |256
+|Additional registration information about consumer.
+|===
+
+[#payolution_AmountLimits]
+=== Amount Limits
+
+The order amount must be within the limits agreed upon in the contract
+closed with _payolution_. The limits are set individually for each of
+_payolution's_ specific payment method (payolution-inv, payolution-b2b
+and payolution-inst). If the order amount is not within the defined
+limits, the payment options Installment and Invoice should not be
+available to the consumer.
+
+[#payolution_Samples]
+=== Samples
+
+Click the link to view corresponding <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
+
+[#payolution_Samples_authorization]
+==== _authorization_
+
+.XML B2C Invoice authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inv_authorization_request_success.xml[]
+----
+
+.XML B2C Invoice authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inv_authorization_response_success.xml[]
+----
+
+.XML B2C Invoice authorization Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inv_authorization_request_failure.xml[]
+----
+
+.XML B2C Invoice authorization Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inv_authorization_response_failure.xml[]
+----
+
+***
+
+[#payolution_Samples_B2BInvoiceAuthorization]
+
+.XML B2B Invoice authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_authorization_request_success.xml[]
+----
+
+.XML B2B Invoice authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_authorization_response_success.xml[]
+----
+
+.XML B2B Invoice authorization Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_authorization_request_failure.xml[]
+----
+
+.XML B2B Invoice authorization Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_authorization_response_failure.xml[]
+----
+
+***
+
+[#payolution_Samples_InstallmentAuthorization]
+
+.XML Installment authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inst_authorization_request_success.xml[]
+----
+
+.XML Installment authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inst_authorization_response_success.xml[]
+----
+
+.XML Installment authorization Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inst_authorization_request_failure.xml[]
+----
+
+.XML Installment authorization Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inst_authorization_response_failure.xml[]
+----
+
+[#payolution_Samples_captureAuthorization]
+==== _capture-authorization_
+
+.XML B2C Invoice capture-authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inv_capture-authorization_request_success_be8a53f9.xml[]
+----
+
+.XML B2C Invoice capture-authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inv_capture-authorization_response_success_be8a53f9.xml[]
+----
+
+***
+
+.XML B2B Invoice capture-authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_capture-authorization_request_success_df706683.xml[]
+----
+
+.XML B2B Invoice capture-authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_capture-authorization_response_success_df706683.xml[]
+----
+
+***
+
+.XML Installment capture-authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inst_capture-authorization_request_success_3541d575.xml[]
+----
+
+.XML Installment capture-authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-inst_capture-authorization_response_success_3541d575.xml[]
+----
+
+***
+
+.XML B2B Invoice capture-authorization Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_capture-authorization_request_failure_df706683.xml[]
+----
+
+.XML B2B Invoice capture-authorization Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_capture-authorization_response_failure_df706683.xml[]
+----
+
+[#payolution_Samples_voidAuthorization]
+==== _void-authorization_
+
+.XML B2B Invoice void-authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_void-authorization_request_success_cbbed962.xml[]
+----
+
+.XML B2B Invoice void-authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_void-authorization_response_success_cbbed962.xml[]
+----
+
+.XML B2B Invoice void-authorization Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_void-authorization_request_failure_7311ed4a.xml[]
+----
+
+.XML B2B Invoice void-authorization Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_void-authorization_response_failure_7311ed4a.xml[]
+----
+
+[#payolution_Samples_refundCapture]
+==== _refund-capture_
+
+.XML B2B Invoice refund-capture Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_refund-capture_request_success_8f0b610e.xml[]
+----
+
+.XML B2B Invoice refund-capture Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_refund-capture_response_success_8f0b610e.xml[]
+----
+
+.XML B2B Invoice refund-capture Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_refund-capture_request_failure_240fa6d8.xml[]
+----
+
+.XML B2B Invoice refund-capture Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-b2b_refund-capture_response_failure_240fa6d8.xml[]
+----
+
+//-

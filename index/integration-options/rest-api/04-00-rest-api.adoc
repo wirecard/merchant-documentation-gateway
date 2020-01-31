@@ -1,0 +1,83 @@
+[#RestApi]
+== REST API
+
+The Payment Processing API conforms to the design principles of
+**Re**presentational **S**tate **T**ransfer (REST). {payment-gateway}
+provides access to resources (data entities) via URL paths. To use a REST
+API, your application will make an HTTP request and parse the response.
+By default, the response format is XML. If you wish, you can request
+JSON instead of XML. Your methods will be the standard HTTP methods such
+as GET, PUT, POST and DELETE.
+
+The API currently supports the following data formats:
+
+ifndef::env-nova[]
+- for *requests* XML, JSON and NVP (for credit card only).
+endif::[]
+
+ifdef::env-nova[]
+- for *requests* XML and JSON.
+endif::[]
+
+- for *responses* XML, HTML or JSON. Some methods accept a subset of these
+formats, only.
+//-
+
+
+Change the format extension to a request or set the HTTP accept
+header to get results in the format of your choice. Methods to retrieve
+data from the Payment Processing API require a ``GET`` request. Methods
+that submit data require a ``POST``.
+
+WARNING: API methods that require a particular HTTP method will return an error
+if the request is not made using the correct method. The
+following <<StatusCodes, HTTP Return Codes>> are helpful in analyzing the error.
+
+
+
+Some API methods use optional or requisite parameters. Two things to
+keep in mind when making requests with parameters:
+
+- Parameter values should be UTF-8
+- All URLs for REST should be https://en.wikipedia.org/wiki/Percent_encoding[URL encoded].
+//-
+
+Because the Payment Processing API is based on open standards, any web
+development language may be used to access the API.
+
+[#RestApi_Security]
+=== Security
+
+Every request sent to {payment-gateway} is
+authorized and authenticated. Users are authenticated using
+https://en.wikipedia.org/wiki/Basic_access_authentication[basic
+authentication] over an SSL enabled channel. The Merchant Account
+configuration is used to authorize the request.
+
+[#RestApi_GoingOnProduction]
+=== Going on Production
+
+.REST API endpoints
+
+[cols="h,,", stripes=none]
+
+|===
+| | Test Environment | Production Environment
+
+| Credit Card 
+| ``\https://{test-instance-hostname}/engine/rest/payments`` 
+| ``\https://{instance-hostname}/engine/rest/payments``
+
+| Alternative Payment Methods 
+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/`` 
+| ``\https://{instance-hostname}/engine/rest/paymentmethods/``
+
+| Mobile Payments 
+| ``\https://{test-instance-hostname}/engine/rest/mobile/payments`` 
+| ``\https://{instance-hostname}/engine/rest/mobile/payments``
+|===
+
+NOTE: Please contact our <<ContactUs, Merchant Support>> for production environment credentials.
+
+//-
+
