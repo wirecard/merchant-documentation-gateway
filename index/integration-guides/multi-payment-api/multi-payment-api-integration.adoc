@@ -1,0 +1,181 @@
+[#MultiPaymentApi_Integration]
+== Multi Payment API
+
+The _Multi Payment API_ currently supports the following data formats:
+
+- for requests XML
+- for responses XML
+
+//-
+
+[#MultiPaymentApi_TransactionTypes]
+=== Transaction Types
+
+[cols="e,"]
+|===
+| Name                | Description
+
+| purchase           a| The transaction type ``purchase`` will be used to perform operations
+
+- Reserve and redeem amount on voucher(s)
+- Authorize and capture amount on credit card or debit amount for EPS
+
+//-
+
+This transaction type will be supported for all payment methods and
+combinations enabled for the merchant.
+
+| void-refund-purchase | The transaction type ``void-refund-purchase`` is used to cancel or refund a previously successful purchase transaction.
+|===
+
+[#MultiPaymentApi_GoingonProduction]
+=== Going on Production
+
+The following table shows the _Multi Payment API_ endpoints:
+
+|===
+| Test Environment | Production Environment
+
+| ``\https://{test-instance-hostname}/engine/rest/multi-payments``
+| ``\https://{instance-hostname}/engine/rest/multi-payments``
+|===
+
+Please contact <<ContactUs, Merchant Support>> for environment credentials.
+
+[#MultiPaymentApi_RetrieveMultiPayments]
+=== Retrieve Multi Payments
+
+With the query request function, the merchant can obtain information
+about the status of a multi payment transaction and the payments within.
+
+You can retrieve multi payment transactions via two different ways:
+either by ``multi-payment-id`` or by ``multi-payment-request-id``.
+
+[#MultiPaymentApi_RetrieveByPaymentId]
+==== By multi-payment-id
+
+Retrieving a multi payment transaction using a ``multi-payment-id`` returns
+a single multi payment belonging to a merchant resolver. The
+``multi-payment-id`` node must match the value that was included in the
+multi payment response. An error is returned if the ``multi-payment-id`` is
+not available or the requested user is not authorized to see the
+content. The desired content type can be set through the Accept header
+or by specifying an extension.
+
+[cols="2h,5"]
+|===
+| Test system       | ``\https://{test-instance-hostname}/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/\{multi-payment-id}``
+| Production system | ``\https://{instance-hostname}/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/\{multi-payment-id}``
+| Response Formats  | XML, HTML
+| Request Methods   | GET
+|===
+
+[cols="v,,,"]
+[%autowidth]
+|===
+| Field                              | Cardinality | Datatype     | Size
+
+| ``merchant-account-resolver-category`` | Mandatory   | Alphanumeric | 36
+| ``multi-payment-id``                   | Mandatory   | Alphanumeric | 36
+|===
+
+[#MultiPaymentApi_RetrieveByRequestId]
+==== By multi-payment-request-id
+
+Retrieving a multi payment transaction using a ``multi-payment-request-id`` returns
+a single multi payment belonging to a merchant resolver. The
+``multi-payment-request-id`` node must match the value that was included in the
+multi payment response. An error is returned if the ``multi-payment-request-id`` is
+not available or the requested user is not authorized to see the
+content. The desired content type can be set through the Accept header
+or by specifying an extension.
+
+[cols="2h,5"]
+|===
+| Test system       | ``\https://{test-instance-hostname}/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/search?multiPaymentRequestId=\{multi-payment-request-id}``
+| Production system | ``\https://{instance-hostname}/engine/rest/resolver-category/\{merchant-account-resolver-category}/multi-payments/search?multiPaymentRequestId=\{multi-payment-request-id}``
+| Response Formats  | XML, HTML
+| Request Methods   | GET
+|===
+
+[cols="v,,,"]
+[%autowidth]
+|===
+| Field                              | Cardinality | Datatype     | Size
+
+| ``merchant-account-resolver-category`` | Mandatory   | Alphanumeric | 36
+| ``multi-payment-request-id``           | Mandatory   | Alphanumeric | 36
+|===
+
+[#MultiPaymentApi_Workflow]
+=== Workflow
+
+image::images/06-00-multi-payment-api/transaction-brace.png[Multipayments Workflow]
+
+First, the _Multi Payment API_ validates the incoming
+multi payment request. This validation includes
+
+- Verification of the payment request XML
+- Check if transaction type is configured for the merchant
+- Check if payment method is configured for the merchant
+- Check if transaction type and payment method combination is supported by
+the _Multi Payment API_
+
+//-
+
+IMPORTANT: If the validation fails, the entire transaction will be declined.
+
+After successful validation of a payment request, the _Multi Payment API_
+generates individual payment requests based on the multi payment request.
+
+- For each payment request, a mapped transaction type for the payment
+provider is chosen.
+- If the mapped transaction type is ``skip``, the _Multi Payment API_ does
+not process that particular payment request.
+- The individual payments are processed in order of priority:
+. The voucher payment requests are processed first.
+. Financial payment requests are processed last.
+
+//-
+
+The _Multi Payment API_ sends the individual payment request to the
+respective payment provider.
+
+For any unsuccessful payment response, the _Multi Payment API_ rolls
+back the previously successfully processed payments.
+
+The pending payment requests are not submitted.
+
+WARNING: _EPS_ transactions cannot be rolled back.
+
+Finally, a multi payment response is built with a collective status
+and status of the individual payments.
+
+This response is then sent to merchant.
+
+[#MultiPaymentApi_Samples]
+=== Samples
+
+.Request Purchase Credit Card and 2 Vouchers
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MultiPaymentApiSamples_RequestPurchaseCreditCardAnd2Vouchers.xml[]
+----
+
+.Response Purchase Successful
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MultiPaymentApiSamples_ResponsePurchaseSuccessful.xml[]
+----
+
+.Request Void-Refund-Purchase
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MultiPaymentApiSamples_RequestVoidRefundPurchase.xml[]
+----
+
+.Response Void-Refund-Purchase: Voucher 2 failed, Voucher 1 Rolled Back
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/MultiPaymentApiSamples_RVRPV2fV1RB.xml[]
+----

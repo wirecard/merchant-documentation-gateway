@@ -21,6 +21,10 @@ const typoWordsList = readLines(typoWordsListFile);
 
 var Result = new Object();
 
+function getNested(obj, ...args) {
+    return args.reduce((obj, level) => obj && obj[level], obj)
+}
+
 /**
  * Reads plain text file
  *
@@ -87,7 +91,9 @@ try {
 }
 
 const isNOVA = (argv['nova'] == 'true');
-const includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
+const indexFileName = isNOVA ? 'nova.adoc' : 'index.adoc'
+var includeStatement = 'include::shortcuts.adoc[]\n' + (isNOVA ? ':env-nova:\n' : '');
+includeStatement += ':root: ' + process.cwd() + "\n"
 
 // process.stderr.write(includeStatement);
 
@@ -103,7 +109,7 @@ doc.getSourceLines().forEach((line, lineNumber) => {
                 typoWordsList.forEach(referenceWord => {
                     var levenshteinScore = levenshtein(referenceWord, word);
                     // only look at lv values > 0 && <= 3
-                    if (levenshteinScore && levenshteinScore <= 4){
+                    if (levenshteinScore && levenshteinScore <= 4) {
                         _similarWords.push({
                             "line": lineNumber + 1,
                             "word": word,
@@ -118,7 +124,8 @@ doc.getSourceLines().forEach((line, lineNumber) => {
         }
     }
 });
-Result.similarWords = _similarWords;
+
+//Result.similarWords = _similarWords;
 
 // to get warnings for wrong internal references!
 Opal.gvars.VERBOSE = true;
@@ -127,12 +134,17 @@ doc.convert();
 Result.links = doc.getLinks();
 Result.ids = doc.getIds();
 Result.errors = memoryLogger.getMessages();
+
+//process.stderr.write('asciidoctor-helper: Testing ' + adocFilename + ' with index ' + indexFileName + "\n");
+if (adocFilename == indexFileName) {
+    Result.errors = Result.errors.filter(e => getNested(e, 'message', 'source_location', 'path') != '<stdin>');
+}
 //Result.references = doc.getRefs()
 //Result.images = doc.getImages()
 //Result.footnotes = doc.getFootnotes()
 //Result.indexTerms = doc.getIndexTerms()
 
-if (adocFilename !== 'index.adoc') {
+if (adocFilename !== indexFileName) {
     AnchorIndex[adocFilename] = Result.ids;
     try {
         fs.writeFileSync(anchorIndexFile, JSON.stringify(AnchorIndex, null, 2));
@@ -143,4 +155,7 @@ if (adocFilename !== 'index.adoc') {
 }
 
 // do not remove. output is required by basic-tests.php
-console.log(JSON.stringify(Result, null, 2));
+process.stdout.write(JSON.stringify(Result, null, 2));
+//process.stderr.write("\n" + adocFilename + "\n");
+//process.stderr.write(JSON.stringify(Result.errors, null, 2));
+

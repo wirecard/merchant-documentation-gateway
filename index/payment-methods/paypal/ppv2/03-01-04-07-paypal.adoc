@@ -1,0 +1,914 @@
+
+[#PPv2_PayPal]
+== {payment-page-v2} 
+
+[#PPv2_PayPal_General]
+=== General Information
+
+This is a reference page for _PayPal_. Here you'll find all the
+information necessary for integrating this payment method in
+your Hosted and Embedded Payment Page.
+
+.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
+
+NOTE: Visit one of the integration guides
+(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
+a step-by-step guide before continuing.
+
+All <<PPv2, {payment-page-v2-abbr}>> integrations share a
+<<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
+
+Below, you find example requests for
+<<PPv2_PayPal_TransactionType_debit, _debit_>>,
+<<PPv2_PayPal_TransactionType_authorization, _authorization_>>,
+<<PPv2_PayPal_TransactionType_authorizationonly, _authorization-only_>> and
+<<PPv2_PayPal_TransactionType_order, _order_>>, 
+including field lists with short descriptions.
+
+These requests are designed for the testing environment and do not
+use real information.
+
+NOTE: For production, you need to use production credentials. For details
+contact our <<ContactUs, merchant support>>.
+
+All given requests return successful responses.
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> section.
+
+For response verification examples, see
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+
+[#PPv2_PayPal_About]
+=== About _PayPal_
+
+_PayPal_ is a world wide online payment system which supports online money
+transfers and allows consumers to make and accept payments without
+having to share their financial information with each specific merchant
+(_PayPal_ handles the transfer).
+
+[#PPv2_PayPal_TestCredentials]
+=== Test Credentials
+
+Test credentials for transaction types
+<<PPv2_eps_TransactionType_debit, _debit_>>,
+<<PPv2_PayPal_TransactionType_authorization, _authorization_>>,
+<<PPv2_PayPal_TransactionType_authorizationonly, _authorization-only_>> and
+<<PPv2_PayPal_TransactionType_order, _order_>>.
+
+[cols="35h,65"]
+|===
+| URL(s) Endpoints
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID)
+| 9abf05c1-c266-46ae-8eac-7f87ca97af28
+| Username
+| 70000-APITEST-AP
+| Password
+| qD2wzQ_hrc!8
+| Secret Key (used for response verification)
+| 5fca2a83-89ca-4f9e-8cf7-4ca74a02773f
+|===
+
+[#PPv2_PayPal_TestCredentials_Additional]
+.PayPal Login Credentials
+
+[cols="15h,85"]
+|===
+| Email    | \buyer@wirecard.com
+| Password | Einstein35
+|===
+
+image::images/03-01-04-07-paypal/paypal_wd_merchant_test_store.jpg[Merchant's Test Store Screenshot]
+
+[#PPv2_PayPal_Countries]
+==== Countries and Currencies
+
+This table shows the _PayPal_ payment mode and the countries and currencies which
+are relevant for _PayPal_.
+
+[cols="20h,80"]
+|===
+| Payment Mode | <<PaymentMethods_PaymentMode_Wallet, Wallet>>
+| Countries    | Worldwide
+| Currencies   | USD, EUR, AUD, CAD, CZK, DKK, HKD, HUF, ILS, JPY, MYR, MXN, NOK, NZD, PHP, PLN, GBP, SGD, SEK, CHF, TWD, THB
+|===
+
+[#PPv2_PayPal_TransactionType_debit]
+=== Transaction Type _debit_
+
+A debit transaction charges the specified amount from the account
+holder's bank account and marks it for immediate transfer.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the customer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<PPv2_PayPal_TestCredentials, Endpoint>> for _PayPal_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+_PayPal_ payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<API_PaymentMethods_PayPal, _PayPal_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<PPv2_PayPal_JSONNVPFields, JSON/NVP Field Reference>> section.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="20e,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier
+assigned to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+2+|transaction-type |String |Required |36 |The requested transaction type.
+.2+|requested-amount e|value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|payment-method e|name |String |Optional |15 |The name of the payment method
+used. Set this value to ``paypal``.
+|===
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeDebit_2RtCttPPIRU.json[]
+----
+
+[cols="e,,"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your customer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+The customers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- ``success``ful (``transaction-state: success``),
+- ``failed`` (``transaction-state: failed``),
+- canceled. The customer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as  _failed_, but the status description indicates it
+was canceled.
+
+In any case (unless the customer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeDebit_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="30,5,5,5,55"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+3+|api-id |String |Identifier of the currently used API.
+3+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
+2+|first-name |String |The first name of the shipping address.
+.4+|address e|street1 |String |The first line of the shipping address street.
+|city |String |The city of the shipping address.
+|postal-code |String |The postal code/ZIP of the shipping address.
+|country |String |The country ID part of the shipping address.
+3+|account-id |String |Account holder's _PayPal_ Wallet identifier.
+|payment-methods e|payment-method e|name |String |The name of the payment method
+used for the transaction.
+3+|transaction-id |String |A unique identifier assigned to every transaction
+(by {payment-provider-name}). Used when searching for or referencing to it later.
+3+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+|requested-amount 2+e|currency |String a|The currency of the requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+2+|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimals allowed.
+.4+|statuses .4+e|status e|description |String |The description of the transaction status message.
+|provider-transaction-id |String |A unique transaction identifier generated by the provider.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+3+|instrument-country |String |Payment origin country.
+3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
+2+|merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by {payment-provider-name}).
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state in-progress and finishes with state either success or failed. This information is returned in the response only.
+3+|transaction-type |String |The requested transaction type.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
+2+|email |String |Account holder's email address.
+2+|first-name |String |The first name of the account holder.
+|===
+
+[#PPv2_PayPal_TransactionType_authorization]
+=== Transaction Type _authorization_
+
+An _authorization_ transaction places the account holder's funds on hold,
+pending future _capture_, _re-authorization_ or void transaction.
+
+As with other referenceable transaction types, you can use {payment-page-v2-abbr} only to
+create the authorization itself. To capture or register additional
+transactions referencing it, you need to use our <<RestApi, REST API>>. 
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the customer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+ We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<PPv2_PayPal_TestCredentials, Endpoint>> for _PayPal_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+_PayPal_ payment form.
+
+.Request Headers
+[cols="20,80"]
+|===
+h| Authorization
+| Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+h| Content-Type
+| application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<API_PaymentMethods_PayPal, _PayPal_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<PPv2_PayPal_JSONNVPFields, JSON/NVP Field Reference>> section at the bottom.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+
+[cols="20e,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier
+assigned to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+2+|transaction-type |String |Required |36 |The requested transaction type.
+.2+|requested-amount e|value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|payment-method e|name |String |Optional |15 |The name of the payment method
+used. Set this value to ``paypal``.
+|===
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeAuthorization_2RtCttPPIRU.json[]
+----
+
+[cols="e,,"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeAuthorization_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="30e,5,5,5,55"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+3+|api-id |String |Identifier of the currently used API.
+3+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
+2+|first-name |String |The first name of the shipping address.
+.4+|address e|street1 |String |The first line of the shipping address street.
+|city |String |The city of the shipping address.
+|postal-code |String |The postal code/ZIP of the shipping address.
+|country |String |The country ID part of the shipping address.
+3+|account-id |String |Account holder's _PayPal_ Wallet identifier.
+|payment-methods e|payment-method e|name |String |The name of the payment method used for the transaction.
+3+|transaction-id |String |A unique identifier assigned to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later.
+3+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+|requested-amount 2+e|currency |String a|The currency of the requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+2+|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimals allowed.
+.4+|statuses .4+e|status e|description |String |The description of the transaction status message.
+|provider-transaction-id |String |A unique transaction identifier generated by the provider.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+3+|instrument-country |String |Payment origin country.
+3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
+2+|merchant-account-id e|value |String |A unique identifier assigned to every merchant account (by {payment-provider-name}).
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state in-progress and finishes with state either success or failed. This information is returned in the response only.
+3+|transaction-type |String |The requested transaction type.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
+2+|email |String |Account holder's email address.
+2+|first-name |String |The first name of the account holder.
+|===
+
+[#PPv2_PayPal_TransactionType_authorizationonly]
+=== Transaction Type _authorization-only_
+
+An authorization-only transaction creates a _PayPal_ billing agreement
+between the merchant and account holder, obtaining authorization for
+pre-approved payments.
+
+This transaction type requires specific fields in the request:
+
+- ``periodic-type``, set to value _recurring_ or _installment_.
+- ``sequence-type``, set to value _first_.
+- The ``value`` field of ``requested-amount`` set to zero.
+
+//-
+
+The periodic and sequence information indicates that this is the first
+transaction in a series. The zero transaction amount is required because
+this is only an agreement for future transactions, not a charge.
+The ``provider-transaction-reference-id`` field returned in the response
+contains the ID used to reference the billing agreement.
+
+As with other referenceable transactions, you can use {payment-page-v2-abbr} only to create
+this initial billing agreement. For all following transactions (i.e.
+capturing the _authorization_), you need to use
+our <<RestApi, REST API>>.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the customer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<PPv2_PayPal_TestCredentials, Endpoint>> for _PayPal_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+_PayPal_ payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<API_PaymentMethods_PayPal, _PayPal_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<PPv2_PayPal_JSONNVPFields, JSON/NVP Field Reference>> section at the bottom.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeAuthorizationonly_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="20e,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters: [a-z0-9-_]
+
+2+|transaction-type |String |Required |36 |The requested transaction type.
+.2+|requested-amount e|value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimals allowed.
+
+Use . (decimal point) as the separator.
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|payment-method |name |String |Optional |15 |The name of the
+payment method used for the transaction. Set this value to ``paypal``.
+.2+|periodic |periodic-type |String |Conditional |9 |Required for recurring
+transactions. Indicates if (and how) payment occurs more than once.
+|sequence-type |String |Conditional |9 |Required for recurring transactions.
+Indicates the phase of a recurring transaction.
+|===
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeAuthorizationonly_2RtCttPPIRU.json[]
+----
+
+[cols=",,",]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeAuthorizationonly_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+
+[cols="30,5,5,5,55"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+3+|api-id |String |Identifier of the currently used API.
+3+|parent-transaction-id |String |The ID of the transaction being referenced as
+a parent.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
+2+|first-name |String |The first name of the shipping address.
+.4+|address e|street1 |String |The first line of the shipping address street.
+|city |String |The city of the shipping address.
+|postal-code |String |The postal code/ZIP of the shipping address.
+|country |String |The country ID part of the shipping address.
+3+|account-id |String |Account holder's _PayPal_ wallet identifier.
+|payment-methods e|payment-method e|name |String |The name of the payment method
+used for the transaction.
+.2+|periodic 2+|periodic-type |String |Indicates if (and how) payment occurs more
+than once.
+2+|sequence-type |String |Indicates the phase of a recurring transaction.
+3+|transaction-id |String |A unique identifier assigned to every transaction
+(by {payment-provider-name}). Used when searching for or referencing to it later.
+3+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+|requested-amount 2+e|currency |String a|The currency of the
+requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+2+|value |Numeric |The full amount that is requested/contested in a transaction. 2 decimals allowed.
+.4+|statuses .4+e|status e|description |String |The description of the
+transaction status message.
+|provider-transaction-id |String |A unique transaction identifier generated
+by the provider.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+3+|instrument-country |String |Payment origin country.
+3+|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by {payment-provider-name}).
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state in-progress and finishes with state
+either success or failed. This information is returned in the response only.
+3+|transaction-type |String |The requested transaction type.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
+2+|email |String |Account holder's email address.
+2+|first-name |String |The first name of the account holder.
+|===
+
+[#PPv2_PayPal_TransactionType_order]
+=== Transaction Type _order_
+
+_order_ is a _PayPal_-specific transaction type, which indicates that the
+buyer has consented to the purchase but does not place the funds on
+hold. For detailed information on how it works, see its
+<<API_PayPal_Transactions_TransactionTypes_PayPalSpecific_order, REST API specification>>.
+
+After merchant creates an order, they can place multiple authorizations
+upon it to place funds on hold until ready to capture. This transaction
+is primarily for situations where items are not available for shipment
+immediately after the order is placed, e.g.:
+
+- when a merchant ships items from multiple distribution centers and
+needs separate authorizations for each shipment,
+- delayed shipping on items that are not in stock.
+
+//-
+
+As with other referenceable transaction types, you can use {payment-page-v2-abbr} only to
+create an order transaction. To register an additional authorization to
+capture it, you need to use our <<PPv2_PayPal_PostProcessing, REST API>>.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the customer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You
+can find them below.
+
+<<PPv2_PayPal_TestCredentials, Endpoint>> for _PayPal_ transactions.
+
+.Initial Request
+
+The initial request creates the payment session. If it's
+successful, you receive a URL as a response which redirects to the
+_PayPal_ payment form.
+
+After the merchant creates an _order_, they can place multiple
+authorizations upon it to place funds on hold until ready to _capture_.
+
+Merchants often use this technique to accept orders for items that are
+not available for shipment when the order is placed. For example, when a
+merchant ships items from multiple distribution centers and needs
+separate _authorizations_ for each shipment. Another example would be
+delayed shipping on items that are not in stock.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<API_PaymentMethods_PayPal, _PayPal_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<PPv2_PayPal_JSONNVPFields, JSON/NVP Field Reference>> section at the bottom.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeOrder_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[cols="20e,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier
+assigned to every merchant account (by {payment-provider-name}).
+2+|request-id |String |Required |64 a|A unique identifier assigned to every
+request (by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+2+|transaction-type |String |Required |36 |The requested transaction type.
+.2+|requested-amount e|value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+|payment-method e|name |String |Optional |15 |The name of the payment method
+used. Set this value to ``paypal``.
+|===
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeOrder_2RtCttPPIRU.json[]
+----
+
+[cols="e,,"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalTransactionTypeOrder_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+
+[cols="30e,5,5,5,55"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+3+|api-id |String |Identifier of the currently used API.
+3+|parent-transaction-id |String |The ID of the transaction being referenced
+as a parent.
+.6+|shipping 2+e|last-name |String |The last name of the shipping address.
+2+|first-name |String |The first name of the shipping address.
+.4+|address e|street1 |String |The first line of the shipping address street.
+|city |String |The city of the shipping address.
+|postal-code |String |The postal code/ZIP of the shipping address.
+|country |String |The country ID part of the shipping address.
+|wallet 2+e|account-id |String |Account holder's _PayPal_ wallet identifier.
+|payment-methods e|payment-method e|name |String |The name of the payment method
+used for the transaction.
+3+|transaction-id |String |A unique identifier assigned to every transaction
+(by {payment-provider-name}). Used when searching for or referencing to it later.
+3+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp
+documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+|requested-amount 2+e|currency |String a|The currency of the
+requested/contested transaction amount.
+
+Format: 3-character abbreviation according to ISO 4217.
+2+|value |Numeric |The full amount that is requested/contested in a
+transaction. 2 decimals allowed.
+.4+|statuses .4+e|status e|description |String |The description of the
+transaction status message.
+|provider-transaction-id |String |A unique transaction identifier generated
+by the provider.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+3+|instrument-country |String |Payment origin country.
+3+|request-id |String |A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by {payment-provider-name}).
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+Typically, a transaction starts with state in-progress and finishes with state either success or failed. This information is returned in the response only.
+3+|transaction-type |String |The requested transaction type.
+.3+|account-holder 2+e|last-name |String |The last name of the account holder.
+2+|email |String |Account holder's email address.
+2+|first-name |String |The first name of the account holder.
+|===
+
+[#PPv2_PayPal_PostProcessing]
+=== Post-Processing Operations
+
+{payment-page-v2-abbr} is best used to deal with one-off payments (e.g. regular,
+independent _debit_ transactions) or the initial transaction in a chain of
+them (e.g. a first _authorization_ in a chain of recurring transactions).
+However, when it comes to referencing a transaction for any kind of
+post-processing operation — such as a refund of one of your _debit_ transactions
+— use our <<RestApi, REST API>> directly.
+
+WARNING: Check the REST API
+<<API_PaymentMethods_PayPal, _PayPal_ specification>> for details on
+_PayPal_ specific post processing operations.
+
+There are multiple post processing operations available for _PayPal_:
+
+- _capture_ operations for both _authorization_ and _authorization-only_
+- recurring transactions
+- void transactions
+- refunds
+
+//-
+
+For examples and more information, see the REST
+API <<API_PaymentMethods_PayPal, _PayPal_ specification>>.
+
+[#PPv2_PayPal_JSONNVPFields]
+=== JSON/NVP Field Reference
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a full request (optional fields included).
+
+//-
+
+[#PPv2_PayPal_JSONNVPFields_request]
+.JSON Structure of a _PayPal_ Request
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalJSONNVPFieldsRequest_JSON_StructureOfAPayPalRequest.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|merchant_account_id |value |merchant-account-id ({ })
+|request_id |request-id |payment ({ })
+|transaction_type |transaction-type |payment ({ })
+|requested_amount_currency |currency |requested-amount ({ })
+|requested_amount |value |requested-amount ({ })
+|payment_method |payment-method ([ ])/name |payment-methods ({ })
+|city |address ({ })/ city |account-holder ({ })
+|country |address ({ })/ country |account-holder ({ })
+|postal_code |address ({ })/ postal-code |account-holder ({ })
+|state |address ({ })/ state |account-holder ({ })
+|street1 |address ({ })/ street1 |account-holder ({ })
+|street2 |address ({ })/ street2 |account-holder ({ })
+|email |email |account-holder ({ })
+|first_name |first-name |account-holder ({ })
+|last_name |last-name |account-holder ({ })
+|phone |phone |account-holder ({ })
+|shipping_city |address ({ })/ city |shipping ({ })
+|shipping_country |address ({ })/ country |shipping ({ })
+|shipping_postal_code |address ({ })/ postal-code |shipping ({ })
+|shipping_state |address ({ })/ state |shipping ({ })
+|shipping_street1 |address ({ })/ street1 |shipping ({ })
+|shipping_street2 |address ({ })/ street2 |shipping ({ })
+|shipping_first_name |first-name |shipping ({ })
+|shipping_last_name |last-name |shipping ({ })
+|shipping_phone |phone |shipping ({ })
+|descriptor |descriptor |payment ({ })
+|order_number |order-number |payment ({ })
+|periodic_type |periodic-type |periodic ({ })
+|sequence_type |sequence-type |periodic ({ })
+|success_redirect_url |success-redirect-url |payment ({ })
+|fail_redirect_url |fail-redirect-url |payment ({ })
+|cancel_redirect_url |cancel-redirect-url |payment ({ })
+|===
+
+[#PPv2_PayPal_JSONNVPField_response]
+.JSON Structure of a _PayPal_ Response
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_PayPalJSONNVPFieldResponse_JSON_StructureOfAPayPalResponse.json[]
+----
+
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|api_id |api-id |payment ({ })
+|wallet_account_id |account-id |wallet ({ })
+|transaction_id |transaction-id |payment ({ })
+|completion_time_stamp |completion-time-stamp |payment ({ })
+|status_code_n |status ([ { } ])/ code |statuses ({ })
+|provider_transaction_id_n |status ([ { } ])/ provider-transaction-id
+|statuses ({ })
+|status_description_n |status ([ { } ])/ description |statuses ({ })
+|status_severity_n |status ([ { } ])/ severity |statuses ({ })
+|provider_transaction_reference_id |provider-transaction-reference-id
+|payment ({ })
+|instrument_country |instrument-country |payment ({ })
+|transaction_state |transaction-state |payment ({ })
+|===

@@ -1,0 +1,49 @@
+
+[#PPv2_Seamless_NVP]
+== Merchants Integrated with NVP (Seamless Mode)
+
+Merchants who integrated the previous payment page using NVP can also
+use seamless mode, with a few changes of function names. The integration
+is otherwise identical to the JSON version.
+
+*1. Update the ``paymentPageLoader`` JavaScript library in your ``<head>`` HTML code with the new ``paymentPage.js``:*
+
+[source,html,subs=attributes+]
+----
+<script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+----
+
+*2. Use the NVP version of the "render" function:*
+
+[source,js,subs=attributes+]
+----
+{payment-page-function-short}.seamlessRender({
+  url: "{payment-redirect-url}", // this is the payment link returned in response to your initial api/payment/register request from step 1
+  wrappingDivId: "seamless-form-target",
+  onSuccess: function (response) {
+    // called when seamless form is successfully rendered
+  },
+  onError: function (errResp) {
+    // called if seamless form failed to render
+  }
+});
+----
+
+*3. The "submit" function is the same for both types:*
+
+[source,js,subs=attributes+]
+----
+{payment-page-function-short}.seamlessSubmit({
+  onSuccess: function (response) {
+  // called when seamless form data is successfully submitted
+  },
+  onError: function (response) {
+  //called when data submission fails
+  }
+});
+----
+
+Naturally, you do not send a backend request at the beginning with NVP,
+instead you include all the payment information inside
+``requestData`` like in your old integration.
+
