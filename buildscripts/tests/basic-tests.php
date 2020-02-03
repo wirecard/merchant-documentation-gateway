@@ -10,7 +10,7 @@ Use multithreading with thread pool to speed up the process.
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
-const majorVersion = '1.2';
+const majorVersion = '1.2.1 Brawny Badger';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
@@ -692,8 +692,7 @@ function createSlackMessageFromErrors( $result, $partner, $currentBranch, $commi
       $githubLink = $CI->url_repo.'/blob/'.$currentBranch.'/'.$filename;
     }
 
-    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|Link to Github>)PHP_EOL"
-                      ."*Last edited by:* ".$lastEditedAuthor."PHP_EOL");
+    $content = array("type" => "mrkdwn", "text" => "*File*: ".$filename." (<".$githubLink."|Link to Github>)PHP_EOL");
     if( array_key_exists( 'anchors', $result['tests'] ) && sizeof( $result['tests']['anchors'] ) > 0 ){
       $content['text'] .= "• *Anchors*"."PHP_EOL";
       foreach( $result['tests']['anchors'] as $key => $test ) {
