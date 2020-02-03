@@ -8,7 +8,7 @@ debugMsg "$MSG"
 set +e
 
 errorFiles=()
-for f in *.adoc; do
+for f in $(find . -name '*.adoc'); do
   open=$(grep -cE 'ifn?def::.*\[\]' "$f")
   close=$(grep -cE 'endif' "$f")
   if (( open != close )); then
