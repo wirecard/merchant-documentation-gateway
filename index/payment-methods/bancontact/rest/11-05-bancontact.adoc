@@ -1,0 +1,325 @@
+[#Bancontact]
+== REST API & {payment-page-v1}
+_Bancontact_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#Bancontact_PaymentModeCountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+|Countries    |Belgium
+|Currencies   |EUR
+|===
+
+//-
+
+[#Bancontact_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _Bancontact_ notifications are encoded, and which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format | XML, JSON
+                         | Methods | POST, GET
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_Introduction, Instant Payment Notification>> to set up IPN.
+|===
+
+//-
+
+[#Bancontact_TransactionTypes]
+=== Transaction Types
+
+_Bancontact_ _refund_ and _recurring_ transactions are not provided by _Bancontact_ directly. They can be accomplished using the payment
+method _SEPA_. See refund and recurring for details.
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look at <<AppendixB,  Transaction Types>>.
+
+[%autowidth.strech,stripes=none]
+[cols="e,,"]
+|===
+|Transaction Type |Description |Link to the Sample
+
+| debit           |            | debit samples
+| refund-debit    | _Bancontact_ does not support ``refund-debit``. Use <<SEPACreditTransfer, SEPA Credit Transfer>> to wire funds back to the consumer. |
+| recurring       | _Bancontact_ does not support ``recurring`` transactions. Use <<SEPADirectDebit, SEPA Direct Debit>> to initiate _recurring_ transactions |
+|===
+
+//-
+
+[#Bancontact_TestCredentials]
+=== Test Credentials
+
+[%autowidth.strech,stripes=none]
+|===
+.2+h|URLs (Endpoints)  |REST API     |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+                       |Payment Page |``\https://{test-instance-hostname}/engine/hpp/``
+h|Merchant Account ID (MAID)       2+|86f03c98-6691-421d-94c8-232c3d5c2573
+h|Username             |REST API     |16390-testing
+h|Password             |REST API     |3!3013=D3fD8X7
+h|Secret Key           |Payment Page |2341ae35-aa13-4511-95d5-acd80f0fcb52
+|===
+
+//-
+
+When using our testing environment, the {payment-gateway}
+does not send the request to _Bancontact_ servers. Instead, it
+will be sent to a simulation endpoint that looks similar to
+the _Bancontact_ landing page.
+
+It covers the most basic situations, such as:
+
+- Success scenario
+- User cancellation
+- Invalid card data
+
+//-
+
+NOTE: The look and feel of the simulated landing page will not be regularly
+updated which may lead to differences when comparing with real _Bancontact_ landing page.
+
+You can skip the input fields _Card Number_ and _Expiry Date_ as our
+testing endpoint is ignoring them. To simulate a specific scenario use
+one of the options presented by field _Error code._
+
+image::images/11-05-bancontact/Bancontact_error_code.png[Bancontact error code]
+
+[#Bancontact_Workflow]
+
+[#Bancontact_debit]
+=== Workflow: _debit_
+
+[#Bancontact_UsingReSTAPI]
+==== Using ReST API
+
+image::images/11-05-bancontact/Bancontact_workflow_debit_restapi.png[Bancontact workflow debit using ReST API]
+
+. Consumer wants to pay a product/service.
+. Consumer selects payment method _Bancontact (BC)._
+. {payment-gateway-abbr} redirects consumer from website to _Bancontact_ landing page ({payment-gateway-abbr} uses
+the field ``payment-methods/payment-method/@url`` in the response).
+. Consumer enters _Bancontact_ card data.
+. Now two actions occur simultaneously:
+.. Consumer is sent back to the shop via _Redirect URL_ informing them
+of the status of the payment. The destination depends on the given
+redirect URLs in the <<Bancontact_Sample_ReSTAPI, _debit_ Request (Successful)>> sample (provided in the
+``success-redirect-url`` field).
+.. {payment-gateway-abbr} sends a notification (IPN) of the payment outcome to the
+merchant. In order to receive server-to-server notifications, you have
+to provide the URL of your endpoint in the <<Bancontact_Sample_ReSTAPI, _debit_ Request (Successful)>> sample that will process IPNs (provided in the
+``notifications/notification/@url`` field).
+
+//-
+
+[#Bancontact_UsingPaymentPage]
+==== Using Payment Page
+
+image::images/11-05-bancontact/Bancontact_workflow_debit_paymentpage.png[Bancontact workflow debit using payment page]
+
+. Consumer wants to pay a product/service.
+. Merchant redirects consumer to Payment Page.
+. Consumer selects payment method _Bancontact (BC)._
+. Payment Page redirects the consumer to _Bancontact_ landing page ({payment-gateway-abbr} uses
+the field ``payment_methods/payment_method/@url`` in the response).
+. Consumer completes the payment.
+. Now two actions occur simultaneously:
+.. Consumer is sent back to the Payment Page via _Redirect URL_
+informing them of the status of the payment. The destination depends on
+the given redirect URLs in the Payment Page sample, <<Bancontact_Sample_PaymentPage, _debit_ Request>> (provided in the field ``success_redirect_url``).
+.. Payment Page sends a notification (IPN) of the payment outcome to
+the merchant. In order to receive server-to-server notifications, you
+have to provide the URL of your endpoint in the Payment Page sample,
+<<Bancontact_Sample_PaymentPage, _debit_ Request>> that will process IPNs (``notification_url``).
+
+//-
+
+[#Bancontact_refund]
+==== _refund_
+
+Although, BCMC does not support a native refund mechanism, the {payment-gateway} offers a solution by which you are able to move funds
+to your consumer. {payment-gateway} employs the _SEPA Credit Transfer_ to wire funds back to consumer.
+
+In order to initiate a _refund_ using _SEPA Credit Transfer,_ look at the
+<<GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa_Xml, SEPA Credit Request>> sample.
+
+The workflow is as follows:
+
+image::images/11-05-bancontact/Bancontact_workflow_creditrefund.png[Bancontact workflow using credit refund]
+
+. Merchant receives a request for refund from the consumer.
+. Merchant agrees on refund amount with the consumer to refund a
+specific _debit_ transaction.
+. Refund transaction.
+. Merchant refunds by referencing the _credit_ to a previous _debit_ transaction; or
+. Funds are transferred and consumer receives refund.
+
+//-
+
+Characteristics of this workflow are:
+
+- The workflow is offline, so you have to wait a longer period for the outcome (it is a matter of a few days).
+- _SEPA Credit Transfer_ must be referenced to a successful _debit_
+transaction; the _Transaction ID_ is taken from the successful _debit_
+notification.
+
+//-
+
+NOTE: The refund is not available immediately. You can initiate it 24 hours
+after the initial _debit._
+
+When making a _SEPA Credit Transfer_ request, keep in mind:
+
+. You have to reference the successful _debit_ in the ``parent-transaction-id`` field.
+. Bank account details like IBAN and BIC are not provided by you in
+the request.
+
+//-
+
+[#Bancontact_recurring]
+==== _recurring_
+
+Although, BCMC does not support native mechanism for recurring
+payments, the {payment-gateway} offers a solution by which you
+are able to charge the consumer repeatedly. {payment-gateway}
+employs _SEPA Direct Debit_ to withdraw funds from the consumer.
+
+In order to initiate a _recurring_ transaction using <<SEPADirectDebit, _SEPA Direct Debit_>>,
+
+- look at <<GeneralPlatformFeatures_CrossPayment, Cross-Payment Methods Referencing>> for an explanation on how to make recurring
+transactions using _SEPA Direct Debit._
+- look at the <<GeneralPlatformFeatures_CrossPayment_Samples_Initial_RecurringSepa_Xml, XML SEPA Direct Debit Request Recurring>> sample.
+
+//-
+
+For the characteristics of the workflow see <<Bancontact_refund, refund>> above.
+These characteristics also apply for _recurring_ in combination with
+_SEPA Direct Debit._
+
+When making a _SEPA Direct Debit_ Request, keep in mind:
+
+. You have to reference successful debit in the ``parent-transaction-id`` field.
+. Bank account details like IBAN and BIC are not provided by you in
+the request.
+. You need a Mandate, which represents the consumer's consent of being
+charged via _SEPA Direct Debit._
+. You need to provide your <<SEPADirectDebit_Fields_SpecificFields_CreditorID, Creditor-ID>>
+in each _SEPA Direct Debit_ request.
+
+//-
+
+[#Bancontact_Fields]
+=== Fields
+
+The fields used for _Bancontact_ requests, responses and notifications are the
+same as the REST API Fields resp. Payment Page. Please refer to: <<RestApi_Fields, ReST API Fields>>
+or <<PaymentPageSolutions_Fields, Payment Page>>.
+
+The fields listed below are _Bancontact_ specific and either mandatory *M* or
+optional *O.*
+
+[%autowidth.strech,stripes=none]
+[cols="e,,,"]
+|===
+| Field | Cardinality | Data Type | Description
+
+| transaction-type | M |Alphanumeric a| This is the type for a transaction.
+
+Use ``debit``.
+
+| payment-methods | M | Alphanumeric a|
+The name of the <<PaymentMethods, Payment Method>>.
+
+Use ``bancontact``.
+
+| Locale | O |  a| Language used to localize the _Bancontact_ landing page.
+
+.Supported by _Bancontact_
+- ``zh`` Chinese
+- ``nl`` Dutch
+- ``en`` English
+- ``fr`` French
+- ``de`` German
+- ``hi`` Hindi
+- ``it`` Italian
+- ``ja`` Japanese
+- ``pt`` Portuguese
+- ``ru`` Russian
+- ``sk`` Slovak
+- ``es`` Spanish
+- ``ru`` Russian
+- ``sk`` Slovak
+- ``es`` Spanish
+
+//-
+
+Default locale is ``en`` English.
+|===
+
+[#Bancontact_Samples_RequestsandResponses]
+=== Samples
+
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want to see corresponding notification samples.
+
+[#Bancontact_Sample_ReSTAPI]
+==== REST API
+
+.debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/bancontact_debit_request_success.xml[]
+----
+
+.debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/bancontact_debit_response_success.xml[]
+----
+
+.debit Request (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/bancontact_debit_request_failure.xml[]
+----
+
+.debit Response (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/bancontact_debit_response_failure.xml[]
+----
+
+[#Bancontact_Sample_PaymentPage]
+==== Payment Page
+
+ifdef::env-wirecard[]
+.debit Request (Successful)
+[source,js,subs=attributes+]
+----
+var requestData = {
+  "request_id" : "75887972-6777-4af6-96fb-1c5419d2e80f",
+  "request_time_stamp" : "20170201131500",
+  "merchant_account_id" : "9e1b95df-3928-4256-af7b-2431a3c16c33",
+  "transaction_type" : "debit",
+  "requested_amount" : "0.01",
+  "requested_amount_currency" : "EUR",
+  "request_signature" : "6bb0393236df76463afcfb2a41ddbe43e13635aab2eac9115be9a9cfc3cfc2cb",
+  "first_name" : "John",
+  "last_name" : "Doe",
+  "email" : "john.doe@{domain}",
+  "street1" : "123 anystreet",
+  "city" : "Brantford",
+  "state" : "ON",
+  "country" : "CA",
+  "postal_code" : "M4P1E8",
+  "order_number" : "488037",
+  "shipping_first_name" : "John",
+  "shipping_last_name" : "Doe",
+  "shipping_street1" : "123 anystreet",
+  "shipping_city" : "Brantford",
+  "shipping_country" : "CA",
+  "shipping_postal_code" : "M4P1E8",
+  "notification_url" : "https://merchant.com/ipn.php",
+  "success_redirect_url" : "https://{pp-redirect-url-success}",
+  "fail_redirect_url" : "https://{pp-redirect-url-error}"
+};
+{payment-page-function}.hostedPay(requestData);
+----
+endif::[]
+
+//-

@@ -1,0 +1,495 @@
+[#PP_Security_SignatureV2]
+== Signature v2
+
+The signature consists of two parts:
+
+. The signature's payload - the actual information you are sending in the message,
+. and its calculated value - the generated numeric cipher used for authentication
+
+//-
+
+Both are Base64 URL safe encoded and separated by a period.
+
+.Sample Signature v2
+----
+SFMyNTYKcmVxdWVzdF90aW1lX3N0YW1wPTIwMTYtMDctMjdUMTQ6MzM6NDkrMDI6MDAKbWVyY2hhbnRfYWNjb3VudF9pZD05ODczYWM2NS02ZjI4LTRiNzUtYWU1NS05ZDU0OWNmNTcwZTM.2VTPD7hAiCW-NdDaUqN7pjwizuwHvirVEs1HdGU-iz0
+----
+
+[#PP_Security_SignatureV2_Format]
+=== Format
+
+For mobile:
+
+The signature is included in ``Authorization`` header of HTTP request
+that contains the authorization scheme and body.
+
+.Sample Header
+----
+Authorization: SFMyNTYKcmVxdWVzdF90aW1lX3N0YW1wPTIwMTYtMDctMjdUMTQ6MzM6NDkrMDI6MDAKbWVyY2hhbnRfYWNjb3VudF9pZD05ODczYWM2NS02ZjI4LTRiNzUtYWU1NS05ZDU0OWNmNTcwZTM.2VTPD7hAiCW-NdDaUqN7pjwizuwHvirVEs1HdGU-iz0
+----
+
+For seamless and HPP/EPP:
+
+The value is then presented on the merchant's client side form as
+``request_signature_v2`` field.
+
+.Field Value Example
+----
+WAUTH SFMyNTYKcmVxdWVzdF90aW1lX3N0YW1wPTIwMTYtMDctMjdUMTQ6MzM6NDkrMDI6MDAKbWVyY2hhbnRfYWNjb3VudF9pZD05ODczYWM2NS02ZjI4LTRiNzUtYWU1NS05ZDU0OWNmNTcwZTM.2VTPD7hAiCW-NdDaUqN7pjwizuwHvirVEs1HdGU-iz0
+----
+
+Currently the scheme is ``WAUTH`` and the body consists from signature
+payload and calculated value,
+both https://en.wikipedia.org/wiki/Base64[Base64 URL safe] encoded and
+separated with a period.
+
+NOTE: In the future another schema with different body formats could
+be added.
+
+[#PP_Security_SignatureV2_Payload]
+=== Signature v2 Payload
+
+The signature's payload contains:
+
+. The name of the algorithm which is used to calculate the signature,
+. and other fields, in name-value pair format, separated by a new line ``\n``
+
+//-
+
+.Payload Example
+----
+algorithmName\n
+field1=value1\n
+field2=value2\n
+…
+fieldX=valueX
+----
+
+.Supported Fields for the Payload
+[cols="25e,11,41"]
+|===
+| Field                     | Cardinality | Details
+
+| request_time_stamp        | M           | e.g. ``2016-07-27T14:33:49+02:00`` (ISO)
+| merchant_account_id       | M           | e.g. ``9873ac65-6f28-4b75-ae55-9d549cf570e3``
+| request_id                | M           | e.g. ``0c06f2b9-f47e-41d1-9eec-9c9352f0247f``
+| transaction_type          | M           | e.g. ``debit``
+| requested_amount          | M           | e.g. ``1.01`` (ISO)
+| requested_amount_currency | M           | e.g. ``EUR`` (ISO)
+| redirect_url              | O           | e.g. ``\https://www.shop.com/redirect``
+| custom_css_url            | O           | e.g. ``\https://www.shop.com/custom.css``
+| ip_address                | O           | e.g. ``127.0.0.1``
+|===
+
+Fields with cardinality _M_ in the table above are *required* for the calculation
+of the signature, so you always include them in the signature's payload.
+The use of the other fields depends on your needs. The algorithm's name
+has to be put in the payload first, but all of the other fields can be
+specified in any order.
+
+Some of the information you enter in the fields has been standardized by
+ISO (International Organization for Standardization) to avoid confusion.
+We recommend you follow these standards (the examples provided here do).
+
+You can learn more about the standards
+for https://en.wikipedia.org/wiki/ISO_8601[date and time] and
+https://www.iso.org/iso-4217-currency-codes.html[currencies] on
+the provided links.
+
+The currently supported algorithm is the _HS256_ hash-based message
+authentication code with _SHA-256_ cryptographic hash function.
+
+.Sample Signature Payload (before encoding)
+----
+HS256
+request_time_stamp=2019-03-23T09:14:51Z
+merchant_account_id=33f6d473-3036-4ca5-acb5-8c64dac862d1
+request_id=A7B51ED4-9EB0-48D1-82AA-2145A7792C6B
+transaction_type=authorization
+requested_amount=1.01
+requested_amount_currency=EUR
+redirect_url=https://www.shop.com/redirect
+custom_css_url=https://www.shop.com/custom.css
+ip_address=127.0.0.1
+----
+
+.Sample Signature Payload + Generated Value (after Base64 encoding)
+----
+SFMyNTYKcmVxdWVzdF90aW1lX3N0YW1wPTIwMTctMDMtMjNUMDk6MTQ6NTFaCm1lcmNoYW50X2FjY291bnRfaWQ9MzNmNmQ0NzMtMzAzNi00Y2E1LWFjYjUtOGM2NGRhYzg2MmQxCnJlcXVlc3RfaWQ9QTdCNTFFRDQtOUVCMC00OEQxLTgyQUEtMjE0NUE3NzkyQzZCCnRyYW5zYWN0aW9uX3R
+5cGU9YXV0aG9yaXphdGlvbgpyZXF1ZXN0ZWRfYW1vdW50PTEuMDEKcmVxdWVzdGVkX2Ftb3VudF9jdXJyZW5jeT1FVVI=.HZKtk+UfuA9IV6082jR+OLuZUZnlpSKW6lNFgZX2BEk=
+----
+
+[#PP_Security_SignatureV2_CalculatingTheSignature]
+=== Calculating the Signature
+
+You calculate the signature's value from the <<PP_Security_SignatureV2_Payload, payload>>, using the Secret
+key and the specified algorithm in ``algorithmName``.
+
+.Java Example: Signature v2 Calculation
+[source,java]
+----
+public String generateSignatureV2() {
+   Map<String, String> map = new HashMap<>();
+   map.put("request_time_stamp", "2019-07-26T11:02:32+02:00"); // yyyy-MM-dd'T'HH:mm:ssXXX
+   map.put("request_id", "ec1c6f40-9811-4c31-936a-5e4ca9ba9003");
+   map.put("merchant_account_id", "61e8c484-dbb3-4b69-ad8f-706f13ca141b");
+   map.put("transaction_type", "purchase");
+   map.put("requested_amount", "1.05");
+   map.put("requested_amount_currency", "EUR");
+
+   return toHmacSha256(map, "e94f5232-1171-4f03-a59e-67e3f2e7d374");
+ }
+
+ private String toHmacSha256(Map<String, String> fields, String secret) {
+   Charset charset = Charset.forName("UTF-8");
+
+   StringBuilder builder = new StringBuilder("HS256\n");
+   for (Map.Entry<String, String> field : fields.entrySet()) {
+     builder.append(field.getKey());
+     builder.append("=");
+     builder.append(field.getValue());
+     builder.append("\n");
+   }
+   byte[] data = builder.toString().getBytes(charset);
+   byte[] key = secret.getBytes(charset);
+   byte[] sign = sign(key, data);
+   return new StringBuilder()
+        .append(DatatypeConverter.printBase64Binary(data))
+        .append(".")
+        .append(DatatypeConverter.printBase64Binary(sign))
+        .toString();
+ }
+
+ public byte[] sign(byte[] key, byte[] data) {
+   try {
+     Mac mac = Mac.getInstance("HmacSHA256");
+     mac.init(new SecretKeySpec(key, "HmacSHA256"));
+     byte[] signature = mac.doFinal(data);
+     return signature;
+   } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      return null;
+    }
+ }
+----
+
+.PHP Example: Signature v2 Calculation
+[source,php]
+----
+<?php
+
+function generateSignatureV2()
+{
+  $data = [];
+  $data["custom_css_url"] = "";
+  $data["request_time_stamp"] = "2019-07-26T11:02:32+02:00";
+  $data["merchant_account_id"] = "61e8c484-dbb3-4b69-ad8f-706f13ca141b";
+  $data["requested_amount_currency"] = "EUR";
+  $data["ip_address"] = "127.0.0.1";
+  $data["transaction_type"] = "purchase";
+  $data["request_id"] = "ec1c6f40-9811-4c31-936a-5e4ca9ba9003";
+  $data["requested_amount"] = "1.05";
+  $data["redirect_url"] = "";
+  return toSha256($data, "e94f5232-1171-4f03-a59e-67e3f2e7d374");
+}
+
+function toSha256($fields, $secret): string
+{
+ array_walk($fields, function (&$item, $key) {
+  $item = "$key=$item";
+ });
+ $data = "HS256\n".implode("\n", $fields)."\n";
+ return base64_encode($data) . '.' . base64_encode(sign($data, $secret));
+}
+
+function sign($data, $secret)
+{
+  $sig = hash_hmac('sha256', $data, $secret, true);
+  return $sig;
+}
+echo generateSignatureV2();
+----
+
+.C# .NET Example: Signature v2 Calculation
+[source,csharp]
+----
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+namespace SignatureGenerator
+{
+  class MainClass
+  {
+    public static Queue<Tuple<string, string>> CreatePaymentValues()
+    {
+      Queue<Tuple<string, string>> values = new Queue<Tuple<string, string>>();
+      values.Enqueue(Tuple.Create("request_time_stamp", "2019-03-23T09:14:51Z"));
+      values.Enqueue(Tuple.Create("merchant_account_id", "33f6d473-3036-4ca5-acb5-8c64dac862d1"));
+      values.Enqueue(Tuple.Create("request_id", "A7B51ED4-9EB0-48D1-82AA-2145A7792C6B"));
+      values.Enqueue(Tuple.Create("transaction_type", "authorization"));
+      values.Enqueue(Tuple.Create("requested_amount", "1.01"));
+      values.Enqueue(Tuple.Create("requested_amount_currency", "EUR"));
+      return values;
+    }
+    public static byte[] BuildPayload(Queue<Tuple<string, string>> nameValues)
+    {
+      StringBuilder sb = new StringBuilder("HS256");
+      foreach (Tuple<string, string> nameValue in nameValues)
+      {
+        sb.Append(Environment.NewLine);
+        sb.Append(nameValue.Item1);
+        sb.Append("=");
+        sb.Append(nameValue.Item2);
+      }
+      string payload = sb.ToString();
+      return Encoding.ASCII.GetBytes(payload);
+    }
+    public static byte[] SignPayload(byte[] body, byte[] key)
+    {
+      using (HMACSHA256 hmac = new HMACSHA256(key))
+      {
+        byte[] hash = hmac.ComputeHash(body);
+        return hash;
+      }
+    }
+    public static string FormatSignature(byte[] body, byte[] hash)
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.Append(Convert.ToBase64String(body));
+      sb.Append(".");
+      sb.Append(Convert.ToBase64String(hash));
+      string signature = sb.ToString();
+      return signature;
+    }
+#pragma warning disable RECS0154 // Parameter is never used
+    public static void Main(string[] args)
+#pragma warning restore RECS0154 // Parameter is never used
+    {
+      byte[] secretKey = Encoding.ASCII.GetBytes("9e0130f6-2e1e-4185-b0d5-dc69079c75cc");
+      byte[] payload = BuildPayload(CreatePaymentValues());
+      byte[] hash = SignPayload(payload, secretKey);
+      string signature = FormatSignature(payload, hash);
+      Console.WriteLine("WAUTH {0}", signature);
+    }
+  }
+}
+----
+
+The signature's expiration period is 30 minutes by default
+(configurable). The expiration check uses the timestamp from the payload
+for reference.
+
+[#PP_Security_SignatureV2_VerifyingResponseSignature]
+=== Verifying the Response Signature
+
+To check the signature you send in your payment request, {payment-gateway}
+calculates it in the same fashion and compares it to the
+value in the request. Then it calculates a new signature for the payment
+response — using fields from that response in the payload this time —
+for you to be able to verify that it was not interfered with by a 3rd
+party.
+
+As a result, verifying this response signature on your side follows the
+same process like when you calculate it for your payment request, but
+the signature's payload fields come from the response you receive. After
+you calculate the value, compare it to the one found in the response (in
+the ``response_signature_v2`` field).
+
+To recap, in order to verify the response signature you calculate it
+based on the payment response you receive from {payment-gateway}
+(following the same steps as when calculating it for a payment request ,
+but with a different payload). Then you compare the two values.
+
+The response signature is found in the ``response_signature_v2 ``field.
+
+.Sample Response
+----
+country=DE&merchant_account_resolver_category=&response_signature=65b8c66e85d344af2f88d7474e5dcb7d612a67273806c0b053ae5b19fcc165a9&city=Berlin&group_transaction_id=&provider_status_code_1=&response_signature_v2=SFMyNTYKdHJhbnNhY3Rpb25faWQ9ZGUyMDk3ZDktYjliNi00ZGUyLTg0MTAtNDZlYWZiMjdhNzRiCmNvbXBsZXRpb25fdGltZXN0YW1wPTIwMTgwMTI0MDk1NzE1Cm1hc2tlZF9hY2NvdW50X251bWJlcj00NDQ0MzMqKioqKioxMTExCnRva2VuX2lkPTQwNjIzMzIxNDg3MDExMTEKYXV0aG9yaXphdGlvbl9jb2RlPTE1MzYyMAptZXJjaGFudF9hY2NvdW50X2lkPWZmMzllNmZkLTM1ZjQtMTFlNS05ZTliLWY4MTY1NDYzMjMyOAp0cmFuc2FjdGlvbl9zdGF0ZT1zdWNjZXNzCmlwX2FkZHJlc3M9MTI3LjAuMC4xCnRyYW5zYWN0aW9uX3R5cGU9cHVyY2hhc2UKcmVxdWVzdF9pZD04YjNjMDBlMS01NmViLTM3ZTQtNDc4Yi1mZGM3ODUyZTNkYWYK.swLVerxpdEb468tFXEr3VDriima0rFG97XDHFyt7F4A%3D&requested_amount=224&completion_time_stamp=20190524095715&provider_status_description_1=&token_id=4062332148701111&authorization_code=153620&merchant_account_id=ff39e6fd-35f4-11e5-9e9b-f81654632328&provider_transaction_reference_id=&street1=Mullerstrasse+137&state=Berlin&first_name=John&email=john%40doe.com&transaction_id=de2097d9-b9b6-4de2-8410-46eafb27a74b&provider_transaction_id_1=&status_severity_1=information&last_name=Doe&ip_address=127.0.0.1&transaction_type=purchase&status_code_1=201.0000&masked_account_number=444433******1111&status_description_1=3d-acquirer%3AThe+resource+was+successfully+created.&phone=%2B421123456789&transaction_state=success&requested_amount_currency=EUR&postal_code=13353&request_id=8b3c00e1-56eb-37e4-478b-fdc7852e3daf
+----
+
+NOTE: You only work with ``response_signature_v2``. Do not
+confuse ``response_signature_v2`` with ``response_signature``. Both are sent
+in the response, but the ``response_signature`` field contains the
+<<PP_Security_ResponseSignature, legacy Signature v1 response signature>>.
+
+.Payload for Calculation (Based on the Sample)
+----
+HS256
+transaction_id=de2097d9-b9b6-4de2-8410-46eafb27a74b
+completion_timestamp=20190524095715
+masked_account_number=444433******1111
+token_id=4062332148701111
+authorization_code=153620
+merchant_account_id=ff39e6fd-35f4-11e5-9e9b-f81654632328
+transaction_state=success
+ip_address=127.0.0.1
+transaction_type=purchase
+request_id=8b3c00e1-56eb-37e4-478b-fdc7852e3daf
+----
+
+[#PP_Security_SignatureV2_Verify_CalculatingTheSignature]
+.Calculating the Value
+
+Again, you calculate the signature's value from the payload, using the
+Secret Key (`e94f5232-1171-4f03-a59e-67e3f2e7d374`) and the specified
+algorithm (HS256).
+
+
+.Java Signature v2 Verification Calculation Example
+[source,java]
+----
+public String generateSignatureV2() {
+   Map<String, String> map = new HashMap<>();
+   map.put("transaction_id", "de2097d9-b9b6-4de2-8410-46eafb27a74b");
+   map.put("completion_time_stamp", "20190524095715");
+   map.put("masked_account_number", "444433******1111");
+   map.put("token_id", "4062332148701111");
+   map.put("authorization_code", "153620");
+   map.put("merchant_account_id", "ff39e6fd-35f4-11e5-9e9b-f81654632328");
+   map.put("transaction_state", "success");
+   map.put("ip_address", "127.0.0.1");
+   map.put("transaction_type", "purchase");
+   map.put("request_id", "8b3c00e1-56eb-37e4-478b-fdc7852e3daf");
+
+   return toHmacSha256(map, "e94f5232-1171-4f03-a59e-67e3f2e7d374");
+ }
+
+ private String toHmacSha256(Map<String, String> fields, String secret) {
+   Charset charset = Charset.forName("UTF-8");
+
+   StringBuilder builder = new StringBuilder("HS256\n");
+   for (Map.Entry<String, String> field : fields.entrySet()) {
+     builder.append(field.getKey());
+     builder.append("=");
+     builder.append(field.getValue());
+     builder.append("\n");
+   }
+   byte[] data = builder.toString().getBytes(charset);
+   byte[] key = secret.getBytes(charset);
+   byte[] sign = sign(key, data);
+   return new StringBuilder()
+        .append(DatatypeConverter.printBase64Binary(data))
+        .append(".")
+        .append(DatatypeConverter.printBase64Binary(sign))
+        .toString();
+ }
+
+ public byte[] sign(byte[] key, byte[] data) {
+   try {
+     Mac mac = Mac.getInstance("HmacSHA256");
+     mac.init(new SecretKeySpec(key, "HmacSHA256"));
+     byte[] signature = mac.doFinal(data);
+     return signature;
+   } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      return null;
+    }
+ }
+----
+
+.PHP Signature v2 Verification Calculation Example
+[source,php]
+----
+<?php
+function generateSignatureV2()
+{
+  $data = [];
+  $data["transaction_id"] = "de2097d9-b9b6-4de2-8410-46eafb27a74b";
+  $data["completion_time_stamp"] = "20190524095715";
+  $data["masked_account_number"] = "444433******1111";
+  $data["token_id"] = "4062332148701111";
+  $data["authorization_code"] = "153620";
+  $data["merchant_account_id"] = "ff39e6fd-35f4-11e5-9e9b-f81654632328";
+  $data["transaction_state"] = "success";
+  $data["ip_address"] = "127.0.0.1";
+  $data["transaction_type"] = "purchase";
+  $data["request_id"] = "8b3c00e1-56eb-37e4-478b-fdc7852e3daf";
+  return toSha256($data, "e94f5232-1171-4f03-a59e-67e3f2e7d374");
+}
+
+function toSha256($fields, $secret): string
+{
+  array_walk($fields, function (&$item, $key) {
+    $item = "$key=$item";
+  });
+  $data = "HS256\n".implode("\n", $fields)."\n";
+  return base64_encode($data) . '.' . base64_encode(sign($data, $secret));
+}
+
+function sign($data, $secret)
+{
+  $sig = hash_hmac('sha256', $data, $secret, true);
+  return $sig;
+}
+
+echo generateSignatureV2();
+----
+
+.C# .NET Signature v2 Verification Calculation Example
+[source,csharp]
+----
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text;
+namespace SignatureGenerator
+{
+  class MainClass
+  {
+    public static Queue<Tuple<string, string>> CreatePaymentValues()
+    {
+      Queue<Tuple<string, string>> values = new Queue<Tuple<string, string>>();
+      values.Enqueue(Tuple.Create("transaction_id", "de2097d9-b9b6-4de2-8410-46eafb27a74b"));
+      values.Enqueue(Tuple.Create("completion_time_stamp", "20190524095715"));
+      values.Enqueue(Tuple.Create("masked_account_number", "444433******1111"));
+      values.Enqueue(Tuple.Create("token_id", "4062332148701111"));
+      values.Enqueue(Tuple.Create("authorization_code", "153620"));
+      values.Enqueue(Tuple.Create("merchant_account_id", "ff39e6fd-35f4-11e5-9e9b-f81654632328"));
+      values.Enqueue(Tuple.Create("transaction_state", "success"));
+      values.Enqueue(Tuple.Create("ip_address", "127.0.0.1"));
+      values.Enqueue(Tuple.Create("transaction_type", "purchase"));
+      values.Enqueue(Tuple.Create("request_id", "8b3c00e1-56eb-37e4-478b-fdc7852e3daf"));
+      return values;
+    }
+    public static byte[] BuildPayload(Queue<Tuple<string, string>> nameValues)
+    {
+      StringBuilder sb = new StringBuilder("HS256");
+      foreach (Tuple<string, string> nameValue in nameValues)
+      {
+        sb.Append(Environment.NewLine);
+        sb.Append(nameValue.Item1);
+        sb.Append("=");
+        sb.Append(nameValue.Item2);
+      }
+      string payload = sb.ToString();
+      return Encoding.ASCII.GetBytes(payload);
+    }
+    public static byte[] SignPayload(byte[] body, byte[] key)
+    {
+      using (HMACSHA256 hmac = new HMACSHA256(key))
+      {
+        byte[] hash = hmac.ComputeHash(body);
+        return hash;
+      }
+    }
+    public static string FormatSignature(byte[] body, byte[] hash)
+    {
+      StringBuilder sb = new StringBuilder();
+      sb.Append(Convert.ToBase64String(body));
+      sb.Append(".");
+      sb.Append(Convert.ToBase64String(hash));
+      string signature = sb.ToString();
+      return signature;
+    }
+#pragma warning disable RECS0154 // Parameter is never used
+    public static void Main(string[] args)
+#pragma warning restore RECS0154 // Parameter is never used
+    {
+      byte[] secretKey = Encoding.ASCII.GetBytes("9e0130f6-2e1e-4185-b0d5-dc69079c75cc");
+      byte[] payload = BuildPayload(CreatePaymentValues());
+      byte[] hash = SignPayload(payload, secretKey);
+      string signature = FormatSignature(payload, hash);
+      Console.WriteLine("WAUTH {0}", signature);
+    }
+  }
+}
+----

@@ -10,7 +10,7 @@ Use multithreading with thread pool to speed up the process.
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
-const majorVersion = '1.0';
+const majorVersion = '1.1';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
@@ -24,6 +24,16 @@ function exceptions_error_handler( $severity, $message, $filename, $lineNo ) {
   if ( error_reporting() & $severity ) {
     throw new ErrorException( $message, 0, $severity, $filename, $lineNo );
   }
+}
+
+function glob_recursive($pattern, $flags = 0)
+{
+  $files = glob($pattern, $flags);
+  foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir)
+  {
+    $files = array_merge($files, glob_recursive($dir.'/'.basename($pattern), $flags));
+  }
+  return $files;
 }
 
 class CI {
@@ -45,6 +55,7 @@ class CI {
       $CI->pull_request_branch_head = (getenv('TRAVIS_PULL_REQUEST_BRANCH') !== false && getenv('TRAVIS_PULL_REQUEST_BRANCH') !== '') ? getenv('TRAVIS_PULL_REQUEST_BRANCH') : false;
       $CI->pull_request = ($CI->pull_request_number !== false);
       $CI->commit_hash = getenv('TRAVIS_COMMIT'); // not used, may be unreliable: https://travis-ci.community/t/travis-commit-is-not-the-commit-initially-checked-out/3775
+      $CI->commit_message = getenv('TRAVIS_COMMIT_MESSAGE');
     }
     elseif ($CI->github) {
       $CI->name = 'Github Actions';
@@ -54,6 +65,7 @@ class CI {
       $CI->pull_request_branch_head = getenv('GITHUB_HEAD_REF') ? preg_replace('/(.*\/)+(.+)/', '$2', getenv('GITHUB_HEAD_REF')) : false;
       $CI->pull_request = (getenv('GITHUB_EVENT_NAME') == 'pull_request');
       $CI->commit_hash = getenv('GITHUB_SHA'); // not used. see hash for travis above
+      $CI->commit_message = 'commit message for gh actions not yet implemented';
     }
     $CI->url_repo = 'https://github.com/'.$CI->repo;
     $CI->url_pull_request = $CI->url_repo.'/pull/'.$CI->pull_request_number;
@@ -234,8 +246,9 @@ class GitInfo {
       return $this->gitInfoArray['commit_hash'];
   }
   public function getLastEditedByOfFile($file) {
-    if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file])) {
-      $lastEditedBy = $this->gitInfoArray['files'][$file]['last_edited_by'];
+    $file_key = preg_replace('/^\.\//', '', $file);
+    if (array_key_exists('last_edited_by', $this->gitInfoArray['files'][$file_key])) {
+      $lastEditedBy = $this->gitInfoArray['files'][$file_key]['last_edited_by'];
     }
     else {
       $lastEditedBy = '';
@@ -371,10 +384,13 @@ function getAsciidoctorOutput( $filename ) {
     $asciidoctorHelperCmd = 'node buildscripts/tests/asciidoctor-helper.js --file "'.$filename.'"';
   }
   $asciidoctorJSON = shell_exec( $asciidoctorHelperCmd );
-  if(!$asciidoctorJSON) {
+
+  try {
+    $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
+  } catch (\Throwable $th) {
     return false;
   }
-  $asciidoctorOutput = json_decode( $asciidoctorJSON, true );
+  
 
   // initialize this.. or else... regret it
   $results = array();
@@ -600,6 +616,7 @@ function sendNotifications ( $results ) {
   $headerText = $headerText."*Commit:* `".$commitHash
   ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)".PHP_EOL
   ."*Commit from:* ".$commitAuthor.PHP_EOL
+  ."*Commit message:* ".$CI->commit_message.PHP_EOL
   ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '').PHP_EOL;
   $msgOpening = array(array("type" => "section", "text" => array("type" => "mrkdwn", "text" => $headerText)),
                       array("type" => "divider"),
@@ -643,7 +660,8 @@ function sendNotifications ( $results ) {
   $msgClosing = array(array("type" => "divider"),
                       array("type" => "context",
                             "elements" => array(array("type" => "mrkdwn",
-                                                      "text" => "_".$currentBranch.' '.$partner.($CI->is_nova ? ' NOVA' : '')."_".PHP_EOL.PHP_EOL
+                                                      "text" => "*".$currentBranch.'* _'.$partner.'_'.($CI->is_nova ? ' NOVA' : '').PHP_EOL
+                                                                .'_'.$CI->commit_message.'_'.PHP_EOL.PHP_EOL
                                                                 .basename( __FILE__, '.php')." v".majorVersion.PHP_EOL
                                                                 .$CI->name))),
                       array("type" => "divider")
@@ -796,9 +814,24 @@ function main() {
   $exitCode = 0;
   $numConcurrentThreads = 8;
 
-  $adocFilesArray = glob( '*.adoc' );
+  $adocFilesArray = glob_recursive( '*.adoc' );
+  if( $CI->index_file == 'nova.adoc' ) {
+    $key = array_search('index.adoc', $adocFilesArray);
+    array_splice($adocFilesArray, $key, 1);  
+  }
+  else {
+    $key = array_search('nova.adoc', $adocFilesArray);
+    array_splice($adocFilesArray, $key, 1);  
+  }
+
+  // disalbe testing of auto-generated folder
+  $adocFilesArray = preg_grep('/\/auto-generated\//', $adocFilesArray, PREG_GREP_INVERT);
+  $adocFilesArray = preg_replace('/^\.\//', '', $adocFilesArray);
+  $adocFilesArray = array_values($adocFilesArray);
 
   $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
+  $indexedFiles[] = $CI->index_file;
+  $indexedFiles = array_values($indexedFiles);
 
   $pool = new Pool( $numConcurrentThreads );
 

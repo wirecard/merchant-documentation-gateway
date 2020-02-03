@@ -1,0 +1,263 @@
+[#PPv2_Bancontact]
+== {payment-page-v2}
+
+[#PPv2_Bancontact_General]
+=== General Information
+
+This is a reference page for _Bancontact._ Here you find all the
+information necessary for integrating this payment method in
+your Hosted and Embedded Payment Page.
+
+.Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
+
+NOTE: Visit one of the integration guides
+(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
+<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
+a step-by-step guide before continuing.
+
+All <<PPv2, {payment-page-v2-abbr}>> integrations share a
+<<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
+
+Below, you find an example request for the available transaction type
+<<PPv2_Bancontact_TransactionType_debit, _debit_>>,
+including field lists with short descriptions.
+
+NOTE: You need to complete these requests with your production credentials.
+You receive your credentials with your {payment-provider-name} contract. If you
+need your production credentials, contact <<ContactUs, merchant support>>.
+
+|===
+|Testing _Bancontact_
+
+_Bancontact_ does not offer a payment testing sandbox.
+You need to test transactions with your production credentials.
+|===
+
+For more details on the ``redirect-url``, see the 
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+section.
+
+For response verification examples, see
+the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+
+[#PPv2_Bancontact_About]
+=== About _Bancontact_
+
+_Bancontact_ is the most popular online payment method in Belgium. It is
+used in more than 80% of Belgian web shops. It allows consumers to pay with
+Belgian credit cards.
+
+- With the _Bancontact_ mobile app, one can pay back friends without cash
+immediately after they took over a payment (e.g. at a restaurant).
+- Invoices can be paid at home using the _Bancontact_ mobile app. The app
+is used in a growing number of businesses and stores to pay bills
+without the hassle of a card reader.
+
+//-
+
+[#PPv2_Bancontact_Countries]
+=== Countries and Currencies
+
+_Bancontact_ can be used by consumers with a bank account in Belgium.
+The available payment currency for consumers is EUR.
+
+[#PPv2_Bancontact_TestCredentials]
+=== Test Credentials
+
+Test Credentials for Transaction Type
+<<PPv2_Bancontact_TransactionType_debit, _debit_>>.
+
+[cols="35h,65"]
+|===
+| URL (Endpoint)           | ``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID) | 86f03c98-6691-421d-94c8-232c3d5c2573
+| Username                   | 16390-testing
+| Password                   | 3!3013=D3fD8X7
+| Secret Key (used for response verification) | 2341ae35-aa13-4511-95d5-acd80f0fcb52
+|===
+
+
+[#PPv2_Bancontact_TransactionType_debit]
+=== Transaction Type _debit_
+
+A _debit_ transaction charges the specified amount from the account
+holder's bank account and marks it for immediate transfer.
+
+For a successful _debit_ transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+We provide ready-made JSON examples for each step of this process. You can find
+them below.
+
+<<PPv2_Bancontact_TestCredentials, Endpoint>> for _Bancontact_ transactions.
+
+.Initial Request
+
+This example is an initial request which creates the payment session. If
+it is successful, you receive a URL as a response, which redirects to
+the _Bancontact_ payment form.
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | Basic MTYzOTAtdGVzdGluZzozITMwMTM9RDNmRDhYNw==
+| Content-Type  | application/json
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<Bancontact_Fields, Bancontact specification>>.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_BancontactTransactionTypeDebit_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+
+[cols="30e,5,5,5,5,5,45"]
+|===
+3+|Field (JSON) |Data Type |Cardinality |Size |Description
+
+2+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+3+|request-id |String |Required |64 a|A unique identifier assigned to every request
+(by merchant). Used when searching for or referencing it later.
+``{{$guid}}`` serves as a placeholder for a random ``request-id``.
+
+Allowed characters:  [a-z0-9-_]
+3+|transaction-type |String |Required |36 |The requested transaction type. For
+_Bancontact_ payments, the ``transaction-type`` must be set to ``debit``.
+.2+|requested-amount  2+e|value |Numeric |Required |18 a|The full amount that is
+requested/contested in a transaction. 2 decimal digits allowed.
+
+Use . (decimal point) as the separator.
+
+2+|currency |String |Required |3 a|The currency of the requested/contested
+transaction amount. For _Bancontact_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+|payment-methods e|payment-method e|name |String |Required | 15 |The name of the
+payment method used. Set this value to ``bancontact``.
+.2+|account-holder 2+e|first-name |String |Optional |32 |The first name of the account holder.
+2+|last-name |String |Requested |32 |The last name of the account holder.
+3+|success-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+3+|fail-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+3+|cancel-redirect-url |String |Required |2000 a|The URL to which the consumer is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+|===
+
+.2. Redirect the consumer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_BancontactTransactionTypeDebit_2RtcttPPIRU.json[]
+----
+
+[cols="25e,15,60"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- successful (``transaction-state: success``),
+- failed (``transaction-state: failed``),
+- canceled. The consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as _failed_, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>﻿﻿
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_BancontactTransactionTypeDebit_3ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+
+[cols="30e,5,5,5,55"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+2+|merchant-account-id e|value |String |A unique identifier assigned to every
+merchant account (by {payment-provider-name}).
+3+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
+3+|transaction-type |String |The requested transaction type. For _Bancontact_
+payments, the ``transaction-type`` must be set to ``debit``.
+3+|parent-transaction-id |String |The ID of the transaction being referenced as a parent.
+|payment-methods e|payment-method e|name |String |The name of the payment method used.
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+Typically, a transaction starts with state _in-progress_ and finishes with
+state either _success_ or _failed_. This information is returned in the response
+only.
+3+|transaction-id |String |A unique identifier assigned to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later.
+3+|completion-time-stamp | YYYY-MM-DD-Thh:mm:ss a|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
+
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+|requested-amount 2+e|currency |String a|The currency of the requested/contested transaction amount. For _Bancontact_ payments, the currency must be set to ``EUR``.
+
+Format: 3-character abbreviation according to ISO 4217.
+2+|value |Numeric |The full amount that is requested/contested in a transaction.
+.3+|statuses .3+e|status e|description |String |The description of the transaction
+status message.
+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|code |String |Status code of the status message.
+3+|api-id |String |Identifier of the currently used API.
+3+|success-redirect-url |String a|The URL to which the consumer is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+3+|cancel-redirect-url |String |The URL to which the consumer is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+3+|fail-redirect-url |String |The URL to which the consumer is redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+|===
+
+//-
