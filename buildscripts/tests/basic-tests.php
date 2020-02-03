@@ -606,14 +606,14 @@ function sendNotifications ( $results ) {
   // Slack message
   if($CI->pull_request_branch_head !== false) {
     $headerText = "*Pull Request for:* ".$currentBranch
-    ." (<".$CI->url_pull_request."|Link to Github>)".PHP_EOL;
+    ." (<".$CI->url_pull_request."|Github>)".PHP_EOL;
   }
   else {
     $headerText = "*Branch:* ".$currentBranch
-    ." (<".$CI->url_branch."|Link to Github>)".PHP_EOL;
+    ." (<".$CI->url_branch."|Github>)".PHP_EOL;
   }
   $headerText = $headerText."*Commit:* `".$commitHash
-  ."` (<".$CI->url_repo."/commit/".$commitHash."|Link to Github>)".PHP_EOL
+  ."` (<".$CI->url_repo."/commit/".$commitHash."|Github>)".PHP_EOL
   ."*Commit from:* ".$commitAuthor.PHP_EOL
   ."*Commit message:* ".$CI->commit_message.PHP_EOL
   ."*Partner:* ".$partner.($CI->is_nova ? ' [NOVA]' : '').PHP_EOL;
