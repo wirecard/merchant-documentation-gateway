@@ -10,7 +10,7 @@ Use multithreading with thread pool to speed up the process.
 error_reporting( E_ALL );
 set_error_handler( 'exceptions_error_handler' );
 
-const majorVersion = '1.1';
+const majorVersion = '1.2';
 const testNoErrorPath = true;
 
 function size_check(string $text, string $appendText, int $maxSize=2000) {
@@ -541,8 +541,7 @@ function postprocessErrors( $testsResultsArray, $indexedFiles ) {
   //  - we must therefore scan all individual files for them
 
   $invalidReferencesArray = array_unique( $invalidReferencesArray );
-
-  $pool = new Pool( 50 );
+  $pool = new Pool( 5 );
 
   foreach( $testsResultsArray as $filename => $value ) {
     if( in_array( $filename, $indexedFiles ) === false ) {
@@ -829,7 +828,7 @@ function main() {
   $adocFilesArray = preg_replace('/^\.\//', '', $adocFilesArray);
   $adocFilesArray = array_values($adocFilesArray);
 
-  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
+  $indexedFiles = preg_filter( '/^include::([A-Za-z0-9_\/-]+\.adoc).*/', '$1', file( $CI->index_file, FILE_IGNORE_NEW_LINES ) );
   $indexedFiles[] = $CI->index_file;
   $indexedFiles = array_values($indexedFiles);
 
