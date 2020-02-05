@@ -1,7 +1,7 @@
 [#GuaranteedInstallment]
 == REST API 
 
-_Guaranteed Installments_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+_{payment-provider-name} Payment in Installments_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
 [#GuaranteedInstallment_GeneralInformation]
 === General Information
@@ -20,7 +20,7 @@ _Guaranteed Installments_ is a type of <<PaymentMethods_PaymentMode_OfflineBankT
 [#GuaranteedInstallment_Communication]
 ==== Communication Formats
 
-This table illustrates how _Guaranteed Installments_ notifications are encoded and which formats and methods can be
+This table illustrates how _{payment-provider-name} Payment in Installments_ notifications are encoded and which formats and methods can be
 used for requests and responses.
 
 [width=75%,stripes=none]
@@ -99,7 +99,7 @@ at <<AppendixB, API Reference: Transaction Types>>.
 [#GuaranteedInstallment_TestCredentials]
 === Test Credentials
 
-You can use these credentials - aside from the endpoints - for payment tests as well as testing the <<GuaranteedInstallment_Config, Guaranteed Installment Configuration>> and <<GuaranteedInstallment_Features_InstallCalc, Installment Calculator>>.
+You can use these credentials - aside from the endpoints - for payment tests as well as testing the <<GuaranteedInstallment_Config, installment configuration service>> and the <<GuaranteedInstallment_Features_InstallCalc, installment calculator>>.
 
 [stripes=none,cols="20,40,40"]
 |===
@@ -140,7 +140,7 @@ sequenceDiagram
     participant {payment-gateway-abbr}
     participant {payment-provider-name} Bank
 Consumer->>Consumer: adds items to shopping basket
-Consumer->>Consumer: selects Guaranteed Installment
+Consumer->>Consumer: selects _{payment-provider-name} Payment in Installments_
 Consumer->>Merchant: proceeds to checkout
 Merchant->>{payment-gateway-abbr}: sends authorization request
 {payment-gateway-abbr}->>{payment-gateway-abbr}: generates descriptor
@@ -152,7 +152,7 @@ Merchant->>{payment-gateway-abbr}: sends a capture request
 ----
 
 . Consumer adds items to shopping basket.
-. Consumer selects the payment method _Guaranteed Installments._
+. Consumer selects the payment method _{payment-provider-name} Payment in Installments._
 .. Selects duration and rate of payment.
 . Consumer proceeds to checkout.
 . Merchant sends an _authorization_ request including basket items to {payment-gateway-abbr}.
@@ -172,7 +172,7 @@ Merchant->>{payment-gateway-abbr}: sends a capture request
 [#GuaranteedInstallment_Fields]
 === Fields
 
-The field table lists the elements either *M* (mandatory), *O* (optional) or *M/O* (if mandatory in a certain context. This context is explained in the "Description" column). Please provide the data accordingly to guarantee a successful request with _Guaranteed Installments_ (complete field list available in <<RestApi_Fields, REST API field list>>).
+The field table lists the elements either *M* (mandatory), *O* (optional) or *M/O* (if mandatory in a certain context. This context is explained in the "Description" column). Please provide the data accordingly to guarantee a successful request with _{payment-provider-name} Payment in Installments_ (complete field list available in <<RestApi_Fields, REST API field list>>).
 
 [%autowidth,stripes=none, cols="v,,,,"]
 |===
@@ -197,7 +197,7 @@ The field table lists the elements either *M* (mandatory), *O* (optional) or *M/
 |M
 |String
 |30
-|This is the type for a transaction: _authorization_, _capture_, _void-authorization_, _refund-capture_ and _credit_ are supported for _Guaranteed Installments_.
+|This is the type for a transaction: _authorization_, _capture_, _void-authorization_, _refund-capture_ and _credit_ are supported for _{payment-provider-name} Payment in Installments_.
 
 |_requested-amount_
 |M
@@ -501,19 +501,19 @@ a|
 |M/O
 |Decimal
 |18,3
-|custom-field@value= installment-calculator-response.installments.installment.details.interest-rate
+|custom-field@value=installment-calculator-response.installments.installment.details.interest-rate
 
 |_custom-field@name="number-of-rates"_
 |M/O
 |Number 
 |5
-|custom-field@value= installment-calculator-response.installments.installment.details.number-of-rates
+|custom-field@value=installment-calculator-response.installments.installment.details.number-of-rates
 
 |_custom-field@name="rate"_
 |M/O
 |Number
 |5
-|custom-field@value= installment-calculator-response.installments.installment.details.rate
+|custom-field@value=installment-calculator-response.installments.installment.details.rate
 
 |_custom-field@name="last-rate"_
 |M/O
@@ -525,20 +525,20 @@ a|
 |M/O
 |Number
 |5
-|custom-field@value= installment-calculator-response.installments.installment.details.payment-first-day
+|custom-field@value=installment-calculator-response.installments.installment.details.payment-first-day
 |===
 
 //-
 
 [#GuaranteedInstallment_Config]
-=== Guaranteed Installment Configuration
+=== Installment Configuration Service
 
-You can use the installment configuration service to configure installment plan parameters tailored for your merchant profile.
+You can use the installment configuration service to configure installment plan parameters tailored for your profile.
 
 [#GuaranteedInstallment_Features_Config_Communication]
 ==== Communication Formats
 
-This table illustrates in which formats and methods the Installment Configuration service can be used for requests and responses.
+This table illustrates in which formats and methods the installment configuration service can be used for requests and responses.
 
 [%autowidth,stripes=none]
 |===
@@ -624,7 +624,7 @@ a|*installment-configuration-response.configuration.*
 
 The installment calculator service provides the list of available installment plans.
 
-_Guaranteed Installments_ supports two different installment plans:
+_{payment-provider-name} Payment in Installments_ supports two different installment plans:
 
 * Calculation by rate
 * Calculation by time
@@ -636,7 +636,7 @@ You show this list to the consumer and the consumer decides which plan suits bes
 [#GuaranteedInstallment_Features_InstallCalc_Communication]
 ==== Communication Formats
 
-This table illustrates in which formats and methods the Installment Calculator service can be used for requests and responses.
+This table illustrates in which formats and methods the installment calculator service can be used for requests and responses.
 
 [%autowidth,stripes=none]
 |===
@@ -671,9 +671,9 @@ h| URL (Endpoint)             | `\https://{test-instance-hostname}/engine/rest/u
 |payment-method|M|String|15|The name of the Payment Method name is ``ratepay-install``.
 |merchant-account-id|M|String|36|Merchant account ID. Must follow a pattern like: ``815c32ab-486d-4e4c-baf8-f412e2e4e9b8``.
 |amount|M|Decimal| 18.3 |Full amount of the purchase. Must be in the format of _Money_ (Example: ``100.00``)
-|currency (attribute of ``amount``)|M|String|3|The currency of the purchase. _Guaranteed Installments_ requires EUR.
+|currency (attribute of ``amount``)|M|String|3|The currency of the purchase. _{payment-provider-name} Payment in Installments_ requires EUR.
 |rate|M/O|Decimal| 3.2 |Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: ``25.00``). It is *mandatory* for  for calculation by rate. It must not be used when calculating the installment plan by time.
-|currency (attribute of ``rate``)|M|String|3|The currency of  the rate. _Guaranteed Installments_ requires EUR.
+|currency (attribute of ``rate``)|M|String|3|The currency of  the rate. _{payment-provider-name} Payment in Installments_ requires EUR.
 |months|M/O|Number| 3 |Number of months to cover the duration of the installment plan. It is *mandatory* for calculation by time. It must not be used when calculating the installment plan by rate.
 |===
 
@@ -691,9 +691,9 @@ NOTE: We show this table without _Size_ values as you receive the response direc
 3+a|
 *installment-calculator-response.*
 |amount|Decimal |Full amount of the purchase. Must be in the format of _Money_ (Example: ``100.00``)
-|currency (attribute of ``amount``)|String|The currency of the purchase. _Guaranteed Installments_ requires EUR.
+|currency (attribute of ``amount``)|String|The currency of the purchase. _{payment-provider-name} Payment in Installments_ requires EUR.
 |rate|Decimal|Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: ``25.00``).
-|currency (attribute of ``rate``)|String|The currency of  the rate. _Guaranteed Installments_ requires EUR.
+|currency (attribute of ``rate``)|String|The currency of  the rate. _{payment-provider-name} Payment in Installments_ requires EUR.
 |state|String| The state of the response. Values can be +
 ``success`` +
 ``failed``.
@@ -853,7 +853,7 @@ include::{root}/samples/json/ratepay-installment_install-calculator-time_respons
 ----
 
 [#GuaranteedInstallment_Samples_Payment]
-==== _Guaranteed Installments_ payment
+==== _{payment-provider-name} Payment in Installments_ payment
 
 Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for corresponding notification samples.
 
