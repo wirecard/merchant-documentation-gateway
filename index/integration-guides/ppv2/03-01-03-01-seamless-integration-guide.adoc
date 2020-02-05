@@ -1,0 +1,757 @@
+
+[#PPv2_Seamless_Integration]
+== Seamless Integration Guide
+
+ifdef::env-wirecard[]
+.Download the full integration demo from our Github
+image:images/03-01-03-01-seamless-integration-guide/github_java.png[JAVA, link="https://github.com/wirecard/wpp-integration-demo-java"]
+image:images/03-01-03-01-seamless-integration-guide/github_php.png[PHP, link="https://github.com/wirecard/wpp-integration-demo-php"]
+endif::[]
+
+[#PPv2_Seamless_Integration_Overview]
+=== Overview
+
+To integrate the {payment-page-v2} in Seamless Mode in your shop,
+get your checkout page ready in two steps:
+
+. *Preparing your checkout page:* Add the ``paymentPage.js`` library to
+your checkout page's HTML code.
+
+. *Changing the background color setting in Payment Page Designer:* Set
+the background color to transparent in Payment Page Designer.
+
+//-
+
+Then use a backend-to-backend JSON <<PPSolutions_PPv2_Workflow, workflow>>
+for the payment process.
+
+. *Create a payment session:* You send an initial POST request with
+details of the transaction to the {payment-page-v2} ({payment-page-v2-abbr}). This POST
+request is secured by basic access authentication.
+
+. *Render the seamless payment form:* {payment-page-v2-abbr} returns an initial response URL.
++
+====
+- *If the initial POST request is correct,* use this response URL and the
+``{payment-page-function-short}.seamlessRender`` library call to render the payment form in a
+seamless iframe. *Continue with step 3.*
+
+- *If the initial POST request is faulty,* {payment-page-v2-abbr} returns an error code with
+a description of the problem in the response. *Return to step 1.*
+====
++
+. *Submit the payment:* The consumer fills in the payment form. Use
+the ``{payment-page-function-short}.seamlessSubmit`` function to submit the payment. Ensure that
+the function is bound to an interactive UI element, such as a button, in
+your HTML code.
+- *3D Secure credit card payment* automatically redirects the consumer
+to the authentication page, and then to a {payment-page-v2-abbr} success- or
+fail-redirect-url. Include the success- and fail-redirect-urls in your
+initial request! This page includes a JSON sample for 3D Secure credit
+card payment.
+- *Non-3D Secure credit card payment* requires you to implement
+redirects to subsequent pages, such as a ``success-/fail-/cancel-redirect-url`` to let the consumer know about the
+payment outcome, by yourself.
++
+. *Parse and Process the Payment Response:* The payment is processed.
+{payment-page-v2-abbr} returns base64 encoded payment data. It is _highly recommended_ that
+you parse and process this base64 encoded response to verify the
+payment.
+
+
+[#PPv2_Seamless_Integration_FirstSteps]
+=== First Steps
+
+Before processing payments in Seamless Mode, you need to make a small adjustment to your checkout page's HTML code, and change a setting in
+the Payment Page Designer.
+
+.1. Preparing your Checkout Page
+
+Add the ``paymentPage.js`` library to your checkout page HTML code:
+
+[source,html,subs=attributes+]
+----
+<script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+----
+
+This library lets you render the payment form as an iframe in your checkout page.
+
+WARNING: The URL included here serves only as an example. Please enter the domain
+of the instance received during merchant configuration.
+
+.2. Changing the Background Color Setting in Payment Page Designer
+
+Open the Payment Page Designer to set the background color to
+*transparent.* Transparency of the card form's background ensures a
+seamless appearance when it is embedded in your checkout page.
+
+. Select the *Payment* tab and click on *Colors.*
++
+
+ifdef::env-wirecard[]
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_1.png[Seamless Page Designer 1]
++
+endif::[]
+ifndef::env-wirecard[]
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_1_whitelabeled.png[Seamless Page Designer 1]
+endif::[]
+
+. In *Colors,* go to the *Content* tab and open the *Content Background Color* window.
++
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_2.png[Seamless Page Designer 2]
++
+. Set the *Content Background Color* alpha value (*A*) to *0*
++
+image::images/03-01-03-01-seamless-integration-guide/seamless_ppd_3.png[Seamless Page Designer 3]
+
+//-
+
+[#PPv2_Seamless_Integration_Example]
+=== Payment-Processing Example
+
+This is an example of a credit card 3D Secure transaction to show how to process a payment with the {payment-page-v2} in Seamless Mode.
+Currently, Seamless Mode supports *only credit card payments.* For a more payment-method-specific integration guide, go to <<PPv2_CC, Credit Card with {payment-page-v2-abbr}>>.
+
+The payment-processing example is *designed for the testing environment* and *does not use real information.*
+
+Payment processing with {payment-page-v2} in Seamless Mode deviates a little bit from the
+
+<<PaymentPageSolutions_PPv2_HPP_Integration, HPP>> and <<PaymentPageSolutions_PPv2_EPP_Integration, EPP>> payment processing workflow:
+
+[%autowidth]
+|===
+h|Payment Processing with {payment-page-v2} in Seamless Mode
+a|.  Create a payment session (initial request).
+  . Render the Seamless payment form in your checkout page (initial response URL).
+  .  Submit the payment.
+  .  Highly recommended: Parse and process the payment response.
+
+h|Payment Processing with HPP and EPP
+a|.  Create a payment session (initial request).
+  .  Redirect the consumer to the payment page (initial response URL).
+  .  Highly recommended: Parse and process the payment response.
+|===
+
+
+[#PPv2_Seamless_Integration_Example_TestCreds]
+.Setup and Test Credentials
+Before you can send your first request, use the following information to
+set up your testing tool:
+
+.Test Credentials
+ifdef::env-po[]
+[%autowidth, cols="h,"]
+|===
+| URL(s) Endpoints           
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+
+| Merchant Account ID (MAID) 
+| a9203585-53ed-4e09-9dda-9d963bc99a0b
+
+| Username                   
+| 51126-PAYDOO
+
+| Password                   
+| ic1-781Tp14715
+
+| Secret Key (used for response verification) 
+| dd333a07-6535-41e8-9324-e78110cea672
+
+2+|Test Card
+|Card Number      |4012000300001003
+|Expiration Date  |01/23
+|CVV              |003
+|3D Verification Password |{three-d-s-pw}
+|===
+endif::[]
+
+ifdef::env-wirecard[]
+[%autowidth, cols="h,",]
+|===
+|URI (Endpoint)   
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+
+|Username         
+|70000-APILUHN-CARD
+
+|Password         
+|8mhwavKVb91T
+
+|MAID             
+|cad16b4a-abf2-450d-bcb8-1725a4cef443
+
+|Secret Key       
+|b3b131ad-ea7e-48bc-9e71-78d0c6ea579d
+
+2+|Test Card
+|Card Number      
+|4012000300001003
+
+|Expiration Date  
+|01/23
+
+|CVV              
+|003
+
+|3D Verification Password 
+|wirecard
+|===
+endif::[]
+
+[#PPv2_Seamless_Integration_Example_InitialRequest]
+.1. Create a Payment Session
+To create a payment session, send a *POST request* to the ``/api/payment/register`` endpoint,
+e.g. ``\https://{pp-test-instance-hostname}/api/payment/register``.
+
+This is an HTTP request with two headers:
+
+.Request Headers
+ifdef::env-wirecard[]
+[source,subs=attributes+]
+----
+Content-Type: application/json
+Authorization: Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==
+----
+endif::[]
+
+ifdef::env-po[]
+[source,subs=attributes+]
+----
+Content-Type: application/json
+Authorization: Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+----
+endif::[]
+
+The ``Authorization`` header needs to be formatted as:
+"Authorization"="Basic" + base64("username:password")
+
+
+.Create a Payment Session (Initial Request)
+ifdef::env-wirecard[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SeamlessIntegrationExampleInitialRequest_CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaydooPPv2_SeamlessIntegrationExampleInitialRequest_CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
+
+|===
+ 2+|Field (JSON) |Data Type |Required/Optional |Size |Description
+
+|merchant-account-id 
+|value 
+|String    
+|Required          
+|36   
+|A unique identifier assigned to every merchant account (by {payment-provider-name}).
+
+2+|request-id                 
+| String   
+|Required          
+|64   
+|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a
+placeholder for a random request-id. Allowed characters: +
+``a - z`` +
+``0 - 9`` +
+``-_ ``
+
+ 2+|transaction-type           
+|String    
+|Required          
+|36   
+|The requested transaction type.
+
+.2+|_requested-amount_ 
+|value    
+|Numeric   
+|Required          
+|18   
+|The full amount that is requested/contested in a transaction. 2 decimal places allowed. +
+Use ``.`` (decimal point) as the separator.
+
+|currency 
+|String    
+|Required          
+|3    
+|The currency of the requested/contested transaction amount.
+Format: 3-character abbreviation according to ISO 4217.
+
+|payment-method   
+|name     
+|String    
+|Optional          
+|15   
+|The name of the payment method used. Set this value to ``creditcard``.
+
+|three-d        
+|attempt-tree-d 
+|Boolean 
+|Conditional   
+|N/A  
+|*Required for 3D Secure transactions.* Indicates whether 3D Secure
+authentication is enabled for the transaction.
+
+2+|success-redirect-url      
+|String    
+|Optional          
+|256  
+|The URL to which the consumer is redirected after successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+
+2+|fail-redirect-url          
+|String    
+|Optional          
+|256  
+|The URL to which the consumer is redirected after successful payment, e.g. ``\https://{pp-redirect-url-error}``
+
+2+|cancel-redirect-url        
+|String    
+|Optional          
+|256  
+|The URL to which the consumer is redirected after successful payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+
+.2+|options        
+|mode     
+|String    
+|Required          
+|8    
+|Indicates which mode of payment page is used for the payment. Currently supports ``embedded`` and ``seamless``. *Use ``seamless`` in this example.*
+
+|frame-ancestor  
+|String    
+Required          
+|256  
+|The URL of the checkout page where the iframe is rendered.
+|===
+
+[#PPv2_Seamless_Integration_Example_3DS2]
+====
+[WARNING]
+
+To create a payment session with Credit Card using 3D Secure 2 authentication, you need to include <<PPv2_CC_3DS2Fields, 3D Secure 2 fields in your initial request>>. +
+Most of these fields are optional but we recommend the implementation of optional fields,
+as this creates a smoother user experience and ensures a higher level of security. +
+Need more information on 3D Secure 2? Head to our <<CreditCard_3DS2, general introduction to 3D Secure 2>>.
+====
+
+
+[CAUTION]
+====
+You must include ``"options": {"mode":"seamless"}`` in your request, otherwise {payment-page-v2-abbr} returns a regular payment URL that cannot be used in
+Seamless Mode. +
+
+Seamless Mode renders the payment form into an iframe. Therefore, you
+need to include ``"options": {`"frame-ancestor": "url"}`` in the request with your domain as the ``"url"`` value. +
+If you do not send ``"frame-ancestor"`` in the request, browsers will refuse to display the payment page in the iframe due to HTTP security
+policy.
+====
+
+ifdef::env-wirecard[]
+.Download the full integration demo from our Github
+image:images/03-01-03-01-seamless-integration-guide/github_java.png[JAVA, link="https://github.com/wirecard/wpp-integration-demo-java"]
+image:images/03-01-03-01-seamless-integration-guide/github_php.png[PHP, link="https://github.com/wirecard/wpp-integration-demo-php"]
+endif::[]
+
+
+[#PPv2_Seamless_Integration_Example_Render]
+.2. Render the Seamless Payment Form
+
+The response to the initial authorization request contains the
+``payment-redirect-url``.
+
+.Response to Authorization Request
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SeamlessIntegrationExampleRender_ResponseToAuthorizationRequest.json[]
+----
+
+Use the *``{payment-page-function-short}.seamlessRender``* function to render the payment form in a seamless iframe.
+Include the ``payment-redirect-url`` here:
+
+[source,subs=attributes+]
+----
+{payment-page-function-short}.seamlessRender({
+    url: paymentredirecturl, // this is the payment link returned in response to your initial request
+    wrappingDivId: "seamless-form-target",
+    onSuccess: function (response) { // called when seamless form is successfully rendered
+    },
+    onError: function (errResp) { // called if seamless form failed to render
+    }
+});
+----
+
+WARNING: This function renders only the payment form! The button with which
+consumers confirm their payment must be part of your checkout page.
+Bind the function to an interactive UI element, such as a button, in
+your HTML code.
+
+.Seamless payment form rendered into ``wrappingDivId``
+image::images/03-01-03-01-seamless-integration-guide/seamless_iframe.png[Seamless Payment Form]
+
+
+.Render the Payment Form: Example from {payment-provider-name} Demoshop
+[source,html,subs=attributes+]
+----
+<html>
+<head>
+    <!-- ... -->
+    <script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+    <!-- ... -->
+</head>
+<body>
+    <!-- ... -->
+    <!-- the form will render in the following div -->
+    <div id="seamless-form-target"></div>
+
+    <!-- the following javascript will render the form; make sure to set paymentredirecturl -->
+    <script type="text/javascript">
+          // change the next line to include YOUR TOKEN
+          var paymentredirecturl = "https://{pp-test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
+
+          // frame-ancestor in the initial request (Step 1) must match the domain you are using to test this
+          {payment-page-function-short}.seamlessRender({
+               url: paymentredirecturl,
+               wrappingDivId: "seamless-form-target",
+               onSuccess: function (response) {
+                 console.log(response);
+               },
+               onError: function (response) {
+                 console.log(response);
+               }
+          });
+    </script>
+    <!-- ... -->
+</body>
+</html>
+----
+
+
+[#PPv2_Seamless_Integration_Example_Submit]
+.3. Submit the Payment
+
+Now the payment form has been rendered and consumers can enter their
+payment information.
+
+To submit that data, use the *``{payment-page-function-short}.seamlessSubmit``* function:
+
+[source,subs=attributes+]
+----
+{payment-page-function-short}.seamlessSubmit({
+    onSuccess: function (response) { // called when seamless form data is successfully submitted
+    },
+    onError: function (response) { //called when data submission fails
+    }
+});
+----
+
+WARNING: Bind the function to an interactive UI element, such as a button, in
+your HTML code. The consumer can then click the button to submit the
+payment.
+
+
+.Submit the Payment: Example from {payment-provider-name} Demoshop
+[source,html,subs=attributes+]
+----
+<html>
+<head>
+    <!-- ... -->
+    <script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+    <!-- ... -->
+</head>
+<body>
+    <!-- ... -->
+    <!-- the form will render in the following div -->
+    <div id="seamless-form-target"></div>
+
+    <!-- the following javascript will render the form; make sure to set paymentredirecturl -->
+    <script type="text/javascript">
+          // change the next line to include YOUR TOKEN
+          var paymentredirecturl = "https://{pp-test-instance-hostname}/seamless?wPaymentToken=YOUR_TOKEN_HERE";
+
+          // frame-ancestor in the initial request must match the domain you are using to test this
+          {payment-page-function-short}.seamlessRender({
+               url: paymentredirecturl,
+               wrappingDivId: "seamless-form-target",
+               onSuccess: function (response) {
+                 console.log(response);
+               },
+               onError: function (response) {
+                 console.log(response);
+               }
+          });
+    </script>
+
+    <!-- this code will generate the "Pay Now" button and enable the submission of the form -->
+    <input id="{pay-button-name}_pay_btn" type="button" onclick="pay()" value="Pay Now"/>
+    <script type="text/javascript">
+        function pay() {
+            {payment-page-function-short}.seamlessSubmit({
+                onSuccess: function (response) {
+                // called when seamless form data is successfully submitted with non-3D Secure credit card
+                // see section 4 (Parse and Process the Payment Response) on how to deal with this data
+                  console.log(response);
+                },
+                onError: function (response) {
+                // called when seamless form data is successfully submitted with non-3D Secure credit card
+                // see section 4 (Parse and Process the Payment Response) on how to deal with this data
+                  console.log(response);
+                }
+             });
+        }
+    </script>
+    <!-- ... -->
+</body>
+</html>
+----
+
+
+WARNING: *The function only submits the payment.*
+
+[#PPv2_Seamless_Integration_Example_3DSRedirect]
+*3D Secure Transaction Redirect*
+
+For 3D Secure transactions, {payment-page-v2-abbr} in Seamless Mode automatically
+redirects the consumer to the card provider 3D Secure authentication
+pages. There are no actions required from you for this process.
+
+After 3D Secure authentication, the payment is further processed.
+
+Depending on the outcome, the consumer is redirected to a
+``success-/fail-/cancel-redirect-url``. As the consumer leaves your page
+for 3D Secure authentication, these URLs need to be set up in the same
+way as those for <<PaymentPageSolutions_PPv2_HPP_Integration, HPP>> and <<PaymentPageSolutions_PPv2_EPP_Integration, EPP>>
+integrations.
+
+[NOTE]
+====
+This means that *for 3D Secure Transactions, you need to include the ``success-/fail-/cancel-redirect-url`` in the initial request!*
+
+URLs for successful, failed, and canceled transactions can also be set
+during the initial merchant configuration and saved in the database. If
+you would like to change these default values, please contact <<ContactUs, Merchant Support>>.
+
+More information on ``success-/fail-/cancel-redirect-url`` configuration
+can be found in <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>.
+====
+
+[#PPv2_Seamless_Integration_Example_Redirect]
+*Non 3D Secure Transaction Redirect*
+
+For Non-3D Secure transactions, any further steps, such as displaying
+success messages to your consumer, or redirecting your consumer to
+success-/fail-/cancel-pages, need to be implemented separately in your
+online shop.
+
+[#PPv2_Seamless_Integration_Example_Parse]
+.4. Parse and Process the Payment Response (Highly Recommended)
+
+Once you have submitted the payment, and it has been processed, you
+receive a payment response. The payment response is sent in three parts:
+the ``response-signature-base64``, the ``response-signature-algorithm``,
+and the ``response-base64``.
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SeamlessIntegrationExampleParse_4ParseAndProcessThePaymentResponseHighlyRecommended.json[]
+----
+
+- ``response-base64`` contains the payment data.
+- ``response-signature-base64`` and the ``response-signature-algorithm``, together with the Secret Key you receive upon signing a contract with
+{payment-provider-name}, are required for calculating the security response signature.
+The security response signature is essential for verifying the payment
+status. +
+*Please consult <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> for details and examples of response signature verification.*
+
+//-
+
+In Seamless Mode, the {payment-page-v2-abbr} sends the final response containing the payment data to either of the following destinations, depending on the
+payment mode.
+
+[#PPv2_Seamless_Integration_Example_Parse_3DS]
+*3D Secure Credit Card Payment*
+
+The {payment-page-v2-abbr} sends the final response containing the payment data to the
+``success-redirect-url``/``fail-redirect-url`` *specified in the initial request.* This is the URL where the consumer is redirected to at the end
+of a payment session.
+
+To parse and process the payment response of 3D Secure credit card
+payment, please consult *<<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> for details.*
+
+This is the decoded payment data contained in the example payment response provided above.
+
+.Decoded Payment Response
+ifdef::env-wirecard[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_SeamlessIntegrationExampleParse_3DS_DecodedPaymentResponse.json[]
+----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaydooPPv2_SeamlessIntegrationExampleParse_3DS_DecodedPaymentResponse.json[]
+----
+endif::[]
+
+.Field Table
+|===
+2+|Field (JSON)                               |Data Type  |Description
+
+2+|transaction-state                          
+|String    
+a| The current transaction state. Possible values:
+- ``in-progress``
+- ``success``
+- ``failed``
+
+Typically, a transaction starts with state _in-progress_ and finishes with state either _success_ or _failed_. This information is returned in the response only.
+
+|payment-method 
+|name                      
+|String  
+|The name of the payment method used for the transaction.
+
+.2+|_three-d_ 
+|cardholder-authentication-status 
+|String  
+|Result of the 3D Secure check.
+
+|attempt-three-d                  
+|Boolean 
+|Indicates whether the transaction should use the 3-D Secure workflow.
+
+|merchant-account-id 
+|value                   
+|String  
+|A unique identifier assigned to every merchant account (by {payment-provider-name}).
+
+.2+|_custom-field_ 
+|field-name                  
+|String  
+|Custom field.
+
+|field-value                 
+|String  
+|Custom field.
+
+2+|transaction-id                             
+|String  
+|A unique identifier assigned to every transaction(by {payment-provider-name}). Used when searching for or referencing to it later.
+
+2+|completion-time-stamp         
+|YYYY-MM-DD-Thh:mm:ss 
+|The UTC/ISO time-stamp documents the time & date when the transaction was executed. +
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+
+.2+|_requested-amount_ 
+|currency                
+|String  
+|The currency of the requested/contested transaction amount. +
+Format: 3-character abbreviation according to ISO 4217.
+
+|value                   
+|Numeric 
+|The full amount that is requested/contested in a transaction.
+
+2+|authorization-code                         
+|String  
+|Provider authorization code.
+
+2+|csc-code                                
+|String  
+|Code indicating Card Verification Value (CVV/CVC) verification results.
+
+.2+|account-holder 
+|first-name                
+|String  
+|The first name of the account holder.
+
+|last-name                 
+|String  
+|The last name of the account holder.
+
+.4+|card       
+|expiration-month              
+|Numeric 
+|The expiration month of the card used in the transaction.
+
+|expiration-year               
+|Numeric 
+|The expiration year of the card used in the transaction.
+
+|card-type                     
+|String  
+|The type/provider of the card used in the transaction.
+
+|merchant-tokenization-flag    
+|Boolean 
+|Indicates whether Cardholder card data was stored by the Merchant for future transactions. Maps to the Visa field _Stored Credential_.
+.3+|status     
+|description                   
+|String  
+|The description of the transaction status message.
+
+|severity                      
+|String 
+a| The definition of the status message. Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+|code                           
+|String  
+|Status code of the status message.
+
+2+|parent-transaction-id                      
+|String  
+|The unique identifier of a transaction that is being referenced (sometimes referred to as the "original transaction").
+
+.2+|_parent-transaction-amount_  
+|currency      
+|String  
+|The currency of the requested/contested transaction amount. +
+Format: 3-character abbreviation according to ISO 4217.
+
+|value         
+|Numeric 
+|The full amount that is requested/contested in a transaction.
+
+2+|api-id                                    
+|String  
+|Description of the transaction for account holder's bank statement purposes.
+
+.2+|card-token  
+|token-id                     
+|String  
+|A unique identifier assigned to every card token.
+
+|masked-account-number        
+|String  
+|The masked code that represents the account (card) number used in the transaction.
+
+2+|transaction-type                            
+|String  
+|The requested transaction type.
+
+2+|request-id                                  
+|String  
+|A unique identifier assigned to every request (by merchant). Used when searching for or referencing to it later.
+|===
+
+[#PPv2_Seamless_Integration_Example_Parse_NON3DS]
+*Non 3D Secure Credit Card Payment*
+
+The {payment-page-v2-abbr} sends the final response containing the payment data *as part of the ``onSuccess/onError`` function.* Use the response to redirect the
+consumer to a success-/fail-/cancel-redirect-url of your own choice and design to inform the consumer about the transaction status.
+
+To parse and process the payment response of Non 3D Secure credit card
+payment, please consult *<<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> for details.*

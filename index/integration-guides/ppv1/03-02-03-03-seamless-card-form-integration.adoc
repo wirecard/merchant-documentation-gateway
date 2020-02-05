@@ -1,0 +1,64 @@
+[#Seamless_CardFormIntegration]
+== Card Form Integration
+This use-case covers the payment form displayed directly on the merchant's checkout page for a seamless user experience (no browser redirects).
+
+[#Seamless_CardFormIntegration_RenderForm]
+=== Render Form
+
+Merchant renders the form into element on their checkout page. The
+transaction details are specified in ``requestData``. The element is
+identified by ``wrappingDivId`` parameter.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+var requestData = {
+  "request_id" : "217c3832-8575-c1d5-0e3a-2fa08003b0fd",
+  "request_time_stamp" : "20190403095835",
+  "merchant_account_id" : "61e8c484-dbb3-4b69-ad8f-706f13ca141b",
+  "transaction_type" : "purchase",
+  "requested_amount" : "2.00",
+  "requested_amount_currency" : "EUR",
+  "ip_address" : "127.0.0.1",
+  "request_signature" : "43fd8c261a8fdad693024c7cc009239ad344f1e5716de0c3163237b5392d5700",
+  "payment_method" : "creditcard"
+};
+{payment-page-function}.seamlessRenderForm({
+  requestData : requestData,
+  wrappingDivId : "seamless-target",
+  onSuccess : processSucceededResult,
+  onError : processErrorResult
+});
+----
+endif::[]
+
+NOTE: Use a unique Request ID for each request.
+
+.Transaction Data Received from onSuccess Callback of seamlessRenderForm()
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/SeamlessCardFormIntegrationRenderForm_TransactionDataReceivedFromonSuccessCallbackOfseamlessRenderForm.json[]
+----
+
+[#Seamless_CardFormIntegration_SubmitForm]
+=== Submit Form
+
+Merchant assigns the call function to a pay button on the checkout page.
+``requestData`` are optional when submitting form. They will be merged with
+data from the first step. Form input is validated before the submit.
+
+ifdef::env-wirecard[]
+[source,js,subs=attributes+]
+----
+{payment-page-function}.seamlessSubmitForm({
+  onSuccess : processSucceededResult,
+  onError : processErrorResult
+});
+----
+endif::[]
+
+.Transaction Data Received from onSuccess Callback of seamlessSubmitForm()
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/SeamlessCardFormIntegrationSubmitForm_TransactionDataReceivedFromonSuccessCallbackOfseamlessSubmitForm.json[]
+----
