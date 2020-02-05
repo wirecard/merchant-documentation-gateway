@@ -440,6 +440,8 @@ function main() {
     debugMsg "Adding robots.txt for NOVA"
     echo "User-agent: * " > ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/robots.txt
     echo "Disallow: /" >> ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/robots.txt
+    debugMsg "Change tracker id for NOVA"
+    sed -i "s/'setSiteId', '1'/'setSiteId', '4'/" ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/docinfo.html
     echo "${PARTNER}_${NOVA}:${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/" >>"${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}_nova"
   else
     debugMsg "Failed! Could not build NOVA ${PARTNER}"
