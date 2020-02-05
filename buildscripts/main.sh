@@ -279,6 +279,11 @@ function buildPartner() {
   node buildscripts/search/lunr-index-builder.js ||
     scriptError "lunr-index-builder.js in line $((LINENO - 1))"
 
+  if [[ ${NOVA} == "NOVA" ]]; then
+    debugMsg "Change tracker id for NOVA"
+    sed -i "s/'setSiteId', '1'/'setSiteId', '4'/" docinfo.html
+  fi
+
   debugMsg "Building split page docs"
   RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 \
   -r ./buildscripts/asciidoc/multipage-html5-converter.rb ${NOVA_INDEX} ||
@@ -440,8 +445,6 @@ function main() {
     debugMsg "Adding robots.txt for NOVA"
     echo "User-agent: * " > ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/robots.txt
     echo "Disallow: /" >> ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/robots.txt
-    debugMsg "Change tracker id for NOVA"
-    sed -i "s/'setSiteId', '1'/'setSiteId', '4'/" ${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/docinfo.html
     echo "${PARTNER}_${NOVA}:${BUILDFOLDER_PATH}/${PARTNER}/${NOVA}/html/" >>"${TRAVIS_ENVSET_FILE:-/tmp/travis_envset_file}_nova"
   else
     debugMsg "Failed! Could not build NOVA ${PARTNER}"
