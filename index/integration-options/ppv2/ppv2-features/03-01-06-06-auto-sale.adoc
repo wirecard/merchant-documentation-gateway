@@ -1,0 +1,60 @@
+
+[#PPv2_Features_AutoSale]
+
+== Auto-Sale
+Auto-sale is a pseudo transaction type, which has been created for the
+purpose of offering merchants and easier way to integrate the standard
+and most widely used "SALE" transactions. Auto-sale does not exist as an
+individual transaction type: it is only a place-holder which is used by
+{payment-gateway} to decide which transaction type should be used
+for a specific transaction. When using auto-sale, you are not required
+to send a specific transaction-type for each credit card or alternative
+payment method request.
+
+[#PPv2_Features_AutoSale_BasicConfiguration]
+[discrete]
+=== Basic Configuration
+Your merchant account is automatically configured for the default
+``auto-sale`` settings. If you send a request with ``auto-sale`` as the transaction type, these
+are the values used:
+
+[cols=",", options="header"]
+[%autowidth]
+|===
+|Payment method |Default transaction type
+|``creditcard`` |``purchase``
+|``ideal`` |``debit``
+|``paypal`` |``debit``
+|``sepadirectdebit`` |``debit``
+|``sofortbanking`` |``debit``
+|===
+
+However, the transaction is not registered as ``auto-sale`` in the database, but as the default transaction type. Look at example request
+below:
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_FeaturesAutoSaleBasicConfiguration.json[]
+----
+
+Although the ``transaction-type`` is ``auto-sale``, the request is actually
+sent as ``purchase`` (or any other default value you set for credit card
+payments). The behavior is the same for all payment methods.
+
+[#PPv2_Features_AutoSale_ExtendedConfiguration]
+[discrete]
+=== Extended Configuration
+You can reconfigure the default ``auto-sale`` settings for every payment
+method upon request. As this requires changing your Merchant Account
+configuration, you need to
+contact <<ContactUs, Merchant Support>>
+for extended configuration options.
+
+[#PPv2_Features_AutoSale_CurrencyConfiguration]
+[discrete]
+=== Currency Configuration
+You can also configure ``auto-sale`` options for a specific currency. You
+can have multiple default transaction types based on which currency is
+used, e.g. credit card payments in EUR use ``authorization`` as the
+default type, whereas USD payments are sent as ``purchase``. Again, this
+is only possible by changing your Merchant Account configuration (contact <<ContactUs, Merchant Support>>).

@@ -1,0 +1,551 @@
+//:payment-method-name: Klarna
+
+[#Klarnav2_TransactionTypes_authorization]
+==== _authorization_/_pending-authorization_
+_Klarna_ performs a risk check before accepting an order. 
+
+Furthermore, _Klarna_ flags **some orders** for additional review and transmits ``fraud_status pending`` to _{payment-gateway}_. For this status, _{payment-gateway}_ uses the transaction type ``pending-authorization`` and creates the final authorization transaction once _Klarna_ has completed this additional risk check.
+
+If _Klarna_ accepts the order, it guarantees the payment once the authorized amount is captured.
+
+[#KlarnaV2_TransactionTypes_authorization_Workflow]
+===== _authorization_/_pending-authorization_ Workflow
+
+[mermaid,Klarnav2_workflow_authorization,svg,subs=attributes+]
+----
+sequenceDiagram
+    participant C as Consumer
+    participant M as Merchant
+    participant W as WPG
+    participant K as Klarna
+C->>M: proceeds to checkout
+M->>W: sends "authorization" request
+W->>K: sends "check-signature" and "get-url"
+K->>W: creates and sends session token
+W->>K: creates and sends "pending-authorization"
+K-->>K: performs basic risk check
+K->>W: sends basic risk check result
+W-->>W: updates "pending-authorization"
+    alt basic risk check ok/fail
+        W->>M: "authorization" response
+    else advanced risk check required
+        W->>M: "pending-authorization" response
+    end
+M->>C: redirects to payment status page
+    alt advanced risk check required
+       K-->>K: performs advanced risk check
+       K->>W: sends risk check result notification
+       W->>M: processes notification and sends response
+       M->>C: redirects to payment status page
+    end
+----
+
+. Consumer checks out products.
+. -> Send an _authorization_ request to _{payment-gateway}_. This request must contain order data (e.g. amount, order number, order items), consumer data (e.g. name, billing
+and shipping address, client IP address).
+. _{payment-gateway}_ forwards the request to _Klarna_.
+. _Klarna_ creates a session token and sends it to _{payment-gateway}_.
+. _{payment-gateway}_ creates a _pending-authorization_ transaction.
+. _Klarna_ performs a basic risk check:
+  - If _Klarna_ accepts the order, it guarantees the payment once the _authorization_ has been captured.
+  - If _Klarna_ does not accept the order, the _authorization_ is
+rejected with a corresponding error code.
+  - In some cases, _Klarna_ performs an <<Klarnav2_TransactionTypes_authorization_advancedRiskCheck, advanced risk check>>.
+. _{payment-gateway}_  forwards the risk check result (with the corresponding status code) to you:
+  - Basic risk check ok: +
+   _{payment-gateway}_ sends you an _authorization_ success response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>>.
+  - Basic risk check failed: +
+   _{payment-gateway}_ sends you an _authorization_ failure response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN>>.
+  - Advanced risk check necessary: +
+   The _authorization_ is pending during the advanced risk check. The payment cannot be immediately authorized.
+  _{payment-gateway}_ sends you a _pending-authorization_ response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN>>.
+. -> Inform your consumer on the payment process outcome.
+
+. [[Klarnav2_TransactionTypes_authorization_advancedRiskCheck]]If _Klarna_ performs an advanced risk check: +
++
+9.1 _Klarna_ sends the advanced risk check result to _{payment-gateway}_. +
+9.2  _{payment-gateway}_ processes the advanced risk check result and sends you an _authorization_ response and an <<GeneralPlatformFeatures_IPN_NotificationExamples, IPN>>. 
++
+[NOTE]
+====
+_{payment-gateway}_ retrieves the risk check result every 2 hours.
+
+If you do not receive an IPN after 26 hours (e.g. due to
+a technical error), you can check the status
+of a _pending-authorization_ by using the feature <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Request ID>>.
+
+  ** If the advanced risk has been completed, _{payment-gateway}_ returns the new _authorization_ transaction with the response.
+  ** Otherwise, _{payment-gateway}_ returns the HTTP code 404. Please <<ContactUs, contact Wirecard Merchant Support>>
+====
+9.3 -> Inform your consumer on the payment process outcome.
+
+//-
+
+[#KlarnaV2_TransactionTypes_authorization_Fields]
+===== _authorization_/_pending-authorization_ Fields
+
+Fields can be mandatory (M) or optional (O).
+
+[%autowidth]
+[cols="e,,,,,"]
+|===
+|Field |Request |Response |Data Type |Size |Description
+
+|merchant-account-id 
+|M 
+|M 
+|Alphanumeric 
+|36 
+|A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+
+|request-id 
+|M
+|M 
+|Alphanumeric 
+|36 
+a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
+
+Allowed characters:  ``[a-z0-9-\_]``.
+
+|transaction-type 
+|M 
+|M 
+|Alphanumeric
+|30 
+|The requested transaction type. Set this field to `authorization`.
+
+|requested-amount  
+|M
+|M
+|Numeric
+|18,3
+|Total order amount to be reserved. The number of decimal places depends on the currency. +
+The requested amount must be equal to the amount sum of all order items.
+
+Use ``,`` (comma) as separator.
+
+|[[KlarnaV2_TransactionTypes_authorization_Fields_requestedAmount_currency]]requested-amount@currency 
+|M 
+|M 
+|Alphanumeric
+|3 
+a|The <<KlarnaV2_CountriesCurrencies, currency>> of the requested/contested
+transaction amount. +
+Format: 3-character abbreviation according to ISO 4217.
+
+|payment-methods. +
+payment-method@name
+|M 
+|M 
+|Alphanumeric
+|15 
+a|The name of the payment method used for the transaction. 
+
+Possible values: 
+
+  - ``klarna-finance`` for payment in installments (Financing/Slice it)
+  - ``klarna-debit`` for _Klarna_ direct debit (Pay now) 
+  - ``klarna-transfer`` for _Klarna_ bank transfer (Pay now)
+  - ``klarna-paylater`` for _Klarna_ payment on invoive (Pay later)
+//-
+
+|order-number	
+|O 
+|O 
+|Alphanumeric
+|255 
+|Order number of the merchant. +
+If set, it shows as "order number" on _Klarna_'s payment confirmation page.
+
+|locale	
+|M 
+|M 
+|Alphanumeric
+|5 
+|A 5-letter code which indicates what <<KlarnaV2_Locales, language>> the payment page is rendered in (RFC 1766).
+
+|transaction-id 
+|-
+|M 
+|Alphanumeric
+|36
+|A unique identifier assigned for every transaction. Generated by {payment-provider-name}. Used when searching for or referencing it later.
+
+|transaction-state 
+|-
+|M 
+|Alphanumeric
+|12
+a|Transaction status. +
+Possible values: 
+
+  - ``success``
+  - ``failed``
+
+//-
+
+|completion-time-stamp
+|-
+|M
+|DateTime
+|
+|The timestamp documents the time and date when the transaction was completed.
+
+|notifications. +
+notification-url 
+|O 
+|O 
+|Alphanumeric
+|256
+|The URL to which _{payment-gateway}_ sends an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>> for pending reservations or the transaction outcome. It overwrites the notification URL that is set up in your merchant configuration.
+
+5+<.>s|account-holder.
+s|Contains consumer data.
+
+|date-of-birth 
+|O 
+|O 
+|Date 
+|
+|Consumer's date of birth. +
+Format: _Klarna_ accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. + 
+If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
+
+|first-name 
+|O 
+|O 
+|Alphanumeric
+|32 
+|Consumer's first name.
+
+|last-name 
+|O 
+|O 
+|Alphanumeric
+|32 
+|Consumer's last name.
+
+|email 
+|O 
+|O 
+|Alphanumeric
+|64 
+|Consumer's email address.
+
+|gender 
+|O 
+|O 
+|Alphanumeric
+|1 
+|Consumer's gender.
+
+|phone 
+|O 
+|O 
+|Alphanumeric
+|32 
+|Consumer's phone number. +
+Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here>> for details.
+
+5+<.>s|account-holder.address.
+s|Consumer's address.
+
+|street1 
+|O 
+|O 
+|Alphanumeric
+|128 
+|Street of the consumer's address.
+
+|street2	
+|O 
+|O 
+|Alphanumeric
+|128 
+|House number of the consumer's address.	 
+
+|city 
+|O 
+|O 
+|Alphanumeric
+|32 
+|City of the consumer's address.
+
+|country 
+|M 
+|M 
+|Alphanumeric
+|3 
+|<<KlarnaV2_CountriesCurrencies, Country code>> of the consumer's address.
+
+|postal-code 
+|O 
+|O 
+|Alphanumeric
+|16 
+|Postal/ZIP code of the consumer's address.
+
+5+<.>s|shipping. 
+s|Consumer's shipping information.
+
+|first-name 
+|O 
+|O 
+|Alphanumeric
+|32 
+|Recipient's first name.  
+
+|last-name 
+|O 
+|O 
+|Alphanumeric
+|32 
+|Recipient's last name. 
+
+|email 
+|O 
+|O 
+|Alphanumeric
+|64 
+|Recipient's email address. 	
+
+|phone 
+|O 
+|O 
+|Alphanumeric
+|32 
+|Recipient's phone number.  +
+Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here>> for details.
+
+5+<.>s|shipping.address.
+s|Consumer's shipping address.
+
+|street1 
+|O 
+|O 
+|Alphanumeric
+|128 
+|Street of the recipient's address.
+
+|street2 
+|O 
+|O 
+|Alphanumeric
+|128 
+|House number of the recipient's address.	 
+
+|house-extension 
+|O 
+|O 
+|Alphanumeric
+|32 
+|House extension of the recipient's address.	 
+
+|city 
+|O 
+|O 
+|Alphanumeric
+|32 
+|City of the recipient's address.
+
+|country 
+|O
+|O
+|Alphanumeric
+|3 
+|Country code of the recipient's address.
+
+|postal-code 
+|O 
+|O 
+|Alphanumeric
+|16 
+|Postal/ZIP code of the recipient's address.
+
+5+<.>s|order-items.order-item.
+s|Description of a specific order item.
+
+|quantity 
+|M
+|M
+|Numeric 
+|n/a  
+|Total number of this item in the shopping basket.
+
+|description 
+|O 
+|O 
+|Alphanumeric
+|1024 
+|Description of the item in the shopping basket.
+
+|article-number 
+|O 
+|O 
+|Alphanumeric
+|256 
+|EAN or other merchant-side article identifier.
+
+|name 
+|M 
+|M 
+|Alphanumeric
+|256 
+|Name of the item in the shopping basket.
+
+|amount 
+|M 
+|M 
+|Numeric 
+|18,3 
+|Item’s price per unit.  +
+
+Use ``,`` (comma) as separator.
+
+|amount@currency 
+|M 
+|M 
+|Alphanumeric
+|3 
+|<<KlarnaV2_CountriesCurrencies, Currency>> of this item's price. Must match the <<KlarnaV2_TransactionTypes_authorization_Fields_requestedAmount_currency, order currency (requested amount currency)>>. +
+Format: 3-character abbreviation according to ISO 4217.
+
+|tax-rate 
+|O 
+|O 
+|Numeric
+|5,2 
+a|Item’s tax rate per unit in percent. +
+*M* if ``tax-amount`` is specified.
+
+|tax-amount 
+|O 
+|O 
+|Numeric
+|5,2 
+a|Item’s tax value per unit. +
+*M* if ``tax-rate`` is specified.
+
+|discount	
+|O
+|O
+|Numeric
+|18,3 
+|The discount value for one order item.  +
+Use ``,`` (comma) as separator.
+
+|type
+|O 
+|O
+|Alphanumeric
+|n/a
+a|Order item type. +
+Possible values: 
+
+  - ``shipment_fee``
+  - ``handling_fee``
+  - ``discount``
+  - ``physical``
+  - ``sales_tax``
+  - ``digital``
+  - ``gift_card``
+  - ``store_credit``
+
+//-
+
+If not specified, ``type`` is treated as a regular article.
+
+5+<.>s|statuses.status.
+s|Contains information on the status of a specific transaction.
+
+|code
+|-
+|M
+|Alphanumeric
+|12
+|Transaction status code.
+
+|description
+|-
+|M
+|Alphanumeric
+|256
+|Transaction status message.
+
+|severity
+|-
+|M
+|Alphanumeric
+|20
+a|The definition of the status message. Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+|@provider-code
+|-
+|O
+|Alphanumeric
+|34
+|Original _Klarna_ error code.
+
+|@provider-message
+|-
+|O
+|Alphanumeric
+|
+|Error message to be shown to the consumer as required by _Klarna_.
+
+|@provider-transaction-id 
+|-
+|O
+|Alphanumeric
+|36
+|_Klarna_ reservation number.
+
+5+<.>s|additional-provider-data.provider-data
+s|Contains max. 1 additional data item for _Klarna_.
+
+|request
+|O
+|-
+|Alphanumeric
+|
+|Content should be an object containing any of the keys and sub objects described in https://developers.klarna.com/api/#payments-api-create-a-new-credit-session serialised to JSON. +
+E.g. +
+ ``{"marketplace_seller_info":[{"product_category":"Women''s Fashion","product_name":"Women Sweatshirt"}]}`` +
+
+|===
+
+[#KlarnaV2_TransactionTypes_authorization_Samples]
+=== _authorization_ Samples
+
+._authorization_ Request
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/Klarnav2_authorization_request.xml[]
+----
+
+._authorization_ Response
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/Klarnav2_authorization_response.xml[]
+----
+
+NOTE: To proceed with a successful authorization transaction, take the URL from ``<payment-method url="http://...">`` from the response, replace ``\&amp;`` with ``&`` and redirect your consumer to this URL.
+
+._authorization_ Notification XML
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/Klarnav2_authorization_notification.xml[]
+----
+
+//-

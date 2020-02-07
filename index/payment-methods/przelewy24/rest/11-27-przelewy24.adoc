@@ -1,0 +1,348 @@
+
+[#Przelewy24]
+== REST API & {payment-page-v1}
+_Przelewy24_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#Przelewy24_PaymentModeCountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | Poland
+| Currencies   | PLN
+|===
+
+[#Przelewy24_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _P24_ notifications are encoded and which
+formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format   | XML
+                         | Methods  | POST
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_NotificationExamples>> to set up IPN.
+|===
+
+[#Przelewy24_TransactionTypes]
+=== Transaction Types
+
+This table lists all transaction types available for _P24_.
+
+NOTE: Some transaction types cannot be sent in your request. Refer to columns
+_Request_, _Response/IPN_ and _{enterprise-portal-abbr}_ for details where to expect involved
+transaction types.
+
+NOTE: Recurring mode is not available.
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look
+at <<AppendixB,  Transaction Types>>.
+
+[cols="e,,,,,"]
+|===
+|Transaction Type | Request | Response/IPN | {enterprise-portal-abbr} | Description | Link to Samples
+
+|debit | Yes | Yes | Yes | Moves funds from Consumer to Merchant.
+``debit`` requests to take funds from consumer's bank account. a|
+<<Przelewy24_Samples_debit, debit samples>>
+
+|get-url |No |No |Yes | A step in a group of transactions where the
+URL of P24 landing page is retrieved for the Consumer to be redirected
+to. |
+
+|refund-request |Yes |Yes |Yes | A request to give funds to the
+Consumer's account, referring to an eligible debit transaction.
+|<<Przelewy24_Samples_refund, refund samples>>
+
+|refund-debit |No |Yes |Yes |Moves funds from the Merchant to the
+Consumer. It follows ``refund-request`` as a final step of the refund
+flow.
+|
+|===
+
+[NOTE]
+====
+[cols="h,"]
+|===
+| Request      | *Yes* means the transaction type can be sent in the request.
+| Response/IPN | *Yes* means the transaction type can appear in either response _or_ notification.
+| _{enterprise-portal-abbr}_          | *Yes* means the transaction type is visible in _{enterprise-portal-name}_.
+|===
+====
+
+[#Przelewy24_TestCredentials]
+=== Test Credentials
+
+NOTE: Our test environment is connected to _P24_ sandbox which does not
+require to enter any additional data. _P24_ landing page will skip
+entering consumer card data or credentials and returns to your shop
+immediately.
+
+|===
+.3+h|URLs (Endpoints) .2+| REST API | For transaction type ``debit``.                              | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+                                    | For transaction types ``refund-request`` and ``refund-debit``. | ``\https://{test-instance-hostname}/engine/rest/payments/``
+                       2+| Payment Page                                                          | ``\https://{test-instance-hostname}/engine/hpp/``
+h| Merchant Account ID 3+| 86451785-3ed0-4aa1-99b2-cc32cf54ce9a
+h| Username            3+| 16390-testing
+h| Password            3+| 3!3013=D3fD8X7
+h| Secret Key          3+| fdd54ea1-cef1-449a-945c-55abc631cfdc
+|===
+
+[#Przelewy24_Workflow]
+=== Workflow
+
+[#Przelewy24_debitTransaction]
+==== _debit_ Transaction
+
+[#Przelewy24_debitPrerequisites]
+===== Prerequisites
+
+For a successful workflow, please keep the following prerequisites in
+mind:
+
+* A P24 payment process is *accomplished successfully only, if {payment-gateway-abbr} has
+sent out a successful notification*. The status ``success`` in the response
+only confirms that the payment was technically accepted.
+* In case the consumer closes the browser before confirming the payment,
+there is *a redirection to shop page* possible. This means, the workflow
+can be accomplished successfully, even when shutting down the browser.
+* As soon as the P24 landing page has been opened in a browser,
+the *consumer has 15 minutes to authorize the payment*. However, the
+validity of the received URL is not limited. Try to ensure that the URL
+is opened by the consumer as soon as possible. In edge cases the payment
+could be successfully finished even after a long time (when the merchant
+could have cancelled the order already).
+* The maximum period to receive notification is 30 days.
+
+[#Przelewy24_debitProcessUsingtheReSTAPI]
+===== Payment Process Using the ReST API
+
+image::images/11-27-przelewy24/Przelewy24_Debit_TX_ReST.png[Payment Process Using ReST API]
+
+. The consumer initiates a transaction (currency is set to ``PLN``).
+. The merchant sends a request with the consumer's data to the
+endpoint of _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} sends a response to the merchant.
+. The merchant redirects the consumer to the P24 landing page (The URL
+for redirection is in the response message, field
+``payment-methods/payment-method/@url``).
+. The consumer authorizes the transaction.
+. {payment-gateway-abbr} performs two actions simultaneously:
+. {payment-gateway-abbr} redirects the consumer (via redirect URLs) back to the shop
+where the information about the status of the payment is displayed. The
+redirect URL uses the definition in ``success-redirect-url`` and
+``fail-redirect-url`` from the request (Step 2). According to success or
+failure during the payment process {payment-gateway-abbr} sends the consumer to the
+corresponding URL. This is the page where the consumer is informed about
+his successful or failed payment.
+. {payment-gateway-abbr} sends a notification (IPN) of the payment outcome. In order to
+receive server-to-server notification, the notification must use the
+definition in the field ``notifications/notification/@url`` in the request
+(Step 2)
+
+[#Przelewy24_debitProcessUsingthePaymentPage]
+===== Payment Process Using the Payment Page
+
+.Payment Process Using Payment Page
+image::images/11-27-przelewy24/Przelewy24_Debit_TX_PPage.png[Payment Process Using Payment Page]
+
+. The consumer initiates a transaction (currency is set to PLN).
+. The merchant sends a request with the consumer's data to the
+endpoint of _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} analyses the consumer's data.
+.. If the request does not include the payment method P24, the _{payment-gateway-abbr}_
+redirects the consumer to Payment Page
+... The consumer selects P24.
+... {payment-gateway-abbr} redirects the consumer to the P24 landing page.
+.. If the request already includes the payment method P24, _{payment-gateway-abbr}_
+redirects the consumer to the P24 landing page.
+. The consumer selects the desired bank.
+. The consumer authorizes the transaction.
+. {payment-gateway-abbr} performs two actions simultaneously:
+.. {payment-gateway-abbr} redirects the consumer (via redirect URLs) back to the shop
+where the information about the status of the payment is displayed. The
+redirect URL uses the definition
+in ``success-redirect-url`` and ``fail-redirect-url`` from the request (Step
+2). According to success or failure during the payment process {payment-gateway-abbr} sends
+the consumer to the corresponding URL. This is the page where the
+consumer is informed about his successful or failed payment.
+.. {payment-gateway-abbr} sends a notification (IPN) of the payment outcome. In order to
+receive a server-to-server notification, the notification must use the
+definition in the field ``notifications/notification/@url`` in the request
+(Step 2).
+
+[#Przelewy24_refundTransaction]
+==== _refund_ Transaction
+
+A ``refund`` transaction is a backend process. Wirecard can only provide a
+process for ReST API. When using Payment Page the merchant must set up a
+refund process.
+
+[#Przelewy24_refundPrerequisites]
+===== Prerequisites
+
+In order to transfer funds back to the consumer you have to be aware of
+the following prerequisites:
+
+* The flow is asynchronous. You have to wait for a notification with the
+result. Usually it takes one day for refunds to be processed.
+* The _refund_ must reference to a successful ``debit`` transaction. In a
+_refund_, a _Transaction ID_ from a ``debit`` notification must be
+used.
+* The refunded amount must be less than or equal to original ``debit``
+transaction
+* Multiple refunds to a single ``debit`` are possible as long as the sum
+of those individual refunds does not exceed original full amount.
+* In order to have a final status of the _refund_, you have to process a
+subsequent notification.
+
+[#Przelewy24_refundProcessUsingtheReSTAPI]
+===== _refund_ Process Using the ReST API
+
+.refund Process Using the ReST API
+image::images/11-27-przelewy24/Przelewy24_Refund_TX_ReST.png[refund Process Using the ReST API]
+
+. The merchant initiates a ``refund`` transaction.
+. The merchant sends a request to the endpoint of _{payment-gateway-abbr}_. The request
+must contain:
+.. the _Request ID_ from a previously sent successful ``debit``
+transaction. The _Request ID_ is expected in the
+field ``parent-transaction-id``
+.. a ``payment-methods/payment-method/@name`` set to ``p24``
+.. a ``transaction-type`` set to ``refund-request``
+. {payment-gateway-abbr} sends a response to the merchant.
+. P24 processes the refund.
++
+NOTE: Processing a refund lasts at least one day!
+
++
+. {payment-gateway-abbr} waits for the status "Refund Process Finished".
+. {payment-gateway-abbr} sends a notification (IPN) of the ``refund`` outcome to the
+merchant. This notification has the transaction type ``refund-debit``,
+instead of ``refund-request`` which was sent in the merchant's request
+(Step 2).  +
+In order to receive a server-to-server notification, the notification
+must use the definition in the
+field ``notifications/notification/@url`` in the request (Step 2).
+See <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> for details.
+
+[#Przelewy24_BankingStatement]
+==== Banking Statement
+
+After a successful payment process, a banking statement appears in the
+consumer's transaction history. The statement consists of
+a _Transaction-ID_ generated by P24 (_P24-Transaction-ID_) and a value
+provided in the field ``descriptor`` of the <<Przelewy24_Samples_debit, debit request>>.
+
+The structure of the _P24-Transaction-ID_ is
+``P24-YXX-XXX-XXX``. _The _P24-Transaction-ID__ is also displayed in
+the _{enterprise-portal-name}_ ({enterprise-portal-abbr}) as _Provider Transaction-ID_.
+
+[#Przelewy24_Fields]
+=== Fields
+
+For full reference of allowed fields for Payment Page or REST API can be
+found on <<PaymentPageSolutions_Fields, Fields for Payment Page>> or <<RestApi_Fields, Fields for ReST API>> respectively. +
+The following tables describe only P24 specifics. The following elements
+are either mandatory *M*, optional *O* or conditional *C*.
+
+[#Przelewy24_debit]
+==== debit
+
+.Fields for debit transaction
+[cols="e,,,,"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|account-holder/email |M |Alphanumeric |64 |The email address of the
+account holder.
+
+|account-holder/address/country |O |Alphanumeric |3 |The Country ID of
+the account holder. It must be ``PL``; if it is not provided, will be
+automatically set to ``PL``.
+
+|order-number |O |Alphanumeric |64 |This is the order number of the
+merchant. If provided, it is displayed on P24 landing page as "Order
+Information"
+
+|payment-methods/payment-method-name |M |Alphanumeric |15 |This is the
+name of the payment method. Always use value ``p24``
+
+|transaction-type |M |Alphanumeric |30 |This is the type for a
+transaction. Always use value ``debit``
+
+|requested-amount/@currency |M |Alphanumeric |3 |This is the currency in
+which a transaction is received and processed. Always use value ``PLN``
+
+|descriptor |O |Alphanumeric |64 a|
+Describes the transaction. It is shown on the account holder's statement
+along with the _P24-Transaction-ID_. See section <<Przelewy24_BankingStatement, Banking Statement>> for details.
+Do not use no more than 20 characters and do not use special chars as it
+can be misinterpreted by a bank system.
+
+|locale |O |Alphanumeric |6 a|
+With this field you can specify language in which P24 landing page is
+displayed.
+Possible values: ``pl``, ``en``, ``de``, ``es``, ``it``
+|===
+
+NOTE: The P24 landing page contains the section "Description". This section
+displays additional information about the payment. The text displayed
+comprises _Order Number_, _Merchant Name_ and _Request Id_ in the
+following format:
+``[order-number], [merchant_name], [request-id]``
+_Merchant Name_ is taken from the configuration of the merchant's
+profile.
+
+[#Przelewy24_refund]
+==== refund request
+
+.Fields for refund request
+[cols="e,,,,"]
+|===
+|Field |Cardinality |Datatype |Size |Description
+
+|payment-methods.payment-method-name |M |Alphanumeric |15 |This is the
+name of the payment method. Always use value ``p24``
+
+|transaction-type |M |Alphanumeric |30 |This is the type for a
+transaction. Always use value ``refund-request``
+
+|requested-amount/@currency |M |Alphanumeric |3 |This is the currency in
+which a transaction is received and processed. Always use value ``PLN``
+|===
+
+[#Przelewy24_Samples]
+=== Samples
+
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want to see corresponding notification samples.
+
+[#Przelewy24_Samples_debit]
+==== debit
+
+.debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/p24_debit_request_success.xml[]
+----
+
+.debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/p24_debit_response_success.xml[]
+----
+
+[#Przelewy24_Samples_refund]
+==== refund
+
+.refund-request Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/p24_refund-request_request_success_77e8f783.xml[]
+----
+
+.refund-request Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/p24_refund-request_response_success_77e8f783.xml[]
+----
+
+//-

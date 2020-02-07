@@ -1,0 +1,271 @@
+
+[#GooglePay]
+== REST API & {payment-page-v1}
+
+[#GooglePay_Introduction]
+=== Introduction
+
+{payment-provider-name} lets merchants take advantage of fast, cashless payments for
+products and services via a mobile device with Google Pay™. +
+Google Pay is the fast, simple way to pay at millions of places - on
+sites, in apps, and in stores. It brings together everything you need at
+checkout and protects your payment info with multiple layers of
+security. +
+Plus, Google Pay makes it easy to redeem loyalty points, manage your
+cards, and get personalized suggestions to help you save time and money.
+
+[#GooglePay_TransactionTypes]
+=== Transaction Types
+
+[%autowidth]
+|===
+|Transaction Type ({payment-gateway-abbr} <<GooglePay_TransactionTypes_Footnote, ^(*)^>>) |Transaction Type (Google Pay)
+
+|authorization |Authorizations
+|purchase |One-Time
+|capture-authorization |Partial shipment
+|refund-capture, refund-purchase |Refund
+|void-authorization |Void
+|===
+
+[#GooglePay_TransactionTypes_Footnote]
+(*) {payment-gateway-abbr} = {payment-gateway}
+
+[#GooglePay_TestCredentials]
+=== Test Credentials
+
+[#GooglePay_TestCredentials_Tokenized]
+.For GooglePay tokenized cards Testing
+
+[%autowidth]
+[cols=",a,v"]
+[stripes=none]
+|===
+.2+|URLs (Endpoints)
+|*To Test Environment*
+|``\https://{test-instance-hostname}/engine/rest/payments/``
+|*To Production Environment*
+|``\https://{instance-hostname}/engine/rest/payments/``
+|Currencies
+2+|AUD ,CAD ,CHF ,CZK ,DKK ,EUR ,GBP ,HRK ,HUF ,ILS ,INR ,JPY ,MXN ,NZD,PLN ,RON ,RUB ,SEK ,SGD ,THB ,TRY ,USD ,ZAR
+|Countries
+2+|International
+3+|
+.5+|*Test Merchant Account ID*
+|Merchant-Account-ID +
+_This property value is set as the gatewayMerchantId in GATEWAY_TOKENIZATION_PARAMETERS of the merchant google app (eg.merchant google test app)_
+|3a3d15ec-197a-4958-890e-9843f86207ee
+|Username
+|70000-APITEST-AP
+|Password
+|qD2wzQ_hrc!8
+|Google API Gateway ID +
+_This property value is set as the GATEWAY_TOKENIZATION_NAME in the merchant google app (eg. merchant google test app)_
+|wirecard
+|Secret Key
+|5c879659-f7ab-41ea-bf23-df9f4b953a33
+3+|
+|IPN Encoding
+2+|Base64
+|Payment Mode
+2+|tokenized cards
+.2+|Requests/Responses
+|Format (Languages)
+|XML
+|Methods
+|POST, GET
+|===
+
+[#GooglePay_TestCredentials_NonTokenized]
+.For GooglePay non-tokenized cards testing
+
+[%autowidth]
+[cols=",a,v"]
+[stripes=none]
+|===
+.2+|URLs (Endpoints)
+|*To Test Environment*
+|``\https://{test-instance-hostname}/engine/rest/payments/``
+|*To Production Environment*
+|``\https://{instance-hostname}/engine/rest/payments/``
+|Currencies
+2+|AUD ,CAD ,CHF ,CZK ,DKK ,EUR ,GBP ,HRK ,HUF ,ILS ,INR ,JPY ,MXN ,NZD, PLN ,RON ,RUB ,SEK ,SGD ,THB ,TRY ,USD ,ZAR
+|Countries
+2+|International
+3+|
+.5+|*Test Merchant Account ID*
+|Merchant-Account-ID +
+_This property value is set as the gatewayMerchantId in GATEWAY_TOKENIZATION_PARAMETERS of the merchant google app (eg.merchant google test app)_
+|9fcacb0d-b46a-4ce2-867b-6723687fdba1
+|Username
+|70000-APITEST-AP
+|Password
+|qD2wzQ_hrc!8
+|Google API Gateway ID +
+_This property value is set as the GATEWAY_TOKENIZATION_NAME in the merchant google app (eg. merchant google test app)_
+|wirecard
+|Secret Key
+|bd60d7b0-b5a0-4ffe-b2db-e004a0fce893
+3+|
+|IPN Encoding
+2+|Base64
+|Payment Mode
+2+|non-tokenized cards
+.2+|Requests/Responses
+|Format (Languages)
+|XML
+|Methods
+|POST, GET
+|===
+
+[#GooglePay_MerchantEndToEndTesting]
+=== Merchant End to End Testing
+
+[#GooglePay_MerchantEndToEndTesting_NonTokenized]
+==== 1. Testing with a non-tokenized card (google-pay cryptogram contains the PAN)
+. Add a credit card to your google account
+. Follow Google Pay instruction to create a test app to generate a
+test cryptogram. +
+- For in-app integration, please refer to +
+https://developers.google.com/pay/api/android/guides/setup
+& +
+https://developers.google.com/pay/api/android/guides/tutorial +
+- For web integration, please refer to +
+https://developers.google.com/pay/api/web/guides/setup
+& +
+https://developers.google.com/pay/api/web/guides/tutorial
+. Modify to use 'wirecard' as the GATEWAY_TOKENIZATION_NAME and the
+provided merchant-account-id as  gatewayMerchantId in
+GATEWAY_TOKENIZATION_PARAMETERS
+. Create the request payload with the test cryptogram and send it to
+{payment-gateway} for processing (Please refer to the sample request
+payload with google-pay cryptogram below)
+
+//-
+
+[#GooglePay_MerchantEndToEndTesting_Tokenized]
+==== 2. Testing with a tokenized card (google-pay cryptogram contains a token)
+. Add a contactless enabled credit card using google-pay app in your
+android phone
+. Follow Google Pay instruction to create a test app to generate a
+test cryptogram. +
+- For in-app integration, please refer to +
+https://developers.google.com/pay/api/android/guides/setup
+& +
+https://developers.google.com/pay/api/android/guides/tutorial
+- For web integration, please refer to +
+https://developers.google.com/pay/api/web/guides/setup
+& +
+https://developers.google.com/pay/api/web/guides/tutorial
+. Modify to use 'wirecard' as the GATEWAY_TOKENIZATION_NAME and the
+provided merchant-account-id as gatewayMerchantId in
+GATEWAY_TOKENIZATION_PARAMETERS
+. Create the request payload with that test cryptogram and send it to
+the {payment-gateway} for processing (Please refer to the sample request
+payload with google-pay cryptogram below).
+
+//-
+
+[#GooglePay_Fields]
+=== Fields
+
+``<cryptogram-value>`` is optional in the response.
+
+All the other fields used for Google Pay requests, responses and
+notifications are the same as the REST API Fields. Please refer to
+the <<RestApi_Fields, API field list>>.
+
+[#GooglePay_Workflow]
+=== Workflow
+
+image::images/11-39-google-pay/GooglePay_Workflow.png[Google Pay Workflow, width=950]
+
+[#GooglePay_Samples]
+=== Samples
+
+[#GooglePay_Samples_Authorization]
+==== _authorization_
+
+.XML Authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_authorization_request_success.xml[]
+----
+
+.XML Authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_authorization_response_success.xml[]
+----
+
+[#GooglePay_Samples_CaptureAuthorization]
+==== _capture-authorization_
+
+.XML Capture-Authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GooglePaySamplesCaptureAuthorization_CaptureAuthorizationRequestSuccessful.xml[]
+----
+
+.XML Capture-Authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_capture-authorization_response_success_a13463f2.xml[]
+----
+
+[#GooglePay_Samples_Purchase]
+==== _purchase_
+
+.XML Purchase Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_purchase_request_success.xml[]
+----
+
+.XML Purchase Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_purchase_response_success.xml[]
+----
+
+[#GooglePay_Samples_Refund]
+==== _refund_
+
+.XML Refund Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GooglePaySamplesRefund_RefundRequestSuccessful.xml[]
+----
+
+.XML Refund Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_refund-capture_response_success_88915dc8.xml[]
+----
+
+[#GooglePay_Samples_Void]
+==== _void_
+
+.*XML Void-Authorization Request (Successful)*
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GooglePaySamplesVoid.xml[]
+----
+
+.XML Void-Authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/google-pay_creditcard_void-authorization_response_success_b517f83a.xml[]
+----
+
+//-

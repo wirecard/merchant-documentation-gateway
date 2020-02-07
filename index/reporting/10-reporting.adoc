@@ -1,0 +1,370 @@
+[#Reporting]
+== Reporting
+
+[#Reporting_DataReconciliation]
+=== Data Reconciliation
+
+The purpose of reconciliation is to compare transaction records and
+verify that payments have been processed correctly. By reconciling
+transaction information regularly, merchants will gain a better
+understanding of their business transaction life cycle - from initial
+authorization, to settlements, transaction disputes (returns), and
+refunds.
+
+[#Reporting_DataReconciliation_PaymentMethods]
+[discrete]
+==== Available Payment Methods
+
+Reconciliation is currently available for the alternative
+payment methods (i.e. all payment methods but credit card) within {payment-gateway}: <<PaymentMethods, Payment Methods>>
+
+[#Reporting_DataReconciliation_Process]
+[discrete]
+==== Reconciliation Process
+
+The reconciliation files must be downloaded from an SFTP server on the
+{payment-gateway}. The download process is described in
+<<Reporting_DataReconciliation_FileDownload, File Download>>. Although it is
+possible to download files manually, we recommend to automate the
+process for the sake of consistency and convenience. Likewise, it is
+recommended to run a program to facilitate the reconciliation process of
+the downloaded files. The program used must be able to handle the CSV
+file format.
+
+image::images/10-reporting/workflow-reconciliation.png[Workflow of Reconciliation Process]
+
+To reconcile your transactions, compare the reference transaction
+ID in the reconciliation file with a transaction ID that is already
+available in your system. You will be able to see if another transaction
+has been created updating the current status of your payment. Should you
+notice inexplicable discrepancies between the reconciled data and your
+records that you cannot resolve internally, please contact
+<<ContactUs, Merchant Support>>
+
+[#Reporting_DataReconciliation_Files]
+[discrete]
+==== Reconciliation Files
+
+The {payment-gateway} generates transaction reports which are very similar
+to a typical bank account statement. Merchants are recommended to match
+and reconcile these report files regularly (daily) with the data
+recorded in their system. When matching transaction data it is important
+to remember how the payment total is calculated and also that the data
+does not represent a complete payment history but only the account
+activities that have been recorded over the previous 24 hours.
+
+[#Reporting_DataReconciliation_Formats]
+[discrete]
+===== Formats
+
+The {payment-gateway} is configured to generate daily transaction reports
+containing sequential data sets for each of your transaction requests
+processed by the system. These records are called reconciliation files
+and are saved in CSV format on the Wirecard SFTP server. When opened and
+read in a spreadsheet application like Microsoft Excel, the data entries
+are divided in columns and rows. Opened as plain text in any standard
+text editor program, however, the field entries are separated by a
+semicolon (``;``).
+
+The files contain transaction data processed over the previous 24 hours.
+They do not present a complete payment flow per payment (from
+authorization, to settlement with possible rejections and disputes) but
+only those transactions which have been processed by the {payment-gateway}
+within the time period for which the report has been created.
+
+[#Reporting_DataReconciliation_NamingConventions]
+[discrete]
+===== Naming Conventions
+
+The reconciliation files are stored on the Wirecard server in the
+following format:
+
+``<identifier>_<ip>_<date>_<merchant account id>.csv``
+
+where
+
+- ``<identifier>`` identifies the processing gateway
+- ``<ip>`` is an internal Wirecard IP address
+- ``<date>`` is a time stamp represented as ``YYYYMMDD`` (year, month, day). It
+shows the exact file generation date.
+- ``<Merchant Account ID>`` is a 36 character identifier specifying your
+business uniquely in the {payment-gateway}.
+- ``.csv`` is the file extension denoting the format **C**omma **Se**parated **V**alue.
+
+//-
+
+Transactions processed on the {payment-gateway} are recorded in a
+file named ``EngineAPTransactions.csv``. This file encompasses all
+transaction types for the alternative payments currently available in
+the {payment-gateway} processed over the previous 24 hours
+(currently ``get-url``, ``check-signature``, ``pending-debit``, ``pending-credit``,
+``credit``, ``debit``, ``deposit``, ``credit return``, and ``debit return``).
+
+.Example
+----
+EngineAPTransactions_195.93.244.10_20130101_1b3be510-a992-48aa-8af9-6ba4c368a0ac.csv
+----
+
+[#Reporting_DataReconciliation_Structure]
+[discrete]
+===== Structure and Attributes for Alternative Payments
+
+The file ``EngineAPTransactions*.csv`` currently comprises transfer transaction requests for the
+<<PaymentMethods, alternative payment methods>> that have been
+posted or modified by the system over the past 24 hours. If a column
+does not apply to a payment method, the column will contain ``NULL``. The
+data is recorded in the following columns/fields:
+
+[cols="1,2"]
+|===
+| Field                           | Description
+
+| MERCHANT ACCOUNT NAME           | The name of the merchant in the WebService Interface
+| MERCHANT ACCOUNT ID             | The Merchant Account ID. This is a unique 36-digit number defining the merchant account.
+| REQUEST ID                      | This is the identification number of the request identifying the transaction in the merchant’s system. It is unique for each request.
+| PAYMENT METHOD                  | This is the name of the payment method that was processed via {payment-gateway}.
+| TRANSACTION ID                  | This field contains the Transaction ID that was created by Wirecard Payment Gateway for the initial XML request message.
+| TRANS. CREATION TIME STAMP      | Timestamp of the transaction from the merchant’s system.
+| TRANSACTION TYPE                | Possible values for transactions are: ``pending-debit``, ``pending-credit``, ``debit``, ``credit``, ``debit-return``, ``credit-return``, ``deposit``.
+| TRANSACTION STATUS              | The transaction status (e.g. ``SUCCESS``). See also <<StatusCodes, Transaction Statuses>>.
+| TRANSACTION STATUS CODE         | The transaction status code (e.g. ``201.0000``). See also <<StatusCodes,  Transaction Statuses>>.
+| TRANSACTION REASON DESCRIPTION  | A reason description (e.g. File generation was performed successfully). See also <<StatusCodes, Transaction Statuses>>.
+| TRANSACTION AMOUNT              | The amount of the original transaction presented with decimal point and two decimal places (example: ``411.40`` or ``7.88``).
+| TRANSACTION CURRENCY            | The currency of the original transaction.
+| SETTLEMENT AMOUNT               | The amount credited to the merchant account.
+| SUM SETTLEMENT AMOUNT           | The total sum of credit and debit type transactions that were booked on the account within one summary booking.
+| SETTLEMENT CURRENCY             | The http://id3.org/ISO%204217[ISO 4217] currency code of the credited amount.
+| EXCHANGE RATE                   | The exchange rate used for this transaction (applicable only if the transaction and settlement currencies differ).
+| EXCHANGE RATE SOURCE            | This is the source of the referenced exchange rate (e.g. Deutsche Bank).
+| USAGE                           | A message sent with the original XML request for the debtor of the transaction that will appear on the debtor's account statement. Also known as "Descriptor".
+| REF. TRANSACTION ID 1        .3+| Reference to a previous transaction of the same payment flow. Also known as ``parent-transaction-ID``. For instance, a reversal has a ``transaction-ID`` referring back to the previous transaction.
+| REF. TRANSACTION ID 2
+| REF. TRANSACTION ID 3
+| PTRID                           | Provider Transaction Reference ID: This ID represents the end-to-end flow of a transaction and is used to identify transactions within the banking system. It is generated by Wirecard.
+| ORDER NUMBER                    | This is the order number of the merchant.
+|===
+
+[NOTE]
+====
+If a merchant uses the _{enterprise-portal-name}_ ({enterprise-portal-abbr}) in
+combination with the data reconciliation files, there may be a timezone discrepancy.
+
+The timezone for the data reconciliation file is UTC.
+
+The timezone in _{enterprise-portal-abbr}_ is configurable. The timezone is automatically taken
+from the user’s device (laptop, desktop, etc.). If there is a
+difference, please adjust the timezone in _{enterprise-portal-abbr}_ to UTC.
+====
+
+[#Reporting_DataReconciliation_ExampleFile]
+[discrete]
+===== Sample Reconciliation File
+The following is an example of the file layout for the AP Data
+Reconciliation for _{payment-gateway},_ displayed with a spreadsheet application:
+
+image::images/10-reporting/reconciliation-file-table.png[Data Reconciliation File Screenshot]
+
+[#Reporting_DataReconciliation_DownloadSample]
+[discrete]
+====== Download Sample
+
+link:resources/10-reporting/APTransactions_195.175.175.175_2017-08-23_merchantID.xlsx[Here you can download] a full compilation of samples of possible values
+within the reconciliation file also displayed with a spreadsheet application.
+
+[#Reporting_DataReconciliation_UnmatchedTransactions]
+[discrete]
+===== Unmatched Payment/Transactions
+
+If any of the transaction types deposit, debit-return or credit-return
+enters the {payment-gateway} and cannot be matched to an existing payment,
+this transaction is created as unmatched transaction. It appears in the reconciliation file without a reference
+transaction ID.
+
+If this unmatched transaction is manually matched to an existing
+payment on the same day as it has entered the {payment-gateway}, it
+appears as a transaction within the payment to which it has been matched. There will be *no record of an unmatched payment* in the reconciliation
+file.
+
+If, however, this *unmatched* transaction is manually matched to an
+existing payment more than a day after it has entered the {payment-gateway}, it will *not* appear in the reconciliation file.
+If it appeared in the reconciliation file, there would be two entries in
+the reconciliation file for one transaction referring to two different
+payments, thereby resulting in a duplicate.
+
+[#Reporting_DataReconciliation_FileDownload]
+[discrete]
+==== File Download
+
+NOTE: Although manual downloads are possible, we recommend to use an
+automated process.
+
+To be able to connect to the Wirecard SFTP server you must have an SFTP
+client and an internet connection supporting SSH-2 and the necessary
+network security policies.
+
+Please contact your system administrator to ensure that SFTP traffic is
+permitted from your machine.
+
+NOTE: Reconciliation files older than three months will be moved from
+the Wirecard SFTP server to external storage and will no longer be
+accessible to the merchant. +
+Therefore we recommend that the merchant always saves downloaded
+files to avoid any missing information.
+
+[#Reporting_DataReconciliation_Windows]
+[discrete]
+===== Windows
+
+In a Windows environment, the reconciliation files can be downloaded
+using any graphical SFTP application (like WinSCP) or command line SFTP
+download.
+
+To download files with a graphical application, enter the host name
+``sftp.wirecard.com`` and your username and password.
+If you do not know your personalized access information,
+please contact <<ContactUs, Nerchant Support>>.
+
+[#Reporting_DataReconciliation_UnixMacOS]
+[discrete]
+===== Unix or MacOS
+
+You may also use a command line SFTP download from a Unix workstation or
+MacOS.
+
+To connect to your location on the Wirecard host server
+(``sftp.wirecard.com``), enter:
+
+-----
+sftp username@sftp.wirecard.com
+-----
+
+followed by the password when prompted.
+
+[#Reporting_DataReconciliation_FileDirectory]
+[discrete]
+===== File Directory
+
+When you log on, you are automatically connected by username/customer
+number/partner number (e.g. ``C0001`` or ``P0001``) to your file repository. In
+the root window of the remote SFTP server site (Wirecard server) you see the following subdirectories:
+
+image:images/10-reporting/file-download-directory.png[SFTP Directory Structure]
+
+[#Reporting_DataReconciliation_RetrievingFile]
+[discrete]
+===== Retrieving File
+
+. Open the folder to ``<customerName>``.
+It contains three subfolders: ``error``, ``new``, and ``processed``.
+The files are stored in the folder ``new``.
+. Open the folder ``new``.
+. Select the file or files of the time period you want to reconcile.
+. Copy the desired CSV files to your local machine. We recommend
+to automate the daily downloads. If you are using a graphical user
+interface and you do not run an automated program, you can drag and drop
+those files or copy and paste them.
+. Reconcile the files using a program tailored to the CSV format.
+. {payment-gateway} allows you to archive reconciled
+report files on the file server for future reference. Therefore move the
+files to the folder ``processed``. +
+Be aware that it is at your discretion to use this file repository.
+
+//-
+
+[#Reporting_IcFeeReport]
+=== IC Fee Report
+
+Since December 2015, the IRF (EU regulation) requires to provide
+reporting to all merchants with regard to the amounts invoiced to them
+per Aggregates. All charges must be listed in such reporting, including
+fees.
+
+[#Reporting_IcFeeReport_Description]
+[discrete]
+==== Description
+
+This _ICF-Overview Report_ contains signed invoices as well as
+cancelations, with their transactions, aggregated per each transaction
+type and total amount of fees. Data is collected every month for a
+previous month period in a .csv file per each merchant and delivered to
+all merchants via the _{enterprise-portal-abbr}_ document
+center or an SFTP server. 
+
+NOTE: An _ICF-Overview Report_ will only be generated, if there had been
+transactions or signed invoices during the preceding month.
+
+NOTE: Only credit card transactions are displayed in the
+report, no alternative payments.
+
+[#Reporting_IcFeeReport_Content]
+[discrete]
+==== Report Content
+
+The _IC-Overview Report_ is a .csv file, containing neither _Floating_
+ranges nor _Price_ points for those ranges.
+
+The regularly scheduled overview report file's name format is:
+``Interchange_CustomerID_MerchantShortName-MerchantAccountShortName_StartDate_EndDate_ReportPeriod.csv``
+(_ReportPeriod_ is "monthly").
+
+The detailed report file's name format is:
+``InterchangeDetailed_CustomerID_MerchantShortName-MerchantAccountShortName_StartDate_EndDate_ReportPeriod_v1.csv``
+(_ReportPeriod_ is "Individual").
+
+Some fields appear in the monthly report (Appearance = ``M``), some in the
+detailed report (Appearance = ``D``) and some in both (Appearance = ``M/D``). If
+you need the fields from the detailed report (_Start_ and _End_ Dates
+are provided explicitly), please contact <<ContactUs, Merchant Support>>.
+
+[%autowidth]
+|===
+| Field Name            | Cardinality (EPA) | Data Type (EPA) | Format        | Size   | Description | Appearance
+
+| Invoice Number        | opt.              | String          | Text          | 36     | Unique identifier of invoice or cancelation. | M/D
+| Invoice State         | man.              | String          | Text          | 10     | Values: ``Signed`` or ``Canceled``. | M/D
+| Invoice Type          | man.              | String          | Text          | 15     | Values: ``Invoice`` or ``Cancelation``. | M/D
+| Reference Invoice ID  | opt.              | String          | Text          | 36     | ID of invoice to which the cancelation was signed for. | M/D
+| Billing Period        | opt.              | yyyy-mm-dd      | Date Interval | 25     | Period we are picking the transactions for. | M/D
+| Merchant Account Name | man.              | String          | Text          | 40     | Name of the merchant account. | M/D
+| Merchant Account ID   | man.              | String          | Text          | 20     | ID of the merchant account. | M/D
+| Card Brand            | man.              | String          | Text          | 20     | Values: ``Visa``, ``MasterCard``, etc. | M/D
+| Acquirer              | man.              | String          | Text          | 10     | 3-letters code, eg: ``WDB`` is for Wirecard Bank. | M/D
+| Card Type             | man.              | String          | Text          | 10     | Values: ``Debit``, ``Credit`` and ``Commercial``. | M/D
+| Region Type           | man.              | String          | Text          | 10     | Values: ``Domestic``, ``Intra-Region`` or ``Inter-Region``. | M/D
+| Invoice Currency      | man.              | String          | ISO           | 3      | Text code, such as ``EUR``, not numeric 978 (value is equal to either Settlement or Transaction Currency, depending on merchant settings). | M/D
+| Transaction Currency  | man.              | String          | ISO           | 3      | Text code, such as ``EUR``, not numeric 978. | M/D
+| Transaction Amount    | man.              | Float           | Number        | Float  | Including minor units. Can be negative, eg. for refunds (this is an amount of money calculated in Transaction Currency). | M/D
+| Settlement Currency   | man.              | String          | ISO           | 3      | Text code, such as ``EUR``, not numeric 978. | M/D
+| Settlement Amount     | man.              | Float           | Number        | Number | Including Minor units. Can be negative, eg. for refunds (this is an amount of money calculated in Settlement Currency) | M/D
+| Transaction Type      | man.              | String          | Text          | 40     | Values: ``Capture``, ``Authorization``, ``Refund``, ``BookPreAuth``, ``Chargeback`` etc. | M/D
+| Transaction Count     | man.              | Number          | Number        | Number | Count of transactions of same type within same invoice. | M
+| Fee Type              | man.              | String          | Text          | 20     | Values: ``Turnover``, ``Transaction``, etc. | M/D
+| Fee Name              | man.              | String          | Text          | 40     | Values: ``Discount``, ``Authorization``. etc. | M/D
+| Fee State             | man.              | String          | Text          | 20     | ``Successful`` / ``Unsuccessful`` | M/D
+| Fee Amount            | opt.              | Float           | Number        | Number | This fee varies from merchant discount rate pricing, if there is any. This value in report includes minor units. Can be negative, eg. for refunds. | M/D
+| Interchange Fee       | opt.              | Float           | Number        | Number | Fee paid between issuing and acquiring banks for the acceptance of card based transactions. This value in report includes minor units. Can be negative, eg. for refunds. | M/D
+| Scheme Fee            | opt.              | Float           | Number        | Number | Deduction from _MasterCard_ or _VISA_ after transaction settlement. This value in report includes minor units. Can be negative, eg. for refunds. | M/D
+| transaction-id        | man.              | uuid            | Text          | 50     | A unique identifier assigned for every transaction. This information is returned in the response only. | D
+| Merchant Function ID  | Text              | String          | Text          | 50     | This ID is reserved for merchant system data and can be used for tracking purposes. | D
+| Merchant Job ID       | Text              | String          | Text          | 50     | This ID is reserved for merchant system data and can be used for tracking purposes. | D
+|===
+
+
+[#Reporting_IcFeeReport_Schedule]
+[discrete]
+==== Schedule and Execution
+
+The _ICF-Overview Report_ is scheduled on a
+regular basis *on the 8^th^ day of each month at 8 pm*. The reports are
+generated for those merchants who requested it and had any billed credit
+card transactions during the preceding month. Each generated report is
+delivered to each merchant as .csv file via
+
+- the _{enterprise-portal-abbr}_
+- an SFTP Server
+
+//-
+
+Please contact <<ContactUs, Merchant Support>> for details.
+
+//-

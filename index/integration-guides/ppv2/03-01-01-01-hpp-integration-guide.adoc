@@ -1,0 +1,434 @@
+
+[#PaymentPageSolutions_PPv2_HPP_Integration]
+== HPP Integration Guide
+
+ifdef::env-wirecard[]
+.Download the full integration demo from our GitHub
+image:images/03-01-01-01-hpp-integration/Available_on_Github_JAVA.png[Github Java, link="https://github.com/wirecard/wpp-integration-demo-java", 220,180]
+image:images/03-01-01-01-hpp-integration/Available_on_Github_PHP.png[Github PHP, link="https://github.com/wirecard/wpp-integration-demo-php", 220,180]
+endif::[]
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Overview]
+=== Overview
+
+To integrate the Hosted Payment Page (HPP) in your shop, use a simple
+backend-to-backend JSON
+<<PPSolutions_PPv2_Workflow, {payment-page-v2-abbr} Workflow>> for
+the payment process.
+
+. *Create a payment session:* You send an initial POST request with
+details of the transaction to the {payment-page-v2} ({payment-page-v2-abbr}). This POST
+request is secured by basic access authentication.
+
+. *Redirect the consumer to the payment page:* {payment-page-v2-abbr} returns an initial
+response URL.
++
+====
+* *If the initial POST request is correct*, use the response URL to
+redirect the consumer to the payment page. The consumer fills out the
+required fields on the payment page and submits the payment. *Continue
+with step 3.*
+
+* *If the initial POST request is faulty*, {payment-page-v2-abbr} returns an error code with
+a description of the problem in the response. *Return to step 1.*
+====
++
+. *Parse and process the payment response:* The payment is processed.
+Depending on the result (successful, pending, failed or canceled), the
+consumer is redirected to the respective page. The {payment-page-v2-abbr} sends a POST
+request containing base64 encoded payment data to the same URL. It is
+_highly recommended_ that you parse and process this base64 encoded
+response to verify the payment.
++
+*The payment process is complete.*
+
+//-
+
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Example]
+=== Payment-Processing Example
+
+This is an example of a credit card transaction to show how to process a
+payment with the Hosted Payment Page.
+
+ifdef::env-wirecard[]
+For more supported payment methods and payment-method-specific
+integration guides, go to
+<<PPv2_PaymentMethods, Payment Methods with {payment-page-v2-abbr}>>.
+endif::[]
+
+The payment-processing example is *designed for the testing environment*
+and *does not use real information.*
+
+|===
+a|*Payment processing with the {payment-page-v2} generally follows the same steps:*
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+|===
+
+We provide ready-made JSON samples for each step of this process. Use a
+tool such as https://www.postman.com/postman[Postman] to test them.
+
+
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Example_Setup]
+.Setup and Test Credentials
+
+Before you can send your first request, use the following information to
+set up your testing tool:
+
+.Test Credentials
+
+ifdef::env-po[]
+[%autowidth, cols="h,"]
+|===
+| URL(s) Endpoints           
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+
+| Merchant Account ID (MAID) 
+| cafdc4c6-3eec-424c-9c74-80c31b77cd38
+
+| Username                   
+| 51126-PAYDOO
+
+| Password                   
+| ic1-781Tp14715
+
+| Secret Key (used for response verification) 
+| d64e9579-73bc-47cf-b05d-19d6f39610db
+
+2+h| Test Card
+| Card number 
+| 4012000300001003
+
+| Expiration date 
+| 01/23
+
+| CVV 
+| 003
+|===
+endif::[]
+
+ifdef::env-wirecard[]
+[%autowidth, cols="h,", stripes="none"]
+|===
+| URI (API Endpoint)           
+| ``\https://{pp-test-instance-hostname}/api/payment/register``
+
+| Merchant Account ID (MAID) 
+| 7a6dd74f-06ab-4f3f-a864-adc52687270a
+
+| Username                   
+| 70000-APIDEMO-CARD
+
+| Password                   
+| ohysS0-dvfMx
+
+| Secret Key (used for response verification) 
+| a8c3fce6-8df7-4fd6-a1fd-62fa229c5e55
+
+2+h|Test Card
+|Card number 
+|4200000000000018
+
+|Expiration date 
+|01/23
+
+|CVV 
+|018
+|===
+endif::[]
+
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Example_Create]
+.1. Create a Payment Session
+
+To create a payment session, send a *POST request* to the
+``/api/payment/register`` endpoint,
+e.g. ``\https://{pp-test-instance-hostname}/api/payment/register``.
+
+
+This is an HTTP request with two headers:
+
+.Request Headers
+ifdef::env-wirecard[]
+[source,subs=attributes+]
+----
+Content-Type: application/json
+Authorization: Basic NzAwMDAtQVBJREVNTy1DQVJEOm9oeXNTMC1kdmZNeA==
+----
+endif::[]
+
+ifdef::env-po[]
+[source,subs=attributes+]
+----
+Content-Type: application/json
+Authorization: Basic NTExMjYtUEFZRE9POmljMS03ODFUcDE0NzE1
+----
+endif::[]
+
+The ``Authorization`` header needs to be formatted as:
+"Authorization"="Basic"  + base64("username:password")
+
+.Create a Payment Session (Initial Request)
+ifdef::env-wirecard[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaymentPageSolutions_WPP_HPP_IntegrationExampleCreate_CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaymentPageSolutions_PaydooPPv2_HPP_IntegrationExampleCreate_CreateAPaymentSessionInitialRequest.json[]
+----
+endif::[]
+
+.Field Table
+[%autowidth, cols="1e,2,3,4,5,6"]
+|===
+2+| Field (JSON) | Data Type | Required/Optional | Size | Description
+
+|merchant-account-id e|value |String |Required |36 |A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| request-id                | String | Required | 64 | A unique identifier assigned to every request (by merchant). Used when
+searching for or referencing it later. ``{{$guid}}`` serves as a
+placeholder for a random ``request-id``.
+Allowed characters: +
+a - z +
+0 - 9 +
+-_
+2+| transaction-type          | String | Required | 36 | The requested transaction type.
+.2+| requested-amount e| value | Numeric | Required | 18 | The full amount that is requested/contested in a transaction. 2 decimal
+places allowed. +
+Use ``.`` (decimal point) as the separator.
+| currency | String | Required | 3 | The currency of the requested/contested transaction amount. +
+Format: 3-character abbreviation according to ISO 4217.
+.2+|account holder e|first-name |String |Optional |32 |The first name of the account holder.
+|last-name |String |Required |32 |The last name of the account holder.
+
+
+| payment-method      e| name     | String | Optional | 15 | The name of the payment method used. Set this value to ``creditcard``.
+2+| success-redirect-url         | String | Optional | 256 | The URL to which the consumer is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+| fail-redirect-url            | String | Optional | 256 | The URL to which the consumer is redirected after a unsucessful payment,
+e.g. ``\https://{pp-redirect-url-error}``
+2+| cancel-redirect-url          | String | Optional | 256 | The URL to which the consumer is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+|===
+
+====
+[WARNING]
+
+To create a payment session with Credit Card using 3D Secure 2 authentication, you need to include <<PPv2_CC_3DS2Fields, 3D Secure 2 fields in your initial request>>. +
+Most of these fields are optional but we recommend the implementation of optional fields,
+as this creates a smoother user experience and ensures a higher level of security. +
+Need more information on 3D Secure 2? Head to our <<CreditCard_3DS2, general introduction to 3D Secure 2>>.
+====
+
+ifdef::env-wirecard[]
+[NOTE]
+====
+*Which Payment Methods Can I Choose?*
+
+Leave out the ``payment-methods`` object from the request. {payment-page-v2-abbr} will show a
+grid of all available payment methods (based on your merchant
+configuration).
+
+Alternatively, check out <<PPv2_PaymentMethods, Payment Methods with {payment-page-v2-abbr}>>
+for an overview of all supported payment methods.
+====
+endif::[]
+
+ifdef::env-wirecard[]
+.Download the full integration demo from our GitHub
+image:images/03-01-01-01-hpp-integration/Available_on_Github_JAVA.png[Github Java, link="https://github.com/wirecard/wpp-integration-demo-java", 220,180]
+image:images/03-01-01-01-hpp-integration/Available_on_Github_PHP.png[Github PHP, link="https://github.com/wirecard/wpp-integration-demo-php", 220,180]
+endif::[]
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Example_Redirect]
+.2. Redirect the Consumer to the Payment Page
+
+The response to the initial authorization request contains the
+``payment-redirect-url``.
+
+.Response to Authorization Request
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaymentPageSolutions_WPP_HPP_IntegrationExampleRedirect_ResponseToAuthorizationRequest.json[]
+----
+
+Use the ``payment-redirect-url`` to redirect the consumer.
+
+You can implement the redirection in any way that suits you best.
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Example_Redirect_WPPHostedPayUrl]
+*Redirecting Consumers to the Payment Page Using ``{payment-page-function-short}.hostedPayUrl``*
+
+You can use our ready-made function to handle the redirection:
+
+. Add the ``paymentPage.js`` library to your checkout page HTML
+code
++
+[source,html,subs=attributes+]
+----
+<script src="https://{pp-test-instance-hostname}/loader/paymentPage.js" type="text/javascript"></script>
+----
++
+. Submit the *initial payment request* on the backend.
+
+. Call the ``{payment-page-function-short}.hostedPayUrl(payment-redirect-url)`` function in
+your HTML code to redirect the consumer to a new window:
++
+[source,html,subs=attributes+]
+----
+<script type="text/javascript">
+{payment-page-function-short}.hostedPayUrl("https://{pp-test-instance-hostname}/?wPaymentToken=f0c0e5b3-23ad-4cb4-abca-ed80a0e770e7")
+</script>
+----
++
+Make sure to pass the ``payment-redirect-url`` value from the initial
+response to the redirection function and call it.
+
+//-
+
+[NOTE]
+====
+The consumer is redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. The response can
+
+- be successful (``transaction-state: success``)
+- fail (``transaction-state: failed``)
+- or the consumer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is displayed as the value
+of ``transaction-state`` in the payment response. Canceled payments are
+returned as ``"transaction-state" : "failed"``, but the status description
+indicates it was canceled. More information (including the status code)
+can also be found in the payment response in the ``statuses`` object.
+
+In any case, a base64 encoded response containing payment information is
+sent to the corresponding redirection URL
+(``success-redirect-url``, ``cancel-redirect-url``, or ``fail-redirect-url``).
+
+See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more information on redirection targets
+after payment.
+====
+
+[#PaymentPageSolutions_PPv2_HPP_Integration_Example_Parse]
+.3. Parse and Process the Payment Response (Highly Recommended)
+
+*Where Can I Find the Payment Response?*
+
+{payment-page-v2-abbr} sends the final response to the success/fail page where the consumer
+is redirected to at the end of the payment session. *This final response
+contains the payment data* in a base64 encoded JSON format. It is sent
+with a POST request as form data ``response-base64``.
+
+ifdef::env-wirecard[]
+image::images/03-01-01-01-hpp-integration/Base64_v2_1.png[Base64]
+endif::[]
+
+Before you are able to parse and process the payment response, you need
+to decode it.
+
+*To test this*
+
+- Copy and paste the ``payment-redirect-url`` into your browser.
+- Open your browser's console and complete the payment with the credit
+card information provided above.
+
+ifdef::env-wirecard[]
+- In your browser's console, find the form data ``response-base64``
+(see screenshot).
+endif::[]
+
+ifndef::env-wirecard[]
+- In your browser's console, find the form data ``response-base64``.
+endif::[]
+
+- Copy and paste the response into a base64 decoder of your choice, e.g.
+https://www.base64decode.org/[Base64 Decode].
+- Decode the response to view the payment response details.
+
+//-
+
+You can find a decoded payment response example below.
+
+.Parse and Process the Payment Response (Decoded Payment Response)
+ifdef::env-wirecard[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaymentPageSolutions_WPP_HPP_IntegrationExampleParse_ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+endif::[]
+
+ifdef::env-po[]
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PaymentPageSolutions_PaydooPPv2_HPP_IntegrationExampleParse_ParseAndProcessThePaymentResponseDecodedPaymentResponse.json[]
+----
+endif::[]
+
+.Field Table
+[%autowidth, cols="1e,2,3,4"]
+|===
+2+| Field (JSON) | Data Type | Description
+
+2+| transaction-type | String |The requested transaction type.
+2+| transaction-id | String |A unique identifier to every transaction (by {payment-provider-name}). Used when searching for or referencing to it later.
+2+|completion-time-stamp |YYYY-MM-DD-Thh:mm:ss |The UTC/ISO time-stamp documents the time & date when the transaction was executed.
+Format: YYYY-MM-DDThh:mm:ss (ISO).
+.2+| card token e| token-id |String |A unique identifier assigned to every card token.
+               | masked-account-number | String | This is the masked card account number of the consumer.
+|merchant-account-id e| value | String | A unique identifier assigned to every merchant account (by {payment-provider-name}).
+2+| transaction-state |String a|The current transaction state. Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+Typically, a transaction starts with state ``in-progress`` and finishes with state either ``success`` or ``failed``. This information is returned in the response only.
+|payment-mode e|name |String |The name of the payment method used for the transaction.
+2+|cancel-redirect-url |String |The URL to which the consumer is redirected after having canceled payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+2+|success-redirect-url |String |The URL to which the consumer is redirected after successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+2+|fail-redirect-url |String |The URL to which the consumer is redirected after unsuccessful payment,
+e.g. ``\https://{pp-redirect-url-error}``
+2+|api-id |String |Identifier of the currently used API.
+2+|request-id |String |A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later.
+.2+| requested-amount e|currency |String |The currency of the requested/contested transaction amount.
+                      e|value |Numeric |The full amount that is requested/contested in a transaction.
+.3+|status e|description |String |The description of the transaction status message.
+           e|severity |String a|The definition of the status message. Possible values:
+
+           - ``information``
+           - ``warning ``
+           - ``error``
+
+           e| code |String |Status code of the status message
+2+| authorization-code |String |Output code for transaction type ``authorization``.
+.2+|account-holder e|first-name |String |The first name of the account holder.
+                   e|last-name |String |The last name of the account holder.
+2+|descriptor |String |Describes the transaction.
+|===
+
+[NOTE]
+====
+For more information on redirect URLs, see <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>. +
+For response verification examples, see <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>>. +
+ifdef::env-wirecard[]
+For payment-method-specific requests, head over to the <<PPv2_PaymentMethods, Payment Methods with {payment-page-v2-abbr}>>.
+endif::[]
+====
