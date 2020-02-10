@@ -423,6 +423,9 @@ function main() {
   if buildPartner "${PARTNER}"; then
     # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
+    debugMsg "Adding Disallow to robots.txt for deprecated URLS"
+    echo "User-agent: * " > ${BUILDFOLDER_PATH}/${PARTNER}/html/robots.txt
+    echo "Disallow: /display/*" >> ${BUILDFOLDER_PATH}/${PARTNER}/html/robots.txt
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
     # workaround to get Travis to recognize the ENV vars
