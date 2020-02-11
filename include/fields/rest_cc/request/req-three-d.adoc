@@ -1,6 +1,14 @@
-[cols="30m,6,9,7,48a"]
-|===
-| Field | Cardinality | Datatype | Size | Description
+//[%autowidth]
+//[cols="m,,,,a"]
+//|===
+//| Field | M/O | Datatype | Size | Description
+//
+| pares 
+|M/O 
+|String 
+|2048 
+|The digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer. +
+ *Mandatory* for 3D Secure transactions.
 
 |version 
 |O 
@@ -13,14 +21,6 @@ a| Identifies the version of 3D Secure authentication used for the transaction. 
 |String 
 |1 
 |Indicates that the transaction request should proceed with the 3D Secure 1 workflow if the consumer is enrolled. Otherwise, the transaction proceeds without 3D Secure 1. This field is used for transactions with the Hosted Payment Page ({payment-page-v1}).
-
-|[[CreditCard_Fields_ThreeD_Pares]]
- pares 
- |M/O 
- |String 
- |2048 
- |The digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer. +
- *Mandatory* for 3D Secure transactions.
 
 |eci 
 |M/O 
@@ -73,16 +73,17 @@ _Mastercard's_
 *Mandatory* for 3D Secure transactions.
 
 |ds-transaction-id 
-| 
+|O
 |String
 |36
-|Universally unique transaction identifier assigned by the Directory Server to identify a single transaction. Required for external 3D Secure servers not provided by {payment-provider-name}.
+a|Universally unique transaction identifier assigned by the Directory Server to identify a single transaction. *Mandatory* for external 3D Secure servers not provided by {payment-provider-name}. +
+Format: see IETF RFC 4122.
 
 |riid 
 |O 
 |Enumeration
 |2  
-a| Indicates the type of 3RI request. +
+| Indicates the type of 3RI request. +
 Accepted values are: +
 ``01`` = Recurring transaction +
 ``02`` = Installment transaction +
@@ -90,18 +91,17 @@ Accepted values are: +
 ``04`` = Maintain card information +
 ``05`` = Account
 
-// 
-// |server-transaction-id 
-// |O 
-// |String 
-// |   
-// | 
-// vhauss: any information about "Size" and "Description" available? Please provide.
-//
+|server-transaction-id
+|O
+|String
+|36
+|Univerally unique transaction identifier assigned by the 3DS server to identify a single transaction. +
+If not specified, Netcetera 3DS server generates a UUID.
 
-|ds-transaction-id 
-|O 
-|String 
-|36 
-a| Universally unique transaction identifier assigned by the Directory Server to identify a single transaction. *Mandatory* for external 3D Secure servers not provided by {payment-provider-name}. Format: see IETF RFC 4122.
-|===
+|status-reason
+|O
+|String
+|
+|Mapping of EMVCo error messages to {payment-gateway} messages.
+
+//|===

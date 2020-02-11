@@ -2,7 +2,7 @@
 :timestamp-pattern: YYYY-MM-DDThh:mm:ssZ
 
 [#CC_Fields]
-== Fields
+==== Fields
 
 This is the general field reference for _credit card_ transactions.
 
@@ -30,14 +30,14 @@ For example, ``payment.account-holder`` is a parent of ``address``. Click on the
 
 
 [#CC_Fields_intro_elements]
-=== Field Definitions
+===== Field Definitions
 
 Each field table contains the following columns:
 
-- <<APIRef_FieldDefs_Name, Name>>
-- <<APIRef_FieldDefs_Cardinality, Cardinality>> (for request elements only)
-- <<APIRef_FieldDefs_DataTypes, Data Type>>
-- <<APIRef_FieldDefs_Size, Size>> (for request elements only)
+- <<CC_Fields_intro_elements_name, Name>>
+- <<CC_Fields_intro_elements_cardinality, Cardinality>> (for request elements only)
+- <<CC_Fields_intro_elements_dataType, Data Type>>
+- <<CC_Fields_intro_elements_Size, Size>> (for request elements only)
 
 
 
@@ -45,8 +45,117 @@ Each field table contains the following columns:
 
 IMPORTANT: Field definitions may vary by transaction type. Deviations from standard field definitions are given with the respective transaction type.
 
+[#CC_Fields_intro_elements_name]
+====== Name
+The field name structure is based on the hierarchical relation between individual elements. +
+_Example:_ ``order-items.order-item.article-number`` +
+
+.Structure
+[mermaid, CC_Fields_intro_elements_parentchild,svg]
+----
+graph LR
+A(parent-element)-->B
+B("child = parent-element")-->C
+C(child)
+E[order-items.]-->F
+F[order-item.]-->G
+G[article-number]
+class E squared-rect
+class F squared-rect
+class G squared-rect
+----
+
+
+.XML Structure
+[source, xml]
+----
+<payment>
+    <order-items>
+        <order-item>
+            <article-number> </article-number>
+        </order-item>
+    </order-items>
+</payment>
+----
+
+In the example, the parent element is ``order-items``, and its child ``order-item``. +
+``order-item`` itself is also a parent element of its child ``article-number``. 
+The hierarchies are separated by a dot ``.``
+
+[#CC_Fields_intro_elements_cardinality]
+====== Cardinality
+
+_Cardinality_ indicates if the field is necessary for the request to work. A field can be either *mandatory* (M) or *optional* (O).
+
+- If a field is *mandatory,* it must be included in all _credit card_ requests and contain a value. Without this field, _credit card_ requests fail. +
+- If a field is *optional,* it can, but does not have to be, included in all _credit card_ requests. Including optional fields can have certain advantages. These are included in the respective field description.
+
+[IMPORTANT]
+====
+Some fields can be mandatory for individual requests, depending on transaction type and payment scenario. We list them as *M/O.* See the field description for more information on the respective field's cardinality.
+====
+
+====
+
+*Example*:``merchant-account-id`` is listed as *M/O.*
+
+Some transactions require a ``merchant-account-id``, others a ``merchant-account-resolver-category``. These two fields shall be used complementary, depending on the context which is explained in the description field.
+
+//-
+====
+
+//-
+
+[#CC_Fields_intro_elements_dataType]
+====== Data Type
+
+_Data Type_ defines the specific characteristics of the input values that can be used for a field. There are seven data types: _String_, _Boolean_, _Date_, _Timestamp_, _Decimal_, _Number_,  and _Enumeration_.
+
+
+[cols="20,80"]
+|===
+|Data Type |Description
+
+|String
+|A combination of text and numbers which is arbitrary but finite in size. A subset of _String_ values can be defined according to a pattern value, such as ``api-id``. The pattern is given in the _Description_ column.
+
+|Boolean 
+|Has one of two possible values (usually either ``true`` or ``false``).
+
+|Date 
+|Value taken from a calendar (e.g. the date of birth). +
+Format (according to ISO 8601): ``{date-pattern}`` +
+This pattern cannot be customized.
+
+|Timestamp
+|A moment in time defined by a system. +
+Format (according to ISO 8601): ``{timestamp-pattern}`` +
+This pattern cannot be customized.
+
+|Decimal
+|A numeric value which has digits before and after the decimal point ``.`` +
+Example: the amount of money in a specific currency (e.g. 138.53 EUR).
+
+|Number
+|A numeric value that has no decimal places, such as the expiration month of a credit card.
+
+|Enumeration 
+|_Enumeration_ is a subset of _String_. _Enumeration_ consists of a list of predefined values, e.g. the severity of a status, which can provide the predefined values ``warning``, ``error`` and ``information``.
+|===
+
+
+[#CC_Fields_intro_elements_Size]
+====== Size
+_Size_ shows how many characters can be used for this field. We provide the maximum value so you can make sure the whole amount of characters is processed.
+
+In general, the _{payment-gateway}_ allows all characters for each field, depending on the _Data Type_. 
+
+If other rules apply to a field, they are stated in the _Description_ column.
+
+
+
 [#CC_Fields_xmlelements]
-=== XML Elements
+===== XML Elements
 Click the X in the respective column for request and response fields.
 
 ifndef::env-nova[]
@@ -165,7 +274,7 @@ endif::[]
 |===
 
 [#CC_Fields_xmlelements_request]
-==== Request
+====== Request
 
 [#CC_Fields_xmlelements_request_payment]
 .``payment``
@@ -173,8 +282,13 @@ endif::[]
 Additional ``payment`` fields can be found in the
 <<CC_Fields_xmlelements_response_payment, Response > ``payment``>> section.
 
-include::{root}/include/fields/rest_cc/request/req-payment.adoc[]
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Fieldname | M/O | Datatype | Size | Description
 
+include::include/fields/rest_cc/request/req-payment.adoc[]
+|===
 
 [#CC_Fields_xmlelements_request_accountholder]
 .account-holder
@@ -182,10 +296,17 @@ include::{root}/include/fields/rest_cc/request/req-payment.adoc[]
 ``account-holder`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>. +
 With the ``account-holder`` merchants can gather detailed information about the
-consumer. Please provide all the ``account-holder`` data in your request to make fraud
-prevention easier.
+consumer. Please provide all the ``account-holder`` data in your request to make fraud prevention easier.
 
-include::{root}/include/fields/rest_cc/request/req-account-holder.adoc[]
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | M/O | Datatype | Size | Description
+
+include::include/fields/rest_cc/request/req-account-holder.adoc[]
+include::include/fields/rest_cc/request/req-account-holder-parents.adoc[]
+
+|===
 
 
 [#CC_Fields_xmlelements_request_accountinfo]
@@ -195,7 +316,7 @@ include::{root}/include/fields/rest_cc/request/req-account-holder.adoc[]
 <<CC_Fields_xmlelements_request_accountholder, account-holder>>. +
 ``account-info`` fields are used with 3D Secure 2. With ``account-info`` merchants can gather detailed information about the consumer. Please provide all the ``account-info`` data in your 3D Secure 2 request to make fraud prevention easier.
 
-include::{root}/include/fields/rest_cc/request/req-account-info.adoc[]
+include::include/fields/rest_cc/request/req-account-info.adoc[]
 
 [#CC_Fields_xmlelements_request_address]
 .address
@@ -209,7 +330,7 @@ include::{root}/include/fields/rest_cc/request/req-account-info.adoc[]
 
 Data can be provided optionally but it helps with fraud checks, if ``address`` is complete.
 
-include::{root}/include/fields/rest_cc/request/req-address.adoc[]
+include::include/fields/rest_cc/request/req-address.adoc[]
 
 [#CC_Fields_xmlelements_request_airlineindustry]
 .airline-industry
@@ -217,7 +338,7 @@ include::{root}/include/fields/rest_cc/request/req-address.adoc[]
 ``airline-industry`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-include::{root}/include/fields/rest_cc/request/req-airline-industry.adoc[]
+include::include/fields/rest_cc/request/req-airline-industry.adoc[]
 
 
 [#CC_Fields_xmlelements_request_audit]
@@ -227,7 +348,7 @@ include::{root}/include/fields/rest_cc/request/req-airline-industry.adoc[]
 <<CC_Fields_xmlelements_request_payment, payment>>. 
 Audit data is displayed in _{enterprise-portal-abbr}_ for each transaction it has been send with.
 
-include::{root}/include/fields/rest_cc/request/req-audit.adoc[]
+include::include/fields/rest_cc/request/req-audit.adoc[]
 
 
 [#CC_Fields_xmlelements_request_browser]
@@ -236,7 +357,7 @@ include::{root}/include/fields/rest_cc/request/req-audit.adoc[]
 ``browser`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-include::{root}/include/fields/rest_cc/request/req-browser.adoc[]
+include::include/fields/rest_cc/request/req-browser.adoc[]
 
 [#CC_Fields_xmlelements_request_card]
 .card
@@ -251,7 +372,7 @@ NOTE: Only the transaction type _detokenize_ returns ``expiration-month``,
 ``expiration-year`` and ``card-type`` in a response. All the other transaction
 types return elements of ``card-token`` in the response.
 
-include::{root}/include/fields/rest_cc/request/req-card.adoc[]
+include::include/fields/rest_cc/request/req-card.adoc[]
 
 //// 
 [#CC_Fields_xmlelements_request_cardemv]
@@ -284,7 +405,7 @@ for <<CC_Fields_xmlelements_request_card, card>>. Due to
 <<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>>
 compliance, ``card`` data must not be sent in payment transactions. The _{payment-gateway}_ replaces ``card`` immediately with a token in the transaction response for the first use of a credit card.
 
-include::{root}/include/fields/rest_cc/request/req-card-token.adoc[]
+include::include/fields/rest_cc/request/req-card-token.adoc[]
 
 [#CC_Fields_xmlelements_request_creditsenderdata]
 .credit-sender-data
@@ -302,7 +423,7 @@ This can be the case, if the merchant is
 
 //-
 
-include::{root}/include/fields/rest_cc/request/req-credit-sender-data.adoc[]
+include::include/fields/rest_cc/request/req-credit-sender-data.adoc[]
 
 [#CC_Fields_xmlelements_request_cruiseindustry]
 .cruise-industry
@@ -310,7 +431,7 @@ include::{root}/include/fields/rest_cc/request/req-credit-sender-data.adoc[]
 ``cruise-industry`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-include::{root}/include/fields/rest_cc/request/req-cruise-industry.adoc[]
+include::include/fields/rest_cc/request/req-cruise-industry.adoc[]
 
 
 [#CC_Fields_xmlelements_request_customfield]
@@ -321,7 +442,7 @@ include::{root}/include/fields/rest_cc/request/req-cruise-industry.adoc[]
 
 In the <<CC_Fields_xmlelements_response_customfield, response > custom-field>> section you can find examples for ready-to-use ``custom-field``.
 
-include::{root}/include/fields/rest_cc/request/req-custom-field.adoc[]
+include::include/fields/rest_cc/request/req-custom-field.adoc[]
 
 [#CC_Fields_xmlelements_request_device]
 .device
@@ -329,7 +450,7 @@ include::{root}/include/fields/rest_cc/request/req-custom-field.adoc[]
 ``device`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
-include::{root}/include/fields/rest_cc/request/req-device.adoc[]
+include::include/fields/rest_cc/request/req-device.adoc[]
 
 [#CC_Fields_xmlelements_request_notification]
 .notification
@@ -340,7 +461,7 @@ include::{root}/include/fields/rest_cc/request/req-device.adoc[]
 ``notification`` is used to set up <<GeneralPlatformFeatures_IPN, Instant Payment Notification (IPN)>>. It is highly recommended to use IPN. IPN informs you about the outcome of the individual payment processes. By including ``notification`` in the request
 you can overwrite the <<GeneralPlatformFeatures_IPN_Configuration, merchant account configuration>>.
 
-include::{root}/include/fields/rest_cc/request/req-notification.adoc[]
+include::include/fields/rest_cc/request/req-notification.adoc[]
 
 [#CC_Fields_xmlelements_request_orderitem]
 .order-item
@@ -350,7 +471,7 @@ include::{root}/include/fields/rest_cc/request/req-notification.adoc[]
 for order's items filled by the merchant. Order item amount always includes tax.
 Tax can be specified either by tax-amount or by tax-rate.
 
-include::{root}/include/fields/rest_cc/request/req-order-item.adoc[]
+include::include/fields/rest_cc/request/req-order-item.adoc[]
 
 //// 
 [#CC_Fields_xmlelements_request_payloadfield]
@@ -369,7 +490,7 @@ include::{root}/include/fields/rest_cc/request/req-order-item.adoc[]
 
 The element ``payment-method`` specifies the payment method used for a transaction.
 
-include::{root}/include/fields/rest_cc/request/req-payment-method.adoc[]
+include::include/fields/rest_cc/request/req-payment-method.adoc[]
 
 //// 
 
@@ -382,7 +503,7 @@ include::{root}/include/fields/rest_cc/request/req-payment-method.adoc[]
 
 The fields can be ignored if no recurring payment is inteded. For all recurring payments the ``periodic`` fields ``periodic-type`` and ``sequence-type`` are mandatory.
 
-include::{root}/include/fields/rest_cc/request/req-periodic.adoc[]
+include::include/fields/rest_cc/request/req-periodic.adoc[]
 
 ////
 
@@ -394,7 +515,7 @@ include::{root}/include/fields/rest_cc/request/req-periodic.adoc[]
 
 // Please provide a short explanation for ``risk-info``: Explicit fields for 3D Secure 2? 
 
-include::{root}/include/fields/rest_cc/request/req-risk-info.adoc[]
+include::include/fields/rest_cc/request/req-risk-info.adoc[]
 
 
 [#CC_Fields_xmlelements_request_segment]
@@ -403,7 +524,7 @@ include::{root}/include/fields/rest_cc/request/req-risk-info.adoc[]
 ``segment`` is a child of
 <<CC_Fields_xmlelements_request_airlineindustry, airline-industry.itinerary>> and <<CC_Fields_xmlelements_request_cruiseindustry, cruise-industry.itinerary>>. Itinerary segment data is used e.g. within airline industry and cruise industry to specify itineraries of the flight.
 
-include::{root}/include/fields/rest_cc/request/req-segment.adoc[]
+include::include/fields/rest_cc/request/req-segment.adoc[]
 
 [#CC_Fields_xmlelements_request_shipping]
 .shipping
@@ -412,8 +533,14 @@ include::{root}/include/fields/rest_cc/request/req-segment.adoc[]
 <<CC_Fields_xmlelements_request_payment, payment>>.
 For 3D Secure 2 transactions it is highly recommended to send ``shipping`` data in any case, as a complete set of ``shipping`` data reduces the likelihood of a challenge.
 
-include::{root}/include/fields/rest_cc/request/req-shipping.adoc[]
+[%autowidth]
+[cols="m,,,,a"]
 
+|===
+include::include/fields/rest_cc/request/req-shipping.adoc[]
+
+4+| address | <<CC_Fields_xmlelements_request_address, address>> is a child element of ``shipping``.
+|===
 
 [#CC_Fields_xmlelements_request_submerchantinfo]
 .sub-merchant-info
@@ -421,7 +548,7 @@ include::{root}/include/fields/rest_cc/request/req-shipping.adoc[]
 ``sub-merchant-info`` is a child of
 <<CC_Fields_xmlelements_request_payment, payment>>. ``sub-merchant-info`` fields are required for the <<CreditCard_PaymentFeatures_PaymentFacilitator, Payment Facilitator>>. If you want to use ``sub-merchant-info``, all the fields in this table are mandatory for every initial step of a transaction. It is recommended to include ``sub-merchant-info`` in all transaction steps. Otherwise, some transactions cannot be completed successfully. ``state`` is an exception. See ``state`` description for details.
 
-include::{root}/include/fields/rest_cc/request/req-sub-merchant-info.adoc[]
+include::include/fields/rest_cc/request/req-sub-merchant-info.adoc[]
 
 
 [#CC_Fields_xmlelements_request_threed]
@@ -434,18 +561,24 @@ Additional fields can be found in the
 <<CC_Fields_xmlelements_response_threed, response > three-d>> section.
 
 [#CreditCard_Fields_ThreeD]
-include::{root}/include/fields/rest_cc/request/req-three-d.adoc[]
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Fieldname | M/O | Datatype | Size | Description
 
+include::include/fields/rest_cc/request/req-three-d.adoc[]
+
+|===
 
 [#CC_Fields_xmlelements_response]
-=== Response
+===== Response
 
 [#CC_Fields_xmlelements_response_payment]
 .payment
 
 Here you can find the ``payment`` element fields which are sent in the response only.
 
-include::{root}/include/fields/rest_cc/response/res-payment.adoc[]
+include::include/fields/rest_cc/response/res-payment.adoc[]
 
 ifndef::env-nova[]
 [#CC_Fields_xmlelements_response_avs]
@@ -466,7 +599,8 @@ which is configured by {payment-provider-name}.
 See the complete list of the
 <<FraudPrevention_AVS_WirecardResponseCodes, {payment-provider-name} Response Codes>>.
 
-include::{root}/include/fields/rest_cc/response/res-avs.adoc[]
+
+include::include/fields/rest_cc/response/res-avs.adoc[]
 endif::[]
 
 [#CC_Fields_xmlelements_response_customfield]
@@ -481,7 +615,7 @@ values of other card products, please contact our <<ContactUs, Merchant Support>
 
 NOTE: As the fields ─ shown here ─ are already defined, _Datatype_ and _Size_ information is not necessary. Please refer to <<CC_Fields_xmlelements_request_customfield, custom-field>> for details.
 
-include::{root}/include/fields/rest_cc/response/res-custom-field.adoc[]
+include::include/fields/rest_cc/response/res-custom-field.adoc[]
 
 [#CC_Fields_xmlelements_response_status]
 .status
@@ -492,7 +626,7 @@ include::{root}/include/fields/rest_cc/response/res-custom-field.adoc[]
 request. They can use this information to redirect consumers to the respective
 response page (success page or failure page).
 
-include::{root}/include/fields/rest_cc/response/res-status.adoc[]
+include::include/fields/rest_cc/response/res-status.adoc[]
 
 
 [#CC_Fields_xmlelements_response_threed]
@@ -501,6 +635,6 @@ include::{root}/include/fields/rest_cc/response/res-status.adoc[]
 ``three-d`` is a child of
 <<CC_Fields_xmlelements_response_payment, payment>> .
 
-include::{root}/include/fields/rest_cc/response/res-three-d.adoc[]
+include::include/fields/rest_cc/response/res-three-d.adoc[]
 
 //-
