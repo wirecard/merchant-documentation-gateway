@@ -310,7 +310,7 @@ function buildPartner() {
 
   cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
 
-  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
+  cp -r errorpages/*.html css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
   return ${ERRORS}
 }
