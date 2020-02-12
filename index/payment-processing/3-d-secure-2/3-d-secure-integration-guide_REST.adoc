@@ -1,0 +1,69 @@
+[#3DS2_IntegrationGuide_REST]
+== 3D Secure for REST API
+
+[#3DS2_IntegrationGuide_REST_overview]
+=== Overview
+
+To integrate 3D Secure for REST API, 
+
+. *Send a request with _check-enrollment_:* Wirecard Payment Gateway checks the 3D Secure version supported by the issuer with the 3D Secure server and returns the _check-enrollment_ response. It includes the PAReq, the ACS URL, and the 3D Secure version.
+. *Redirect the customer to the Access Control Server (ACS):* Send a HTTPS Post authentication request including the PAReq, the ACS URL, and the 3D Secure version. The consumer is redirect to the ACS URL and enters their data in the authentication window. The PARes, as well as the <MD> to the TermURL is returned via the consumer’s browser.
+. *Send a _check-payer-response_ request for validation of the authentication result* 
+. *Complete the payment transaction:* Proceed with the payment ransaction with the relevant transaction-type (e.g. authorization, purchase, authorization-only).
+
+//-
+
+[NOTE]
+====
+See the <<3DS2_IntegrationGuide_Worklfows, detailed 3D Secure worfkflows>> for a fricitonless or a challenge 3D Secure 2 flow as well as a flow with a fallback 3D Secure 1.
+====
+
+[#3DS2_IntegrationGuide_REST_Workflows]
+=== 3D Secure Workflows
+
+Depending on the information provided by the consumer, you can either perfom a frcitionless or a challenge 3D Secure 2 flow. 
+
+
+
+
+
+
+.Check Enrollment
+
+**Check-enrollment** has two functions:
+
+. Authenticate the consumer's identity.
+. Confirm the consumer's willingness to pay the amount specified in the payment transaction.
+
+//-
+
+Therefore, a **check-enrollment** request contains a ``requested-amount``. As a general rule, the amount provided in consecutive payment requests, e.g. during an **authorization,** should not exceed the amount provided in the referenced **check-enrollment** by more than what a consumer could reasonably expect. The margin of what is considered reasonable varies from card scheme to card scheme and ranges from 15-20%.
+As a merchant, you are always on the safe side when the originally ``requested-amount`` is not exceeded by 15%.
+
+[NOTE]
+====
+If you exceed the original ``requested-amount``, the transaction may be declined.
+However, not all transactions that exceed the original ``requested-amount`` will fail.
+In those cases, chargeback liability protection will not apply to the same extent as for fully authenticated amounts.
+====
+
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
+
+For typical business scenarios that apply these payment flows, head to our <<CreditCard_3DS2_UseCases, 3D Secure 2 Use Cases page>>.
+
+A successful check-enrollment will return a parent-transaction-id. Include this parent-transaction-id in the next step of the payment process.
+
+NOTE: An Merchant Plug-In (MPI) provides a communication interface between the merchant and the card schemes' directory servers. It can be integrated in the merchant website or it may be hosted by a service provider or an acquirer. The main functions of an MPI are to verify the card issuers digital signature used in the authentication process, validate enrollment and authentication response messages, encrypt and store passwords and certificates and retrieve payment records and associated card details to resolve transaction disputes. Merchants can choose to leverage the enrollment check and payment authentication using a hosted (3rd Party MPI) or an integrated MPI.
+
+Workflow
+
+
+
+
+3D Secure Payment-Processing Example
+
+Setup and Test Credentials
+
+Wann wo workflow?
+
+The 3D Secure 2 and 3D Secure 1 workflow remains identical. Both include an additional transaction type in the payment process: _check enrollment._ A successful _check-enrollment_ will return a ``parent-transaction-id``. Include this ``parent-transaction-id`` in the next step of the payment process.
