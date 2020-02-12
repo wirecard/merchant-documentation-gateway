@@ -32,13 +32,10 @@ check-enrollment (> link to the description of check-enrollment)
 After the ceck-enrollment or check-payer-response the payment process is halted until the goods have become available and are ready to be shipped. The payment process is resumed with an _authorization_ and completed with a _capture-authorization_.
  
 * _authorization_ +
-The _authorization_ must reference either the previous check-enrollment, or the check-payer-response, depending on whether the check-payer-response has been executed or not.
+The _authorization_ is the first transaction after the _check-enrollment_, or an optional _check-payer-response_. In this _authorization_ the whole amount for the transaction is authorized. +
+Include the transaction-id from the _check-enrollment_ response or the optional _check-payer-response_ in the parent-transaction-id field of the _authorization_ request.
  
-    Following check-enrollment: Include the transaction-id from the check-enrollment response in the parent-transaction-id field.
- 
-    Following (optional) check-payer-response: Include the transaction-id returned by the check-payer-response in the parent-transaction-id field.
- 
-If the check-payer-response was not executed, use the PARes received via TermURL as part of the response to the ACS HTTP POST request.
+If the _check-payer-response_ was not executed, use the PARes received via TermURL as part of the response to the ACS HTTP POST request.
 
 .XML _authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -58,8 +55,6 @@ include::{root}/samples/xml/3ds2/use-cases/delayed-shipment/expected/authorizati
  
 * _capture-authorization_ +
 The _capture-authorization_ must reference the transaction-id from the _authorization_ response in the parent-transaction-id field.
-
-    Following _authorization_: Include the transaction-id from the _authorization_ response in the parent-transaction-id field.
  
 .XML _capture-authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -84,15 +79,11 @@ image::images/uc-delayed-shipment/uc-delayed-shipment-unexpected.png[3DS2 Use Ca
 
 In a delayed shipment with an unexpected delay an _authorization_ follows the transaction types _check-enrollment_ and _check-payer-response_.
  
-* _authorization_ (first authorization, full amount)
-  An _authorization_ is the first transaction after the _check-enrollment_, or the _check-payer-response_, depending on whether the _check-payer-response_ has been executed or not.
-  In this _authorization_ the whole amount for the transaction is authorized
+* _authorization_ (first authorization, full amount) +
+The _authorization_ is the first transaction after the _check-enrollment_, or an optional _check-payer-response_. In this _authorization_ the whole amount for the transaction is authorized. +
+Include the transaction-id from the _check-enrollment_ response or the optional _check-payer-response_ in the parent-transaction-id field of the _authorization_ request.
  
-    Following _check-enrollment_: Include the transaction-id from the _check-enrollment_ response in the parent-transaction-id field.
- 
-    Following (optional) _check-payer-response_: Include the transaction-id returned by the _check-payer-response_ in the parent-transaction-id field.
- 
-If the _check-payer-response_ was not executed, instead use the PARes received via TermURL as part of the response to the ACS HTTP POST request.
+If the _check-payer-response_ was not executed, use the PARes received via TermURL as part of the response to the ACS HTTP POST request.
 
 .XML _authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -110,8 +101,8 @@ include::{root}/samples/xml/3ds2/use-cases/delayed-shipment/unexpected/authoriza
 
 //-
  
-* _void-authorization_
-If the delay has become apparent the authorzied amount will be voided. The _void-authorization_ includes the transaction-id from the _authorization_ in the parent-transaction-id field.
+* _void-authorization_ +
+If the delay has become apparent the authorzied amount will be voided. The _void-authorization_ includes the transaction-id from the first _authorization_ in the parent-transaction-id field.
 
 .XML _void-authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -129,7 +120,7 @@ include::{root}/samples/xml/3ds2/use-cases/delayed-shipment/unexpected/void-auth
 
 //-
  
-* _authorization_ (second authorization with ``authorization-reason``)
+* _authorization_ (second authorization with ``authorization-reason``) +
 This second _authorization_ adds in the field ``authorization-reason`` the value ``reauthorization``.
 When the goods have become available and are ready to be shipped the formerly authorized amount will now be reserved with this second _authorization_. This second _authorization_ includes in the parent-transaction-id field the transaction-id from the first _authorization_.
 
@@ -149,7 +140,7 @@ include::{root}/samples/xml/3ds2/use-cases/delayed-shipment/unexpected/authoriza
 
 //-
  
-* _capture-authorization_
+* _capture-authorization_ +
 The _capture-authorization_ of the amount refers to the second _authorization_. The _capture-authorization_ includes in the parent-transaction-id field the transaction-id from the second _authorization_.
 
 .XML _capture-authorization_ Request (Successful)
