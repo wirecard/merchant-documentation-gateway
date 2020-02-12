@@ -10,6 +10,93 @@ NOTE: In a delayed shipment with an expected delay an _authorization-only_ prece
  
 * _authorization-only_ +
 If there is an expected delay of max. 90 days you can start this payment process with an authorization-only. This transaction doesn't reserve any money. It only verifies the card’s validity.
+
+.XML _authorization-only_ Request (Successful)
+[source,xml,subs=attributes+]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>authorization-only</transaction-type>
+    <requested-amount currency="EUR">0</requested-amount>
+    <card>
+        <account-number>5413330300201192</account-number>
+        <expiration-month>01</expiration-month>
+        <expiration-year>2023</expiration-year>
+        <card-security-code>192</card-security-code>
+        <card-type>mastercard</card-type>
+        <account-type>02</account-type>
+    </card>
+    <account-holder>
+        <first-name>Paul</first-name>
+        <last-name>Peterson</last-name>
+        <email>ppeter@example.com</email>
+        <mobile-phone>+1 773-945-6175</mobile-phone>
+        <address>
+            <street1>978C Golf Street</street1>
+            <city>Round Lake</city>
+            <state>IL</state>
+            <country>US</country>
+            <postal-code>60073</postal-code>
+        </address>
+    </account-holder>
+    <order-detail>{{$handler}}</order-detail>
+    <descriptor>{{$descriptor}}</descriptor>
+</payment>
+----
+//include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
+
+.XML _authorization-only_ Response (Successful)
+[source,xml,subs=attributes+]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" self="https://api-test.wirecard.com:443/engine/rest/merchants/33f6d473-3036-4ca5-acb5-8c64dac862d1/payments/bcc7a8b4-b06c-4342-bc47-25d7bf8c25c4">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/33f6d473-3036-4ca5-acb5-8c64dac862d1">33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>
+    <transaction-id>bcc7a8b4-b06c-4342-bc47-25d7bf8c25c4</transaction-id>
+    <request-id>ea05ffe6-76bf-4203-afc3-6422ec91bdbc</request-id>
+    <transaction-type>authorization-only</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2020-02-12T10:23:26.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+    </statuses>
+    <csc-code>N</csc-code>
+    <requested-amount currency="EUR">0</requested-amount>
+    <account-holder>
+        <first-name>Paul</first-name>
+        <last-name>Peterson</last-name>
+        <email>ppeter@example.com</email>
+        <mobile-phone>+1 773-945-6175</mobile-phone>
+        <address>
+            <street1>978C Golf Street</street1>
+            <city>Round Lake</city>
+            <state>IL</state>
+            <country>US</country>
+            <postal-code>60073</postal-code>
+        </address>
+    </account-holder>
+    <card>
+        <expiration-month>1</expiration-month>
+        <expiration-year>2023</expiration-year>
+        <card-type>mastercard</card-type>
+    </card>
+    <card-token>
+        <token-id>5489620654931192</token-id>
+        <masked-account-number>541333******1192</masked-account-number>
+    </card-token>
+    <order-detail>74b0d212-0ef8-6134-38ae-2e996a714972</order-detail>
+    <descriptor>3DS-2 Use-Cases: Delayed Shipment - Expected Delay less than 90 days</descriptor>
+    <authorization-code>248528</authorization-code>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70003</provider-account-id>
+</payment>
+----
+//include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
  
 check-enrollment (> link to the description of check-enrollment)
 
@@ -23,12 +110,198 @@ The _authorization_ must reference either the previous check-enrollment, or the 
     Following (optional) check-payer-response: Include the transaction-id returned by the check-payer-response in the parent-transaction-id field.
  
 If the check-payer-response was not executed, use the PARes received via TermURL as part of the response to the ACS HTTP POST request.
+
+.XML _authorization_ Request (Successful)
+[source,xml,subs=attributes+]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>authorization</transaction-type>
+    <requested-amount currency="EUR">10.00</requested-amount>
+    <parent-transaction-id>d2ac9858-8d7e-45ca-ac72-7c05da9d21af</parent-transaction-id>
+    <authorization-reason>reauthorization</authorization-reason>
+    <order-detail>{{$handler}}</order-detail>
+    <descriptor>{{$descriptor}}</descriptor>
+</payment>
+----
+//include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
+
+.XML _authorization_ Response (Successful)
+[source,xml,subs=attributes+]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" self="https://api-test.wirecard.com:443/engine/rest/merchants/33f6d473-3036-4ca5-acb5-8c64dac862d1/payments/739785bd-4b43-4d13-853c-3bef468ae8c0">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/33f6d473-3036-4ca5-acb5-8c64dac862d1">33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>
+    <transaction-id>739785bd-4b43-4d13-853c-3bef468ae8c0</transaction-id>
+    <request-id>c76e1971-31f7-4ac0-8e31-31627ebfb088</request-id>
+    <transaction-type>authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2020-02-12T10:28:58.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+        <status code="200.1083" description="3d-acquirer:Cardholder Successfully authenticated." severity="information"/>
+    </statuses>
+    <requested-amount currency="EUR">10.00</requested-amount>
+    <parent-transaction-id>d2ac9858-8d7e-45ca-ac72-7c05da9d21af</parent-transaction-id>
+    <account-holder>
+        <first-name>Paul</first-name>
+        <last-name>Peterson</last-name>
+        <email>ppeter@example.com</email>
+        <address>
+            <street1>978C Golf Street</street1>
+            <city>Round Lake</city>
+            <state>IL</state>
+            <country>US</country>
+            <postal-code>60073</postal-code>
+        </address>
+        <merchant-crm-id>XWLfrzuGhpajYxFiFgNScwcLhtIOvXNxMIcrxIPTHqgroaFiPNDqMxGBXYUhMVBZ</merchant-crm-id>
+    </account-holder>
+    <shipping>
+        <first-name>Paul</first-name>
+        <last-name>Peterson</last-name>
+        <address>
+            <street1>978C Golf Street</street1>
+            <city>Round Lake</city>
+            <state>IL</state>
+            <country>US</country>
+            <postal-code>60073</postal-code>
+        </address>
+        <shipping-method>home_delivery</shipping-method>
+    </shipping>
+    <card>
+        <expiration-month>1</expiration-month>
+        <expiration-year>2023</expiration-year>
+        <card-type>mastercard</card-type>
+    </card>
+    <card-token>
+        <token-id>5489620654931192</token-id>
+        <masked-account-number>541333******1192</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-detail>74b0d212-0ef8-6134-38ae-2e996a714972</order-detail>
+    <descriptor>3DS-2 Use-Cases: Delayed Shipment - Expected Delay less than 90 days</descriptor>
+    <notifications format="application/json">
+        <notification url="http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a"/>
+    </notifications>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <parent-transaction-amount currency="EUR">10.000000</parent-transaction-amount>
+    <authorization-code>695054</authorization-code>
+    <three-d>
+        <cardholder-authentication-status>Y</cardholder-authentication-status>
+        <version_requested>2.1.0</version_requested>
+    </three-d>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70003</provider-account-id>
+</payment>
+----
+//include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
  
 * _capture-authorization_ +
 The _capture-authorization_ must reference the transaction-id from the _authorization_ response in the parent-transaction-id field.
 
     Following _authorization_: Include the transaction-id from the _authorization_ response in the parent-transaction-id field.
  
+.XML _capture-authorization_ Request (Successful)
+[source,xml,subs=attributes+]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>
+    <request-id>{{$guid}}</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <requested-amount currency="EUR">10.00</requested-amount>
+    <notifications format="application/json">
+        <notification url="http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a"></notification>
+    </notifications>
+    <parent-transaction-id>739785bd-4b43-4d13-853c-3bef468ae8c0</parent-transaction-id>
+    <order-detail>{{$handler}}</order-detail>
+    <descriptor>{{$descriptor}}</descriptor>
+</payment>
+----
+//include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
+
+.XML _capture-authorization_ Response (Successful)
+[source,xml,subs=attributes+]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" self="https://api-test.wirecard.com:443/engine/rest/merchants/33f6d473-3036-4ca5-acb5-8c64dac862d1/payments/c927e8d4-6a6d-45aa-94dc-4ea85fc410b1">
+    <merchant-account-id ref="https://api-test.wirecard.com:443/engine/rest/config/merchants/33f6d473-3036-4ca5-acb5-8c64dac862d1">33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>
+    <transaction-id>c927e8d4-6a6d-45aa-94dc-4ea85fc410b1</transaction-id>
+    <request-id>2984bb52-43c9-485d-bad6-6ef6e9ecf780</request-id>
+    <transaction-type>capture-authorization</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2020-02-12T10:29:34.000Z</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="3d-acquirer:The resource was successfully created." severity="information"/>
+        <status code="200.1083" description="3d-acquirer:Cardholder Successfully authenticated." severity="information"/>
+    </statuses>
+    <requested-amount currency="EUR">10.00</requested-amount>
+    <parent-transaction-id>739785bd-4b43-4d13-853c-3bef468ae8c0</parent-transaction-id>
+    <account-holder>
+        <first-name>Paul</first-name>
+        <last-name>Peterson</last-name>
+        <email>ppeter@example.com</email>
+        <address>
+            <street1>978C Golf Street</street1>
+            <city>Round Lake</city>
+            <state>IL</state>
+            <country>US</country>
+            <postal-code>60073</postal-code>
+        </address>
+        <merchant-crm-id>XWLfrzuGhpajYxFiFgNScwcLhtIOvXNxMIcrxIPTHqgroaFiPNDqMxGBXYUhMVBZ</merchant-crm-id>
+    </account-holder>
+    <shipping>
+        <first-name>Paul</first-name>
+        <last-name>Peterson</last-name>
+        <address>
+            <street1>978C Golf Street</street1>
+            <city>Round Lake</city>
+            <state>IL</state>
+            <country>US</country>
+            <postal-code>60073</postal-code>
+        </address>
+        <shipping-method>home_delivery</shipping-method>
+    </shipping>
+    <card>
+        <expiration-month>1</expiration-month>
+        <expiration-year>2023</expiration-year>
+        <card-type>mastercard</card-type>
+    </card>
+    <card-token>
+        <token-id>5489620654931192</token-id>
+        <masked-account-number>541333******1192</masked-account-number>
+    </card-token>
+    <ip-address>127.0.0.1</ip-address>
+    <order-detail>74b0d212-0ef8-6134-38ae-2e996a714972</order-detail>
+    <descriptor>3DS-2 Use-Cases: Delayed Shipment - Expected Delay less than 90 days</descriptor>
+    <notifications format="application/json">
+        <notification url="http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a"></notification>
+    </notifications>
+    <payment-methods>
+        <payment-method name="creditcard"/>
+    </payment-methods>
+    <parent-transaction-amount currency="EUR">10.000000</parent-transaction-amount>
+    <authorization-code>695054</authorization-code>
+    <three-d>
+        <cardholder-authentication-status>Y</cardholder-authentication-status>
+    </three-d>
+    <api-id>elastic-api</api-id>
+    <provider-account-id>70003</provider-account-id>
+</payment>
+----
+//include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
 
 [#API_CC_3DS2_UC_delayed-shipment_unexpect]
 ==== Option 2: Unexpected Delay
@@ -37,7 +310,7 @@ image::images/uc-delayed-shipment/uc-delayed-shipment-unexpected.png[3DS2 Use Ca
 
 In a delayed shipment with an unexpected delay an _authorization_ follows the transaction types _check-enrollment_ and _check-payer-response_.
  
-* _authorization_ (full amount)
+* _authorization_ (first authorization, full amount)
   An _authorization_ is the first transaction after the _check-enrollment_, or the _check-payer-response_, depending on whether the _check-payer-response_ has been executed or not.
   In this _authorization_ the whole amount for the transaction is authorized
  
@@ -62,6 +335,8 @@ If the _check-payer-response_ was not executed, instead use the PARes received v
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
 
 .XML _authorization_ Response (Successful)
 [source,xml,subs=attributes+]
@@ -133,6 +408,8 @@ If the _check-payer-response_ was not executed, instead use the PARes received v
     <provider-account-id>70003</provider-account-id>
 </payment>
 ----
+
+//-
  
 * _void-authorization_
 If the delay has become apparent the authorzied amount will be voided. The _void-authorization_ includes the transaction-id from the _authorization_ in the parent-transaction-id field.
@@ -155,6 +432,8 @@ If the delay has become apparent the authorzied amount will be voided. The _void
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
 
 .XML _void-authorization_ Response (Successful)
 [source,xml,subs=attributes+]
@@ -226,10 +505,12 @@ If the delay has become apparent the authorzied amount will be voided. The _void
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
  
-* _re-authorization_
+* _authorization_ (second authorization with ``authorization-reason``)
 A _re-authorization_ transaction uses the transaction type _authorization_ and adds in the field ``authorization-reason`` the value ``reauthorization``.
-When the goods have become available and are ready to be shipped the formerly authorized amount will now be reserved with a _re-authorization_. The _re-authorization_ includes in the parent-transaction-id field the transaction-id from the previous _authorization_.
+When the goods have become available and are ready to be shipped the formerly authorized amount will now be reserved with a _re-authorization_. This second _authorization_ includes in the parent-transaction-id field the transaction-id from the first _authorization_.
 
 .XML _re-authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -247,6 +528,8 @@ When the goods have become available and are ready to be shipped the formerly au
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
 
 .XML _re-authorization_ Response (Successful)
 [source,xml,subs=attributes+]
@@ -314,9 +597,11 @@ When the goods have become available and are ready to be shipped the formerly au
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
  
-* _capture_
-The _capture_ of the amount refers to the _re-authorization_. The _capture_ includes in the parent-transaction-id field the transaction-id from the _re-authorization_.
+* _capture-authorization_
+The _capture-authorization_ of the amount refers to the _re-authorization_. The _capture-authorization_ includes in the parent-transaction-id field the transaction-id from the second _authorization_.
 
 .XML _capture-authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -336,6 +621,8 @@ The _capture_ of the amount refers to the _re-authorization_. The _capture_ incl
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
 
 .XML _capture-authorization_ Response (Successful)
 [source,xml,subs=attributes+]
@@ -403,3 +690,5 @@ The _capture_ of the amount refers to the _re-authorization_. The _capture_ incl
 </payment>
 ----
 //include::{root}/auto-generated/samples/xml/CreditCard_Non3D_Preauthorization_request.xml[]
+
+//-
