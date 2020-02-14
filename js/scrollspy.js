@@ -79,10 +79,10 @@ function updateMiniTOC() {
       _tmpMiniToc.append(miniTocElement);
     });
     $('#minitoc').replaceWith(_tmpMiniToc);
-    $('#minitoc').mouseover(() => {
+    $('#minitoc').mouseover(function () {
       $('#minitoc').addClass('minitoc-open');
       clearTimeout(miniTocCloseTimer);
-    }).mouseleave(() => {
+    }).mouseleave(function () {
       $('#minitoc').removeClass('minitoc-open');
     });
     highlightMiniToc(_tmpMiniTocInViewPortID);
