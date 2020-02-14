@@ -114,9 +114,11 @@ function highlightTOC() {
   });
 }
 
-function miniTocClick(event, sectionElement, sectionID, callback = () => { }) {
+function miniTocClick(event, sectionElement, sectionID) {
+  var callback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function () {};
   event.preventDefault();
-  $('html, body').animate({ // add smooth scrolling
+  $('html, body').animate({
+    // add smooth scrolling
     scrollTop: sectionElement.offset().top
   }, 500).promise().then(callback);
   history.pushState(null, null, '#' + sectionID);
