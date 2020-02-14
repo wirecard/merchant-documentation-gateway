@@ -258,8 +258,8 @@ function buildPartner() {
     debugMsg "[SKIP] basic tests"
   fi
 
-  #debugMsg "Minifying and combining js files"
-  #node buildscripts/util/combine-and-minify.js
+  debugMsg "Minifying and combining js files"
+  node buildscripts/util/combine-and-minify.js
 
   debugMsg "Beautify samples"
   find samples/xml auto-generated/samples -name "*.xml" -exec tidy -xml -quiet -indent -modify -wrap 100 -utf8 {} \;
