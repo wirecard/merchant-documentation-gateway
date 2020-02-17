@@ -1,9 +1,10 @@
-function markKeyword(keyword, scroll = false) {
-  console.log('markscroll: ' + scroll)
+function markKeyword(keyword) {
+  var scroll = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
   var markInstance = new Mark('#content');
   markInstance.unmark({
-    done: function () {
+    done: function done() {
       markInstance.mark(keyword);
+
       if (scroll !== false) {
         scrollToFirstMark();
       }
