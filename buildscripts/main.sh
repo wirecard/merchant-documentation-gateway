@@ -279,6 +279,11 @@ function buildPartner() {
   node buildscripts/search/lunr-index-builder.js ||
     scriptError "lunr-index-builder.js in line $((LINENO - 1))"
 
+  if [[ ${NOVA} == "NOVA" ]]; then
+    debugMsg "Change tracker id for NOVA"
+    sed -i "s/'setSiteId', '1'/'setSiteId', '4'/" docinfo.html
+  fi
+
   debugMsg "Building split page docs"
   RUBYOPT="-E utf-8" ${ASCIIDOCTOR_CMD_COMMON} -b multipage_html5 \
   -r ./buildscripts/asciidoc/multipage-html5-converter.rb ${NOVA_INDEX} ||
@@ -305,7 +310,7 @@ function buildPartner() {
 
   cp "${BUILDFOLDER_PATH}/${BPATH}/html"/*.svg mermaid/
 
-  cp -r errorpages css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
+  cp -r errorpages/*.html css images js fonts resources "${BUILDFOLDER_PATH}/${BPATH}/html/"
 
   return ${ERRORS}
 }
@@ -418,6 +423,9 @@ function main() {
   if buildPartner "${PARTNER}"; then
     # if everything built well then
     debugMsg "SUCCESS! Partner ${PARTNER} built in ${BUILDFOLDER_PATH}/${PARTNER}/html/"
+    debugMsg "Adding Disallow to robots.txt for deprecated URLS"
+    echo "User-agent: * " > ${BUILDFOLDER_PATH}/${PARTNER}/html/robots.txt
+    echo "Disallow: /display/*" >> ${BUILDFOLDER_PATH}/${PARTNER}/html/robots.txt
     debugMsg "export DEPLOY_${PARTNER}=TRUE"
     export "DEPLOY_${PARTNER}=TRUE"
     # workaround to get Travis to recognize the ENV vars
