@@ -13,7 +13,7 @@ image::images/uc-delayed-shipment/uc-delayed-shipment-expected.png[3DS2 Use Case
 NOTE: In a delayed shipment with an expected delay an _authorization-only_ preceeds the check-enrollment.
  
 * _authorization-only_ +
-If there is an expected delay of max. 90 days you can start this payment process with an _authorization-only_. This transaction doesn't reserve any money. It only verifies the card’s validity.
+If there is an expected delay of max. 90 days you can start this payment process with an _authorization-only_. This transaction doesn't reserve any money. It only verifies the card’s validity. The advantage of an _authorization-only_ is, you don't have to pay authentication fees if the card is invalid.
 
 .XML _authorization-only_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -31,15 +31,15 @@ include::{root}/samples/xml/3ds2/use-cases/delayed-shipment/expected/authorizati
 
 //-
  
-check-enrollment (> link to the description of check-enrollment)
+After the _authorization-only_ the card's <<> link to the description of check-enrollment, 3DS2 compliance must be checked>>.
 
-After the check-enrollment or check-payer-response the payment process is halted until the goods have become available and are ready to be shipped. The payment process is resumed with an _authorization_ and completed with a _capture-authorization_.
+If the card passed the authentication check successfully, the payment process is halted until the goods have become available and are ready to be shipped. The payment process is resumed with an _authorization_ and completed with a _capture-authorization_.
  
 * _authorization_ +
-The _authorization_ is the first transaction after the _check-enrollment_, or an optional _check-payer-response_. In this _authorization_ the whole amount for the transaction is authorized. +
-Include the ``transaction-id`` from the _check-enrollment_ response or the optional _check-payer-response_ in the ``parent-transaction-id`` field of the _authorization_ request.
+The _authorization_ is the first transaction after the _check-payer-response_. In this _authorization_ the whole amount for the transaction is authorized. +
+Include the ``transaction-id`` from the _check-payer-response_ in the ``parent-transaction-id`` field of the _authorization_ request.
  
-If the _check-payer-response_ was not sent, use the ``PARes`` received via ``TermURL`` as part of the response to the ACS HTTP POST request.
+NOTE: If you use a different transaction instead of _check-payer-response_ to communicate with the ACS server, use the ``PARes`` received via ``TermURL``. You can find the ``PARes`` in the response you received from the ACS server.
 
 .XML _authorization_ Request (Successful)
 [source,xml,subs=attributes+]
@@ -86,10 +86,10 @@ image::images/uc-delayed-shipment/uc-delayed-shipment-unexpected.png[3DS2 Use Ca
 In a delayed shipment with an unexpected delay an _authorization_ follows the transaction types _check-enrollment_ and _check-payer-response_.
  
 * _authorization_ (first authorization, full amount) +
-The _authorization_ is the first transaction after the _check-enrollment_, or an optional _check-payer-response_. In this _authorization_ the whole amount for the transaction is authorized. +
-Include the ``transaction-id`` from the _check-enrollment_ response or the optional _check-payer-response_ in the ``parent-transaction-id`` field of the _authorization_ request.
+The _authorization_ is the first transaction after the _check-payer-response_. In this _authorization_ the whole amount for the transaction is authorized. +
+Include the ``transaction-id`` from the _check-payer-response_ in the ``parent-transaction-id`` field of the _authorization_ request.
  
-If the _check-payer-response_ was not sent, use the ``PARes`` received via ``TermURL`` as part of the response to the ACS HTTP POST request.
+NOTE: If you use a different transaction instead of _check-payer-response_ to communicate with the ACS server, use the ``PARes`` received via ``TermURL`` as part of the response to the request you sent to the ACS server.
 
 .XML _authorization_ Request (Successful)
 [source,xml,subs=attributes+]
