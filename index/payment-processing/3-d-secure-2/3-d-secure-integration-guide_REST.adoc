@@ -4,6 +4,8 @@
 [#3DS2_IntegrationGuide_REST_overview]
 === Overview
 
+To integrate the WPP v2 in Seamles Mode in your shop, get your checkout page ready in two steps
+
 To integrate 3D Secure 2 for REST API,
 
 . Send a request with _check-enrollment._
@@ -13,112 +15,10 @@ To integrate 3D Secure 2 for REST API,
 
 //-
 
-
-.1. Send a request with _check-enrollment_
-This is the initial request in a 3D Secure payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure program and which 3D Secure version is supported by the issuer.
-
-New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
-ifdef::env-wirecard[]
-ifndef::env-nova[]
-They are also included in the <<Appendix_Xml, REST API payment XSD>>.
-endif::[]
-endif::[]
-
-CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. 
-
-[%autowidth]
-|===
-|XML 2+|Fields
-
-.2+a|
-----
-<transaction-type>check-enrollment</transaction-type>
-<three-d>
-    <version>2.1</version>
-</three-d>
-----
-m| <<CreditCard_TransactionTypes, transaction-type>>
-m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
-
-m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
-m| 2.1
-|===
-
-As a result of the check-enrollment, you receive the *PAReq* Payment Authentication Request with the ACS URL.
-
-.2. Redirect the consumer to the ACS URL
-Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
-
---
-* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
-* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
-
-+
-NOTE: You do not need to define the *<MD>* value.
-
-+
-CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process will be aborted.
---
-
-.Example: Auto Submission POST Request
-[source,html]
-----
-<html>
-   <head>
-      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
-      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
-      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
-      <meta HTTP-EQUIV="Expires" CONTENT="0" />
-   </head>
-   <body OnLoad="AutoSubmitForm();">
-      <form name="downloadForm" action="AcsUrl" method="POST">
-         <input type="hidden" name="PaReq" value="PaReq" />
-         <input type="hidden" name="TermUrl" value="TermUrl" />
-         <input type="hidden" name="MD" value="optionalValue" />
-         <SCRIPT LANGUAGE="Javascript">
-            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
-         </SCRIPT>
-         <input type="submit" name="continue" value="Continue" />
-      </form>
-   </body>
-</html>
-----
-
-Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
-
-.3. Send a _check-payer-response_ request for validation of the authentication result (optional)
-Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
-
-* ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
-* ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
-
-
-[%autowidth]
-|===
-|XML 2+|Fields
-
-.3+a|
-----
-<transaction-type>check-payer-response</transaction-type>
-<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
-<three-d>
-    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
-</three-d>
-----
-m|<<CreditCard_TransactionTypes, transaction-type>>
-m|<<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
-
-m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
-|
-
-m| <<CreditCard_Fields_ThreeD_Pares, three-d/pares>>
-|
-|===
-
 .4. Complete the payment transaction 
 Proceed with the payment ransaction with the relevant transaction-type (e.g. authorization, purchase, authorization-only).
 
-NOTE: --- Note to detailed workflow and different business scenarios / use cases ---
+NOTE: For payment-processing examples with 3DS2 see xy.
 
 [#AppendixF]
 === 3D Secure Workflows
@@ -242,7 +142,12 @@ endif::[]
 NOTE: An Merchant Plug-In (MPI) provides a communication interface between the merchant and the card schemes' directory servers. It can be integrated in the merchant website or it may be hosted by a service provider or an acquirer. The main functions of an MPI are to verify the card issuers digital signature used in the authentication process, validate enrollment and authentication response messages, encrypt and store passwords and certificates and retrieve payment records and associated card details to resolve transaction disputes. Merchants can choose to leverage the enrollment check and payment authentication using a hosted (3rd Party MPI) or an integrated MPI.
 
 [#3DS2_IntegrationGuide_REST_Samples]
-=== Samples
+=== Payment-Processing Examples with 3DS2
+
+We provide ready-made JSON examples to show how to process a payment with 3DS2.
+Use a tool such as  https://www.postman.com/postman[Postman] to test them.
+
+The 3DS2 payment-processing examples are *designed for the testing environment* and *do not use real information.*
 
 [#3DS2_IntegrationGuide_REST_Samples_SetUp]
 ==== Setup and Test Credentials
@@ -268,6 +173,12 @@ endif::[]
 
 [#3DS2_IntegrationGuide_REST_Samples_Samples]
 ==== Samples
+
+Below, you can download a postman collection, containing samples for all common use cases documented in our 3D Secure 2 Use Cases section.
+
+Download the full link:resources/3-d-secure-2/3-d-secure-2-postman-collection[3DS2 Postman Collection].
+
+
 
 //tag::xy[]
 //end::xy[]
