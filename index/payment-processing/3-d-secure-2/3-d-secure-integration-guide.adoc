@@ -1,33 +1,34 @@
 [#3DS2_IntegrationGuide]
 == General Integration Guide
 
-Processing 3D Secure transactions, both 3D Secure 2 and 3D Secure 1, differs from standard payment processing. 
+Processing 3D Secure 2 transactions differs from standard payment processing. 
 
-3D Secure requires to include
+To enable 3D Secure 2, include
 
-- an additional transaction type in the payment flow: _check-enrollment._
+- an additional transaction type in the payment flow: <<3DS2_checkenrollment, _check-enrollment_>>.
 - 3D-Secure-specific fields in the initial payment request.
 
 //-
 
-For both, 3D Secure 2 and 3D Secure 1, the payment flow remains identical. 
+[NOTE] 
+====
+The 3D Secure 2 workflow remains identical to the 3D Secure 1 workflow. If you already have an existing 3D Secure 1 integration, for mitigrating to 3D Secure 2, simply include additional 3D-Secure-2-specific fields in the initial payment request. +
 
-3D Secure 2 is the new standard authentication method for payment card transactions.
+As the new 3D Secure 2 protocol will shortly replace 3D Secure 1, we strongly advise you to start implementing 3D Secure 2 as soon as possible.
+====
 
 [#3DS2_checkenrollment]
 ._Check-enrollment_
 
 
-_Check-enrollment_ is the first step in a 3D Secure transaction. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure program. _Check-enrollment_ has two functions:
+_Check-enrollment_ is the first step in a 3D Secure  transaction. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure program. _Check-enrollment_ has two functions:
 
 - Authenticate the consumer's identity.
 - Confirm the cosnumer's willignes to pay the amount specified in the payment transaction.
 
 //-
 
-With 3D Secure 2, the amount of data collected with _check-enrollment_ is significantly higher than with 3D Secure 1. This allows a more comprehensive risk analysis. 
-
-A  _check-enrollment_ request needs to contain a ``requested-amount``. As a general rule, the amount provided in consecutive payment requests, e.g. during an _authorization,_ should not exceed the amount provided in the referenced _check-enrollment_ by more than what a consumer could reasonably expect. The margin of what is considered reasonable varies from card scheme to card scheme and ranges from 15-20%.
+Therefore, a  _check-enrollment_ request needs to contain a ``requested-amount``. As a general rule, the amount provided in consecutive payment requests, e.g. during an _authorization,_ should not exceed the amount provided in the referenced _check-enrollment_ by more than what a consumer could reasonably expect. The margin of what is considered reasonable varies from card scheme to card scheme and ranges from 15-20%.
 As a merchant, you are always on the safe side when the originally ``requested-amount`` is not exceeded by 15%.
 
 [NOTE]
@@ -37,18 +38,23 @@ However, not all transactions that exceed the original ``requested-amount`` will
 In those cases, chargeback liability protection will not apply to the same extent as for fully authenticated amounts.
 ==== 
 
+With 3D Secure 2, the amount of data collected with _check-enrollment_ is significantly higher than with 3D Secure 1. This allows a more comprehensive risk analysis. 
 
 [#3DS2_3DSecureFields]
 .3D-Secure-specific fields
 
-To process 3D Secure transactions, include 3D-Secure-specific fields in the initial payment request. With 3D Secure 2, additional fields are required. The whole of 3D-Secure-specific fields required to process 3D Secure transactions, vary per integration option.
+To process 3D Secure transactions, include 3D-Secure-specific fields in the initial payment request. 
 
-Check out how to implement 3D Secure for different integration options:
+With 3D Secure 2, more 3D-Secure-specific fields are required as with 3D Secure 1.
+
+====
+Check out how to implement 3D Secure 2 for different integration options:
 
 - <<3DS2_IntegrationGuide_RESTAPI, REST API>>
 - <<PPv2_CC_3DSecure, {payment-page-v2-abbr}>>
 - <<PP_3DSecure, {payment-page-v1-abbr}>>
 
 //-
+====
 
-j
+//-

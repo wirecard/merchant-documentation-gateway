@@ -4,32 +4,56 @@
 [#3DS2_IntegrationGuide_REST_overview]
 === Overview
 
-To integrate the WPP v2 in Seamles Mode in your shop, get your checkout page ready in two steps
-
 To integrate 3D Secure 2 for REST API,
 
 . Send a request with _check-enrollment._
-. Redirect the customer to the Access Control Server (ACS) URL.
+. Redirect the consumer to the Access Control Server (ACS) URL.
 . Send a _check-payer-response_ request for validation of the authentication result (optional).
 . Complete the payment transaction.
 
 //-
 
+.1. Send a request with _check-enrollment_
+-placeholder-
+
+.2. Redirect the consumer to the ACS URL
+-placeholder-
+
+.3. Send a _check-payer-repsonse_ request for validation of the authentication result (optional)
+-placeholder-
+
 .4. Complete the payment transaction 
 Proceed with the payment ransaction with the relevant transaction-type (e.g. authorization, purchase, authorization-only).
 
-NOTE: For payment-processing examples with 3DS2 see xy.
+NOTE: For detailed payment flows of typical use cases and business scenarios, head to our 3D Secure 2 Use Cases section.
 
-[#AppendixF]
-=== 3D Secure Workflows
 
-Depending on the information provided by the consumer, you can either perfom a frcitionless or a challenge 3D Secure 2 flow. Fallback to 3DS1.
+[#3DS2_IntegrationGuide_REST_worfklow]
+=== 3D Secure 2 Workflows
+
+[#3DS2_IntegrationGuide_REST_worfklow_basic]
+==== Basic Worfklow
+Generally, the 3D Secure 2 worflow remains identical to the 3D Secure 1 workflow:
 
 image::images/16-05-appendix-f/3Dsecureprocessnew.png[3D Secure Workflow, align="center"]
 
+NOTE: The communication between you and the card scheme's directory servers is provided by an MPI.
+The MPI can be integrated in the merchant website or it may be hosted by a service provider or an acquirer. The main functions of an MPI are to verify the card issuers digital signature used in the authentication process, validate enrollment and authentication response messages, encrypt and store passwords and certificates and retrieve payment records and associated card details to resolve transaction disputes. Merchants can choose to leverage the enrollment check and payment authentication using a hosted or an integrated MPI. Both options will notify the merchant if either of the two validations failed.
+
+[#3DS2_IntegrationGuide_REST_worfklow_frictchall]
+==== Frictionless / Challenge Flow
+
+Depending on data provided in the initial request, a 3D Secure 2 transaction can go through one of two main authentication flows:
+
+- *Frictionless Flow:* The data initially provided is sufficient. No further authentication is required.
+- *Challenge Flow:* The data initially provided is not sufficient.  Consumers are asked for extra authentication, based on SCA authentication factors.
+
+NOTE: Sending specific 3D Secure 2 fields in the initial payment request reduces the likelihood of an authentication challenge. For more details on such fields, go to our <<3DS2_IntegrationGuide_REST_Fields, 3D Secure 2 field table>>.
+
+
 [discrete]
-[#AppendixF_3DS2FF]
-==== 3D Secure 2.1 Frictionless Flow (Issuer supports 3D Secure 2)
+[#3DS2_IntegrationGuide_REST_worfklow_3DS2FF]
+===== 3D Secure 2.1 Frictionless Flow 
 
 image::images/16-05-appendix-f/3DSfrictionless.svg[3D Secure 2 Frictionless Workflow, align="center"]
 
@@ -66,8 +90,8 @@ endif::[]
 *4.* _Complete the payment transaction_: Proceed with the payment transaction with the relevant transaction-type (e.g. *authorization*, *purchase*, *authorization-only*). Use the final authentication values received either from the check-enrollment response(e.g. *PARes* and ``parent-transaction-id``), or from step 3.3 (*check-payer-response* response).
 
 [discrete]
-[#AppendixF_3DS2CF]
-==== 3D Secure 2.1 Challenge Flow (Issuer supports 3D Secure 2)
+[#3DS2_IntegrationGuide_REST_worfklow_3DS2CF]
+===== 3D Secure 2.1 Challenge Flow
 
 image::images/16-05-appendix-f/3DSchallenge.svg[3D Secure 2 Challenge Workflow, align="center"]
 
@@ -104,8 +128,12 @@ endif::[]
 
 *4.* _Complete the payment transaction_: Proceed with the payment transaction with the relevant transaction-type (e.g. *authorization*, *purchase*, *authorization-only*). Use the final authentication values received either from the check-enrollment response (e.g. *PARes* and ``parent-transaction-id``), or from step 3.3 (*check-payer-response* response).
 
+[#3DS2_IntegrationGuide_REST_worfklow_fallback]
+==== Fallback to 3D Secure 1
+If the issuer does not support 3D Secure 2, an automatic fallback to 3D Secure 1 is initiated.
+
 [discrete]
-[#AppendixF_3DS2FBF]
+[#3DS2_IntegrationGuide_REST_worfklow_3DS2FBF]
 ==== 3D Secure 2.1 Flow with Fallback to 3D Secure 1 (Issuer does not support 3D Secure 2)
 
 image::images/16-05-appendix-f/3DSfallback.svg[3D Secure 2 Fallback Workflow, align="center"]
@@ -139,7 +167,6 @@ endif::[]
 
 //-
 
-NOTE: An Merchant Plug-In (MPI) provides a communication interface between the merchant and the card schemes' directory servers. It can be integrated in the merchant website or it may be hosted by a service provider or an acquirer. The main functions of an MPI are to verify the card issuers digital signature used in the authentication process, validate enrollment and authentication response messages, encrypt and store passwords and certificates and retrieve payment records and associated card details to resolve transaction disputes. Merchants can choose to leverage the enrollment check and payment authentication using a hosted (3rd Party MPI) or an integrated MPI.
 
 [#3DS2_IntegrationGuide_REST_Samples]
 === Payment-Processing Examples with 3DS2
