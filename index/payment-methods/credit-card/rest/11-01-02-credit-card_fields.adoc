@@ -29,6 +29,23 @@ NOTE: The tables are sorted alphabetically. Use *Ctrl + F* if you are looking fo
 For example, ``payment.account-holder`` is a parent of ``address``. Click on the link in the table to view the fields contained in a _complex type_ field.
 
 
+[#CC_Fields_intro_elements]
+=== Field Definitions
+
+Each field table contains the following columns:
+
+- <<APIRef_FieldDefs_Name, Name>>
+- <<APIRef_FieldDefs_Cardinality, Cardinality>> (for request elements only)
+- <<APIRef_FieldDefs_DataTypes, Data Type>>
+- <<APIRef_FieldDefs_Size, Size>> (for request elements only)
+
+
+
+//-
+
+IMPORTANT: Field definitions may vary by transaction type. Deviations from standard field definitions are given with the respective transaction type.
+
+
 [#CC_Fields_xmlelements]
 === XML Elements
 Click the X in the respective column for request and response fields.
@@ -149,7 +166,7 @@ endif::[]
 |===
 
 [#CC_Fields_xmlelements_request]
-==== Request
+=== Request
 
 [#CC_Fields_xmlelements_request_payment]
 .``payment``
@@ -160,7 +177,7 @@ Additional ``payment`` fields can be found in the
 [%autowidth]
 [cols="m,,,,a"]
 |===
-| Fieldname | M/O | Datatype | Size | Description
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
 include::{root}/include/fields/rest_cc/request/req-payment.adoc[]
 |===
@@ -176,7 +193,7 @@ consumer. Please provide all the ``account-holder`` data in your request to make
 [%autowidth]
 [cols="m,,,,a"]
 |===
-| Field | M/O | Datatype | Size | Description
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
 include::{root}/include/fields/rest_cc/request/req-account-holder.adoc[]
 include::{root}/include/fields/rest_cc/request/req-account-holder-parents.adoc[]
@@ -196,16 +213,28 @@ include::{root}/include/fields/rest_cc/request/req-account-info.adoc[]
 [#CC_Fields_xmlelements_request_address]
 .address
 
+ifdef::env-nova[]
+``address`` is a child of
+<<CC_Fields_xmlelements_request_accountholder, account-holder>>, and <<CC_Fields_xmlelements_request_shipping, shipping>>. It is used to specify the consumer's address and can refer to
+endif::[]
+
+ifndef::env-nova[]
 ``address`` is a child of
 <<CC_Fields_xmlelements_request_accountholder, account-holder>>, <<CC_Fields_xmlelements_request_shipping, shipping>>, and <<CC_Fields_xmlelements_request_airlineindustry, airline-industry>>. It is used to specify the consumer's address and can refer to
+endif::[]
 
 - the consumer (for ``account-holder``). The account holder's address is used as the billing address.
 - the consumer's shipping address (for ``shipping``). For 3D Secure 2 transactions it is highly recommended to send ``shipping.address`` data in any case, as a complete set of ``shipping.address`` data reduces the likelihood of a challenge test.
+ifndef::env-nova[]
 - the ticket issuer (for ``airline-industry``).
+endif::[]
 
 Data can be provided optionally but it helps with fraud checks, if ``address`` is complete.
 
 include::{root}/include/fields/rest_cc/request/req-address.adoc[]
+
+
+ifndef::env-nova[]
 
 [#CC_Fields_xmlelements_request_airlineindustry]
 .airline-industry
@@ -215,6 +244,7 @@ include::{root}/include/fields/rest_cc/request/req-address.adoc[]
 
 include::{root}/include/fields/rest_cc/request/req-airline-industry.adoc[]
 
+endif::[]
 
 [#CC_Fields_xmlelements_request_audit]
 .audit
@@ -279,6 +309,9 @@ compliance, ``card`` data must not be sent in payment transactions. The _{paymen
 
 include::{root}/include/fields/rest_cc/request/req-card-token.adoc[]
 
+
+ifndef::env-nova[]
+
 [#CC_Fields_xmlelements_request_creditsenderdata]
 .credit-sender-data
 
@@ -304,6 +337,8 @@ include::{root}/include/fields/rest_cc/request/req-credit-sender-data.adoc[]
 <<CC_Fields_xmlelements_request_payment, payment>>.
 
 include::{root}/include/fields/rest_cc/request/req-cruise-industry.adoc[]
+
+endif::[]
 
 
 [#CC_Fields_xmlelements_request_customfield]
@@ -387,6 +422,8 @@ include::{root}/include/fields/rest_cc/request/req-periodic.adoc[]
 include::{root}/include/fields/rest_cc/request/req-risk-info.adoc[]
 
 
+ifndef::env-nova[]
+
 [#CC_Fields_xmlelements_request_segment]
 .segment
 
@@ -394,6 +431,9 @@ include::{root}/include/fields/rest_cc/request/req-risk-info.adoc[]
 <<CC_Fields_xmlelements_request_airlineindustry, airline-industry.itinerary>> and <<CC_Fields_xmlelements_request_cruiseindustry, cruise-industry.itinerary>>. Itinerary segment data is used e.g. within airline industry and cruise industry to specify itineraries of the flight.
 
 include::{root}/include/fields/rest_cc/request/req-segment.adoc[]
+
+endif::[]
+
 
 [#CC_Fields_xmlelements_request_shipping]
 .shipping
