@@ -1,13 +1,13 @@
 [#GuaranteedInstallment]
 == REST API 
 
-_{payment-provider-name} Payment in Installments_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+_{payment-provider-name} Payment in Installments_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>. 
 
 [#GuaranteedInstallment_GeneralInformation]
 === General Information
 
 [#GuaranteedInstallment_CountriesandCurrencies]
-==== Payment Mode, Countries and Currencies
+==== Countries and Currencies
 
 [width=75%,cols="1h,3",stripes=none]
 |===
@@ -35,51 +35,47 @@ used for requests and responses.
 [#GuaranteedInstallment_TransactionTypes]
 === Transaction Types
 
-For <<Glossary_TransactionType, transaction type>> details which are not given here, look
-at <<AppendixB, API Reference: Transaction Types>>.
+For <<Glossary_TransactionType, transaction type>> details which are not given here, go to <<AppendixB, API Reference: Transaction Types>>.
 
 
 [%autowidth,stripes=none, cols="e,,"]
 |===
 |Transaction Type | Description | Link to samples
 
-|_authorization_    | Performs a creditworthiness check at the moment when
-                    consumer makes an order. All order items must be listed for the shopping
-                    basket. The _authorization_ amount must match the value of the items in
+|authorization    | Performs a creditworthiness check at the moment when 
+                    the consumer makes an order. All order items must be listed for the shopping basket. The authorization amount must match the value of the items in
                     the basket.
-                                | <<GuaranteedInstallment_Samples_Authorization, _authorization_ samples>>
+                                | <<GuaranteedInstallment_Samples_Authorization, authorization samples>>
 
-|_capture-authorization_ | Used to capture the reserved funds at the moment
+|capture-authorization | Used to capture the reserved funds at the moment
                          when some or all goods are physically delivered to the consumer.
-                         Available only on successful _authorization_ response which wasn't voided
-                         nor fully captured. Partial (and multiple) capture is allowed, until
-                         the _authorization_ limit is not exceeded. Basket items only lists the
+                         Available only on successful authorization response which wasn't voided
+                         nor fully captured. Partial (and multiple) capture is allowed, as long as
+                         the authorization limit is not exceeded. Basket items only list the
                          items that were delivered to the consumer in this delivery, not the ones
                          that were delivered before or are waiting to be delivered. The total
                          amount of the capture must be the value of the items in the basket.
-                                | <<GuaranteedInstallment_Samples_CaptureAuthorization, _capture-authorization_ samples>>
+                                | <<GuaranteedInstallment_Samples_CaptureAuthorization, capture-authorization samples>>
 
-|_void-authorization_ | Used when the consumer wishes to cancel some or all
+|void-authorization | Used when the consumer wishes to cancel some or all
                       (not yet shipped) items from the order. Available only for a successful
-                      _authorization_ response which was not yet voided or captured. Partial and
+                      authorization response which was not yet voided or captured. Partial and
                       multiple void are allowed, until all items from the order are canceled
-                      or shipped. Basket items only list those items which are being canceled from the order.
-                                | <<GuaranteedInstallment_Samples_VoidAuthorization, _void-authorization_ samples>>
+                      or shipped. Basket items only list those items which are canceled from the order.
+                                | <<GuaranteedInstallment_Samples_VoidAuthorization, void-authorization samples>>
 
-|_refund-capture_ | Used when the consumer wishes to return some or all
-                  delivered goods. Available on a successful _capture-authorization_.
+|refund-capture | Used when the consumer wishes to return some or all
+                  delivered goods. Available on a successful capture-authorization.
                   Partial and multiple refunds are allowed, until all delivered items have
-                  been returned. Basket items list only those items which are being returned to the merchant.
-                                | <<GuaranteedInstallment_Samples_RefundCapture, _refund-capture_ samples>>
+                  been returned. Basket items list only those items which are returned to the merchant.
+                                | <<GuaranteedInstallment_Samples_RefundCapture, refund-capture samples>>
 
-|_credit_ | Used when merchant wishes to grant a discount on an existing
-          order. Items from this order may already be delivered to the consumer.
-          Available on a successful _capture-authorization_. Multiple credits are
-          allowed, but the overall sum of credits must not exceed the value of the
-          delivered goods to the consumer. The credit transaction must include a
+|credit | Used when the merchant wishes to grant a discount on an existing order. Items from this order may already be delivered to the consumer.
+          Available on a successful capture-authorization. Multiple credits are
+          allowed, but the overall sum of credits must not exceed the value of the goods delivered to the consumer. The credit transaction must include a
           basket item representing the discount. The credit transaction must refer
-          to the successful _authorization_ ``transaction-id``.
-                                | <<GuaranteedInstallment_Samples_Credit, _credit_ samples>>
+          to the successful authorization ``transaction-id``.
+                                | <<GuaranteedInstallment_Samples_Credit, credit samples>>
 |===
 
 //-
@@ -87,11 +83,11 @@ at <<AppendixB, API Reference: Transaction Types>>.
 [NOTE]
 ====
 . <<GuaranteedInstallment_Features_BasketItemsDetails, Basket items>>  must be specified in every request. +
-. The response for each _authorization_ request returns an individual string (an alphanumerical code) in the field ``descriptor``. +
+. The response for each authorization request returns an individual string (an alphanumerical code) in the ``descriptor`` field. +
 . The descriptor must be printed on all invoice documents and saved by the shop (used by consumers in bank transfers; German: "Verwendungszweck").­­ +
-. _capture-authorization_ transactions have to follow a successful _authorization_ on the same day the goods are dispatched. +
-. The period between _authorization_ and the first _capture-authorization_ must be at least 4 hours. +
-. Merchants can request several partial _capture-authorization_ transactions if the goods are shipped in separate shipments. +
+. capture-authorization transactions must follow a successful authorization on the same day the goods are dispatched. +
+. The period between authorization and the first capture-authorization must be at least 4 hours. +
+. Merchants can request several partial capture-authorization transactions if the goods are shipped in separate shipments. +
 
 //-
 ====
@@ -132,47 +128,26 @@ _void-authorization_|`\https://{test-instance-hostname}/engine/rest/payments`
 [#GuaranteedInstallment_Workflow]
 === Workflow
 
-[mermaid, GuaranteedInstallment_workflow,svg,subs=attributes+]
-----
-sequenceDiagram
-    participant Consumer
-    participant Merchant
-    participant {payment-gateway-abbr}
-    participant {payment-provider-name} Bank
-Consumer->>Consumer: adds items to shopping basket
-Consumer->>Consumer: selects _{payment-provider-name} Payment in Installments_
-Consumer->>Merchant: proceeds to checkout
-Merchant->>{payment-gateway-abbr}: sends authorization request
-{payment-gateway-abbr}->>{payment-gateway-abbr}: generates descriptor
-{payment-gateway-abbr}->>Merchant: sends authorization response
-Merchant->>{payment-gateway-abbr}: sends a capture request
-{payment-gateway-abbr}->>{payment-gateway-abbr}: generates invoice
-{payment-gateway-abbr}->>{payment-provider-name} Bank: informs
-{payment-provider-name} Bank->>{payment-provider-name} Bank: collects the transaction amount
-----
-
 . Consumer adds items to shopping basket.
-. Consumer selects the payment method _{payment-provider-name} Payment in Installments._
-.. Selects duration and rate of payment.
+. Consumer selects the payment method _{payment-provider-name} Payment in Installments_, the duration and rate of payment.
 . Consumer proceeds to checkout.
-. Merchant sends an _authorization_ request including basket items to {payment-gateway-abbr}.
-. {payment-gateway-abbr} generates a descriptor.
-..  Descriptor is an alphanumerical code, starting with DG.
-. {payment-gateway-abbr} sends _authorization_ response to merchant. 
-.. The _authorization_ response includes the descriptor.
-. Merchant sends a _capture_ request to {payment-gateway-abbr} when the basket items are ready for delivery.
-. After a successful _capture_ request, {payment-gateway-abbr} generates the invoice, including the descriptor.
-.. NOTE: Alternatively the invoice can also be generated by merchant.
+. Merchant sends an authorization request including basket items to {payment-gateway-abbr}.
+. {payment-gateway-abbr} generates a descriptor (an alphanumerical code, starting with DG).
+. {payment-gateway-abbr} sends authorization response to merchant (the authorization response includes the descriptor).
+. Merchant sends a capture request to {payment-gateway-abbr} when the basket items are ready for delivery.
+. After a successful capture request, {payment-gateway-abbr} generates the invoice, including the descriptor. +
+.. Alternatively, merchant generates the invoice. 
 . Invoice generator informs {payment-provider-name} Bank.
 . {payment-provider-name} Bank collects the transaction amount from consumer's bank account.
-. If any payment changes are necessary, the following transaction types are available: _credit_, _refund-capture_ or _void-authorization_.
+. If any payment changes are necessary, the following transaction types are available: credit, refund-capture or void-authorization.
 
 //-
 
 [#GuaranteedInstallment_Fields]
 === Fields
 
-The field table lists the elements either *M* (mandatory), *O* (optional) or *M/O* (if mandatory in a certain context. This context is explained in the "Description" column). Please provide the data accordingly to guarantee a successful request with _{payment-provider-name} Payment in Installments_ (complete field list available in <<RestApi_Fields, REST API field list>>).
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for sending a request for _{payment-provider-name} Payment in Installments_ (complete field list available in <<RestApi_Fields, REST API field list>>):
 
 [%autowidth,stripes=none, cols="v,,,,"]
 |===
@@ -181,55 +156,55 @@ The field table lists the elements either *M* (mandatory), *O* (optional) or *M/
 5+a|
 *payment.*
 
-|[[GuaranteedInstallment_Fields_Payment]]_merchant-account-id_
+|[[GuaranteedInstallment_Fields_Payment]] merchant-account-id
 |M
 |String
 |36
 |Unique identifier for a merchant account
 
-|_request-id_
+|request-id
 |M
 |String
 |150
 |This is the identification number of the request. It has to be unique for each request.
 
-|_transaction-type_
+|transaction-type
 |M
 |String
 |30
-|This is the type for a transaction: _authorization_, _capture_, _void-authorization_, _refund-capture_ and _credit_ are supported for _{payment-provider-name} Payment in Installments_.
+|This is the type for a transaction: authorization, capture, void-authorization, refund-capture and credit are supported for _{payment-provider-name} Payment in Installments_.
 
-|_requested-amount_
+|requested-amount
 |M
 |Numeric
 |18,3
 |This is the amount of the transaction. The amount of the decimal place depends on the currency. The amount must be between a defined minimum value and a defined maximum value.
 
-|_currency_ (attribute of ``requested-amount``)
+|currency (attribute of requested-amount)
 |M
 |String
 |3
 |This is the currency of the transaction. For Germany and Austria, only ``EUR`` is allowed. Switzerland additionally accepts ``CHF``.
 
-|_order-detail_
+|order-detail
 |O
 |String
 |65535
 |Details of the order filled by the merchant.
 
-|_order-number_
+|order-number
 |M
 |String
 |64
 |The order number from the merchant.
 
-|_consumer-id_
+|consumer-id
 |O
 |String
 |50 
 |Merchant's identifier for the consumer.
 
-|_locale_
+|locale
 |O 
 |String
 |5
@@ -239,21 +214,21 @@ The field table lists the elements either *M* (mandatory), *O* (optional) or *M/
 ``nl`` (Dutch) +
 ``de`` (German) +
 //-
-If empty or sent with a wrong value, ``de`` is used by default.
+If empty or sent with an incorrect value, ``de`` is used by default.
 
 5+a|
 *payment.invoice.*
 
-|[[GuaranteedInstallment_Fields_Invoice]]_invoice-number_
+|[[GuaranteedInstallment_Fields_Invoice]]invoice-number
 |O
 |String
 |32
-|Merchant’s invoice identifier, optional for _capture-authorization_ request.
+|Merchant’s invoice identifier, optional for capture-authorization request.
 
 5+a|
 *payment.payment-methods.payment-method*
 
-|[[GuaranteedInstallment_Fields_PaymentMethods]]_name_ (attribute of ``payment-method``)
+|[[GuaranteedInstallment_Fields_PaymentMethods]]name (attribute of payment-method)
 |M
 |String
 |15
@@ -262,38 +237,38 @@ If empty or sent with a wrong value, ``de`` is used by default.
 5+a|
 *payment.account-holder.*
 
-|[[GuaranteedInstallment_Fields_AccountHolder]]_first-name_
+|[[GuaranteedInstallment_Fields_AccountHolder]]first-name
 |M
 |String
 |32 
 |Account holder's first name.
 
-|_last-name_
+|last-name
 |M
 |String
 |32 
 |Account holder's last name.
 
-|_email_
+|email
 |M
 |String
 |64 
 |Account holder's email address.
 
-|_phone_
+|phone
 |M
 |String
 |32 
 |Account holder's phone number.
 
-|_date-of-birth_
+|date-of-birth
 |M
 |String
 |10 
 |Account holder's date of birth. Format (according to ISO 8601): YYYY-MM-DD +
 This format cannot be customized.
 
-|_gender_
+|gender
 |O
 |Enumeration
 |1 
@@ -302,37 +277,37 @@ This format cannot be customized.
 5+a|
 *payment.account-holder.address.*
 
-|[[GuaranteedInstallment_Fields_AccountHolderAddress]]_street1_
+|[[GuaranteedInstallment_Fields_AccountHolderAddress]]street1
 |M
 |String
 |128 
 |The first line of the street address of the account holder. Must include house number.
 
-|_street2_
+|street2
 |O
 |String
 |128 
 |The second line of the street address of the account holder.
 
-|_city_
+|city
 |M
 |String
 |32 
 |The city of the address of the account holder.
 
-|_state_
+|state
 |O
 |String
 |32 
 |The state or province of the address of the account holder.
 
-|_country_
+|country
 |M
 |String 
 |2
 |The country id of the address of the account holder. The two-letter country code follows ISO 3166-1 alpha-2.
 
-|_postal-code_
+|postal-code
 |M
 |String
 |16 
@@ -343,21 +318,21 @@ This format cannot be customized.
 
 |Consumer's bank account details.
 
-|[[GuaranteedInstallment_Fields_BankAccount]]_bank-name_
+|[[GuaranteedInstallment_Fields_BankAccount]]bank-name
 |M
 |String
 |100 
 |The name of the consumer’s bank.
 
-|_iban_
+|iban
 |M/O
 |String
 |34 
 |The international bank account number (IBAN) required in a bank transfer. It is an international standard for identifying bank accounts across national borders. The current standard is ISO 13616:2007, which indicates SWIFT as the formal registrar. +
 Allowed characters: [a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}. +
-Mandatory if ``account-number`` is not used
+Mandatory if ``account-number`` is not used.
 
-|_bic_
+|bic
 |M/O
 |String
 |15 
@@ -365,48 +340,48 @@ Mandatory if ``account-number`` is not used
 Allowed characters: ([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3}). +
 Mandatory if ``iban`` is used
 
-|_account-number_
+|account-number
 |M/O
 |String
 |34 
 |The number designating a bank account used nationally. +
-Mandatory if ``iban`` is not used
+Mandatory if ``iban`` is not used.
 
-|_bank-code_
+|bank-code
 |M/O
 |String
 |15 
 |The national bank sorting code for national bank transfers. +
-Mandatory if ``account-number`` is used
+Mandatory if ``account-number`` is used.
 
 5+a|
 *payment.order-items.order-item.*
 
-|[[GuaranteedInstallment_Fields_OrderItems]]_name_
+|[[GuaranteedInstallment_Fields_OrderItems]]name
 |M
 |String
 |256
 |Name of the item in the basket.
 
-|_article-number_
+|article-number
 |M
 |String
 |256
 |EAN or other article identifier for merchant.
 
-|_amount_
+|amount
 |M
 |Decimal
 |18.3
-|Item's price per unit.
+|Item price per unit.
 
-|_tax-rate_
+|tax-rate
 |M
 |Decimal
 |18.3
-|Item's tax rate per unit.
+|Item tax rate per unit.
 
-|_quantity_
+|quantity
 |M
 |Number
 |5
@@ -418,60 +393,60 @@ Mandatory if ``account-number`` is used
 |Shipping fields have to match the billing address (specified as <<GuaranteedInstallment_Fields_AccountHolder, account-holder>>).
 
 |
-[[GuaranteedInstallment_Fields_Shipping]]_first-name_
+[[GuaranteedInstallment_Fields_Shipping]]first-name
 |O
 |String
 |32 
-|The first name of the shipping address.
+|The first name of the account holder.
 
-|_last-name_
+|last-name
 |O
 |String
 |32 
-|The last name of the shipping address.
+|The last name of the account holder.
 
-|_phone_
+|phone
 |O
 |String
 |32 
-|The phone number of the shipping address.
+|The phone number of the account holder.
 
 4+a|
 *payment.shipping.address.*
 
-|[[GuaranteedInstallment_Fields_ShippingAaddress]]_shipping.address_ fields have to match the billing address (specified as <<GuaranteedInstallment_Fields_AccountHolderAddress, account-holder.address>>).
+|[[GuaranteedInstallment_Fields_ShippingAaddress]]shipping.address fields have to match the billing address (specified as <<GuaranteedInstallment_Fields_AccountHolderAddress, account-holder.address>>).
 
-|_street1_
+|street1
 |O
 |String
 |128 
 |The first line of the shipping address.
 
-|_street2_
+|street2
 |O
 |String
 |128 
 |The second line of the shipping address.
 
-|_city_
+|city
 |O
 |String
 |32 
 |The city of the shipping address.
 
-|_state_
+|state
 |O
 |String
 |32 
 |The state or province of the shipping address.
 
-|_country_
+|country
 |O
 |String
 |2
-|The country id of the address of the shipping address. The two-letter country code follows ISO 3166-1 alpha-2.
+|The country ID of the address of the shipping address. The two-letter country code follows ISO 3166-1 alpha-2.
 
-|_postal-code_
+|postal-code
 |O
 |String
 |16 
@@ -480,48 +455,48 @@ Mandatory if ``account-number`` is used
 5+a|
 *payment.device.*
 
-|[[GuaranteedInstallment_Fields_Device]]_fingerprint_
+|[[GuaranteedInstallment_Fields_Device]]fingerprint
 |M/O
 |String
 |4096 
 |Device fingerprinting token that was used in merchant's online shop to track this transaction. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off. +
-It is mandatory for _authorization_.
+It is mandatory for authorization.
 
 a|
 *payment.custom-fields.*
-4+| All custom fields are needed for mapping the authorization. Therefore they all are mandatory for _authorization_.
+4+| All custom fields are needed for mapping the authorization. Therefore they all are mandatory for authorization.
 
-|[[GuaranteedInstallment_Fields_Custom]] _custom-field@name="total-amount"_
+|[[GuaranteedInstallment_Fields_Custom]] custom-field@name="total-amount"
 |M/O
 |Decimal
 |18,3
 |custom-field@value=installment-calculator-response.installments.installment.details.total-amount
 
-|_custom-field@name="interest-rate"_
+|custom-field@name="interest-rate"
 |M/O
 |Decimal
 |18,3
 |custom-field@value=installment-calculator-response.installments.installment.details.interest-rate
 
-|_custom-field@name="number-of-rates"_
+|custom-field@name="number-of-rates"
 |M/O
 |Number 
 |5
 |custom-field@value=installment-calculator-response.installments.installment.details.number-of-rates
 
-|_custom-field@name="rate"_
+|custom-field@name="rate"
 |M/O
 |Number
 |5
 |custom-field@value=installment-calculator-response.installments.installment.details.rate
 
-|_custom-field@name="last-rate"_
+|custom-field@name="last-rate"
 |M/O
 |Number
 |5
 |custom-field@value=installment-calculator-response.installments.installment.details.last-rate
 
-|_custom-field@name="payment-firstday"_
+|custom-field@name="payment-firstday"
 |M/O
 |Number
 |5
@@ -570,8 +545,8 @@ h| URL (Endpoint)             | `\https://{test-instance-hostname}/engine/rest/u
 
 5+a|
 *installment-configuration-request.*
-|payment-method|M|String|15|The name of the Payment Method name is ``ratepay-install``.
-|merchant-account-id|M|String|36|Merchant account ID
+|payment-method|M|String|15|The name of the payment method is ``ratepay-install``.
+|merchant-account-id|M|String|36|Merchant account ID.
 
 |===
 
@@ -583,22 +558,22 @@ h| URL (Endpoint)             | `\https://{test-instance-hostname}/engine/rest/u
 
 3+a|
 
-NOTE: We show this table without _Size_ values as you receive the response directly from _Guaranteed_ and we cannot provide this information.
+NOTE: We show this table without the _Size_ values as you receive the response directly from _{payment-provider-name} Payment in Installments_ and we cannot provide this information.
 
 a|*installment-configuration-response.statuses.status*
 2+|These fields describe the structure of the response statuses.
-|code (attribute of ``status``)|String|The status code of the response (Example: ``200.0000``).
-|description (attribute of ``status``)|String|The description to the status code of the response (Example: ``Successful Response``).
-|severity (attribute of ``status``)|String|This field gives information if a status is an error or an information. Values can be +
+|code (attribute of status)|String|The status code of the response (Example: ``200.0000``).
+|description (attribute of status)|String|The description of the response status code (Example: ``Successful Response``).
+|severity (attribute of status)|String|This field indicates if a status is an error or information. Values can be: +
 ``information`` +
 ``warning``.
 
 a|*installment-configuration-response.configuration.*
-2+| With these fields you receive the configuration available with _Guaranteed_. With this information you can provide the installment options you can present to your consumers.
-|interest-rate-default|Decimal|The default interest-rate will be used if submitted interest-rate from the calculation request deviates from the range of your supported rates. (Example: ``13.7``).
-|interest-rate-min|Decimal|Minimum interest-rate (Example: ``5.00``).
-|interest-rate-max|Decimal|Maximum interest-rate (Example: ``10.50``).
-|interest-rate-merchant2bank|Decimal|The interest-rate defined contractually between the merchant and the factoring entity (Example: ``15.00``).
+2+|These fields send the configuration available with _{payment-provider-name} Payment in Installments_. They contain the installment options available to your consumers.
+|interest-rate-default|Decimal|The default interest rate is used if the interest rate in the calculation request deviates from the range of your supported rates. (Example: ``13.7``).
+|interest-rate-min|Decimal|Minimum interest rate (Example: ``5.00``).
+|interest-rate-max|Decimal|Maximum interest rate (Example: ``10.50``).
+|interest-rate-merchant2bank|Decimal|The interest rate defined contractually between the merchant and the factoring entity (Example: ``15.00``).
 |month-number-min|Number|Minimum duration of installment plan (Example: ``2``).
 |month-number-max|Number|Maximum duration of installment plan (Example: ``2``).
 |month-longrun|Number|Minimum duration of a long run installment plan (Example: ``24``).
@@ -607,7 +582,7 @@ a|*installment-configuration-response.configuration.*
 |valid-payment-firstdays|String|Comma separated list of calendar days which are allowed as starting days of the installment plan (Example: ``1,15,28``).
 |payment-firstday|Number|Default calendar day of the first payment (Example: ``28``).
 |payment-amount|Decimal|Minimum payment amount (Example: ``200.55``).
-|payment-lastrate|Decimal|Minimum amount of last payment rate. Otherwise this amount will be added to the last but one rate (Example: ``89.24``).
+|payment-lastrate|Decimal|Minimum amount of last payment rate. Otherwise this amount is added to the last but one rate (Example: ``89.24``).
 |rate-min-normal|Decimal|Minimum rate of a normal installment plan (Example: ``5.00``).
 |rate-min-longrun|Decimal|Minimum rate of a long running installment plan (Example: ``4.00``).
 |service-charge|Decimal|Additional costs of financing (Example: ``1.95``).
@@ -624,14 +599,14 @@ a|*installment-configuration-response.configuration.*
 
 The installment calculator service provides the list of available installment plans.
 
-_{payment-provider-name} Payment in Installments_ supports two different installment plans:
+_{payment-provider-name} Payment in Installments_ supports two types of installment plan:
 
-* Calculation by rate
-* Calculation by time
+* calculation by rate
+* calculation by time.
 
 //-
 
-You show this list to the consumer and the consumer decides which plan suits best to pay the purchased amount.
+The consumer can choose the type of plan best suited to the payment of the purchased amount.
 
 [#GuaranteedInstallment_Features_InstallCalc_Communication]
 ==== Communication Formats
@@ -668,12 +643,12 @@ h| URL (Endpoint)             | `\https://{test-instance-hostname}/engine/rest/u
 
 5+a|
 *installment-calculator-request.*
-|payment-method|M|String|15|The name of the Payment Method name is ``ratepay-install``.
-|merchant-account-id|M|String|36|Merchant account ID. Must follow a pattern like: ``815c32ab-486d-4e4c-baf8-f412e2e4e9b8``.
-|amount|M|Decimal| 18.3 |Full amount of the purchase. Must be in the format of _Money_ (Example: ``100.00``)
-|currency (attribute of ``amount``)|M|String|3|The currency of the purchase. _{payment-provider-name} Payment in Installments_ requires EUR.
-|rate|M/O|Decimal| 3.2 |Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: ``25.00``). It is *mandatory* for  for calculation by rate. It must not be used when calculating the installment plan by time.
-|currency (attribute of ``rate``)|M|String|3|The currency of  the rate. _{payment-provider-name} Payment in Installments_ requires EUR.
+|payment-method|M|String|15|The name of the payment method is ``ratepay-install``.
+|merchant-account-id|M|String|36|Merchant account ID. It must have the following format: ``815c32ab-486d-4e4c-baf8-f412e2e4e9b8``.
+|amount|M|Decimal| 18.3 |Full amount of the purchase. It must have the format of _Money_ (Example: ``100.00``)
+|currency (attribute of amount)|M|String|3|The currency of the purchase. _{payment-provider-name} Payment in Installments_ requires EUR.
+|rate|M/O|Decimal| 3.2 |Monthly rate which the consumer wants to pay. It must have the format of _Money_ (Example: ``25.00``). It is *mandatory* for calculation by rate. It must not be used when calculating the installment plan by time.
+|currency (attribute of rate)|M|String|3|The currency of the rate. _{payment-provider-name} Payment in Installments_ requires EUR.
 |months|M/O|Number| 3 |Number of months to cover the duration of the installment plan. It is *mandatory* for calculation by time. It must not be used when calculating the installment plan by rate.
 |===
 
@@ -690,11 +665,11 @@ NOTE: We show this table without _Size_ values as you receive the response direc
 
 3+a|
 *installment-calculator-response.*
-|amount|Decimal |Full amount of the purchase. Must be in the format of _Money_ (Example: ``100.00``)
-|currency (attribute of ``amount``)|String|The currency of the purchase. _{payment-provider-name} Payment in Installments_ requires EUR.
-|rate|Decimal|Monthly rate which the consumer wants to pay. Must be in the format of _Money_ (Example: ``25.00``).
-|currency (attribute of ``rate``)|String|The currency of  the rate. _{payment-provider-name} Payment in Installments_ requires EUR.
-|state|String| The state of the response. Values can be +
+|amount|Decimal |Full amount of the purchase. It must have the format of _Money_ (Example: ``100.00``)
+|currency (attribute of amount)|String|The currency of the purchase. _{payment-provider-name} Payment in Installments_ requires EUR.
+|rate|Decimal|Monthly rate which the consumer wants to pay. It must be in the format of _Money_ (Example: ``25.00``).
+|currency (attribute of rate)|String|The currency of  the rate. _{payment-provider-name} Payment in Installments_ requires EUR.
+|state|String| The state of the response. Values can be: +
 ``success`` +
 ``failed``.
 
@@ -703,9 +678,9 @@ a|
 
 2+|These fields describe the structure of the response statuses.
 
-|code (attribute of ``status``)|String|The status code of the response (Example: ``200.0000``)
-|description (attribute of ``status``)|String |The description to the status code of the response (Example: ``Successful Response``)
-|severity (attribute of ``status``)|String|This field informs about the status of the transaction. Values can be +
+|code (attribute of status)|String|The status code of the response (Example: ``200.0000``).
+|description (attribute of status)|String |The description of the response status code (Example: ``Successful Response``).
+|severity (attribute of status)|String|This field indicates the status of the transaction. Values can be: +
 ``information`` +
 ``error``.
 
@@ -714,7 +689,7 @@ a|
 
 2+|These fields describe the structure of the available installment plans which are sent in the response. It is a breakdown of fees and other information about the corresponding installment plan.
 
-|interest-rate|Decimal|Interest-rate which will be used to calculate the annual percentage rate (Example: ``12.9``).
+|interest-rate|Decimal|Interest rate used to calculate the annual percentage rate (Example: ``12.9``).
 |monthly-debit-interest|Decimal|Monthly interest rates based on ``interest-rate`` (Example: ``1.02``).
 |service-charge|Decimal|Additional costs of financing (Example: ``1.95``).
 |rate|Decimal|Monthly rate the consumer has to pay (Example: ``89.35``).
@@ -736,12 +711,12 @@ a|
 [#GuaranteedInstallment_Features_BasketItemsDetails]
 ==== Basket Items Details
 
-Basket items details must be <<GuaranteedInstallment_Fields_OrderItems, sent along with every request>>. Content of
+Basket items details must be <<GuaranteedInstallment_Fields_OrderItems, sent with every request>>. Content of
 the shopping basket depends on the location of the items.
 There can be 3 different locations:
 
-* the (distribution) storage of the merchant,
-* the delivery (items are „on the road"); and
+* the (distribution) storage of the merchant
+* the delivery (items are „on their way")
 * home of the consumer.
 
 //-
@@ -750,7 +725,7 @@ The shopping basket always contains the items that are being authorized
 (ordered), captured (delivered), voided (canceled), refunded (returned)
 or credited depending to the transaction type.
 
-The detailed items of the shopping basket will be stored as a part of
+The detailed items of the shopping basket are stored as a part of
 payment details on provider and they can be obtained from _{payment-gateway}_ later as part of transaction details.
 
 [#GuaranteedInstallment_Samples]
