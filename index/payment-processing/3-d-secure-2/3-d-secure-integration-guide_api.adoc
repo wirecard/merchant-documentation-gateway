@@ -1,0 +1,118 @@
+[#3DS2_IntegrationGuide_REST]
+== 3D Secure 2 for REST API
+
+[NOTE] 
+====
+The 
+ifdef::env-wirecard[]
+<<3DS2_worfklow, 
+endif::[]
+3D Secure 2 workflow
+ifdef::env-wirecard[]
+>> 
+endif::[]
+remains identical to the 3D Secure 1 workflow.
+====
+
+[#3DS2_IntegrationGuide_REST_integration]
+=== Step-by-Step Integration
+
+====
+_How to integrate 3D Secure 2 for REST API:_
+
+. Send a request with check-enrollment.
+. Redirect the consumer to the Access Control Server (ACS) URL.
+. Send a check-payer-response request for validation of the authentication result (optional).
+. Complete the payment transaction.
+
+//-
+====
+
+.1. Send a request with check-enrollment
+-placeholder include file-
+
+
+.2. Redirect the consumer to the ACS URL
+-placeholder-
+
+.3. Send a _check-payer-repsonse_ request for validation of the authentication result (optional)
+-placeholder-
+
+.4. Complete the payment transaction 
+Proceed with the payment ransaction with the relevant transaction-type (e.g. authorization, purchase, authorization-only).
+
+//-
+
+You must either reference the previous-check-enrollment or the check-payer-response in the next step of the payment process. This depends on whether the check-payer-response has be executed or not.
+
+--
+.. Following check-enrollment: Use the ``transaction-id`` from the check-enrollment response in the ``parent-transaction-id`` field.
+
+.. Following (optional) check-payer-response: Use the ``transaction-id`` returned by the check-payer-response in the ``parent-transaction-id`` field.
+
+//-
+--
+
+If the check-payer-response was not executed, instead use the PARes received via TermURL as part of the response to the ACS HTTP POST request.
+
+|===
+For more detailed payment flows of typical business scenarios and use cases, head to our <<CreditCard_3DS2_UseCases, 3D Secure 2 Use Cases section>>. 
+|===
+
+[#3DS2_IntegrationGuide_REST_example]
+=== Payment-Processing Example
+
+We provide a postman collection containing ready-made XML samples for each step of a simplified one-time payment transaction.
+
+The 3D Secure 2 payment-processing example is *designed for the testing environment* and *does not use real information.*
+
+Download the link:resources/3-d-secure-2/3-d-secure-2_postman-collection/01.2.b.3DS-2Use-Cases-One-Time-Purchase-Simplified.postman_collection.json[3DS2 postman collection for a simplified one-time payment]. 
+
+NOTE: For the complete 3D Secure 2 postman collection, head to our <<3DS2_Testing, 3D Secure 2 Testing page>>. The 3D Secure 2 postman collection contains samples for all typical business scenarios and use cases documented in our <<CreditCard_3DS2_UseCases, 3D Secure 2 Use Cases section>>. 
+
+
+[#3DS2_IntegrationGuide_REST_PostmanCollection]
+==== Run the Samples
+
+Use https://www.postman.com/postman[Postman] to run the collection.
+
+For more details on 3D Secure fields for REST API, head to our <<3DS2_Fields, 3D Secure 2 Fields page>>. 
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
+endif::[]
+
+
+.Test Credentials
+[%autowidth, cols="h,", stripes="none"]
+|===
+| URL (Endpoint)           
+| ``\{rest-api-test-endpoint}``
+
+| Merchant Account ID (MAID) 
+| 33f6d473-3036-4ca5-acb5-8c64dac862d1
+
+| Username                   
+| 70000-APILUHN-CARD
+
+| Password                   
+| 8mhwavKVb91T
+
+2+h|Test Card
+|Card number 
+|5413330300201218
+
+|Expiration date 
+|01/23
+
+|CVV 
+|218
+|===
+
+NOTE: The test credentials are already included in the postman collection and are provided reference only. You do not need to enter them manually.
+
+.Webhook
+ddd
+//-
+
