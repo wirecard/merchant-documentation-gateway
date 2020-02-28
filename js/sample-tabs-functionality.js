@@ -22,17 +22,17 @@ function createSampleTabs() {
         $(this).addClass('tabs-enabled');
         const headlineElement = $(this);
         var xmlTabWrap = $('<div class="xmlTabWrap">');
-        var xmlTabElements = $(this).siblings('.tab-xml').nextAll('div:lt(4)');
+        var xmlTabElements = $(this).siblings('.tab-xml').nextUntil('h2,h3,h4,h5,h6,h7,h8');
         xmlTabWrap.append(xmlTabElements);
         $(this).after(xmlTabWrap);
 
         var jsonTabWrap = $('<div class="jsonTabWrap">');
-        var jsonTabElements = $(this).siblings('.tab-json').nextAll('div:lt(4)');
+        var jsonTabElements = $(this).siblings('.tab-json').nextUntil('h2,h3,h4,h5,h6,h7,h8');
         jsonTabWrap.append(jsonTabElements);
         $(this).after(jsonTabWrap);
-        
+ 
         var nvpTabWrap = $('<div class="nvpTabWrap">');
-        var nvpTabElements = $(this).siblings('.tab-nvp').nextAll('div:lt(6)');
+        var nvpTabElements = $(this).siblings('.tab-nvp').nextUntil('h2,h3,h4,h5,h6,h7,h8');
         nvpTabWrap.append(nvpTabElements);
         $(this).after(nvpTabWrap);
 
