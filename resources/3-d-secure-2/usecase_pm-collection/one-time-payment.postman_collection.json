@@ -1,13 +1,13 @@
 {
 	"info": {
-		"_postman_id": "b16e00fe-a0fc-405b-b6e0-eb5838bf1864",
-		"name": "10. 3DS-2 Use-Cases: Third-Party MPI",
-		"description": "If a merchant is using a 3rd Party MPI, payments need to be submitted with the relevant 3D Secure artifacts obtained from the 3rd Party MPI. \r\n\r\nThe flow is exactly the same as defined for authorization or purchase request. Only that the 3DS flow happens in a 3rd Party Gateway and the relevant 3D artifacts should be explicitelty included by the Merchant in addition, conditionally on their availability.\r\n\r\n\r\na. Immediately on a 3rd Party MPI\r\n\ti. Authentication (full amount)\r\nb. Immediately on the WD Gateway\r\n\ti. Authorization (full amount)\r\nc. When ready to ship\r\n\ti. Capture (full amount)\r\n",
+		"_postman_id": "14e175b5-22fc-43f9-96eb-1d43c701b257",
+		"name": "one-time-payment",
+		"description": "One-time purchase is one of the most common scenarios: a consumer places an order for a product or service. The merchant fulfills the order in a single shipment and before expiration of the authorization.\r\n\r\na. Immediately\r\n\ti. Authentication (full amount)\r\n\tii. Authorization (full amount)\r\nb. When ready to ship\r\n\ti. Capture (full amount)\r\n",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "10.a.i.1 Check Enrollment",
+			"name": "1.2.a.i.1 Check Enrollment",
 			"event": [
 				{
 					"listen": "test",
@@ -71,7 +71,7 @@
 							"  };",
 							"})();",
 							"",
-							"pm.globals.set(\"$descriptor\", \"3DS-2 Use-Cases: Third-Party MPI\");",
+							"pm.globals.set(\"$descriptor\", \"3DS-2 Use-Cases: One-Time Purchase - Simplified\");",
 							"pm.globals.set(\"$handler\", guid());",
 							"console.info(\"UUID: \"+pm.globals.get(\"$handler\"));",
 							"",
@@ -238,7 +238,7 @@
 			]
 		},
 		{
-			"name": "10.a.i.2 Webhook",
+			"name": "1.2.a.i.2 Webhook",
 			"event": [
 				{
 					"listen": "test",
@@ -414,7 +414,7 @@
 			]
 		},
 		{
-			"name": "10.a.i.3 Check-Payer-Response",
+			"name": "1.2.a.i.3 Check-Payer-Response",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -443,17 +443,10 @@
 							"",
 							"console.info(\"CheckPayerResponse GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());",
 							"console.info(\"Authenticated: \"+xml(\"payment\").find(\"three-d\").find(\"cardholder-authentication-status\").text());",
-							"",
 							"console.info(\"3DSV: \"+xml(\"payment\").find(\"three-d\").find(\"version\").text());",
 							"console.info(\"ECI: \"+xml(\"payment\").find(\"three-d\").find(\"eci\").text());",
 							"console.info(\"CAVV: \"+xml(\"payment\").find(\"three-d\").find(\"cardholder-authentication-value\").text());",
 							"console.info(\"DSTranID: \"+xml(\"payment\").find(\"three-d\").find(\"ds-transaction-id\").text());",
-							"",
-							"pm.globals.set(\"$p_auth_3DSV\", xml(\"payment\").find(\"three-d\").find(\"version\").text());",
-							"pm.globals.set(\"$p_auth_ECI\", xml(\"payment\").find(\"three-d\").find(\"eci\").text());",
-							"pm.globals.set(\"$p_auth_CAVV\", xml(\"payment\").find(\"three-d\").find(\"cardholder-authentication-value\").text());",
-							"pm.globals.set(\"$p_auth_DSTranID\", xml(\"payment\").find(\"three-d\").find(\"ds-transaction-id\").text());",
-							"",
 							"",
 							"var $status=xml(\"payment\").find(\"transaction-state\").text();",
 							"",
@@ -615,7 +608,7 @@
 			]
 		},
 		{
-			"name": "10.b.i Authorization",
+			"name": "1.2.a.ii Authorization",
 			"event": [
 				{
 					"listen": "test",
@@ -692,7 +685,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>authorization</transaction-type>\n    <requested-amount currency=\"EUR\">10.00</requested-amount>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n    <account-holder>\n        <first-name>Manon</first-name>\n        <last-name>Mertens</last-name>\n        <email>m.mertens@example.com</email>\n        <phone>+3228089336</phone>\n        <mobile-phone>+32496000000</mobile-phone>\n        <address>\n            <street1>Rue de la Loi 1</street1>\n            <city>Brussels</city>\n            <state>BRU</state>\n            <country>BE</country>\n            <postal-code>1000</postal-code>\n        </address>\n    </account-holder>\n    <card>\n        <account-number>5413330300201192</account-number>\n        <expiration-month>01</expiration-month>\n        <expiration-year>2023</expiration-year>\n        <card-security-code>192</card-security-code>\n        <card-type>mastercard</card-type>\n        <account-type>02</account-type>\n    </card>\n    <payment-methods>\n        <payment-method name=\"creditcard\"/>\n    </payment-methods>\n    \n    <three-d>\n        <version>{{$p_auth_3DSV}}</version>\n        <eci>{{$p_auth_ECI}}</eci>\n        <ds-transaction-id>{{$p_auth_DSTranID}}</ds-transaction-id>\n        <cardholder-authentication-value>{{$p_auth_CAVV}}</cardholder-authentication-value>\n    </three-d>\n    \n</payment>",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>authorization</transaction-type>\n    <requested-amount currency=\"EUR\">10.00</requested-amount>\n    <parent-transaction-id>{{$p_guwid_check}}</parent-transaction-id>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n</payment>",
 					"options": {
 						"raw": {
 							"language": "xml"
@@ -811,7 +804,7 @@
 			]
 		},
 		{
-			"name": "10.c.i Capture",
+			"name": "1.2.b Capture",
 			"event": [
 				{
 					"listen": "test",
