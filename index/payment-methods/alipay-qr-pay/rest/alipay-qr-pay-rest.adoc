@@ -41,13 +41,20 @@ For <<Glossary_TransactionType, transaction type>> details, which are not given 
 |===
 |Transaction Type |Link to the Sample
 
-|get-url |_debit/get-url_ sample (REST API)
-|check-signature |
-|debit |_debit/get-url_ sample (REST API)  +
-|refund-debit |_refund-debit_ sample
-|void-debit | Voids the validity of a QR code. After a _void-debit_, the consumer can no longer pay with the QR code that was generated with the preceding _debit_ request. If a payment has already occurred, it will be refunded. +
+|get-url
+|<<API_AlipayQRPay_Samples_geturl, _debit/get-url_ sample (REST API)>>
 
-_void-debit_ sample
+|check-signature
+|
+
+|debit
+|<<API_AlipayQRPay_Samples_geturl, _debit/get-url_ sample (REST API)>>
+
+|refund-debit | <<API_AlipayQRPay_Samples_refunddebit, _refund-debit_ sample>>
+
+|void-debit
+|Voids the validity of a QR code. After a _void-debit_, the consumer can no longer pay with the QR code that was generated with the preceding _debit_ request. If a payment has already occurred, it will be refunded. +
+<<API_AlipayQRPay_Samples_VoidDebit, _void-debit_ sample>>
 |===
 
 [#AlipayQRPay_TestCredentials]
@@ -90,56 +97,91 @@ The fields used for Alipay QR Pay requests, responses and notifications are the 
 
 The following elements are mandatory (M) or optional (O) for a request/response/notification. If the respective cell is empty, the field is disregarded or not sent.
 
+==== ``custom-fields.custom-field``
 [%autowidth, stripes=none]
 |===
-h|Field h|Request h|Response h|Notification h|Data Type h|Siza h|Description
-|/payment/custom-fields/custom-field@field-name[alipay_buyer_login_id] |N/A |N/A |M |String |128 |The consumer's Alipay ID, which can be an email address or phone number. Returned from Alipay. Can be used on receipt.
+|Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Size |Description
 
+|@field-name[alipay_buyer_login_id]
+|Notification only
+|128
+|The consumer's Alipay ID, which can be an email address or phone number. Returned from Alipay. Can be used on receipt. +
 e.g. \john.doe@alitest.com
 
-|/payment/custom-fields/custom-field@field-name[alipay_pay_time] |N/A |N/A |M |Number |14 |The time when the payment is completed. Can be used on receipt.
-
+|@field-name[alipay_pay_time]
+|Notification only
+|14
+|The time when the payment is completed. Can be used on receipt. +
 e.g. 20200220225336
 
-|/payment/custom-fields/custom-field@field-name[alipay_trans_id] |N/A |N/A |M |Number |28 |Alipay Transaction ID as returned from Alipay. Can be used on receipt.
-
+|@field-name[alipay_trans_id]
+|Notification only
+|28
+|Alipay Transaction ID as returned from Alipay. Can be used on receipt. +
 e.g. 2020022022001447411000303594
 
-|/payment/custom-fields/custom-field@field-name[big_pic_url] |N/A |M |M |Number |256 |The URL to the large QR code format
-
+|@field-name[big_pic_url]
+|Notification and Response
+|256
+|The URL to the large QR code format +
 e.g. \http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=L
 
-|/payment/wallet/account-id |N/A |N/A |M |Number |16 |The consumer's unique Alipay User ID returned from Alipay. Can be used on receipt.
-
-|/payment/custom-fields/custom-field@field-name[exchange_rate] |N/A |N/A |M |Number |11.8 |Returned from Alipay. Can be used on receipt.
-
+|@field-name[exchange_rate]
+|Notification only
+|11.8
+|Returned from Alipay. Can be used on receipt. +
 e.g. 6.64640000
 
-|/payment/custom-fields/custom-field@field-name[partner_trans_id] |N/A |N/A |M |String |64 |Returned from Alipay. Can be used on receipt.
-
+|@field-name[partner_trans_id]
+|Notification only
+|64
+|Returned from Alipay. Can be used on receipt. +
 e.g. ef0c0782-c224-423d-aedd-c0e2557dab6b
 
-|/payment/custom-fields/custom-field@field-name[pic_url] |N/A |M |M |String |256 |The URL to the medium QR code format
-
+|@field-name[pic_url]
+|Notification and Response
+|256
+|The URL to the medium QR code format +
 e.g. \http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=M
 
-|/payment/paymentmethods/paymentmethod@url |N/A |M |O |String |256 |The URL to the default QR code format
-
-e.g. \https://qr.alipay.com/bax023098uz6jvkieyrx00b6
-
-|/payment/custom-fields/custom-field@field-name[small_pic_url] |N/A |M |M |String |256 |URL to small QR code
-
+|@field-name[small_pic_url]
+|Notification and Response
+|256
+|URL to small QR code +
 e.g. \http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=S
 
-|/payment/custom-fields/custom-field@field-name[trans_amount_cny] |N/A |N/A |M |Decimal |11.2 |The total transaction amount in CNY. Returned from Alipay. Can be used on receipt.
-
+|@field-name[trans_amount_cny]
+|Notification only
+|11.2
+|The total transaction amount in CNY. Returned from Alipay. Can be used on receipt. +
 e.g. 192.81
 
-|/payment/custom-fields/custom-field@field-name[voucher_type] |N/A	|M |M |String |10 |The voucher type returned from Alipay. Can be used on receipt.
-
+|@field-name[voucher_type]
+|Notification and Response
+|10
+|The voucher type returned from Alipay. Can be used on receipt. +
 e.g. qrcode
-
 |===
+
+
+[%autowidth, stripes=none]
+|===
+|Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Size |Description
+
+|/payment/wallet/account-id
+|Notification
+|16
+|The consumer's unique Alipay User ID returned from Alipay. Can be used on receipt.
+
+|/payment/paymentmethods/paymentmethod@url
+|Notification and Response
+|256
+|The URL to the default QR code format +
+e.g. \https://qr.alipay.com/bax023098uz6jvkieyrx00b6
+|===
+
+
+
 
 [#API_AlipayQRPay_DisplayOptions]
 ==== QR Code Display Options
