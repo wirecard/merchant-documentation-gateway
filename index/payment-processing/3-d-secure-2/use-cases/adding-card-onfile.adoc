@@ -1,0 +1,161 @@
+ifndef::env-nova[] 
+[#API_CC_3DS2_UseCases_StoringCCDetails]
+=== Storing Credit Card Details
+
+For card-on-file transactions, merchants store the consumer's card data (as a token) for future transactions. Thus, when the consumer returns to the merchant's shop, they do not need to re-enter their data.
+
+WARNING: Before storing credentials on file, consumers must be clearly informed how the credentials will be used in the future. Obtain the consumers' consent.
+
+[NOTE]
+====
+Authentication required: Yes +
+Card-on-file flagging required: Yes
+====
+endif::[]
+
+
+ifndef::env-nova[]
+[#API_CC_3DS2_UseCases_AddingCardOnFile_IndependentOfPurchase]
+==== Option 1: Storing Credit Card Details - Independent of Purchase
+
+// Include link to special use case
+
+The 3D Secure 2 fields can be found in the <<CC_3DS2_fields, 3D Secure 2 field table>>. 
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
+
+. *Check-enrollment* (zero amount) +
+Checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+CAUTION: For 3D Secure 2 consumer-initiated one-click checkout, include the field ``three-d/version`` and set its value to ``2.1``. +
+Set ``challenge-indicator`` to ``04``. +
+Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
++
+As a result of the check-enrollment, you receive the ``PAReq`` with the ACS URL.
++
+
+
+. *Redirect the consumer to the ACS URL* +
+Send an HTTPS POST request including the ACS URL, the ``PAReq``, ``TermUrl`` and ``MD``.
++
+--
+* ``TermUrl``: Web address of your server to receive the ``PARes``, i.e. the Payment Authentication response.
+* ``MD``: Input parameter reserved for specific merchant data. +
+It may be useful for retrieving transaction data from the database or recalling a transaction.
+--
++
+WARNING: The ``MD`` field is _mandatory._ Make sure to include it in the request. You do not need to set a value, however. +
+If you omit this field, an authentication error occurs and the payment process is aborted.
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data.
++
+After successful authentication, the SSL-encrypted and digitally signed ``PARes`` is posted to the ``TermURL`` via the consumer's browser.
++
+// Should we work with a list or numbering here to improve the readability of the individual steps?
+
+
+. *Check-payer-response* (optional) +
+Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option. The check-payer-response provides the authentication values needed later on in the authorization. +
+It must contain the following fields:
++
+--
+ * ``three-d/pares``: Digitally signed, base64-encoded authentication response message. It contains the ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the transaction ID returned in the check-enrollment response.
+--
++
+NOTE: It is not required to include the fields ``periodic-type`` and ``sequence-type`` in the check-payer-response. 
++
+
+
+. *Authorization-only* (zero amount) + 
+This final step in the transaction flow must reference either the previous check-enrollment, or the check-payer-response, depending on whether the check-payer-response has been executed or not.
++
+--
+.. Following check-enrollment: Include the ``transaction-id`` from the check-enrollment response in the ``parent-transaction-id`` field.
+.. Following (optional) check-payer-response: Include the ``transaction-id`` returned by the check-payer-response in the ``parent-transaction-id`` field.
+--
++
+If the check-payer-response was not executed, use instead the ``PARes`` received via ``TermURL`` as part of the response to the ACS HTTP POST request.
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
+endif::[]
+
+
+ifndef::env-nova[]
+[#API_CC_3DS2_UseCases_AddingCardOnFile_DuringPurchase]
+==== Option 2: Storing Credit Card Details - During Purchase
+
+The 3D Secure 2 fields can be found in the <<CC_3DS2_fields, 3D Secure 2 field table>>. 
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
+
+. *Check-enrollment* (payment amount) +
+Checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+CAUTION: For 3D Secure 2 consumer-initiated one-click checkout, include the field ``three-d/version`` and set its value to ``2.1``. +
+Set ``challenge-indicator`` to ``04``. +
+Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
++
+As a result of the check-enrollment, you receive the ``PAReq`` with the ACS URL.
++
+NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
++
+
+
+. *Redirect the consumer to the ACS URL* +
+Send an HTTPS POST request including the ACS URL, the ``PAReq``, ``TermUrl`` and ``MD``.
++
+--
+* ``TermUrl``: Web address of your server to receive the ``PARes``, i.e. the Payment Authentication response.
+* ``MD``: Input parameter reserved for specific merchant data. +
+It may be useful for retrieving transaction data from the database or recalling a transaction.
+--
++
+WARNING: The ``MD`` field is _mandatory._ Make sure to include it in the request. You do not need to set a value, however. +
+If you omit this field, an authentication error occurs and the payment process is aborted.
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data.
++
+After successful authentication, the SSL-encrypted and digitally signed ``PARes`` is posted to the ``TermURL`` via the consumer's browser.
++
+// Should we work with a list or numbering here to improve the readability of the individual steps?
+
+
+. *Check-payer-response* (optional) +
+Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option. The check-payer-response provides the authentication values needed later on in the authorization. +
+It must contain the following fields:
++
+--
+ * ``three-d/pares``: Digitally signed, base64-encoded authentication response message. It contains the ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the transaction ID returned in the check-enrollment response.
+--
++
+NOTE: It is not required to include the fields ``periodic-type`` and ``sequence-type`` in the check-payer-response. 
++
+
+
+. *Authorization* (payment amount) + 
+This step in the transaction flow must reference either the previous check-enrollment, or the check-payer-response, depending on whether the check-payer-response has been executed or not.
++
+--
+.. Following check-enrollment: Include the ``transaction-id`` from the check-enrollment response in the ``parent-transaction-id`` field.
+.. Following (optional) check-payer-response: Include the ``transaction-id`` returned by the check-payer-response in the ``parent-transaction-id`` field.
+--
++
+If the check-payer-response was not executed, use instead the ``PARes`` received via ``TermURL`` as part of the response to the ACS HTTP POST request.
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
++
+
+
+. *Capture-authorization* (payment amount) +
+This final step in the payment flow must reference the authorization response. +
+Use the ``transaction-id`` from the authorization response as the ``parent-transaction-id`` value.
++
+CAUTION: For subsequent transactions that use stored card details, set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
+
+
+'''
+endif::[]
