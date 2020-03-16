@@ -107,6 +107,7 @@ h|Password
 |b111111
 |===
 
+
 [#API_AlipayCrossBorder_Workflow]
 === Workflow
 
@@ -130,21 +131,142 @@ completion of the payment process to the consumer.
 [#API_AlipayCrossBorder_Fields]
 === Fields
 
-The fields used for _Alipay Cross-border_ requests, responses and
+Most of the fields used for _Alipay Cross-border_ requests, responses and
 notifications are the same as the REST API Fields. Please refer to:
 <<RestApi_Fields, REST API Fields>>.
 
+[#API_AlipayCrossBorder_Fields_BusinessTypes]
+==== Additional Business Type Fields
+
+Alipay requires information on the business type of a payment transaction. Therefore, the field ``business_type`` is mandatory in an Alipay Cross-border request. It specifies one of 5 business types:
+
+. <<API_AlipayCrossBorder_Fields_BusinessType1, Hotel industry>>
+. <<API_AlipayCrossBorder_Fields_BusinessType2, Airlines industry>>
+. <<API_AlipayCrossBorder_Fields_BusinessType3, Education institutions>>
+. <<API_AlipayCrossBorder_Fields_BusinessType4, Sales of goods>>
+. <<API_AlipayCrossBorder_Fields_BusinessType5, Others:>> Includes all business types that do not fall into the above 4 categories (e.g. mobile data service recharge, airport pick up service, ...) 
+
+//-
+
+[%autowidth,cols=",,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+m| business_type
+| M
+| Numeric
+| 
+| ``1`` = Hotel +
+``2`` = Airline  +
+``3`` = Education institutions +
+``4`` = Sales of goods +
+``5`` = Others +
+If more than one type is involved, separate type values with vertical bar (``\|``).
+
+5+| [[API_AlipayCrossBorder_Fields_BusinessType1]]
+ **Business Type 1 - Hotel Industry** +
+Each field is a child of ``hotel-industry`` and mandatory if ``business_type``&nbsp;=&nbsp;``1``. 
+
+m| hotel-name
+| M
+| String
+| 	
+| Hotel name. +
+Allowed characters: +
+``0`` - ``9`` +
+``a`` - ``z``, ``A`` - ``Z`` +
+``space`` +
+``,`` ``.`` ``<`` ``>`` ``(`` ``)`` ``[`` ``]`` ``/`` ``\`` ``-`` ``,`` ``.`` + 
+If more than one hotel name exists, separate values with vertical bar (``\|``).	
+
+m| check-in-time	
+| M
+| Date
+| 	
+| Check-in date. +
+Format: ``yyyy-MM-dd``. Timezone: GMT +8. 
+
+m| check-out-time	
+| M
+| Date
+| 	
+| Check-out date. +
+Format: ``yyyy-MM-dd``. Timezone: GMT +8.
+
+5+| [[API_AlipayCrossBorder_Fields_BusinessType2]] **Business Type 2 - Airlines** +
+Each field is a child of ``airline-industry.itinerary.segment`` and mandatory if ``business_type``&nbsp;=&nbsp;``2``. 
+
+m| flight-number
+| M
+| String
+| 
+| Flight number. +
+Mandatory if ``business_type`` is ``2``. +
+If flight transfer exists, separate flight numbers with vertical bar (``\|``).
+
+m| departure-date
+| M
+| String
+| 
+| Departure time. +
+Mandatory if ``business_type`` is ``2``. +
+Format: ``yyyy-MM-dd HH:mm``. Timezone: GMT +8. +
+If flight transfer exists, separate time values with vertical bar (``\|``).
+
+5+| [[API_AlipayCrossBorder_Fields_BusinessType3]] **Business Type 3 - Education Institutions** +
+m| admission_notice_url
+| M
+| String
+| 
+| URL of the admission notice for overseas study consulting. +
+[NOTE]
+{payment-provider-name} does not validate this field but rather forwards it to Alipay.
+
+5+| [[API_AlipayCrossBorder_Fields_BusinessType4]] **Business Type 4 - Sales of Goods** +
+Each field is a child of ``order-items.order-item`` and mandatory if ``business_type``&nbsp;=&nbsp;``4``. 
+
+m| name 
+| M 
+| String 
+| 256 
+| Name of the item in the shopping basket.
+
+m| quantity 
+| M
+| Numeric 
+|  
+| Total number of this item in the shopping basket.
+
+m| amount 
+| M 
+| Numeric 
+| 18.3 
+| Item’s price per unit.  +
+
+// A concatenation of order_item.name^order_item.quantity|order_item.name^order_item.quantity
+
+// goods_info	String
+
+
+// Calculation needed	 	Calculated from Sum of all Amounts in order_item.quantity	total_quantity	Number
+
+5+| [[API_AlipayCrossBorder_Fields_BusinessType5]] **Business Type 5 - Other** +
+The business type description of your business is stored in the MCC code of your merchant configutation. If ``business_type``&nbsp;=&nbsp;``5``, {payment-gateway} adds the MCC code description to your request. +
+For setup, <<ContactUs, contact merchant support>>.
+
+|===
+
+
 [#API_AlipayCrossBorder_Fields_autoDebit]
-==== _auto-debit_
+==== Additional _auto-debit_ Fields
 
 Only the _auto-debit_ fields listed below have different properties.
 
-The following elements are mandatory (M), optional (O) or conditional
-(C) for a request/response/notification.
+The following elements are mandatory (M) or optional (O) for a request/response/notification.
 
 [%autowidth,stripes=none]
 |===
-|Field | Cardinality | Datatype | Size | Description
+|Field | M/O | Datatype | Size | Description
 
 |periodic/periodic-type |M |xs:string |15 |Periodic type value can only
 be _recurring._
@@ -162,7 +284,7 @@ _first_, _recurring_ or _final_ depending on transaction type.
 The merchant can use the parameter _entry mode_ to route the process
 directly to the mobile endpoint.
 
-When using ReST API the provision of the mobile endpoint has to be
+When using REST API the provision of the mobile endpoint has to be
 indicated in the paramenter _entry mode_ with each request.
 
 When using HPP/EPP {payment-gateway} detects the device in use
