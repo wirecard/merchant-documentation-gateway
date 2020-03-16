@@ -136,38 +136,30 @@ notifications are the same as the REST API Fields. Please refer to:
 <<RestApi_Fields, REST API Fields>>.
 
 [#API_AlipayCrossBorder_Fields_BusinessTypes]
-==== Additional Business Type Fields
+==== Additional Fields for Business Types
 
-Alipay requires information on the business type of a payment transaction. Therefore, the field ``business_type`` is mandatory in an Alipay Cross-border request. It specifies one of 5 business types:
+Alipay requires information on the business type of a payment transaction. Therefore, {payment-gateway} adds the ``business_type`` as specified in your merchant configuration to each Alipay Cross-border request. +
+There are 5 business types:
 
 . <<API_AlipayCrossBorder_Fields_BusinessType1, Hotel industry>>
 . <<API_AlipayCrossBorder_Fields_BusinessType2, Airlines industry>>
 . <<API_AlipayCrossBorder_Fields_BusinessType3, Education institutions>>
-. <<API_AlipayCrossBorder_Fields_BusinessType4, Sales of goods>>
+. <<API_AlipayCrossBorder_Fields_BusinessType4, Sales of goods (retailers)>>
 . <<API_AlipayCrossBorder_Fields_BusinessType5, Others:>> Includes all business types that do not fall into the above 4 categories (e.g. mobile data service recharge, airport pick up service, ...) 
 
 //-
+
+Each business type has additional mandatory fields to be sent wich each request.
+
+[#API_AlipayCrossBorder_Fields_BusinessType1]
+.Business Type 1 - Hotel Industry
+Each field is a child of ``hotel-industry`` and mandatory if ``business_type``&nbsp;=&nbsp;``1``. 
 
 [%autowidth,cols=",,,,a"]
 |===
 | Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
-m| business_type
-| M
-| Numeric
-| 
-| ``1`` = Hotel +
-``2`` = Airline  +
-``3`` = Education institutions +
-``4`` = Sales of goods +
-``5`` = Others +
-If more than one type is involved, separate type values with vertical bar (``\|``).
-
-5+| [[API_AlipayCrossBorder_Fields_BusinessType1]]
- **Business Type 1 - Hotel Industry** +
-Each field is a child of ``hotel-industry`` and mandatory if ``business_type``&nbsp;=&nbsp;``1``. 
-
-m| hotel-name
+m| hotel&#8209;name
 | M
 | String
 | 	
@@ -179,24 +171,32 @@ Allowed characters: +
 ``,`` ``.`` ``<`` ``>`` ``(`` ``)`` ``[`` ``]`` ``/`` ``\`` ``-`` ``,`` ``.`` + 
 If more than one hotel name exists, separate values with vertical bar (``\|``).	
 
-m| check-in-time	
+m| check&#8209;in&#8209;time	
 | M
 | Date
 | 	
 | Check-in date. +
 Format: ``yyyy-MM-dd``. Timezone: GMT +8. 
 
-m| check-out-time	
+m| check&#8209;out&#8209;time	
 | M
 | Date
 | 	
 | Check-out date. +
 Format: ``yyyy-MM-dd``. Timezone: GMT +8.
 
-5+| [[API_AlipayCrossBorder_Fields_BusinessType2]] **Business Type 2 - Airlines** +
+|===
+
+
+[#API_AlipayCrossBorder_Fields_BusinessType2]
+.Business Type 2 - Airlines +
 Each field is a child of ``airline-industry.itinerary.segment`` and mandatory if ``business_type``&nbsp;=&nbsp;``2``. 
 
-m| flight-number
+[%autowidth,cols=",,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+m| flight&#8209;number
 | M
 | String
 | 
@@ -204,7 +204,7 @@ m| flight-number
 Mandatory if ``business_type`` is ``2``. +
 If flight transfer exists, separate flight numbers with vertical bar (``\|``).
 
-m| departure-date
+m| departure&#8209;date
 | M
 | String
 | 
@@ -213,17 +213,33 @@ Mandatory if ``business_type`` is ``2``. +
 Format: ``yyyy-MM-dd HH:mm``. Timezone: GMT +8. +
 If flight transfer exists, separate time values with vertical bar (``\|``).
 
-5+| [[API_AlipayCrossBorder_Fields_BusinessType3]] **Business Type 3 - Education Institutions** +
+|===
+
+[#API_AlipayCrossBorder_Fields_BusinessType3]
+.Business Type 3 - Education Institutions
+
+[%autowidth,cols=",,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
 m| admission_notice_url
 | M
 | String
 | 
-| URL of the admission notice for overseas study consulting. +
-[NOTE]
-{payment-provider-name} does not validate this field but rather forwards it to Alipay.
+| URL of the admission notice for overseas study consulting.
 
-5+| [[API_AlipayCrossBorder_Fields_BusinessType4]] **Business Type 4 - Sales of Goods** +
+|===
+
+[NOTE]
+{payment-gateway} does not validate this field but rather forwards it to Alipay.
+
+[#API_AlipayCrossBorder_Fields_BusinessType4]
+.Business Type 4 - Sales of Goods
 Each field is a child of ``order-items.order-item`` and mandatory if ``business_type``&nbsp;=&nbsp;``4``. 
+
+[%autowidth,cols=",,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
 m| name 
 | M 
@@ -243,6 +259,8 @@ m| amount
 | 18.3 
 | Item’s price per unit.  +
 
+|===
+
 // A concatenation of order_item.name^order_item.quantity|order_item.name^order_item.quantity
 
 // goods_info	String
@@ -250,15 +268,14 @@ m| amount
 
 // Calculation needed	 	Calculated from Sum of all Amounts in order_item.quantity	total_quantity	Number
 
-5+| [[API_AlipayCrossBorder_Fields_BusinessType5]] **Business Type 5 - Other** +
+[API_AlipayCrossBorder_Fields_BusinessType5]
+.Business Type 5 - Other
 The business type description of your business is stored in the MCC code of your merchant configutation. If ``business_type``&nbsp;=&nbsp;``5``, {payment-gateway} adds the MCC code description to your request. +
-For setup, <<ContactUs, contact merchant support>>.
-
-|===
+For MCC code setup, <<ContactUs, contact merchant support>>.
 
 
 [#API_AlipayCrossBorder_Fields_autoDebit]
-==== Additional _auto-debit_ Fields
+==== Additional Fields for _auto-debit_
 
 Only the _auto-debit_ fields listed below have different properties.
 
