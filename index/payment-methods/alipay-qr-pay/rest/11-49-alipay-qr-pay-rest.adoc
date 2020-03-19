@@ -1,0 +1,298 @@
+[#API_AlipayQRPay]
+== REST API
+_Alipay QR Pay_ is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#API_AlipayQRPay_GeneralInformation_PaymentMode]
+=== Countries and Currencies
+
+[width=75%,cols="1h,3",stripes=none]
+|===
+|Countries |International
+|Currencies a|
+Alipay collects payment (RMB) from shoppers to buy foreign currency.
+
+At the moment, Alipay supports the settlement of 12 foreign currencies: USD, EUR, JPY, GBP, CAD, AUD, SGD, CHF, SEK, DKK, NOK, HKD.
+
+Consumers can pay in CNY,USD, EUR, JPY, GBP, CAD, AUD, SGD, CHF, SEK, DKK, NOK, NZD, THB, HKD, and major settlement currencies are included but not limited to USD, EUR, JPY, GBP, CAD, AUD, SGD, CHF, SEK, DKK, NOK, NZD, THB, HKD. For unsupported currencies, transactions can be made in USD.
+|===
+
+NOTE: One merchant account only supports one settlement currency.
+
+[#API_AlipayQRPay_GeneralInformation_Communication]
+=== Communication Formats
+This table illustrates how _Alipay QR Pay_ notifications are encoded and which formats and methods can be used for requests and responses.
+
+[width=75%,stripes=none]
+|===
+.2+h|Requests/Responses |Format |XML, NVP
+|Methods |POST, GET
+h|IPN Encodements 2+|Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_AlipayQRPay_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details, which are not given here look at
+<<AppendixB,  Transaction Types>>.
+
+[cols="25,85", stripes=none]
+|===
+|Transaction Type |Link to the Sample
+
+|get-url
+|<<API_AlipayQRPay_Samples_geturl, _get-url_ samples>>
+
+|check-signature
+|
+
+|debit
+|<<API_AlipayQRPay_Samples_debit, _debit_ samples>>
+
+|refund-debit | <<API_AlipayQRPay_Samples_refunddebit, _refund-debit_ samples>>
+
+|void-debit
+|Voids the validity of a QR code. After a _void-debit_, the consumer can no longer pay with the QR code that was generated with the preceding _debit_ request. If a payment has already occurred, it will be refunded. +
+<<API_AlipayQRPay_Samples_VoidDebit, _void-debit_ samples>>
+|===
+
+[#AlipayQRPay_TestCredentials]
+=== Test Credentials
+
+[WARNING]
+====
+Test transactions with the given credentials bill your Alipay account. Use only small amounts for test transactions. +
+You can request a refund within 6 months of the initial transaction.
+====
+
+[%autowidth, stripes=none]
+|===
+.2+h|URL(s) Endpoints |For transaction types _get-url_, _debit_ and _void-debit_ |``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+                      |For transaction type _refund-debit_ |``\https://api-test.wirecard.com/engine/rest/payments/``
+h|Merchant Account ID (MAID) 2+|41c95d64-f929-4374-a067-f023ab3f08d4
+h|Username 2+|engine.alipayqr
+h|Password 2+|Changeme@123
+|===
+
+[#API_AlipayQRPay_Workflow]
+=== Workflow
+
+image::images/11-49-alipay-qr-pay/alipay-qr-workflow.png[Alipay QR Pay Workflow]
+
+. The consumer approaches the cashier to pay for the selected items.
+. Create a request to the {payment-gateway} to generate the QR code so that the consumer can make the payment.
+. {payment-gateway} transmits the request to Alipay.
+. Alipay sends a response to {payment-gateway} with a URL that contains the generated QR code in different sizes.
+. You receive the QR code based on the returned payment URL from Alipay.
+. The consumer scans the QR code with Alipay Wallet and confirms the payment on their device.
+. Alipay returns the payment result to {payment-gateway}.
+. {payment-gateway} notifies you about the payment result.
+//-
+
+[#API_AlipayQRPay_Fields]
+=== Fields
+
+The fields used for Alipay QR Pay requests, responses and notifications are the same as the <<RestApi_Fields, REST API Fields>>. Only the fields listed below have different properties.
+
+The following elements are mandatory (M) or optional (O) for a request/response/notification. If the respective cell is empty, the field is disregarded or not sent.
+
+[#API_AlipayQRPay_Fields_customfields]
+==== ``custom-fields.custom-field``
+[%autowidth,cols="m,,," stripes=none]
+|===
+|Field Name |<<APIRef_FieldDefs_Cardinality, M/O>> |Size |Description
+
+|alipay_buyer_login_id
+|Notification only
+|128
+|The consumer's Alipay ID, which can be an email address or phone number. Returned from Alipay. Can be used on receipt. +
+e.g. ``\paul.peterson@alitest.com``
+
+|alipay_pay_time
+|Notification only
+|14
+|The time when the payment has been completed. Can be used on receipt. +
+Format: ``yyyyMMddHHmmss`` +
+e.g. ``20200220225336``
+
+|alipay_trans_id
+|Notification only
+|28
+|Alipay Transaction ID as returned from Alipay. Can be used on receipt. +
+e.g. ``2020022022001447411000303594``
+
+|big_pic_url
+|Notification and Response
+|256
+|The URL to the large QR code format +
+e.g. ``\http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=L``
+
+|exchange_rate
+|Notification only
+|11.8
+|The exchange rate between the currency given in the request to CNY. The exchange occurs when the Alipay trade order is created. Returned from Alipay. Can be used on receipt. +
+e.g. ``6.64640000``
+
+|partner_trans_id
+|Notification only
+|64
+|Returned from Alipay. Can be used on receipt. +
+e.g. ``ef0c0782-c224-423d-aedd-c0e2557dab6b``
+
+|pic_url
+|Notification and Response
+|256
+|The URL to the medium QR code format +
+e.g. ``\http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=M``
+
+|small_pic_url
+|Notification and Response
+|256
+|URL to small QR code +
+e.g. ``\http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=S``
+
+|trans_amount_cny
+|Notification only
+|11.2
+|The total transaction amount in CNY. Returned from Alipay. Can be used on receipt. +
+e.g. ``192.81``
+
+|voucher_type
+|Notification and Response
+|10
+|The voucher type returned from Alipay. Can be used on receipt. +
+e.g. ``qrcode``
+|===
+
+[#API_AlipayQRPay_Fields_wallet]
+==== ``wallet``
+[%autowidth, cols="m,,,"," stripes=none]
+|===
+|Field Name|<<APIRef_FieldDefs_Cardinality, M/O>> |Size |Description
+
+|account-id
+|Notification only
+|16
+|The consumer's unique Alipay User ID returned from Alipay. Can be used on receipt.
+|===
+
+[#API_AlipayQRPay_Fields_methods]
+==== ``payment-methods``
+[%autowidth, cols="m,,,"," stripes=none]
+|===
+|Field Name|<<APIRef_FieldDefs_Cardinality, M/O>> |Size |Description
+
+|paymentmethod@url
+|Notification and Response
+|256
+|The URL to the default QR code format +
+e.g. ``\https://qr.alipay.com/bax023098uz6jvkieyrx00b6``
+|===
+
+[#API_AlipayQRPay_DisplayOptions]
+==== QR Code Display Options
+. Large Size +
+``<custom-field field-name="big_pic_url" field-value="http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=L"/>``
+. Medium Size +
+``<custom-field field-name="pic_url" field-value="http://mobilecodec.alipaydev.com/show.htm?code=bax023098uz6jvkieyrx00b6&amp;picSize=M"/>``
+. Small Size (default) +
+``<payment-method url="http://mobilecodec.alipaydev.com/show.htm?code=bax074522rpql8xy1wul00bf&amp;picSize=S" name="alipay-qr-gen"/>``
+
+//-
+
+[#API_AlipayQRPay_Samples]
+=== Samples
+
+[#API_AlipayQRPay_Samples_RestAPI]
+==== REST API
+
+[#API_AlipayQRPay_Samples_geturl]
+===== _get-url_
+
+.XML get-url Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_get-url-request_success.xml[]
+----
+
+.XML get-url Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_get-url-response_success.xml[]
+----
+
+[#API_AlipayQRPay_Samples_debit]
+===== _debit_
+
+.XML debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_debit-request_success.xml[]
+----
+
+.XML debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_debit-response_success.xml[]
+----
+
+.XML debit Notification (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_debit_notification_success.xml[]
+----
+
+.XML debit Request (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_debit_request_failure.xml[]
+----
+
+.XML debit Request (Failure)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_debit_request_failure(1).xml[]
+----
+
+[#API_AlipayQRPay_Samples_refunddebit]
+===== _refund-debit_
+.XML refund-debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_refund-debit_request_success.xml[]
+----
+
+.XML refund-debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_refund-debit_response_success.xml[]
+----
+
+.XML refund-debit Notification (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_refund-debit_notification_success.xml[]
+----
+
+[#API_AlipayQRPay_Samples_VoidDebit]
+===== _void-debit_
+.XML void-debit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_void-debit_request_success.xml[]
+----
+
+.XML void-debit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_void-debit_response_success.xml[]
+----
+
+.XML void-debit Response (Failed)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-qr-pay_void-debit_response_failed.xml[]
+----
+
+//-
+
