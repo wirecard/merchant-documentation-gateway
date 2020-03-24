@@ -1,0 +1,1772 @@
+[#API_PaymentMethods_PayPal]
+== REST API & {payment-page-v1}
+_PayPal_ is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#API_PayPal_Express]
+=== _PayPal_ Express Checkout
+Consumers can make purchases without entering billing, shipping,
+and credit card information as all of this information is already stored
+with _PayPal_. Also, the consumer is able to change the shipping
+address during the checkout in _PayPal_. Therefore the shipping address
+together with other payment details are returned to your web shop
+for further processing.
+
+[#API_PayPal_GeneralInformation_PaymentMode]
+=== Countries and Currencies
+[width=75%, cols= "1h,3",stripes=none]
+|===
+|Countries |Worldwide
+|Currencies |USD, EUR, AUD, CAD, CZK, DKK, HKD, HUF, ILS, JPY, MYR,
+MXN, NOK, NZD, PHP, PLN, GBP, SGD, SEK, CHF, TWD, THB
+|===
+
+[#API_PayPal_GeneralInformation_Communication]
+=== Communication Formats
+This table illustrates how _PayPal_ notifications are encoded and which
+formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h|Requests/Responses | Format | XML
+                        | Methods | POST
+h|IPN Encodement      2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN_NotificationExamples,Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_PayPal_Transactions]
+=== Transactions
+
+[#API_PayPal_Transactions_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB,  Transaction Types>>.
+
+.Transaction Types
+[%autowidth]
+|===
+|Transaction Type |Description |Link to the samples
+
+|_capture-authorization_ |only available on a successful _authorization_
+which was neither voided nor fully captured yet. Partial and multiple
+capture is allowed, until the authorization limit is not exceeded.
+|<<API_PayPal_Samples_Workflow_captureauthorization, _capture-authorization_ samples>>
+
+|_authorization_ |an _authorization_ payment request represents an
+agreement to pay and places the consumer's funds on hold for up to three
+days. You can attempt to capture from day four to day 29 of the
+authorization period, but _PayPal_ cannot ensure that 100% of the funds
+will be available after the three-day honor period
+|<<API_PayPal_Samples_GeneralSamples_authorization, _authorization_ samples>>
+
+|_void-authorization_ |only available on a successful _authorization_
+which was neither voided nor captured yet. Authorization is voided as a
+whole.
+|<<API_PayPal_Samples_voidauthorization, _void-authorization_ sample>>
+
+|_debit_ |debit is an immediate payment for online purchase by
+consumer's _PayPal_ wallet.
+|<<API_PayPal_Samples_GeneralSamples_debit, _debit_ samples>>
+
+|_refund-debit_ |available on a successful _debit_. Partial and multiple
+refunds are allowed, until the original amount is not exceeded.
+|<<API_PayPal_Samples_GeneralSamples_refunddebit, _refund-debit_ samples>>
+
+|_refund-capture_ |available on a successful capture-authorization.
+Partial and multiple refunds are allowed, until the original amount is
+not exceeded.
+|<<API_PayPal_Samples_GeneralSamples_refundcapture, _refund-capture_ samples>>
+
+|_preauthorization_ |the possibility to obtain consumer's preliminary
+payment confirmation (along with shipping details from _PayPal_ for
+example).
+|<<API_PayPal_Workflow_ConfirmPreauthorization, _preauthorization_ sample>>
+
+|_authorization-only_ |transaction can be only the first one in the
+series, and the amount is always zero.|
+<<API_PayPal_Samples_GeneralSamples_authorizationonly, _authorization-only_ samples>>
+
+| __order__ |creating a _PayPal_ order indicates that the consumer has
+consented to the purchase but does not place the funds on hold. After
+merchant creates an order, they can place multiple authorizations upon
+it to place funds on hold until ready to capture. Order cannot be
+referenced by debit transaction and cannot be voided. |
+<<API_PayPal_Samples_GeneralSamples_order, _order_ samples>>
+
+|_pending-credit_ or _credit_
+|moves funds from the merchant to the consumer without referencing
+previous payment. |
+<<API_PayPal_Samples_GeneralSamples_pendingcredit, _pending-credit_ samples>> or
+<<API_PayPal_Samples_GeneralSamples_credit, _credit_ samples>>
+
+|_pending-debit_ |unfinished debit transaction, waiting for the result
+of the link:https://developer.paypal.com/docs/archive/express-checkout/integration-guide/ECOtherAPIOps/[_PayPal_ Payment Review] process. After _PayPal_'s review process is finished, a
+*debit* transaction will be created as follow up transaction. For
+proper functionality, an <<GeneralPlatformFeatures_IPN_Configuration, IPN configuration>> is required in the merchant's _PayPal_ account. This
+transaction type will occur only for transactions in review process and
+is not invoked for all transactions automatically. |
+|===
+
+ifndef::env-nova[]
+[#API_PayPal_Transactions_Recurring]
+==== Recurring Transaction
+
+IMPORTANT: The endpoint for referenced transactions is: ``\https://{instance-hostname}/engine/rest/payments/``.
+
+The {payment-gateway} allows a merchant to submit
+<<GeneralPlatformFeatures_Transactions_Recurring, recurring transactions>>
+for _PayPal_ transactions. To submit a recurring transaction, the merchant
+must submit a request with the transaction type _Debit_, _Authorization_ or
+_Authorization-Only_ including a
+<<GeneralPlatformFeatures_Transactions_Recurring_Periodic, PERIODIC TYPE>>
+and a <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, SEQUENCE TYPE>> element.
+With _PayPal_ it is also possible to mix the transaction types
+_Authorization_ and _Debit_.
+
+Read, which <<GeneralPlatformFeatures_Transactions_Recurring_Restrictions, restrictions>>
+have to be met to use a recurring transaction.
+endif::[]
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific]
+==== _PayPal_-Specific Use of Transaction Types
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_preauthorization]
+===== _preauthorization_
+
+It is possible to obtain consumer's preliminary payment confirmation
+(along with shipping details from _PayPal_, for example) without
+reserving funds on payer's _PayPal_ account. This can be achieved
+using a _preauthorization_ transaction, which have the same parameters
+as _authorization_ or _debit_ request. Similarly, the _Forward-URL_ to
+the <<API_PayPal_Express, _PayPal_ Express Checkout>> is
+delivered in the response, where the consumer needs to confirm the
+payment. In order to finalize the payment, a regular _authorization_ or
+_debit_ transaction needs to be submitted, referencing the prior
+_preauthorization_ transaction using the _Parent-transaction-ID_ field.
+The _preauthorization_ does not need to be canceled if the merchant
+decides not to follow up on this order attempt.
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_authorizationOnly]
+===== _authorization-only_
+
+On _PayPal_ merchant setup site the option "Use <<API_PayPal_Express, Express Checkout>> to
+process payments" must be "true", otherwise it is not possible to create a "get-url" transaction.
+_authorization-only_ (records data at _PayPal_ and Wirecard for later
+payments/recurring transactions) requires the following:
+
+- Additional activation of the setting "Obtain authorization for
+pre-approved payments and initiate pre-approved transactions."
+- _authorization-only_ transaction needs the following settings:
+* address the ``...paymentmethods`` endpoint
+.  the <<GeneralPlatformFeatures_Transactions_Recurring_Periodic, periodic type>> part must be either "recurring" or "installment"
+.  the <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, sequence type>> must be "first".
+* amount = ``0.00``
+- In addition the merchant can reference ``authorization-only`` by either
+``debit`` or ``authorization``. A Follow-up authorization can be then be
+captured.
+* address the ``…/payments`` endpoint for the follow-up debit
+* always use non-zero amount for debit operation
+* the correct (parent-)transaction-id is visible as
+group-transaction-id in _{enterprise-portal-url}_ for example or can be found out by querying
+{payment-gateway} using the RequestID from the initial
+transaction (see
+<<GeneralPlatformFeatures_RetrieveTransaction_RequestID, here>>).
+//-
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_credit]
+===== _credit_
+
+_credit_ transaction moves funds from the merchant to the consumer
+without referencing previous payment. It's a fast and convenient way to
+send commissions, rebates, rewards, and general payments.
+
+_PayPal_ takes the payment amounts from your account and attempts to put
+them into the recipients' _PayPal_ account. If the recipients do not
+have _PayPal_ accounts, _PayPal_ notifies them that a payment is
+available and they must create a _PayPal_ account to receive the
+payment. _PayPal_ will temporarily hold the total monetary value of the
+mass payment, plus associated fees, until processing is completed. If a
+payment is sent to a recipient who does not have a _PayPal_ account, and
+it remains unclaimed for 30 days from the payment date, the money is
+returned to your _PayPal_ account.
+
+Every recipient receives an email notifying them of the payment.
+Recipients with a _PayPal_ click a link in the email message, log in to
+their account, and access their payments. If the recipients do not have
+a _PayPal_ account, their email message contains a link that directs
+them to a _PayPal_ sign-up page. The sign-up process automatically
+confirms their email address. When they complete the sign-up process,
+the money is available in their new _PayPal_ account. Customers will
+then have the option to make online purchases with their money, withdraw
+it to a bank account, have a check mailed to them, or request for
+_PayPal_ to send them a debit card to access their funds.
+
+Merchant needs to specify one (or multiple) of three fields in the
+_pending-credit_ request:
+
+- ``wallet.account-id`` (with customer's _PayPal_ account identifier)
+- ``account-holder.email``
+- ``account-holder.phone``
+
+The provided information is used in this order to identify the recipient
+of the payment. As soon as request is submitted a _pending-credit_
+transaction is created in the database. Once Wirecard has received a
+notification from _PayPal_ about the final status, a follow-up _credit_
+transaction is created, and this status will be communicated to the
+merchant via the _Notification-URL_ that is configured in the merchant
+account. If no _Notification-URL_ is configured in the merchant account
+the notification will be sent via email to the merchant in case the
+email address has been configured.
+
+_credit_ transaction is provided over so-called "Mass Payments" service,
+so merchant should contact _PayPal_ Customer Support to enable Mass
+Payments for their _PayPal_ premier or business accounts.
+
+[#API_PayPal_Transactions_TransactionTypes_PayPalSpecific_order]
+===== _order_
+
+Creating a _PayPal order_ indicates that the buyer has consented to the
+purchase but does not place the funds on hold. After merchant creates an
+_order_, they can place multiple authorizations upon it to place funds
+on hold until ready to _capture_.
+
+Merchants often use this technique to accept orders for items that are
+not available for shipment when the order is placed. For example, when a
+merchant ships items from multiple distribution centers and needs
+separate _authorizations_ for each shipment. Another example would be
+delayed shipping on items that are not in stock.
+
+An _order_ is valid for 29 days. Merchant can make up to 10 referencing
+_authorizations_ for each order. _order_ cannot be referenced by _debit_
+transaction and cannot be voided.
+
+_order_ request has the same fields as _authorization_ or _debit_
+transactions. Similarly, the _Forward-URL_ to the
+<<API_PayPal_Express, _PayPal_ Express Checkout>> is delivered in
+the response, where the consumer needs to confirm the payment. In order
+to finalize the payment, a regular _authorization_ transaction needs to
+be submitted, referencing the prior _order_ transaction using the
+Parent-Transaction-ID field.
+
+[#PayPal_TestCredentials]
+=== Test Credentials
+
+.Test Credentials
+[%autowidth]
+|===
+ifndef::env-nova[]
+.2+h|URL(s) Endpoints | The transaction types _debit_, _authorization_, _authorization-only_,
+_preauthorization_, _pending-credit_, _credit_ or _order_ use 2+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+| The transaction types _capture-authorization_, _refund-capture_,
+_void-authorization_ and _refund-debit_ use
+2+| ``\https://{test-instance-hostname}/engine/rest/payments/``
+endif::[]
+ifdef::env-nova[]
+h|URL (Endpoint) 3+|``\https://payments-test.wirecard.com/ee/rest/payments``
+endif::[]
+.3+h|Merchant Account ID (MAID)
+|Show No Address 
+|be17476f-1a0c-442e-8841-70e33996c0aa
+
+.3+|<<API_PayPal_Configuration_Addresses, See details>>
+|Show Address 
+|8695f3e4-76e8-414b-96cd-a1e5dafcf20c
+|Edit Address |ecfec3fa-87a2-41bb-86e9-4e738b89c91a
+
+h|Username 3+|16390-testing
+h|Password 3+|3!3013=D3fD8X7
+.3+h|Secret Key
+|Show No Address | 3d5b74ed-c716-486c-91a5-188b3ffd9862
+.3+|<<API_PayPal_Configuration_Addresses, See details>>
+|Show Address | 227dd634-1226-42a8-a598-83e8988e45d9
+|Edit Address | ef3407c9-2c24-4a68-b290-1051f88c1af7
+|===
+
+[#API_PayPal_TestCredentials_Additional]
+==== Additional Test Credentials on _PayPal_ Environment
+
+.Additional Test Credentials
+[%autowidth, cols="h,"]
+|===
+|Email |``\paypal.buyer2@wirecard.com``
+|Password |Wirecardbuyer
+|===
+
+[#API_PayPal_Workflow]
+=== Workflow
+
+NOTE: The consumer has three hours to finish his payment, because the
+<<GeneralPlatformFeatures_RedirectURL, _Redirect URL_>> expires after three hours. A query for an unfinished transaction,
+that has exceeded this time span will return a _Failed_ transaction.
+
+[#API_PayPal_Workflow_debit]
+==== _debit_
+
+See <<API_PayPal_Samples_GeneralSamples_debit, _debit_ samples>> for details.
+
+._debit_ workflow with _PayPal_
+image::images/11-24-paypal/PaypalWorkflow_debit.png[debit Workflow]
+
+.  Consumer initiates payment.
+.  Merchant sends _debit_ request to _{payment-gateway-abbr}_.
+.  {payment-gateway-abbr} sends a response to merchant containing the redirect URL to
+_PayPal_.
+.  Merchant takes URL from response.
+.  Merchant redirects consumer to this URL (URL can be found in parameter <``payment-method url="URL" name="paypal"/``>).
+.  Consumer confirms payment on _PayPal_ site.
+.  {payment-gateway-abbr} redirects consumer back to merchant’s system URL based on
+payment result (success_url, cancel_url, failed_url <- defined in MAID
+configuration or in first request).
+.  {payment-gateway-abbr} sends IPN to merchant’s system after payment is verified (usually
+few seconds).
+//-
+
+[#API_PayPal_Workflow_refundDebit]
+==== refund-debit or refund-capture
+
+See <<API_PayPal_Samples_GeneralSamples_refunddebit, _refund-debit_ samples>>
+for details.
+
+._refund-debit_ workflow with _PayPal_
+image::images/11-24-paypal/PaypalWorkflow_refundDebit.png[refund-debit Workflow]
+
+.  Merchant sends _refund_ request to _{payment-gateway-abbr}_
+..  It depends on the corresponding transaction, whether merchant sends
+a _refund-debit_ or _refund-capture_ request.
+..  The request must contain the <``transaction-id``> of the transaction to
+be refunded. The <``transaction-id``> of this corresponding transaction must
+be placed in the <``parent-transaction-id``> field.
+.  The response sent back to merchant will contain result of
+transaction (success or failed).
+.  IPN is sent to merchant's system with transaction result as
+well.
+//-
+
+[#API_PayPal_Workflow_credit]
+==== _credit_
+
+See <<API_PayPal_Samples_GeneralSamples_credit, _credit_ samples>> for details.
+
+._credit_ workflow with _PayPal_
+image::images/11-24-paypal/PaypalWorkflow_credit.png[credit workflow,height=250]
+
+.  Merchant sends _pending-credit_ request to _{payment-gateway-abbr}_.
+.  {payment-gateway-abbr} processes the transaction.
+.  {payment-gateway-abbr} sends response containing the transaction result back to
+merchant.
+.  {payment-gateway-abbr} sends an IPN to merchant with final transaction status.
+//-
+
+[#API_PayPal_Workflow_authorization]
+==== _authorization_ and _capture-authorization_
+
+See <<API_PayPal_Workflow_AuthorizationCaptureRefundCapture, _authorization_ and _capture-authorization_ samples>> for details.
+
+._authorization_ and _capture-authorization_ workflow with _PayPal_
+image::images/11-24-paypal/PaypalWorkflow_AuthorizationCapture.png[authorization and capture-authorization workflow]
+
+The merchant does an _authorization_ for a specific amount, the consumer
+needs to accept this authorization and then the merchant can submit a
+_capture_ anytime to capture the requested amount.
+
+.  _authorization_
+..  Merchant sends _authorization_ request to _{payment-gateway-abbr}_.
+..  {payment-gateway-abbr} responds with the redirect URL to __PayPal__.
+..  Merchant takes URL from response and redirects consumer to this URL
+(URL is in field
+<``payment-method url="http://www.paypal.com/?token=EC-MOCK-9N3XB7G4P9PR%22 name="paypal"/``>)
+..  Consumer authorizes payment on _PayPal_ site
+..  {payment-gateway-abbr} redirects consumer back to merchant’s system. The URL depends on
+payment result (success_url, cancel_url, failed_url, which is defined
+either in the MAID configuration or in the first request of this payment
+process).
+.  _capture-authorization_
+..  Merchant submits a _capture_ request. The request contains the
+_Transaction-ID_ from the preceding successful authorization
+transaction. The _Transaction-ID_ is forwarded in field
+__Parent-Transaction-ID__.
+..  {payment-gateway-abbr} sends the response with the final transaction status to the
+merchant (the endpoint is defined via _Redirect URL_).
+..  The merchant also receives an IPN.
+//-
+
+[#API_PayPal_Workflow_order]
+==== _order_ and _authorization_ and _capture_
+
+See <<API_PayPal_Workflow_OrderAuthorizationCapture, _order_, _authorization_ and _capture-authorization_ samples>>
+for details.
+
+._order_, _authorization_ and _capture-authorization_ workflow with _PayPal_
+image::images/11-24-paypal/PaypalWorkflow_OrderAuthorizationCapture.png[order, authorization and capture-authorization workflow,height=250]
+
+
+.  _order_
+..  Merchant sends an _order_ request.
+..  {payment-gateway-abbr} sends a response containing the _Redirect URL_.
+..  Merchant takes URL from this response and redirects consumer to this
+URL (URL is in field
+<payment-method url="http://www.paypal.com/?token=EC-MOCK-9N3XB7G4P9PR%22 name="paypal"/>)
+..  Consumer authorizes his order on _PayPal_'s site.
+..  Merchant redirects consumer back to merchant's system. The URL
+depends on payment result (success_url, cancel_url, failed_url <-
+defined in MAID configuration or in first request)
+..  {payment-gateway-abbr} sends a notification to the merchant's endpoint specified in
+request or in merchant <<API_PayPal_Configuration_PayPalAccount, account configuration>>.
+The notification contains the *Transaction ID*, which is needed for
+further process.
+.  _authorization_
+..  Merchant submits an _authorization_ request. The request *contains
+the _Transaction-ID_ from the preceding successful _order_* transaction.
+The _Transaction-ID_ is forwarded in field _Parent-Transaction-ID_.
+..  {payment-gateway-abbr} sends a response to the merchant. The response contains the
+Authorization's _Transaction-ID_, to be used for further capture
+processes.
+.  _capture-authorization_
+..  Merchant submits an _authorization-capture_ request (The
+_Parent-Transaction-ID_ in this request *must contain the
+_Transaction-ID_ from the preceding _authorization_* of this payment
+process).
+..  {payment-gateway-abbr} sends an _authorization-capture_ response to the merchant.
+//-
+
+[#API_PayPal_Fields]
+=== Fields
+
+For the Payment Method _Paypal_, the following elements are mandatory (M), optional (O) or conditional
+\(C) in a request (Req), in a response (Res) or a notification (IPN).
+
+[%autowidth]
+|===
+|Field |Req |Res |IPN |Data Type |Size |Description
+
+|merchant-account-id |M |M |M |String |36 |Unique identifier for a merchant account.
+|request-id |M |M |M |String |150 |This is the identification number of the request. It has to be unique for each request.
+|transaction-type |M |M |M |String |30 |This is the type for a transaction.
+|requested-amount |M |M |M |Decimal |9,2 |This is the amount of the transaction. The amount of the decimal place is dependent of the currency.
+|parent-transaction-id |C |C |C |String |36 |Transaction ID of the first transaction of a payment. For an individual payment, the ``parent-transaction-id`` is not necessary. If the process is recurring, the ``parent-transaction-id`` is mandatory in the recurring and final transaction.
+|ip-address |O |O |O |String |15 |The global (internet) IP address of the consumer's computer.
+|order-number |O |O |O |String |64 |This is the order number of the merchant.
+|order-detail |O |O |O |String |65535 |This is a field for details of an order filled by the merchant.
+|descriptor |O |O |O |String |27 |Description on the settlement of the account holder’s account about a transaction. The following characters are allowed: ``umlaut``,``0-9``, ``a-z``,``A-Z``,`` ``, ``+``,``,``,``-``,``.``
+|transaction-id | |M |M |String |36 |The Transaction ID is the unique identifier for a transaction. It is generated by Wirecard.
+|transaction-type |M |M |M |String |30 |This is the type for a transaction. For Paypal only ``debit`` is allowed in the initial request.
+|transaction-state | | M | M |String |12 |This is the status of a transaction
+|completion-time-stamp | |M |M |dateTime | |This is the timestamp of completion of request.
+|api-id | | |M |String | |The API ID is always returned in the notification.
+|instrument-country |O |O |O |String |2 |The instrument country contains the information where the consumer belongs to.
+|processing-redirect-url |O |O |O |String |256 |The URL to which the consumer will be redirected after he has fulfilled his payment. This is normally a page on the merchant’s website.
+|cancel-redirect-url |O |O |O |String |256 |The URL to which the consumer will be re-directed after they canceled a payment. This is normally a page on the merchant’s Website.
+|success-redirect-url |O |O |O |String |256 |The URL to which the consumer will be re-directed after a successful payment. This is normally a success confirmation page on the merchant’s website.
+|signature | | |M |complex | |The signature info, consisting of ``SignedInfo``, ``SignatureValue`` and ``KeyInfo``. For details see <<GeneralPlatformFeatures_IPN, IPN>>.
+|provider-transaction-reference-id |O |O |M |String |36 |Billing agreement ID from _PayPal_ returned in response (relevant for a recurring transaction).
+|risk-reference-id |O |O |O |String |32 |Additional field, which enables PayPal to better detect fraud on consumer-triggered recurring payments.
+7+a|
+[[API_PayPal_Fields_Payment_accountHolder]]
+===== account-holder.
+|first-name |O |O |O |String |27 |This is the first name of the consumer. The maximum size of ``first-name`` and ``last-name`` in combination is 27 characters.
+|last-name |O |O |O |String |27 |This is the last name of the consumer. The maximum size of ``first-name`` and ``last-name`` in combination is 27 characters.
+|email |C |C |C |String |64 |This is the consumer’s email address. It is mandatory if the field ``wallet-account-id`` is not sent in the initial request.
+|gender |O |O |O |String |1 |This is the consumer’s gender.
+|date-of-birth |O |O |O |Date |0 |This is the consumer’s birth date.
+|phone |O |O |O |String |32 |This is the phone number of the consumer.
+7+a|
+[[API_PayPal_Fields_Payment_AccountHolder_Address]]
+===== account-holder.address.
+|street1 |O |O |O |String |128 |This is the first part of the consumer’s street.
+|street2 |O |O |O |String |128 |This is the second part of the consumer’s street.
+|city |O |O |O |String |32 |This is the consumer’s city.
+|state |O |O |O |String |32 |This is the consumer’s state.
+|country |O |O |O |String |3 |This is the consumer’s country.
+|postal-code |O |O |O |String |16 |This is the consumer’s postal code.
+7+a|
+[[API_PayPal_Fields_Payment_Shipping]]
+===== shipping.
+|first-name |O |O |O |String |27 |First name of the shipment's recipient.
+|last-name |O |O |O |String |27 |Last name of the shipment's recipient.
+|phone |O |O |O |String |32 |Phone number of the shipment's recipient.
+7+a|
+[[API_PayPal_Fields_Payment_Shipping_Address]]
+===== shipping.address.
+|street1 |O |O |O |String |128 |First part of the shipment recipient's street name.
+|street2 |O |O |O |String |128 |Second part of the shipment recipient's street name.
+|city |O |O |O |String |32 |Name of the shipment recipient's city.
+|country |O |O |O |String |3 |Name of the shipment recipient's country. Please use the list of country codes supported by https://developer.paypal.com/docs/archive/nvp-soap-api/country-codes/[Paypal]
+|state |C |C |C |String |32 a|Name of the shipment recipient's state. It is a mandatory field, if ``shipping.address.country`` is one of the following:
+
+- ``AR`` (Argentina)<<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>>
+- ``BR`` (Brazil)<<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>>
+- ``CA`` (Canada)<<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>>
+- ``IN`` (India)
+- ``ID`` (Indonesia)
+- ``IT`` (Italy)<<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>>
+- ``JP`` (Japan)<<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>>
+- ``MX`` (Mexico)<<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>>
+- ``TH`` (Thailand)
+- ``US`` (USA)
+//-
+
+Please use the list of state codes supported by Paypal: https://developer.paypal.com/docs/archive/nvp-soap-api/state-codes/
+
+[[API_PayPal_Fields_Payment_Shipping_Address_footnote]] ^(1)^ = For these countries the fields ``shipping.address.postal-code`` and ``shipping.address.state`` are  mandatory.
+|postal-code |C |C |C |String |16 |Postal code of the shipment recipient's city. It is a mandatory field if the shipment recipient's country is marked with <<API_PayPal_Fields_Payment_Shipping_Address_footnote, ^(1)^>> in the field description for ``shipping.address.state``.
+7+a|
+[[API_PayPal_Fields_Payment_statuses_status]]
+===== statuses.status.
+|code | |M |M |String |12 |This is the code of the status of a transaction. It can be any of <<StatusCodes, those>>.
+|description | |M |M |String |256 |This is the description to the status code of a transaction.
+|severity | |M |M |String |20 |This field gives information if a status is a warning, an error or an information.
+7+a|
+[[API_PayPal_Fields_Payment_notifications]]
+===== notifications.
+|notification@url |O |O |O |String |256 |The URL to be used for the Instant Payment Notification. It overwrites the notification URL that is set up in the merchant configuration.
+7+a|
+[[API_PayPal_Fields_Payment_customfields]]
+===== custom-fields
+|custom-field.paypal-address-status |O |O |O |String |256 |This is the status of the PayPal address check. Note that this field must be explicitly enabled by <<ContactUs, Merchant Support>>.
+|custom-field.paypal-protection-eligibility |O |O |O |String |256 |This is the status of the PayPal Seller Protection offered to merchants to protect them from chargebacks, reversals, etc. Note that this field must be explicitly enabled by <<ContactUs, Merchant Support>>.
+7+a|
+[[API_PayPal_Fields_Payment_paymentmethods]]
+===== payment-methods.
+|payment-method-name |M |M |M |String |15 |This is the name of the payment method that is chosen from the consumer.
+7+a|
+[[API_PayPal_Fields_Payment_wallet]]
+===== wallet.
+|account-id |C |C |C |String |50 |The unique identifier of the Account Holder's Wallet Account. It is mandatory if the field ``account-holder.email`` is not sent in the initial request.
+7+a|
+[[API_PayPal_Fields_Payment_periodic]]
+===== periodic.
+|periodic-type |M |M |M |String |9 |Indicates how and why a payment occurs more than once. Only two possible values: ``recurring`` or ``installment``
+|sequence-type |M |M |M |String |9 |Indicates the sequence of the recurring transaction. Possible values: ``first``, ``recurring`` or ``final``
+
+|===
+
+[#API_PayPal_Configuration]
+=== Configuration
+
+[#API_PayPal_Configuration_PayPalAccount]
+==== _PayPal_ Account Configuration
+
+[#API_PayPal_Configuration_PayPalAccount_Granting]
+===== Granting 3rd Party Permission
+
+In order to submit payments on the merchant's behalf, merchant needs to
+grant 3^rd^ party API permission to Wirecard on _PayPal_ website.
+
+. Navigate to _Account settings_ → _My selling tools_ → _API Access_
+and select the link _Grant API permission_.
++
+image::images/11-24-paypal/Granting_3rdParty_APIAccess.jpg[Paypal 3rdparty APIaccess]
++
+. In the textfield _Third Party Permission Username_  enter
+``\payments_api1.wirecard.com`` and click _Lookup_.
++
+image::images/11-24-paypal/Granting_3rdParty_AddNewTPP.jpg[Paypal 3rdparty Newaccess]
++
+. Select from the list of _Available Permissions_ the following
+items:
+- Use Express Checkout to process payments.
+- Issue a refund for a specific transaction.
+- Authorize and capture your _PayPal_ transactions.
+- Obtain information about a single transaction.
+- Charge an existing customer based on a prior transaction.
+- Create and manage Recurring Payments.
+- Use Express Checkout to process mobile payments.
+- Click _Add_.
++
+image::images/11-24-paypal/Granting_3rdParty_AddNewTPP_Detail.png[Paypal 3rdparty NewaccessDetail]
++
+. Check that the permissions were added successfully.
++
+image::images/11-24-paypal/Granting_3rdParty_ManageThirdParty.jpg[Paypal Manage3rdparty]
++
+. Finally, the merchant's _PayPal_ registration e-mail address
+must be communicated to Wirecard to submit payments.
+. Click _Add new Third Party_ to confirm your settings.
+//-
+
+[#API_PayPal_Configuration_PayPalAccount_IPNConfiguration]
+===== IPN Configuration for Wirecard
+
+In order to maintain proper functionality of _PayPal_ transactions, IPN
+(<<GeneralPlatformFeatures_IPN_Configuration, Instant Payment Notification>>) has to be enabled and pointed to the Wirecard server on Merchant’s account in _PayPal_.
+
+Please follow these steps:
+
+. Navigate to _My Account_ > _Profile_
++
+image::images/11-24-paypal/IPN_PayPal_Profile.png[PaypalProfile]
++
+. Switch to section _My Selling tools_, find _Instant payment
+notification_ and click _Update_ on right side in the corresponding
+row.
++
+image::images/11-24-paypal/IPN_PayPal_MySellingTools.png[PayPal Selling Tools]
++
+. Click _Edit settings_
++
+image::images/11-24-paypal/IPN_PayPal_EditSettings.png[PayPal Edit Settings]
++
+. Set Notification URL ``\https://{instance-hostname}/engine/notification/paypalipn`` to Wirecard server as shown on image below.
++
+image::images/11-24-paypal/IPN_PayPal_SetNotificationURL.png[PayPal Set Notification URL]
+//-
+
+[#API_PayPal_Configuration_Addresses]
+=== Addresses
+
+The {payment-gateway} offers three options to configure the
+consumer's address:
+
+- Transmitted address is not shown in the wallet, that means, the
+address cannot be modified.
+- Transmitted address is shown in the wallet AND the consumer can change
+it directly in the wallet (changes will be forwarded to shop via
+notification).
+- Transmitted address is shown in the wallet AND the consumer cannot
+change it directly in the wallet. The consumer can change his address
+only in the merchant's shop.
+//-
+
+The configuration is set by
+<<ContactUs, Merchant Support>>.
+
+[#API_PayPal_Features]
+=== Features
+
+[#API_PayPal_Features_Basket]
+==== Basket Items
+
+Basket item details may be sent along with debit and authorization
+requests. The detailed items of the shopping basket will be displayed in
+_PayPal_ during the checkout, and later stored as a part of payment
+details in _PayPal_. They can also be obtained later from the {payment-gateway} as part of the transaction details.
+
+.Basket Items
+[%autowidth]
+|===
+|Field |Cardinality Req/Resp |Dataype |Size |Description
+
+|order-items.order-item.name |O |Alphanumeric | |Name of the item in the basket.
+|order-items.order-item.description |O |Alphanumeric | |Longer item description.
+|order-items.order-item.article-number |O |Alphanumeric | |EAN or other article identifier for merchant.
+|order-items.order-item.amount |O |Number | |Item's price per unit.
+|order-items.order-item.tax-amount |O |Number | |Item's tax per unit.
+|order-items.order-item.quantity |O |Number | |Total count of items in the order.
+|===
+
+[#API_PayPal_Features_Cross]
+==== Cross Merchant Account References
+
+The default security setting for all types of reference transactions
+using the field payment/parent-transaction-id allows the references only
+to the transactions of the same merchant account. However it is possible
+to activate cross referencing for a merchant account. With this option
+activated a merchant account can reference a transaction of another
+merchant account. The only requirement is that the processing user used
+for the authentication of the payment request has rights on the merchant
+account of the referenced transaction.
+
+NOTE: This merchant configuration parameter affects all transaction types.
+Other kinds of reference transactions such as _refund_ or _void_ can use
+cross references as well. Once activated it is enabled for all payment
+methods configured for a merchant account even though not all payment
+providers/acquirers might support it.
+
+_PayPal_ supports cross references natively by configuring a special
+shared consumer account which can be used by several merchants.
+Therefore the billing agreement ID can also be shared among several
+merchants.
+
+NOTE: The cross references must be solely enabled for the
+corresponding merchant accounts of the processing user by Wirecard Support team.
+
+The recurring transactions process in cross-reference
+mode remains the same.
+
+[#API_PayPal_Features_Provider]
+==== Provider Transaction ID
+
+This feature enables a merchant to search for transactions in
+the _PayPal_ merchant dashboard directly.
+
+The <``provider-transaction-id``> is returned in every response of an
+_ExpressCheckout, Capture, Refund_ and _Referenced Transaction_ and is
+also part of the respective notifications.
+
+NOTE: The <``provider-transaction-id``> can be found in <``status``> field and it is
+generated for every _PayPal_ transaction.
+
+.<``statuses``>
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/API_PayPalFeaturesProvider_BasketItems.xml[]
+----
+
+[#API_PayPal_Features_Seller]
+==== Seller Protection & Recurring Payments
+
+_PayPal_ offers a Seller Protection policy for merchants to help guard
+from losing money to claims and chargebacks. For details of this policy
+see the official _PayPal_ documentation. Terms and conditions for this
+feature depend on the operating country. Please refer to your country
+specific _PayPal_ Website.
+
+The feature _Seller Protection & Recurring Payments_ is available by
+default in the {payment-gateway}.
+
+The merchant needs to provide a shipping address only in the initial
+payment. For subsequent recurring payments {payment-gateway}
+automatically sends the shipping address from the initial payment to
+_PayPal_.
+
+NOTE: For recurring payments __{payment-gateway}__ uses the shipping
+address which has been received from _PayPal_ during the initial
+request.
+
+[#API_PayPal_Features_Cancel]
+==== Cancel handling
+
+_PayPal_ offers payment cancelation. After clicking on Cancel button,
+consumer is redirected to merchant's cancel redirect URL and if merchant
+has cancelation enabled, a _failed transaction_ will be created.
+The response will contain the status 500.1108
+``Transaction was cancelled/aborted. Please try again later.``
+
+image::images/11-24-paypal/PayPal_CancelHandling.png[PayPal Cancel Handling]
+
+[#API_PayPal_Samples]
+=== Samples
+
+[#API_PayPal_Samples_GeneralSamples]
+==== General Samples
+
+[#API_PayPal_Samples_GeneralSamples_authorization]
+===== _authorization_
+
+._preauthorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_request_success_a31ef4.xml[]
+----
+
+._preauthorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_response_success_3fe061.xml[]
+----
+
+._preauthorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_notification_success_1e35fd5e_8f83e4_1.xml[]
+----
+
+._preauthorization_ Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_request_failure.xml[]
+----
+
+._preauthorization_ Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_response_failure.xml[]
+----
+
+._authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_4dc987.xml[]
+----
+
+NOTE: The URL for redirecting consumer is provided, so they can complete
+_authorization_ transaction using <<API_PayPal_Express, PayPal Express Checkout>>.
+
+._authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_34d04e.xml[]
+----
+._authorization_ Notification (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_success_e6f84861_34a749_1.xml[]
+----
+
+NOTE: In case of failure there is no notification sent back
+to merchant.
+
+._authorization_ Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_failure.xml[]
+----
+
+._authorization_ Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_failure.xml[]
+----
+
+.First Recurring _authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_recurring_first.xml[]
+----
+
+.First Recurring _authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_recurring_first.xml[]
+----
+
+.First Recurring _authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_success_recurring_first_4881e975.xml[]
+----
+
+.Recurring _authorization_ Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_failure_recurring_recurring.xml[]
+----
+
+.Recurring _authorization_ Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_failure_recurring_recurring.xml[]
+----
+
+.Recurring _authorization_ Notification (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_failure_recurring_recurring.xml[]
+----
+
+._authorization-only_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization-only_request_success_recurring_first_e454b2.xml[]
+----
+
+._authorization-only_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization-only_response_success_recurring_first_4117bd.xml[]
+----
+
+._authorization-only_ Notification (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization-only_notification_success_recurring_first_19b8ccad_e069dc_1.xml[]
+----
+
+._authorization_ (Referencing an Order) Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_f605cbe3_830f00_1.xml[]
+----
+
+._authorization_ (Referencing an Order) Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_f605cbe3_8d19b6_1.xml[]
+----
+
+NOTE: A subsequent referenced capture payment references the first payment via
+the <``parent-transaction-id``>.
+
+._capture-authorization_ (Subsequent Payment) Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_request_success_4d1a2e87_7cace0_1.xml[]
+----
+
+._capture-authorization_ (Subsequent Payment) Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_response_success_1a8dcffd_6436e7.xml[]
+----
+
+._capture-authorization_ (Subsequent Payment) Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_notification_success_1a8dcffd_8aa3da_1.xml[]
+----
+
+._void-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_void-authorization_request_success_c2f15154_f43b62_1.xml[]
+----
+
+._void-authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_void-authorization_response_success_c2f15154_e3edac_1.xml[]
+----
+
+._void-authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_void-authorization_notification_success_c2f15154_de3c08_1.xml[]
+----
+
+[#API_PayPal_Samples_GeneralSamples_authorization_Json]
+.JSON _authorization_ Request (Successful)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/API_PayPalSamplesGeneralSamplesAuthorizationJson_JSON_AuthorizationRequestSuccessful.json[]
+----
+
+.JSON _authorization_ Request (Successful)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/API_PayPalSamplesGeneralSamplesAuthorizationJson_JSON_AuthorizationRequestSuccessful_5.json[]
+----
+
+[#API_PayPal_Samples_GeneralSamples_credit]
+===== _credit_
+
+._pending-credit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_pending-credit_request_success_252163.xml[]
+----
+
+._pending-credit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_pending-credit_response_success_f23c5b.xml[]
+----
+
+._pending-credit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_credit_response_success_41983600.xml[]
+----
+
+
+[#API_PayPal_Samples_GeneralSamples_debit]
+===== _debit_
+
+._debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_ecce89_1.xml[]
+----
+
+._debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_237161_1.xml[]
+----
+
+._debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_notification_success_6cb82f55_fdc219_1.xml[]
+----
+
+
+[#API_PayPal_Samples_GeneralSamples_order]
+===== _order_
+
+._order_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_order_request_success_f4caa8_1.xml[]
+----
+
+._order_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_order_response_success_06e8e9_1.xml[]
+----
+
+._order_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_order_notification_success_ecfb629e_c00cab_1.xml[]
+----
+
+[#API_PayPal_Samples_GeneralSamples_refunddebit]
+===== _refund-debit_
+
+._refund-debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-debit_request_success_ad778911_5148d1_1.xml[]
+----
+
+._refund-debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-debit_response_success_ad778911_5cb10c_1.xml[]
+----
+
+._refund-debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-debit_notification_success_ad778911_60e055_1.xml[]
+----
+
+[#API_PayPal_Samples_GeneralSamples_refundcapture]
+===== _refund-capture_
+
+._refund-capture_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-capture_request_success_aaebd767_f0314f_1.xml[]
+----
+
+._refund-capture_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-capture_response_success_aaebd767_2ab1db_1.xml[]
+----
+
+._refund-capture_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-capture_notification_success_aaebd767_431d46_1.xml[]
+----
+
+
+[#API_PayPal_Samples_Workflow]
+==== Workflow Samples
+
+[#API_PayPal_Workflow_ConfirmPreauthorization]
+===== Confirm a _preauthorization_
+
+[#API_PayPal_Samples_Workflow_Preauthorization]
+===== _preauthorization_
+
+._preauthorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_request_success_8f7874.xml[]
+----
+
+._preauthorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_response_success_66a4f3.xml[]
+----
+
+._preauthorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_preauthorization_notification_success_1e35fd5e_8f83e4_2.xml[]
+----
+
+.Confirm _preauthorization_
+NOTE: Go to payment method URL provided in _preauthorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<<API_PayPal_TestCredentials_Additional, PayPal Access Data>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+
+[#API_PayPal_Workflow_AuthorizationCaptureRefundCapture]
+===== _authorization_ > _capture_ > _refund-capture_
+
+[#API_PayPal_Samples_Workflow_authorization]
+===== _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_24270b.xml[]
+----
+
+._authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_4a7dab.xml[]
+----
+
+._authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_success_e6f84861_34a749_2.xml[]
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow_captureauthorization]
+===== _capture-authorization_
+
+._capture_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_request_success_4d1a2e87_7cace0_2.xml[]
+----
+
+._capture_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_response_success_1a8dcffd_acb188.xml[]
+----
+
+._capture_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_notification_success_1a8dcffd_8aa3da_2.xml[]
+----
+
+[#API_PayPal_Samples_Workflow_refundCapture]
+===== _refund-capture_
+
+._refund-capture_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-capture_request_success_aaebd767_f0314f_2.xml[]
+----
+
+._refund-capture_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-capture_response_success_aaebd767_2ab1db_2.xml[]
+----
+
+._refund-capture_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-capture_notification_success_aaebd767_431d46_2.xml[]
+----
+
+[#API_PayPal_Workflow_DebitRefundDebit]
+===== _debit_ > _refund_
+
+[#API_PayPal_Samples_Workflow_debit]
+
+._debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_ecce89_2.xml[]
+----
+
+._debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_237161_2.xml[]
+----
+
+._debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_notification_success_6cb82f55_fdc219_2.xml[]
+----
+
+.Confirm _debit_
+NOTE: Go to payment method URL provided in _debit_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_refundDebit]
+._refund-debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-debit_request_success_ad778911_5148d1_2.xml[]
+----
+
+._refund-debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-debit_response_success_ad778911_5cb10c_2.xml[]
+----
+
+._refund-debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_refund-debit_notification_success_ad778911_60e055_2.xml[]
+----
+
+[#API_PayPal_Workflow_AuthorizationVoidAuthorization]
+===== _authorization_ > _void-authorization_
+
+[#API_PayPal_Samples_authorization]
+
+._authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_8e3a3c.xml[]
+----
+
+._authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_a6f154.xml[]
+----
+
+._authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_success_131b687e.xml[]
+----
+
+.Confirm _authorization
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_voidauthorization]
+===== _void-authorization_
+
+._void-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_void-authorization_request_success_c2f15154_f43b62_2.xml[]
+----
+
+NOTE: Void Authorization ``<parent-transaction-id>c2f15154-b7d9-4d52-88d2-d5cf4112a6ec</parent-transaction-id>`` from void request
+corresponds to
+``<transaction-id>c2f15154-b7d9-4d52-88d2-d5cf4112a6ec</transaction-id>`` from authorization notification.
+
+
+._void-authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_void-authorization_response_success_c2f15154_e3edac_2.xml[]
+----
+
+._void-authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_void-authorization_notification_success_c2f15154_de3c08_2.xml[]
+----
+
+.Confirm _void-authorization_
+NOTE: Go to payment method URL provided in _void-authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Workflow_OrderAuthorizationCapture]
+===== _order_ > REFERENCING _authorization_ > _capture_
+
+[#API_PayPal_Samples_order]
+
+._order_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_order_request_success_f4caa8_2.xml[]
+----
+
+._order_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_order_response_success_06e8e9_2.xml[]
+----
+
+._order_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_order_notification_success_ecfb629e_c00cab_2.xml[]
+----
+
+.Confirm _order_
+NOTE: Go to payment method URL provided in _order_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_ReferencingOrderAuthorization]
+===== Referencing (_order_) _authorization_
+
+.Referencing _authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_f605cbe3_830f00_2.xml[]
+----
+
+.Referencing _authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_f605cbe3_8d19b6_2.xml[]
+----
+
+.Referencing _authorization_ Notification (Successful)
+
+[source,subs=attributes+]
+----
+No notification available
+----
+
+
+[#API_PayPal_Samples_CaptureAuthorization]
+._capture_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_request_success_4e3b9261.xml[]
+----
+
+._capture Response (Successful)
+
+[source,subs=attributes+]
+----
+No response available
+----
+
+._capture Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_notification_success_4e3b9261.xml[]
+----
+
+.Referencing _authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_f605cbe3_f3bee6.xml[]
+----
+
+.Referencing _authorization Response (Successful)
+
+[source,subs=attributes+]
+----
+No response available
+----
+
+[#API_PayPal_Samples_ReferencingAuthorization_CaptureAuthorization]
+===== _capture-authorization_
+
+._capture-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_request_success_3804f693.xml[]
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,subs=attributes+]
+----
+No response available
+----
+
+._capture-authorization_ Notification (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_notification_success_3804f693.xml[]
+----
+
+[#API_PayPal_Samples_GeneralSamples_pendingcredit]
+===== _pending-credit_
+
+._pending-credit_ Request (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_pending-credit_request_success_c901f2.xml[]
+----
+
+._pending-credit_ Response (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_pending-credit_response_success_a680c2.xml[]
+----
+
+._pending-credit_ Notification (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_credit_notification_success_41983600.xml[]
+----
+
+[#API_PayPal_Samples_GeneralSamples_authorizationonly]
+===== _authorization-only_
+
+._authorization-only_ Request (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization-only_request_success_recurring_first_c666b5.xml[]
+----
+
+._authorization-only_ Response (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization-only_response_success_recurring_first_c4f598.xml[]
+----
+
+._authorization-only_ Notification (Successful)
+
+[source, xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization-only_notification_success_recurring_first_19b8ccad_e069dc_2.xml[]
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization-only_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+
+[#API_PayPal_debit_PeriodicType_Recurring]
+===== _debit_ (Periodic Type = Recurring)
+
+[#API_PayPal_Samples_debit_Recurring_First]
+
+._debit_ Request (First Transaction, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_recurring_first.xml[]
+----
+
+._debit_ Response (First Transaction, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_recurring_first.xml[]
+----
+
+.Confirm _debit_
+NOTE: Go to payment method URL provided in _debit_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_debit_Recurring_Recurring]
+
+._debit_ Request (Recurring, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_recurring_recurring_42244051_11f4b5.xml[]
+----
+
+._debit_ Response (Recurring, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_recurring_recurring_42244051.xml[]
+----
+
+._debit_ Refund Request (Recurring, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_recurring_recurring_42244051_2779cb.xml[]
+----
+
+[#API_PayPal_Samples_debit_Recurring_Final]
+===== _debit_ (Final Transaction)
+
+._debit_ Request (Final, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_recurring_final_42244051.xml[]
+----
+
+._debit_ Response (Final, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_recurring_final_42244051.xml[]
+----
+
+._debit_ Refund (Final, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_unknown_success_recurring_final_42244051.xml[]
+----
+
+
+[#API_PayPal_debit_PeriodicType_Installment]
+===== _debit_ (Periodic Type = Installment)
+
+[#API_PayPal_Samples_debit_Installment_First]
+
+._debit_ Request (First, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_installment_first.xml[]
+----
+
+._debit_ Response (First, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_installment_first.xml[]
+----
+
+._debit_ Notification (First, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_notification_success_installment_first_0c1b507f.xml[]
+----
+
+.Confirm _debit_
+NOTE: Go to payment method URL provided in _debit_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_debit_Installment_Recurring]
+
+._debit_ Request (Recurring, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_installment_recurring_4238ff87.xml[]
+----
+
+._debit_ Response (Recurring, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_installment_recurring_4238ff87.xml[]
+----
+
+._debit_ Notification (Recurring, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_notification_success_installment_recurring_4238ff87.xml[]
+----
+
+[#API_PayPal_Samples_debit_Installment_Final]
+
+._debit_ Request (Final, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_request_success_installment_final_4238ff87.xml[]
+----
+
+._debit_ Response (Final, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_response_success_installment_final_4238ff87.xml[]
+----
+
+._debit_ Notification (Final, Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_debit_notification_success_installment_final_4238ff87.xml[]
+----
+
+[#API_PayPal_Workflow_Showonly]
+===== Use "Show only" MAID with _authorization_ > _capture-authorization_
+
+NOTE: Using PayPal to <<API_PayPal_Configuration_Addresses, show consumer's address>>, please
+use the _MAID_ 8695f3e4-76e8-414b-96cd-a1e5dafcf20c.
+
+[#API_PayPal_Samples_Workflow_Showonly_authorization]
+===== _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_7f0593.xml[]
+----
+
+._authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_8018ef.xml[]
+----
+
+._authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_success_b3a080d1.xml[]
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow_Showonly_captureAuthorization]
+
+._capture-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_request_success_346c43b2.xml[]
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,subs=attributes+]
+----
+No response available
+----
+
+._capture-authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_notification_success_346c43b2.xml[]
+----
+
+[#API_PayPal_Workflow_EditAddress]
+Use "Edit" MAID with _authorization_ > _capture-authorization_
+
+Using PayPal to <<API_PayPal_Configuration_Addresses, edit consumer's address>>, please
+use the _MAID_ ecfec3fa-87a2-41bb-86e9-4e738b89c91a.
+
+[#API_PayPal_Samples_Workflow_EditAddress_authorization]
+===== _authorization_
+
+._authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_request_success_ed7334.xml[]
+----
+
+._authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_response_success_689efc.xml[]
+----
+
+._authorization_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_authorization_notification_success_cad428c4.xml[]
+----
+
+.Confirm _authorization_
+NOTE: Go to payment method URL provided in _authorization_ response (see tag
+<``payment-method``> to complete _authorization_ transaction using
+<<API_PayPal_Express, PayPal Express Checkout>>.
+<``parent-transaction-id``> of the notification must correspond to the
+<``transaction-id``> of the response.
+
+[#API_PayPal_Samples_Workflow_EditAddress_captureAuthorization]
+===== _capture-authorization_
+
+._capture-authorization_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_request_success_52321771.xml[]
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,subs=attributes+]
+----
+No response available
+----
+
+._capture-authorization_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paypal_capture-authorization_response_success_52321771.xml[]
+----
+
+//-

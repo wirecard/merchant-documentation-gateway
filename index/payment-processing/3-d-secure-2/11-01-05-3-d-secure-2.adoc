@@ -1,0 +1,644 @@
+[#CreditCard_3DS2]
+== 3D Secure 2
+
+The https://www.emvco.com/about/overview/[EMVCo] have devised a new
+standard authentication method for payment card transactions: *3D Secure 2 (3DS2).* 
+
+This new protocol fulfills the Strong Customer
+Authentication (SCA) requirements set by the <<CreditCard_PSD2, EU's Second Payment Service Directive>> for online payments within the
+European Economic Area (EEA).
+
+*3D Secure 2 is now available* and set to become the prime
+authentication method for online card payments, thanks to a number of
+updates that improve not only the security, but also the consumer
+experience of 3D Secure 1 (3DS).
+
+include::{root}/index/payment-processing/3-d-secure-2/11-01-06-psd-2.adoc[leveloffset=+1]
+
+[#CreditCard_3DS2_Why]
+[discrete]
+=== Why Adopt 3D Secure 2?
+
+When 3D Secure 1 was first introduced in 2001, it provided a
+state-of-the-art fraud prevention system. But the face of e-commerce has
+changed drastically in the past years. Mobile and in-app payment is
+booming, a seamless shopping experience more important than ever, and
+the demands on security growing. The 3D Secure 2 protocol has been
+designed for this brave new world and offers the flexibility needed to
+adapt to an ever-changing e-commerce landscape.
+
+[#CreditCard_3DS2_Advantages]
+[discrete]
+=== 3D Secure 2 - The Advantages
+
+- *No more static passwords:* The days of rummaging through your drawers
+to find your 3DS password are over. Consumers will no longer have to
+look for their passwords and are more likely to complete their
+purchases.
+- *Two-factor authentication:* 3DS2 implements two-factor authentication.
+//<<CreditCard_PSD2, two-factor-authentication>>, as required by PSD2. 
+To make the experience more convenient for
+consumers, authentication can be completed, for example, with a token
+and a simple thumbprint.
+- *Fewer false declines:* The new protocol provides ten times more
+information to the issuers, which helps drastically reduce the number of
+false declines. Consumers will retain their trust in 3DS2-secured
+transactions.
+- *Mobile-enabled security:* Consumers will no longer be redirected to
+potentially non-mobile-ready authorization pages.
+- *Less cart abandonment:* Overall greater convenience, a faster
+checkout process, and a seamless shopping experience will reduce
+shopping cart abandonment by 70%.
+- *Merchant opt-out:* As a merchant, if you decide for 3DS2, you regain
+the freedom to choose which transactions you send through the protocol
+and which ones you don't. However, please keep in mind that issuers may
+have to decline the transaction because SCA is required on their side.
+
+//-
+
+As with 3DS1, 3D Secure 2 also protects the merchant from liability in
+cases of fraud.
+
+[#CreditCard_3DS2_PMs]
+=== Supported Card Brands
+
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+3D Secure 2 has been developed, and is supported, by Mastercard, VISA,
+American Express, UPI, Diners Club, Discover, and JCB.
+endif::[]
+endif::[]
+ifdef::env-po,env-nova[]
+Currently we support Mastercard and VISA.
+endif::[]
+
+- <<CreditCard, Credit Card>>
+- <<PPv2_CC, Credit Card with {payment-page-v2-abbr}>>
+
+//ifdef::env-po[]
+//- <<API_Masterpass, Masterpass>>
+//- <<VISACheckout, Visa Checkout>>
+//endif::[]
+
+//-
+
+[#CreditCard_3DS2_Help]
+=== We Help You Transition
+
+[#CreditCard_3DS2_Help_Workflow]
+==== Workflow
+The 
+ifdef::env-wirecard[]
+<<AppendixF, 
+endif::[]
+3D Secure 2 workflow
+ifdef::env-wirecard[]
+>> 
+endif::[]
+remains *identical* to the 3D Secure 1 workflow.
+
+[#CreditCard_3DS2_PaymentProcessing]
+.Payment Processing
+
+3D Secure 1 and 3D Secure 2 include an additional transaction type in the transaction process: *check-enrollment.* +
+*Check-enrollment* is the first step in a 3D Secure transaction. Its purpose is to authenticate the consumer's identity and confirm the consumer's willingness to pay the amount specified in the payment transaction.
+With 3D Secure 2, the amount of data collected with *check-enrollment* is significantly higher than with 3D Secure 1.
+This allows a more comprehensive risk analysis. +
+A successful *check-enrollment* will return a ``parent-transaction-id``. Include this ``parent-transaction-id`` in the next step of the payment process.
+
+For example, you would like to continue to <<AppendixB_TransactionTypesforCreditCard, authorize>> the payment amount: +
+
+. Send a request with **check-enrollment.**
+. The **check-enrollment** response returns a ``parent-transaction-id``.
+. Send an **authorization** request including the ``parent-transaction-id``.
+
+//-
+
+//[NOTE]
+//====
+//All requests following a **check-enrollment** in the payment process:
+//
+//.. Contain the ``parent-transaction-id`` returned in the **check-enrollment** response //_OR_
+//.. Are marked as <<CreditCard_PSD2_SCA_Exemptions, out-of-scope / exempt from PSD2>>
+//====
+
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
+
+More <<CreditCard_3DS2_UseCases, use cases and common business scenarios>> are available below. For more details on 3D Secure 2 fields, go to our <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>.
+Need more information on transaction types? Check out <<AppendixB_TransactionTypesforCreditCard,  Transaction Types for Credit Card>>.
+
+[#CreditCard_3DS2_CheckEnrollment]
+.Check-Enrollment Amount Handling & Policies
+
+**Check-enrollment** has two functions:
+
+. Authenticate the consumer's identity.
+. Confirm the consumer's willingness to pay the amount specified in the payment transaction.
+
+//-
+
+Therefore, a **check-enrollment** request contains a ``requested-amount``. As a general rule, the amount provided in consecutive payment requests, e.g. during an **authorization,** should not exceed the amount provided in the referenced **check-enrollment** by more than what a consumer could reasonably expect. The margin of what is considered reasonable varies from card scheme to card scheme and ranges from 15-20%.
+As a merchant, you are always on the safe side when the originally ``requested-amount`` is not exceeded by 15%.
+
+[NOTE]
+====
+If you exceed the original ``requested-amount``, the transaction may be declined.
+However, not all transactions that exceed the original ``requested-amount`` will fail.
+In those cases, chargeback liability protection will not apply to the same extent as for fully authenticated amounts.
+====
+
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
+
+[#CreditCard_3DS2_Help_Integration]
+==== Updated Integration Guides
+
+Check out our updated integration guides for {payment-page-v2-abbr}:
+
+- <<PaymentPageSolutions_PPv2_HPP_Integration, Hosted Payment Page>>
+- <<PaymentPageSolutions_PPv2_EPP_Integration, Embedded Payment Page>>
+- <<PPv2_Seamless_Integration, Seamless Mode>>
+
+//-
+
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+New fields (NVP) have also been added to our Payment Page documentation:
+
+
+- <<PP_3DSecure, 3D Secure for Payment Page>>
+
+//-
+endif::[]
+endif::[]
+
+[#CreditCard_3DS2_Fields]
+==== New 3D Secure 2 Fields
+
+We provide a full field reference table for 3D Secure 2.
+
+NOTE: We recommend sending optional fields, such as `account-holder` phone numbers and `shipping.address`. If you submit this information, it is more likely that the Issuer authenticates the consumer without requesting <<CreditCard_PSD2_SCA, Strong Customer Authentication>>.
+
+[cols="30m,6,9,7,48a"]
+|===
+|XML |Request |Datatype |Size |Description
+
+|[[CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag]]
+card.merchant-tokenization-flag
+|M
+|Boolean
+|
+|Indicator whether or not a card token is stored on merchant side.
+
+|card.account-type
+|O
+|String
+|2
+a|The type of account, e.g. for a multi-account card product. +
+Possible values: ``01``, ``02``, ``03`` +
+``01`` = Not Applicable. +
+``02`` = Credit. +
+``03``= Debit. +
+Include this field: 
+
+- If you want consumers to select the account type they are using before completing their purchase.
+- For certain markets, e.g. Brazil.
+
+//-
+Otherwise, the field is optional.
+
+|account-holder.account-info.authentication-method
+|O
+|String
+|2
+|Type of consumer login in the merchant's shop. +
+ Possible values: ``01``, ``02``, ``03``, ``04``, ``05``, ``06`` +
+ ``01`` = Guest checkout (i.e. the consumer is not logged in). +
+ ``02`` = Login to the consumer's account in merchant's shop with shop-own authentication credentials. +
+ ``03`` = Login with Federated ID. +
+ ``04`` = Login with card issuer credentials. +
+ ``05`` = Login with third-party authentication. +
+ ``06`` = Login with FIDO authenticator.
+
+|account-holder.account-info.authentication-timestamp
+|O
+|DateTime
+|20
+|Date and time (UTC) of the consumer login in the merchant's shop. Accepted format: ``YYYY-MM-DDThh:mm:ssZ``.
+ For guest checkout, the DateTime is now.
+
+| [[CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator]]
+account-holder.account-info.challenge-indicator
+|O
+|String
+|2
+|Indicates whether a challenge is requested for this transaction. +
+ Possible values: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = No preference. +
+ ``02`` = No challenge requested. +
+ ``03`` = Challenge requested: Merchant Preference. +
+ ``04`` = Challenge requested: Mandate. Must be sent in a first transaction that stores a token
+ (e.g. for one-click checkout, first recurring payment, installments, UCOF).
+
+NOTE: If the element is not provided, the ACS will interpret this as ``01`` = No preference.
+
+|account-holder.account-info.creation-date
+|O
+|Date
+|10
+|Registration date (UTC) of the consumer's account in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|account-holder.account-info.update-date
+|O
+|Date
+|10
+|Date that the consumer last made changes to their account in the merchant's shop. For example,
+ changes to billing and shipping address, new payment account, new email address. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|account-holder.account-info.password-change-date
+|O
+|Date
+|10
+|Date that the consumer last changed/reset their password in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|account-holder.account-info.shipping-address-first-use
+|O
+|Date
+|10
+|Date that the consumer first used this shipping address in the merchant's shop. Accepted format: ``YYYY-MM-DD``.
+ For guest checkout, do not send this field.
+
+|account-holder.account-info.transactions-last-day
+|O
+|Numeric
+|9
+|Number of transactions (successful, failed, and canceled) that the consumer has attempted in the past 24 hours.
+ Does not include merchant-initiated transactions.
+
+|account-holder.account-info.transactions-last-year
+|O
+|Numeric
+|9
+|Number of transactions (successful, failed, and canceled) that the consumer has attempted within the past year.
+ Does not include merchant-initiated transactions.
+
+|account-holder.account-info.card-transactions-last-day
+|O
+|Numeric
+|9
+|Number of cards the consumer has attempted to add to their account in the merchant's shop for card-on-file payments
+ (one-click checkout) in the past 24 hours.
+
+|account-holder.account-info.purchases-last-six-months
+|O
+|Numeric
+|9
+|Number of successful orders by the consumer in the merchant's shop within the past six months.
+
+|account-holder.account-info.suspicious-activity
+|O
+|Boolean
+|
+|Indicates if the merchant knows of suspicious activities by the consumer (e.g. previous fraud).
+
+|account-holder.account-info.card-creation-date
+|O
+|Date
+|10
+|Date that the consumer's card was added to their account in the merchant's shop for card-on-file payments
+ (one-click checkout). Accepted format: ``YYYY-MM-DD``. +
+ For all other types of checkout (e.g. guest checkout, regular checkout, the first transaction with one-click checkout),
+ the date is now.
+
+|account-holder.merchant-crm-id
+|O
+|String
+|64
+|Consumer identifier in the merchant's shop.
+ Requests that contain payment information from the same consumer in the same shop must contain the same string.
+
+|account-holder.address.city
+|M
+|String
+|50
+|City of the consumer's billing address.
+
+
+|account-holder.address.country
+|M
+|String
+|2
+|Country of the consumer's billing address. Format: ISO 3166-1 alpha-2 country code.
+
+|account-holder.address.street1
+|M
+|String
+|50
+|Line 1 of the street address of the consumer's billing address.
+
+|account-holder.address.street2
+|O
+|String
+|50
+a|Line 2 of the street address of the consumer's billing address.
+
+|account-holder.address.street3
+|O
+|String
+|50
+a|Line 3 of the street address of the consumer's billing address.
+
+|account-holder.address.postal-code
+|M
+|String
+|16
+|ZIP/postal code of the consumer's billing address.
+
+|account-holder.address.state
+|O
+|String
+|3
+a|State/province of the consumer's billing address. Accepted format: numeric ISO 3166-2 standard.
+
+|account-holder.email
+|M
+|String
+|256
+|The consumer's email address as given in the merchant's shop.
+
+|account-holder.phone
+|O
+|String
+|18
+a|Home phone number provided by the consumer.
+
+|account-holder.mobile-phone
+|O
+|String
+|18
+a|Mobile phone number provided by the consumer.
+
+|account-holder.work-phone
+|O
+|String
+|18
+|Work phone number provided by the consumer.
+
+|account-holder.first-name
+|M
+|String
+|32
+|The last name provided by the consumer as part of the credit card details.
+
+|account-holder.last-name
+|M
+|String
+|32
+|The last name provided by the consumer as part of the credit card details.
+
+|shipping.address.city
+|O
+|String
+|50
+a|City of the consumer's shipping address. Please provide this field even if billing city is identical.
+
+|shipping.address.country
+|O
+|String
+|2
+a|Country of the consumer's shipping address.
+Please provide this field even if billing country is identical.
+Format: ISO 3166-1 alpha-2 country code.
+
+|shipping.address.street1
+|O
+|String
+|50
+a|Line 1 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping.address.street2
+|O
+|String
+|50
+a|Line 2 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping.address.street3
+|O
+|String
+|50
+a|Line 3 of the street address of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping.address.postal-code
+|O
+|String
+|16
+a|ZIP/postal code of the consumer's shipping address. Please provide this field even if billing address is identical.
+
+|shipping.address.state
+|O
+|String
+|3
+a|State/province of the consumer's shipping address. Accepted format: numeric ISO 3166-2 standard.
+Please provide this field even if billing address is identical.
+
+|shipping.shipping-method
+|O
+|String
+|restriction-based enumeration value
+a|The shipping method chosen by the consumer.
+ Merchants must use the shipping indicator value that applies most accurately to the shipping method. If the consumer checks out two or more items, use the shipping indicator value for physical goods. If all are digital goods, use the shipping indicator value that matches the most expensive item.+
+ Accepted values are:
+
+- ``home_delivery``: Ship to consumer's billing address. +
+- ``verified_address_delivery``: Ship to another address known to and verified by the merchant. +
+- ``other_address_delivery``: Ship to an address that differs from the consumer's billing address. +
+- ``store_pick_up``: "Ship to Store" / Pick-up at local store (store address in shipping address fields). +
+- ``digital_goods``: Digital goods (includes online services, electronic gift cards, and redemption codes). +
+- ``digital_tickets``: Travel and event tickets, not shipped. +
+- ``other_verified``: Other (e.g. gaming, digital services, e-media subscriptions)
+
+|risk-info.delivery-timeframe
+|O
+|String
+|2
+|The approximate delivery time. +
+ Accepted values are: ``01``, ``02``, ``03``, ``04`` +
+ ``01`` = Electronic delivery +
+ ``02`` = Same-day delivery +
+ ``03`` = Overnight delivery +
+ ``04`` = Two-day or more delivery
+
+|risk-info.delivery-mail
+|O
+|String
+|254
+|The consumer's email address used for electronic delivery of digital goods.
+
+|risk-info.reorder-items
+|O
+|String
+|2
+|The consumer has previously ordered the same item.
+ Accepted values are: ``01``, ``02`` +
+ ``01`` = First-time order +
+ ``02`` = Reorder
+
+|risk-info.availability
+|O
+|String
+|2
+|The consumer is placing an order for merchandise that is not yet available and will be released in the future.
+ Accepted values are: ``01``, ``02`` +
+ ``01`` = Currently available +
+ ``02`` = Future availability
+
+|risk-info.preorder-date
+|O
+|Date
+|10
+|Expected shipping date for pre-ordered goods. Accepted format: ``YYYY-MM-DD``.
+
+|risk-info.gift-cards.gift-card@id
+|O
+|Numeric
+|2
+|For prepaid and gift card purchase only. Identifies individual gift cards. Information about up to 10 gift cards can be sent in one request.
+Accepted values range from ``1`` to ``10``.
+
+|risk-info.gift-cards.gift-card.amount
+|O
+|Decimal
+|18,2
+|For prepaid and gift card purchase only. The amount paid with a specific gift card. The field allows decimal values (e.g. 10.50).
+
+|risk-info.gift-cards.gift-card.amount@currency
+|O
+|String
+|3
+|For prepaid and gift card purchase only. The ISO 4217 three-digit currency code of the gift card. 
+
+ifndef::env-nova[]
+|[[CreditCard_3DS2_Fields_PeriodicRecurringExpireDate]]
+periodic.recurring-expire-date
+|O
+|Date
+|10
+|For recurring payments. **Required only for authentication of the first transaction.** Date after which further recurring payments with this card are no longer allowed. Accepted format: ``YYYY-MM-DD``.
+
+|[[CreditCard_3DS2_Fields_PeriodicRecurringFrequency]]
+periodic.recurring-frequency
+|O
+|Numeric
+|4
+|For recurring payments. **Required only for authentication of the first transaction.** Indicates the minimum number of days between individual authorizations.
+
+|[[CreditCard_3DS2_Fields_Periodic_NumberOfInstallments]]
+periodic.number-of-installments
+|O
+|Numeric
+|3
+|For installment payments. **Required only for authentication of the first transaction.** Indicates the maximum number of authorizations permitted for installment payments.
+endif::[]
+
+|iso-transaction-type
+|O
+|String
+|2
+|Identifies the transaction type. The values are derived from ISO 8583.
+ Accepted values are: ``01``, ``03``, ``10``, ``11``, ``28`` +
+ ``01`` = Goods/Service Purchase +
+ ``03`` = Check Acceptance +
+ ``10`` = Account Funding +
+ ``11`` = Quasi-Cash Transaction +
+ ``28`` = Prepaid Activation and Load
+
+|browser.accept
+|O
+|String
+|2048
+|This is the HTTP Accept Header as retrieved from the consumer’s browser in the HTTP request. If the string is longer than 2048, it must be truncated. It is strongly recommended to provide this field to prevent rejection from the ACS server.
+
+|browser.user-agent
+|O
+|String
+|256
+|This is the User Agent as retrieved from the consumer’s browser in the HTTP request. If it is longer than 256 bytes it must be truncated. It is strongly recommended to provide this field to prevent rejection from the ACS server.
+
+|browser.java-enabled
+|O
+|Boolean
+|
+|Boolean that represents the ability of the cardholder browser to execute Java. +
+ Value is returned from the ``navigator.javaEnabled`` property.
+
+|browser.language
+|O
+|String
+|8
+|Value representing the browser language as defined in IETF BCP47. The value is limited to 1-8 characters. +
+ Value is returned from ``navigator.language`` property.
+
+|browser.color-depth
+|O
+|Numeric
+|2
+|Value representing the bit depth of the color palette for displaying images, in bits per pixel. Obtained
+ from consumer browser using the ``screen.colorDepth`` property. + 
+ Accepted values are: ``1``, ``4``, ``8``, ``15``, ``16``, ``24``, ``32``, ``48``
+
+|browser.screen-resolution
+|O
+|String
+|12
+|Total height and width of the consumer's screen in pixels. Value is returned from the ``screen.height`` and ``screen.width`` properties.
+
+|browser.challenge-window-size
+|O
+|String
+|2
+|Dimensions of the challenge window as displayed to the
+consumer. The ACS replies with content that is formatted to
+correctly render in this window to provide the best possible user
+experience. +
+Preconfigured sizes are width X height in pixels of the window
+displayed in the consumer's browser window. This is used only to prepare
+the _CReq_ request and it is not part of the _AReq_ flow. If not present, it
+will be omitted. +
+Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
+``01`` = 250 x 400 +
+``02`` = 390 x 400 +
+``03`` = 500 x 600 +
+``04`` = 600 x 400 +
+``05`` = Full screen
+
+| [[CreditCard_3DS2_Fields_ThreeD_Version]]
+ three-d.version
+|O
+|String
+|5
+|Identifies the version of 3D Secure authentication used for the transaction.
+Accepted values are: ``1.0``, or ``2.1``. If the version is not entered in the request, the field defaults to ``1.0``.
+
+|three-d.ds-transaction-id
+|O
+|String
+|36
+|Unique transaction identifier assigned by the Directory Server to identify a single transaction.
+Required for external 3D Secure servers not provided by {payment-provider-name}. Format: see IETF RFC 4122.
+
+|three-d.riid
+|O
+|String
+|2
+|For 3D Secure 2.2. Indicates the type of 3RI request. +
+Accepted values are: ``01``, ``02``, ``03``, ``04``, ``05`` +
+``01`` = Recurring transaction +
+``02`` = Installment transaction +
+``03`` = Add card +
+``04`` = Maintain card information +
+``05`` = Account
+|===
+
+//-

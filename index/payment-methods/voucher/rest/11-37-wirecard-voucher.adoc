@@ -1,0 +1,243 @@
+[#WirecardVoucher]
+== REST API & {payment-page-v1}/v2
+_Wirecard Voucher_ is a type of <<PaymentMethods_PaymentMode_Voucher, voucher>> payment.
+
+[#WirecardVoucher_GeneralInformation_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | Please contact <<ContactUs, Merchant Support>> for Countries. 
+| Currencies   | EUR
+|===
+
+[#WirecardVoucher_GeneralInformation_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _Wirecard Voucher_ notifications are encoded
+and which formats and methods can be used for requests and responses.
+
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format  | XML
+                         | Methods | POST
+
+h|IPN Encodement       2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+
+[#WirecardVoucher_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details look at <<AppendixB,  Transaction Types>>.
+
+[cols="20e, 60, 20"]
+|===
+| Transaction Type | Description | Link to the Samples
+
+| purchase | Redeem voucher. |See <<WirecardVoucher_Samples_Purchase, _purchase_ samples>>
+| void-purchase |Action to undo purchase against Voucher API.
+Configurable on merchant level. |
+| reserve | Reservation of amount for redemption. | See <<WirecardVoucher_Samples_Reserve, _reserve_ samples>>
+| void-reserve | Cancellation of not confirmed redemption reservation.
+If redemption was already confirmed, reversal needs to be used. |
+| redeem | Confirmation of reservation redemption. After confirmation,
+amount is subtracted from total voucher amount. |See <<WirecardVoucher_Samples_Redeem, _redeem_ samples>>
+| cancel-redeem | Cancellation of confirmed redemption. Amount of
+voucher is returned to value without redemption. If voucher has been
+``REDEEMED``, it is returned to ``IN_USE`` state. |
+| void-cancel-redeem | Rollback of redemption reversal. Voucher's
+redemption value and state is set back to the original redemption's state. |
+|===
+
+
+[#WirecardVoucher_TestCredentials]
+=== Test Credentials
+
+[cols="30h, 70"]
+|===
+ifndef::env-nova[]
+| URLs (Endpoints) |``\https://{test-instance-hostname}/engine/rest/payments/``
+endif::[]
+ifdef::env-nova[]
+h|URL (Endpoint) |``\https://payments-test.wirecard.com/ee/rest/payments``
+endif::[]
+| Merchant Account ID (MAID) | 7b14cf26-44ae-4bf2-a180-044ac03ff9f6
+| Username         | 16390-testing
+| Password         | 3!3013=D3fD8X7
+| Secret Key       | 82e791c-0e68-4a5a-b178-8f9a7f3c7ba8
+|===
+
+[#WirecardVoucher_TestCredentials_AdditionalTestCredentials]
+==== Additional Test Credentials on _Wirecard Voucher_ Environment
+
+[cols="30h, 70"]
+|===
+| Voucher Brand | testmerchant
+| Voucher Code for Test | TESTM49499486680, 9.000 EUR, not reloadable, please use small amounts.
+|===
+
+[#WirecardVoucher_Workflow]
+=== Workflow
+
+image::images/11-37-wirecard-voucher/WirecardVoucher_Workflow.png[Wirecard Voucher Workflow]
+
+[#WirecardVoucher_Fields]
+=== Fields
+
+Payment fields required for the _Wirecard Voucher_ are the same fields as
+the <<RestApi_Fields, REST API Fields>>. Additionally, voucher element should
+be present.
+
+The following elements are either mandatory (M), optional (O) or
+conditional \(C) in a transaction process.
+
+[cols="v,,,,,,"]
+|===
+| Field               | Request | Response | Notification | Data Type    | Size | Description
+
+| voucher-code        | M       | M        | M            | Alphanumeric | 36   | Code for payment and voucher processing.
+| voucher-brand-id    | M       | M        | M            | Alphanumeric | 255  | Brand of voucher.
+| voucher-token-id    | O       | O        | O            | Alphanumeric | 255  | Redemption token as returned from ``REDEMPTION_RESERVATION``.
+| voucher-description | O       | O        | O            | Alphanumeric | 255  | Used as operational comment.
+| alternative-amount  | O       | O        | O            | Numeric      |      | Used for merchant specific currencies (bonuses, km, etc.).
+| serial-number       | O       | O        | O            | Alphanumeric | 255  | Code for support and voucher identification.
+|===
+
+WARNING: The ``payments/payment/additional-merchant-data``
+field is used along with the voucher type to send ``keyValuePairs`` to the
+Voucher API. Its value is Base64 encoded.
+
+Part of the request
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/WirecardVoucherFields.xml[]
+----
+
+will be sent to Voucher API as
+
+[source,subs=attributes+]
+----
+"keyValuePairs": "ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiDQp9"
+----
+
+Decode from Base64 ``ew0KInh5eiI6ICIxMjMiLA0KImFiYyI6ICI0NTYiDQp9``
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WirecardVoucherFields.json[]
+----
+
+[#WirecardVoucher_Samples]
+=== Samples
+
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>> if you want
+to see corresponding notification samples.
+
+[#WirecardVoucher_Samples_Purchase]
+==== _purchase_
+
+.XML purchase Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_purchase_request_success.xml[]
+----
+
+.XML purchase Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_purchase_response_success.xml[]
+----
+
+.XML void-purchase Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/WirecardVoucherSamplesPurchase_VoidPurchaseRequestSuccessful.xml[]
+----
+
+.XML void-purchase Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_void-purchase_response_success_d424b4b8.xml[]
+----
+
+[#WirecardVoucher_Samples_Reserve]
+==== _reserve_
+
+.XML reserve Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_reserve_request_success.xml[]
+----
+
+.XML reserve Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_reserve_response_success.xml[]
+----
+
+.XML void-reserve Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/WirecardVoucherSamplesReserve_VoidReserveRequestSuccessful.xml[]
+----
+
+.XML void-reserve Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_void-reserve_response_success_83666ab6.xml[]
+----
+
+[#WirecardVoucher_Samples_Redeem]
+==== _redeem_
+
+.XML redeem Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_redeem_request_success.xml[]
+----
+
+.XML redeem Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_redeem_response_success.xml[]
+----
+
+.XML cancel-redeem Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/WirecardVoucherSamplesRedeem_CancelRedeemRequestSuccessful.xml[]
+----
+
+.XML cancel-redeem Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_cancel-redeem_response_success_2bf67fc0.xml[]
+----
+
+.XML void-cancel-redeem Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/WirecardVoucherSamplesRedeem_VoidCancelRedeemRequestSuccessful.xml[]
+----
+
+.XML void-cancel-redeem Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/voucher_void-cancel-redeem_response_success_75bd223e.xml[]
+----
+
+//-

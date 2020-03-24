@@ -1,0 +1,264 @@
+[#GeneralPlatformFeatures_IPN]
+== Instant Payment Notification
+
+[#GeneralPlatformFeatures_IPN_Introduction]
+
+The {payment-gateway} has a built-in _notification_ capability.
+An _Instant Payment Notification_ (IPN) informs the merchant about the
+final status of a transaction.
+
+There are two types of notifications:
+
+- *HTTP(S)* (Web Server POST)
+- *SMTP* (Email prefixed with 'mailto')
+//-
+
+The following formats are currently supported:
+
+- application/x-www-form-urlencoded
+- application/xml
+- application/json
+- application/json-signed
+//-
+
+[#GeneralPlatformFeatures_IPN_Configuration]
+=== Configuration
+
+When the merchant wants to receive a notification, he can either
+
+- specify a URL as part the merchant account setup; or
+- include either an email address or a URL as part of each transaction
+request
+//-
+
+[NOTE]
+====
+- The definition of URL and format type in the transaction request
+overwrites the configured definition in the merchant account setup.
+- Only those notifications sent via URL contain a signature.
+====
+
+For request based IPN configuration, the request should contain the IPN
+notifications element.
+
+[WARNING]
+====
+- Please note that configuring an IPN is not a Mandatory setup but
+recommended.
+- In case a notification address has changed, it is the responsibility
+of the merchant
+* to keep the address up to date
+* to request a Firewall Change Request on the merchant's system so that
+the firewall will accept the new address. The new notification addresses
+can be called up at our <<ContactUs, Merchant Support>>.
+- The IPN is using XML Digital Signatures, as defined here:
+https://www.w3.org/TR/xmldsig-core/
+* The possibility of using this is already integrated in Java as
+described here:
+https://docs.oracle.com/javase/8/docs/technotes/guides/security/xmldsig/XMLDigitalSignature.html
+* Oracle also provides a sample code in Java to validate a signed XML
+here:
+https://docs.oracle.com/javase/8/docs/technotes/guides/security/xmldsig/Validate.java
+====
+
+
+[NOTE]
+====
+In case there is no format specified in the request then the format
+specified in the merchant configuration is used.
+ifdef::env-wirecard[]
+If there is no IPN
+format in the configuration then NVP response is used for <<PP_RedirectUrlsIPNs, HPP/EPP requests>> or
+application/xml for others by default.
+endif::[]
+Be aware that just *one* notification format can be set for all
+notifications sent to the specified URLs.
+====
+
+[#GeneralPlatformFeatures_IPN_Json]
+==== Request a Notification in JSON Format
+
+The following example shows how the {payment-gateway} can be
+configured to send notifications as JSON format:
+
+.Signed JSON Notifications
+NOTE: To request an ``application/json-signed`` notification, switch the
+format value. Compared to the default JSON notification, signed
+notifications are base64 encoded and include a security signature: this
+means you can verify that the notification comes from {payment-provider-name}, but need
+to decode it before you can see its content.
+
+``<notifications format="application/json>``
+
+
+.XML Request (determines notification in JSON format)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/generic_debit_notification__96ffdc.xml[]
+----
+
+The notification will look like this:
+
+.JSON Notification
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeatures_IPN_Json_JSON_Notification.json[]
+----
+
+.application/JSON-signed Notification Example
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/GeneralPlatformFeatures_IPN_Json_applicationJSONSignedNotificationExample.json[]
+----
+
+.Verifying the Notification Signature
+
+To verify a signed notification, check the signature data against the
+Secret Key you received during merchant configuration:
+
+[source, java]
+----
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
+
+...
+
+private String merchantSecretKey = "merchantSecretKey";
+
+public boolean isValidSignature(String responseBase64, String responseBase64Signature, String responseSignatureAlgorithm) throws Exception {
+    Mac mac = Mac.getInstance(responseSignatureAlgorithm);
+    mac.init(new SecretKeySpec(merchantSecretKey.getBytes("UTF-8"), responseSignatureAlgorithm));
+    return responseBase64Signature != null && responseBase64Signature.equals(DatatypeConverter.printBase64Binary(mac.doFinal(responseBase64.getBytes("UTF-8"))));
+}
+----
+
+[#GeneralPlatformFeatures_IPN_Html]
+==== Request a Notification in HTML Format
+
+``<notifications format="application/html">``
+
+image:images/08-general-platform-features/HTML-Notification.png[HTML Notification]
+
+[#GeneralPlatformFeatures_IPN_Xml]
+==== Request a Notification in XML Format
+
+``<notifications format="application/xml">``
+
+
+.Notification in XML Format
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/creditcard_purchase_notification_.xml[]
+----
+
+It is possible to set up conditional notifications based on the state of
+the transaction.  For example, it is possible to instruct a notification
+to only occur on 'failed' or 'successful' transactions.
+
+[cols="10,10,10,10,50"]
+|===
+|Notification Type  | Notification Tag in Request     | Possible Extensions of URL  | Ports         | Possible Extensions of ``transaction-state``
+
+|HTTP(S)            | ``URL``, ``transaction-state``  | any configured URL          | 80, 443, 5500 | if _URL_ <> empty and _`transaction-state`_ = empty all notifications go to that URL or if _URL_ <> empty and _`transaction-state`_ <> empty depending on the _transaction-state_ (success, failed, in-progress, etc) the notification goes to the corresponding _URL_.
+|SMTP               | ``URL``, ``transaction-state``  |                             |               | if _URL_ <> empty and ``transaction-state`` = empty all notifications go to that URL (Email address prefixed with 'mailto'). OR if _URL_ <> empty and ``transaction-state`` <> empty depending on the ``transaction-state`` (success, failed, in-progress, etc) the notification goes to the corresponding _URL_ (Email address prefixed with 'mailto').
+|===
+
+
+
+A request, which defines a URL to be used, when the payment process will fail:
+
+.XML Request with different URL for failed transactions
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/generic_debit_request__edeec5.xml[]
+----
+
+[#GeneralPlatformFeatures_IPN_NotificationExamples]
+==== Notification Examples
+
+.Credit Card Payment
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeatures_IPN_NotificationExamples_CreditCardPayment.xml[]
+----
+
+ifdef::env-wirecard[]
+
+.Alternative Payment Methods
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/generic_debit_notification__596c76.xml[]
+----
+
+NOTE: Note that the "amount" value for some alternative payment notifications
+contains 6 minor digits.
+endif::[]
+
+[#GeneralPlatformFeatures_IPN_Content]
+=== Content of the Notification
+
+The content of the notification depends on the status of the response
+{payment-gateway} receives from the provider.
+
+|===
+|{payment-gateway-abbr} receives... |{payment-gateway-abbr} sends notification:...
+
+|a successful response
+|_Success_ <<StatusCodes, Return Code and Transaction Status>>
+
+|a failure response
+|_Failure_ <<StatusCodes, Return Code and Transaction Status>>
+
+|a timeout from provider |_Failure_ with error code (e.g. 500.1051)
+
+|no info from provider |_Failure_ with error code 500.1052, if {payment-gateway-abbr} runs
+in its internal timeout
+|===
+
+Credit Card IPNs are not encoded and non Credit Card IPNs are mostly
+Base64 encoded, but there are variations possible. The variations depend
+on the payment methods.
+
+For each notification type it is possible to add more than one
+recipient. Copy the tag and add a different URL.
+
+In the following example, the transaction will notify the merchant's
+site for a failed transaction and send all results to an email address.
+
+[#GeneralPlatformFeatures_IPN_Transaction]
+==== Notification Transaction Types
+
+The table below defines the expected transaction type in the
+notification after a specific request/response.
+[%autowidth]
+|===
+|Request/Response Transaction Type |Possible Notification Transaction Type
+
+|authorization |deposit
+|get-url |debit, debit-return
+|pending-credit |credit, credit-return, deposit
+|pending-debit |debit, debit-return, deposit
+|refund-request |refund-debit
+|===
+
+
+[#GeneralPlatformFeatures_IPN_Delay]
+=== Notification Delay
+
+In some cases the {payment-gateway} ({payment-gateway-abbr}) may send a delayed
+IPN.
+
+This may occur due to one of the following reasons:
+
+- Some payment method providers have longer processing periods than
+others
+- Communication delays caused by:
+* downtime of the provider's system
+* a workflow which has a fixed waiting time, at the {payment-gateway} as well as the provider.
+* the merchant has sent an incorrect ID. In that case {payment-gateway} will send a 404 message, stating that the transaction is not
+available.
+
+//-

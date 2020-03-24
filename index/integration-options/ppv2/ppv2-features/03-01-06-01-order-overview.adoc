@@ -1,0 +1,106 @@
+
+[#PPv2_Features_OrderOverview]
+
+== Order Overview
+
+image::images/03-01-06-01-order-overview/ShoppingCartDetails_OrderOverview.jpg[float=right, width=350, Show Shopping Cart Details]
+
+Providing shopping cart details within the payment page enhances your
+customer experience because consumers are more likely to feel confident
+with the purchase. {payment-page-v2-abbr} features an order overview, toggled on and off
+using a single variable. Whereas most payment pages only show the order
+total, but not the specific items, {payment-page-v2-abbr} offers both.
+
+This helps with a number of situations merchants face:
+
+* Avoiding abandoned shopping carts because customers are unsure what
+they are paying for
+* Postponed payments (concert reservations, football tickets, etc.),
+where it is easy to forget what one ordered weeks or even months before
+* Important & "quality of life" information (flight/train numbers, trip
+time, etc.) and more
+
+//-
+
+[NOTE]
+.To enable order overview for a payment:
+====
+Add the ``order-overview`` field to the payment request and set its
+value to ``true``.
+====
+
+
+[cols="v,v,,,"]
+[%autowidth]
+|===
+|Field (NVP) | Field (JSON) | Data Type | JSON Parent | Description
+
+| wpp_options_order_overview | ``order-overview`` | Boolean | options (\{ }) | Indicates whether order items are shown on the payment form.
+|===
+
+[cols="a,a", %autowidth, frame="none", grid="none"]
+|===
+a| .Example Request w/ order-overview (``order-overview`` is at the end under ``options``)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_FeaturesOrderOverview_ToEnableOrderOverviewForAPayment.json[]
+----
+|
+ifdef::env-wirecard[]
+image:images/03-01-06-01-order-overview/Moebelland_OrderOverview.png[float=right, Sample Request]
+endif::[]
+
+//We should probably redesign this table, if we want to exclude this screenshot.
+//A "half page column" doesn't make sense...
+
+|===
+
+The default value for ``order-overview`` is ``false``. You can also enable
+order overview as a theme option in Payment Page Designer.
+
+[#PPv2_Features_OrderOverview_DetailingOrderItems]
+=== Detailing Order Items
+
+The above shows how to enable the order overview, but not how to record
+the actual order items in the request.
+
+See the examples below for NVP & JSON code samples for an order of 10
+notebooks and 5 sets of colored pencils. All fields related to order
+items are optional, so it is up to you which ones you include (or leave
+out).
+
+[cols="a,a", %autowidth, frame="none", grid="none"]
+|===
+a| .NVP Example For Detailing Order Items
+[source,subs=attributes+]
+----
+"orderItems[0].id": "itm01",
+"orderItems[0].name": "Notebook",
+"orderItems[0].description": "A simple notebook",
+"orderItems[0].articleNumber": "123",
+"orderItems[0].amount.value": "1",
+"orderItems[0].amount.currency": "EUR",
+"orderItems[0].taxRate": "19",
+"orderItems[0].quantity": "10",
+"orderItems[1].id": "itm02",
+"orderItems[1].name": "Colored Pencils",
+"orderItems[1].description": "A set of colored pencils",
+"orderItems[1].articleNumber": "456",
+"orderItems[1].amount.value": "2.5",
+"orderItems[1].amount.currency": "EUR",
+"orderItems[1].taxRate": "19",
+"orderItems[1].quantity": "5"
+----
+
+.JSON Example For Detailing Order Items
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_FeaturesOrderOverviewDetailingOrderItems_JSON_ExampleForDetailingOrderItems.json[]
+----
+|
+// ifdef::env-wirecard[]
+image:images/03-01-06-01-order-overview/demoshop_OrderOverview.png[float=right, Detailing Order Items]
+// endif::[]
+|===

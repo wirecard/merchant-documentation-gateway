@@ -1,0 +1,197 @@
+//:payment-method-name: Klarna
+
+[#KlarnaV2]
+== REST API
+
+[#KlarnaV2_Introduction]
+_Klarna Payments_ offers 3 payment options: 
+
+* **Pay now** +
+    ** direct debit (payment-method name: ``klarna-debit``)
+    ** bank transfer (payment-method name: ``klarna-transfer``)
+    ** Type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+* **Pay later**
+    ** payment-method name: ``klarna-paylater``
+    ** Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+* **Financing (Slice it)** +
+    ** payment-method name: ``klarna-finance``
+    ** Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+//-
+
+_Klarna_ takes full credit and fraud risk and guarantees payments.
+
+NOTE: _Klarna_ accepts only physical persons as consumers.
+
+[#KlarnaV2_CountriesCurrencies]
+=== Countries and Currencies
+
+[width=75%,cols="h,",stripes=none]
+[cols="1h,5"]
+|===
+|Countries |Austria, Denmark, Finland, Germany, Netherlands, Norway, Sweden, Switzerland, UK
+|Currencies | CHF, DKK, EUR, GBP, NOK, SEK
+|===
+
+[#KlarnaV2_CountriesProductMatrix]
+==== Product Availability
+[width=75%,cols="h,",stripes=none]
+[cols="1,2"]
+|===
+|Country |Available Payment Options
+
+|Austria
+|Pay now, Pay later
+|Denmark
+|Pay now, Pay later, Financing (Slice it)
+|Finland
+|Pay now, Pay later, Financing (Slice it)
+|Germany
+|Pay now, Pay later, Financing (Slice it)
+|Netherlands
+|Pay now, Pay later
+|Norway	
+|Pay now, Pay later, Financing (Slice it)
+|Sweden	
+|Pay now, Pay later, Financing (Slice it)
+|Switzerland
+|Pay now, Pay later
+|UK	
+|Pay now, Pay later, Financing (Slice it)
+|===
+
+[#KlarnaV2_Locales]
+==== Supported Country/Currency/Locale Combinations
+
+[width=75%,cols="h,",stripes=none]
+[cols="4,1,3"]
+|===
+|Country of Consumer's Address |Currency |Locale 
+
+|AT
+|EUR
+|de-at, en-at
+|CH
+|CHF
+|de-ch, fr-ch, it-ch, en-ch
+|DK
+|DKK
+|da-dk, en-dk
+|DE
+|EUR
+|de-de, en-de
+|FI
+|EUR
+|fi-fi, sv-fi, en-fi
+|GB
+|GBP
+|en-gb
+|NL
+|EUR
+|nl-nl, en-nl
+|NO
+|NOK
+|nb-no, en-no
+|SE
+|SEK
+|sv-se, en-se
+|===
+
+[#KlarnaV2_CommunicationFormats]
+=== Communication Formats
+
+This table illustrates how _Klarna Pay Now_, _Pay Later_ and _Financing (Slice it)_
+notifications are encoded and which formats and methods can be used for
+requests and responses.
+
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format   | XML, JSON
+                         | Methods  | POST, GET
+   h| IPN Encodement   2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#KlarnaV2_TestCredentials]
+=== Test Credentials
+
+[%autowidth,cols=",,"]
+|===
+.2+s| URLs (Endpoints)    | for transaction type __authorization__
+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+a| for transaction types 
+
+* __adjust-authorization__ 
+* __void-authorization__ 
+* __capture-authorization__ 
+* __refund-capture__ 
+//* __adjust-capture__
+
+//-
+
+| ``\https://{test-instance-hostname}/engine/rest/payments/``
+2+s| Merchant Account ID (MAID) | f570c123-62f1-4a0d-8688-d999a05d50d4
+2+s| Username            | 16390-testing
+2+s| Password            | 3!3013=D3fD8X7
+2+s| Secret Key          | 0fb50d2c-8ab5-4d53-ac69-b707b1319148
+|===
+
+[#KlarnaV2_TransactionTypes]
+=== Transaction Types
+
+Transaction types available for _Klarna Pay now_, _Pay later_, _Financing (Slice it)_:
+
+[%autowidth]
+|===
+|Transaction Type |Description |Link to Fields/Samples
+
+|<<Klarnav2_TransactionTypes_authorization, _authorization_>> |Performs an order risk check and an order reservation. Once an order is reserved, the payment is guaranteed.
+|<<KlarnaV2_TransactionTypes_authorization_Fields, _authorization_{nbsp}fields>> +
+<<KlarnaV2_TransactionTypes_authorization_Samples, _authorization_{nbsp}samples>>
+
+|<<Klarnav2_TransactionTypes_adjustAuthorization, _adjust-authorization_>> |Updates/adds additional information to a preceding authorization. You can only adjust authorizations that have not yet been captured.
+|<<KlarnaV2_TransactionTypes_adjustAuthorization_Fields, _adjust&#8209;authorization_{nbsp}fields>> +
+<<KlarnaV2_TransactionTypes_adjustAuthorization_Samples, _adjust&#8209;authorization_{nbsp}samples>>
+
+|<<KlarnaV2_TransactionTypes_voidAuthorization, _void-authorization_>> |Cancels a total order amount or a partial order amount that has not been captured before.
+Once canceled, no further operations on the order are possible.
+|<<KlarnaV2_TransactionTypes_voidAuthorization_Fields, _void&#8209;authorization_{nbsp}fields>> +
+<<KlarnaV2_TransactionTypes_voidAuthorization_Samples, _void&#8209;authorization_{nbsp}samples>>
+
+|<<KlarnaV2_TransactionTypes_captureAuthorization, _capture-authorization_>> |Full or partial capture of a reserved
+order. Once captured, the invoice is generated and sent to the
+consumer. _Klarna_ pays the order amount to you according to the agreed billing period.
+|<<KlarnaV2_TransactionTypes_captureAuthorization_Fields, _capture&#8209;authorization_{nbsp}fields>> +
+<<KlarnaV2_TransactionTypes_captureAuthorization_Samples, _capture&#8209;authorization_{nbsp}samples>>
+
+|<<KlarnaV2_TransactionTypes_refundCapture, _refund-capture_>> |Full or partial refund of a captured order amount.
+|<<KlarnaV2_TransactionTypes_refundCapture_Fields, _refund&#8209;capture_{nbsp}fields>> +
+<<KlarnaV2_TransactionTypes_refundCapture_Samples, _refund&#8209;capture_{nbsp}samples>>
+
+|===
+
+
+//|<<KlarnaV2_TransactionTypes_adjustCapture, _adjust-capture_>> |Updates/adds shipping/tracking information to an existing capture.
+//|<<KlarnaV2_TransactionTypes_adjustCapture_Fields, _adjust&#8209;capture_ fields>>
+
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-01-klarna-v2-authorization.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-02-klarna-v2-adjust-authorization.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-03-klarna-v2-void-authorization.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-04-klarna-v2-capture-authorization.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-05-klarna-v2-refund-capture.adoc[]
+
+
+[#Klarnav2_phoneNumberValidation]
+=== Phone Number Validation
+
+include::{root}/include/Klarna-phoneNumberValidation.adoc[]
+
+---
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, see <<AppendixB, Appendix B: Transaction Types>>.
+
+//-

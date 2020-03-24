@@ -1,0 +1,510 @@
+//:env-nova:
+//:env-wirecard:
+
+[#RestApi_Fields]
+== Fields
+
+These fields are used with _{payment-gateway}_
+REST API. 
+They are mandatory (*M*) or optional (*O*) in a request. Fields that show only in the response are marked accordingly.
+
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+Please refer to the <<Appendix_Xml, XSD>> for details about the field's value range.
+endif::[]
+endif::[]
+
+NOTE: Field values must not contain ``&``, ``<``, ``>``.
+
+
+[#RestApi_Fields_sub]
+===  Request and Response Fields
+//This heading is redundant. I just didn't know how to hide it. Please do if you know how to.
+
+
+[#API_Fields_xmlelements_payment]
+==== payment
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+include::{root}/include/fields/rest_cc/request/req-payment.adoc[]
+
+ifdef::env-wirecard,env-nova[]
+| creditor-id
+| O
+|	String
+| 256
+|	The merchant's creditor ID  allowing the merchant to process SEPA Direct Debit transactions. +
+Allowed characters: ``[a-zA-Z]\{2,2}[0-9]\{2,2}[a-zA-Z0-9]\{3,3}[a-zA-Z0-9]\{1,28}``
+endif::[]
+
+| redirect-url 
+| M/O 
+| String 
+| 256 
+| The URL to which the consumer is redirected after completion of a payment regardless of the transaction state. This is normally a page on the merchant's website. 
+ifdef::env-wirecard,env-nova[]
+[NOTE]
+``redirect-url`` is optional if the payment method is not based on a redirect (e.g. SEPA).
+endif::[]
+
+include::{root}/include/fields/api/response/res-api-payment.adoc[]
+
+//include::{root}/include/fields/rest_cc/request/req-payment-parents.adoc[]
+
+|===
+
+
+[#API_Fields_xmlelements_accountholder]
+==== account-holder
+
+``account-holder`` specifies detailed information about the consumer. ``account-holder`` fields are mainly **O**ptional. However, we recommend that you include all ``account-holder`` data in your request to facilitate fraud prevention.
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+include::{root}/include/fields/rest_cc/request/req-account-holder.adoc[]
+
+|===
+
+[#API_Fields_xmlelements_accountinfo]
+==== account-holder.account-info
+
+``account-info`` fields are used with 3D Secure 2. With ``account-info`` you can gather detailed information about the consumer. Provide all the ``account-info`` data in your 3D Secure 2 request to facilitate fraud prevention.
+
+include::{root}/include/fields/rest_cc/request/req-account-info.adoc[]
+
+
+[#API_Fields_xmlelements_address]
+==== address
+
+``address`` is a child of
+
+* <<API_Fields_xmlelements_accountholder, account-holder>>.
+* <<API_Fields_xmlelements_shipping, shipping>>.
+ifndef::env-nova[]
+* <<API_Fields_xmlelements_airline, airline-industry>>. 
+endif::[]
+
+//-
+It is used to specify the consumer's address and can refer to
+
+- the consumer (for ``account-holder``). The account holder's address is used as the billing address.
+- the consumer's shipping address (for ``shipping``). For 3D Secure 2 transactions it is highly recommended to send ``shipping.address`` data in any case, as a complete set of ``shipping.address`` data reduces the likelihood of a challenge test.
+ifndef::env-nova[]
+- the ticket issuer (for ``airline-industry``).
+endif::[]
+
+//-
+Data can be provided optionally but it helps with fraud checks if ``address`` is complete.
+
+include::{root}/include/fields/rest_cc/request/req-address.adoc[]
+
+
+[#API_Fields_xmlelements_bankAccount]
+==== bank-account
+
+include::{root}/include/fields/api/request/req-bankAccount.adoc[]
+
+
+[#API_Fields_xmlelements_browser]
+==== browser
+
+include::{root}/include/fields/rest_cc/request/req-browser.adoc[]
+
+
+[#API_Fields_xmlelements_card]
+==== card
+
+include::{root}/include/fields/api/request/req-card.adoc[]
+
+
+[#API_Fields_xmlelements_cardToken]
+==== card-token
+
+include::{root}/include/fields/rest_cc/request/req-card-token.adoc[]
+
+
+[#API_Fields_xmlelements_cryptogram]
+==== cryptogram
+
+include::{root}/include/fields/api/request/req-cryptogram.adoc[]
+
+
+[#API_Fields_xmlelements_customFields]
+==== custom-fields.custom-field
+
+include::{root}/include/fields/rest_cc/request/req-custom-field.adoc[]
+
+
+[#API_Fields_xmlelements_device]
+==== device
+
+include::{root}/include/fields/rest_cc/request/req-device.adoc[]
+
+
+// [#API_Fields_xmlelements_device_renderOptions]
+// ==== device.render-options
+
+// include::{root}/include/fields/api/request/req-device-renderOptions.adoc[]
+
+
+// [#API_Fields_xmlelements_device-SDK]
+// ==== device.SDK
+
+// include::{root}/include/fields/api/request/req-device-SDK.adoc[]
+
+
+[#API_Fields_xmlelements_mandate]
+==== mandate
+
+include::{root}/include/fields/api/request/req-mandate.adoc[]
+
+
+[#API_Fields_xmlelements_notification]
+==== notifications.notification
+
+include::{root}/include/fields/rest_cc/request/req-notification.adoc[]
+
+
+[#API_Fields_xmlelements_orderItem]
+==== order-items.order-item
+
+include::{root}/include/fields/api/request/req-orderItem.adoc[]
+
+
+[#API_Fields_xmlelements_paymentmethod]
+==== payment-methods.payment-method
+
+include::{root}/include/fields/rest_cc/request/req-payment-method.adoc[]
+
+
+[#API_Fields_xmlelements_periodic]
+==== periodic
+
+include::{root}/include/fields/rest_cc/request/req-periodic.adoc[]
+
+
+[#API_Fields_xmlelements_riskInfo]
+==== risk-info
+
+include::{root}/include/fields/rest_cc/request/req-risk-info.adoc[]
+
+
+[#API_Fields_xmlelements_giftCard]
+==== risk-info.gift-cards.gift-card
+
+include::{root}/include/fields/rest_cc/request/req-risk-info-gift-cards.adoc[]
+
+
+[#API_Fields_xmlelements_shipping]
+==== shipping
+
+``shipping`` is a child of
+<<API_Fields_xmlelements_payment, payment>>.
+For 3D Secure 2 transactions it is highly recommended to send ``shipping`` data in any case, as a complete set of ``shipping`` data reduces the likelihood of a challenge.
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+include::{root}/include/fields/rest_cc/request/req-shipping.adoc[]
+
+ifndef::env-nova[]
+* ``own_delivery``: Goods are sent directly to the consumer's shipping address via your own delivery service.
+* ``registered_box``: Goods are sent to a delivery box where the consumer needs to be registered to pick them up, e.g. DHL Packstation.
+* ``unregistered_box``: Goods are sent to a delivery box where the consumer does not need to be registered to pick them up, e.g. Itella smartpost, Hermes PaketShop.
+* ``pick_up_point``: Goods are sent to a manned pick-up point by an external shipping company. External personnel hands over goods to the consumer.
+
+//-
+endif::[]
+|===
+
+
+ifndef::env-nova[]
+[#API_Fields_xmlelements_surcharge]
+==== surcharge
+
+include::{root}/include/fields/api/response/res-surcharge.adoc[]
+endif::[]
+
+
+[#API_Fields_xmlelements_status]
+==== statuses.status
+
+include::{root}/include/fields/api/response/res-status.adoc[]
+
+
+[#API_Fields_xmlelements_3D]
+==== three-d
+
+[%autowidth]
+[cols="m,,,,"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+include::{root}/include/fields/rest_cc/request/req-three-d.adoc[]
+
+ifndef::env-nova[]
+| liability-shift-indicator
+| Response only
+| String 
+| 2048 
+| Liability shift can be enabled for 3D Secure consumers.
+endif::[]
+|===
+
+
+ifndef::env-nova[]
+
+[#API_Fields_xmlelements_airline]
+==== airline-industry
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+| airline-code | O | String | 3 | The airline code assigned by IATA.
+| airline-name	| O	| String	| 64 | Name of the airline.
+| passenger-code	| O	| String	| 10 | The file key of the passenger name record (PNR). This information is mandatory for transactions with AirPlus UATP cards.
+| passenger-name	| O	| String	| 64 | The name of the airline transaction passenger.
+| passenger-phone | O | String | 32	| The phone number of the airline transaction passenger.
+| passenger-email | O | String | 64	| The email address of the airline transaction passenger.
+| passenger-ip-address	| O	| String	| 45 | The IP address of the airline transaction passenger.
+| ticket-issue-date | O | Date | n/a | The date the ticket was issued.
+| ticket-number | O | String | 11 | The airline ticket number, including the check digit. If no airline ticket number (IATA) is used, the element field must be populated with ``99999999999``.
+| ticket-restricted-flag | O	| Token | 1 | Indicates that the airline transaction is restricted. +
+``0`` = No restriction +
+``1`` = Restricted (non-refundable).
+| pnr-file-key | O	| String	| 10	| The passenger name File id for the airline transaction.
+| ticket-check-digit	| O	| Short | 2 | The airline ticket check digit.
+| agent-code | O | String | 3 | The agency code assigned by IATA.
+| agent-name	| O |	String	| 64 | The agency name.
+| non-taxable-net-amount |	O	| Decimal | 7.2 | This field must contain the net amount of the purchase transaction in the specified currency for which the tax is levied. Two decimal places are implied. If this field contains a value greater than zero, the indicated value must differ to the content of the transaction amount.
+| number-of-passengers	| O	| Short | 3 | The number of passengers on the airline transaction.
+| reservation-code	| O	| String	| 32 | The reservation code of the airline Transaction passenger.
+|===
+
+
+[#API_Fields_xmlelements_airline_ticketIssuer]
+==== airline-industry.ticket-issuer
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+| street1 | O | String | 128 | The issuer address street for the airline transaction.
+| street2 | O | String | 128 | The issuer address street 2 for the airline transaction.
+| city	| O	| String	| 32 | The city of the address of the airline transaction issuer.
+| state | O | String | 32 | The state of the address of the airline transaction issuer.
+| country | O | Token | 3 | The Issuer address country Id for the airline transaction.
+| postal-code | O |	String | 16 | An alphaNumber numeric code used to represent the airline transaction issuer postal code.
+|===
+
+
+[#API_Fields_xmlelements_airline_itinerary_segment]
+==== airline-industry.itinerary.segment
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+| carrier-code	| O	| String	| 3	| The 2-letter airline code (e.g. ``LH``, ``BA``, ``KL``) supplied by IATA for each leg of a flight.
+| departure-airport-code	| O	| String	| 3	| The departure airport code. IATA assigns the airport codes.
+| departure-city-code	| O	| String	| 32 | The departure city code of the itinerary segment. IATA assigns the airport codes.
+| arrival-airport-code	| O	| String	| 3	| The arrival airport code of the itinerary segment. IATA assigns the airport codes.
+| arrival-city-code | O | String | 32	| The arrival city code of the itinerary segment. IATA assigns the airport codes.
+| departure-date	| O	| Date	| n/a	| The departure date for a given leg.
+| arrival-date	| O	| Date	| n/a	| The arrival date of the itinerary segment. IATA assigns the airport codes.
+| flight-number | O | String | 6 | The flight number of the itinerary segment.
+| fare-class	| O	| String	| 3	| Used to distinguish between First Class, Business Class and Economy Class, but also used to distinguish between different fares and booking codes within the same type of service.
+| fare-basis	| O	| String	| 6	| Represents a specific fare and class of service with letters, numbers, or a combination of both.
+| stop-over-code	| O	| Token	| 1	| ``0`` = allowed +
+``1`` = not allowed
+| tax-amount	| O	| Decimal	| 18.6 | The amount of the value added tax levied on the transaction amount in the specified currency.
+|===
+
+
+[#API_Fields_xmlelements_cruise]
+==== cruise-industry
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+| carrier-code
+| O
+| String
+| 3
+| The airline code assigned by IATA.
+
+| agent-code
+| O
+| String
+| 8
+| The agency code assigned by IATA.
+
+| travel-package-type-code
+| O
+| String
+| 10
+| This indicates if the package includes car rental, airline flight, both or neither. +
+Accepted values: +
+``C`` = Car rental reservation included +
+``A`` = Airline flight reservation included +
+``B`` = Both car rental and airline flight reservations included +
+``N`` = Unknown
+
+| ticket-number
+| O
+| String
+| 15
+| The ticket number, including the check digit.
+
+| passenger-name
+| O
+| String
+| 100
+| The name of the passenger.
+
+| lodging-check-in-date
+| O
+| Date
+| n/a
+| The cruise departure date also known as the sail date.
+
+| lodging-check-out-date
+| O
+| Date
+| n/a
+| The cruise return date also known as the sail end date.
+
+| lodging-room-rate
+| O
+| Numeric
+| n/a
+| The total cost of the cruise.
+
+| number-of-nights
+| O
+| Short
+| 3
+| The length of the cruise in days.
+
+| lodging-name
+| O
+| String
+| 100
+| The ship name booked for the cruise.
+
+| lodging-city-name
+| O
+| String
+| 20
+| The name of the city where the lodging property is located.
+
+| lodging-region-code
+| O
+| String
+| 10
+| The region code where the lodging property is located.
+
+| lodging-country-code
+| O
+| String
+| 10
+| The country code where the lodging property is located.
+|===
+
+
+[#API_Fields_xmlelements_cruise_itinerary_segment]
+==== cruise-industry.itinerary.segment
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+| carrier-code |	O	| String	| 3	| The 2-letter airline code (e.g. ``LH``, ``BA``, ``KL``) supplied by IATA for each leg of a flight.
+| departure-airport-code | O | String | 3 | The destination airport code. IATA assigns the airport codes.
+| departure-city-code |	O |	String	| 32 | The departure city code of the itinerary segment. IATA assigns the airport codes.
+| arrival-airport-code | O | String | 3 | The arrival airport code of the itinerary segment. IATA assigns the airport codes.
+| arrival-city-code	| O	| String	| 32 | The arrival city code of the itinerary segment. IATA assigns the airport codes.
+| departure-date | O | Date | n/a | The departure date for a given leg.
+| arrival-date | O | Date | n/a | The arrival date of the itinerary segment.
+| flight-number | O | String | 6 | The flight number of the itinerary segment.
+| fare-class | O | String | 3 | Used to distinguish between First Class, Business Class and Economy Class, but also used to distinguish between different fares and booking codes within the same type of service.
+| fare-basis | O | String | 6 | Represents a specific fare and class of service with letters, numbers, or a combination of both.
+| stop-over-code | O | Token | 1	| ``0`` = allowed +
+``1`` = not allowed
+| tax-amount | O | Decimal | 18.6 | The amount of the value added tax levied on the transaction amount in the specified currency.
+|===
+
+
+[#RestApi_Fields_Hotel]
+==== hotel-segment
+
+[%autowidth]
+[cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+| hotel-code	| O	| String	| 20	| This is the hotel code.
+| hotel-name	| O	| String	| 32	| This is the hotel name.
+| hotel-segment/hotel-folio-number	| O	| String	| 25	| Contains the card acceptor's internal invoice or billing ID reference number.
+| reservation-confirmation-number	| O	| String	| 64	| This is the guest's booking reference.
+| guest-first-name	| O	| String	| 20	| This is the first name of the guest.
+| guest-last-name	| O	| String	| 20	| This is the last name of the guest.
+| company	| O	| String	| 20	| This is the company name of the guest.
+| check-in-date	| O	| Date	 | 10	| This is the date when the guest is scheduled to check-in.
+| check-out-date	| O	| Date	| 10 | This is the date when the guest is scheduled to check-out.
+| no-show	| O	| Token	| 1	v| Indicates whether or not the guest showed up after having made a reservation for a vehicle or lodging. +
+   ``0`` = guest arrived +
+   ``1`` = no-show (guest did not show up). +
+ If not provided, 0 will be set as default value.
+| agent-code	| O	| String	| 8	| This is the code of the agency that initiated the reservation.
+| agent-name	| O	| String	| 26	| This is the name of the agency that initiated the reservation.
+| hotel-phone-number	| O	| String	| 32	| Identifies the specific lodging property location by its local phone number.
+| service-phone-number	| O	| String	| 32	| This is the customer service phone number.
+| total-room-nights	| O	| Short	| 4	| Provides the total number of nights a room was contracted for a lodging stay.
+| daily-room-rate	| O	| money	| 13	| Contains the daily room charges exclusive of taxes and fees.
+| total-room-tax	| O	| money	| 14	| Contains tax amount information such as the daily room tax, occupancy tax, energy tax, and tourist tax.
+| non-room-charges	| O	| money	| 14	| Contains the total amount of non-room charges, such as no-show or canceling.
+| telephone-fax-charges	| O	| money	| 13	| Contains the total amount of charges for all phone calls.
+| gift-shop-purchases	| O	| money	| 13	| Contains the total amount of all gift shop and specialty shop charges.
+| movie-charges	| O	| money	| 13	| Provides the total amount charged for in-room movies.
+| health-club-charges	| O	| money	| 13	| Provides the total amount charged for health club use and supplies.
+| business-center-charges	| O	| money	| 13	| Provides the total amount charged for business center use and supplies.
+| laundry-charges	| O	| money	| 13	| Contains the total amount of cleaning charges.
+| food-beverages-minibar-charges	| O	| money	| 13	| Contains the total amount of in-room "mini-bar" service charges.
+| parking-valet-charges	| O	| money	| 13	| Contains the total amount of charges associated with the use of valet services.
+| cash-advances	| O	| money	| 14	| This is the total amount of advance payments received before/during the lodging.
+|===
+
+endif::[]
+
+
+ifndef::env-nova[]
+[#API_Fields_xmlelements_response_avs]
+==== avs
+
+The <<FraudPrevention_AVS, Address Verification System (AVS)>> is an
+advanced credit card security service that is integrated in the {payment-provider-name}
+credit card processing network to help thwart identity theft. 
+
+include::{root}/include/fields/rest_cc/response/res-avs.adoc[]
+
+<<FraudPrevention_AVS_WirecardResponseCodes, -> Complete list of {payment-provider-name} result codes and messages>>.
+
+endif::[]
+//-
+
+

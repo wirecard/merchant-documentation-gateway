@@ -1,0 +1,3061 @@
+[#API_CC_3DS2_PaymentFlows]
+== 3D Secure 2 Payment Flows
+
+[NOTE]
+====
+The 
+ifdef::env-wirecard[]
+<<AppendixF, 
+endif::[]
+3D Secure 2 workflow
+ifdef::env-wirecard[]
+>> 
+endif::[]
+remains identical to the 3D Secure 1 workflow. +
+
+For typical business scenarios that apply these payment flows, head to our <<CreditCard_3DS2_UseCases, 3D Secure 2 Use Cases page>>.
+====
+'''
+[#API_CC_3DS2_PaymentFlows_OneTimePaymentTransaction]
+=== One-Time Payment Transaction
+
+[NOTE]
+====
+Authentication required: Yes +
+Card-on-file flagging required: No
+====
+
+[#API_CC_3DS2_PaymentFlows_OneTimePaymentTransaction_OneStep]
+==== Option 1: One-Step Payment with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_OneTimePaymentTransaction_OneStep,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (full amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
+endif::[]
++
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. 
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<three-d>
+    <version>2.1</version>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+|===
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
+
++
+NOTE: You do not need to define the *<MD>* value.
+
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process will be aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
+
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m|<<CreditCard_TransactionTypes, transaction-type>>
+m|<<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
++
+. *Purchase*: This final step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
+
+[#API_CC_3DS2_PaymentFlows_OneTimePaymentTransaction_TwoStep]
+==== Option 2: Two-Step Payment with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_OneTimePaymentTransaction_TwoStep,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. authorization (full amount)")-->E
+E("5. capture-authorization (full amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+ifndef::env-nova[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
+endif::[]
++
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<three-d>
+    <version>2.1</version>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
++
+
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *authorization.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
+
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
++
+. *Authorization*:This step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+ifndef::env-nova[]
+'''
+[#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout]
+=== First Payment and Consumer-Initiated (CI) One-Click Checkout
+
+[NOTE]
+====
+Authentication required: Yes +
+Card-on-file flagging required: Yes
+====
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_First]
+==== First Payment with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_First,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (full amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
++
+NOTE: It is not required to set the *check-payer-response* to ``ci`` (consumer-initiated).
+--
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m|<<CreditCard_TransactionTypes, transaction-type>>
+m|<<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m|<<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m|<<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
+
++
+. *Purchase*: This final step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated).
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_SubsequentOptionOne]
+==== Option 1: Subsequent One-Step Payment with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_SubsequentOptionOne,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (full amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
++
+
+NOTE: It is not required to include the ``parent-transaction-id`` or set ``challenge-indicator`` to ``04``.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
++
+
+. *Check-payer-response* (Optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+
+NOTE: It is not required to set the *check-payer-response* to ``ci`` (consumer-initiated) and ``recurring``.
+--
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
++
+. *Purchase*: This final step in the transaction flow must reference either
+the previous *check-enrollment*, or the *check-payer-response*, depending on
+whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from
+the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id``
+returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_SubsequentOptionTwo]
+==== Option 2: Subsequent Two-Step Payment with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_FirstPaymentCICheckout_SubsequentOptionTwo,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. authorization (full amount)")-->E
+E("5. capture-authorization (full amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>.
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
++
+
+NOTE: It is not required to include the ``parent-transaction-id`` or set ``challenge-indicator`` to ``04``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) are posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *authorization.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
+
++
+NOTE: It is not required to set the *check-payer-response* to ``ci`` (consumer-initiated) and ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
++
+. *Authorization*: This step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+NOTE: It is not required to set the *capture-authorization* to ``ci`` (consumer-initiated) and ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+'''
+endif::[]
+
+ifndef::env-nova[] 
+[#API_CC_3DS2_PaymentFlows_StoringCardCredentialsSubsequentCICheckout]
+=== Storing Credit Card Credentials and Subsequent Consumer-Initiated (CI) One-Click Checkout
+
+[NOTE]
+====
+Authentication required: Yes +
+Card-on-file flagging required: Yes
+====
+endif::[]
+
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_StoringCardCredentials_AuthAndVoid]
+==== Storing Card Credentials (Reserve and Void Amount) with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_StoringCardCredentials_AuthAndVoid,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. authorization (full amount)")-->E
+E("5. void-authorization (optional)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *authorization.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
++
+NOTE: It is not required to set the *check-payer-response* to ``ci`` (consumer-initiated) and ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
+
++
+. *Authorization*: This step in the transaction flow must reference either the
+previous *check-enrollment*, or the *check-payer-response*, depending on whether
+the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the
+*check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id``
+returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated).
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+. *Void-authorization*: This step in the transaction flow must reference
+the ``transaction-id`` from the *authorization* response in the
+``parent-transaction-id`` field.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>void-authorization</transaction-type>
+<parent-transaction-id>25fee53e-2a44-46e5-b600-0875cc732974</parent-transaction-id>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_VoidAuthorization, void-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_StoringCardCredentials_Subsequent]
+==== Subsequent One-Step Payment with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_StoringCardCredentials_Subsequent,svg]
+----
+graph LR
+A("1. check-enrollment (full amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (full amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 transactions, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
+
++
+NOTE: The ``token-id`` can be used instead of the ``account-number``. It is
+not required to include the ``parent-transaction-id`` or set ``challenge-indicator`` to ``04``.
+
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<card-token>
+    <token-id>4304509873471003</token-id>
+</card-token>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<Glossary_CardTokenId, card-token/token-id>>
+|
+
+m| <<CC_Fields, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (Optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
++
+NOTE: It is not required to set the *check-payer-response* to ``ci`` (consumer-initiated) and ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
+
++
+. *Purchase*: This final step in the transaction flow must reference either
+the previous *check-enrollment*, or the *check-payer-response*, depending on
+whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from
+the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id``
+returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ci</periodic-type>
+    <sequence-type>recurring</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ci
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+'''
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription]
+=== Merchant-Initiated Transaction (MIT): First Payment and Scheduled Subscription
+
+[NOTE]
+====
+Authentication required: Yes; only for the initial transaction +
+Card-on-file flagging required: Yes
+====
+
+[#API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription_First]
+==== First Payment (One-Step) with Authentication - Consumer-Initiated
+
+[mermaid,API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription_First,svg]
+----
+graph LR
+A("1. check-enrollment (recurring amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (recurring amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring`` and the ``sequence-type`` to ``first``. Include the ``recurring-expire-date`` and ``recurring-frequency``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.8+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+    <recurring-expire-date>YYYY-MM-DD</recurring-expire-date>
+    <recurring-frequency>xxxx</recurring-frequency>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringExpireDate, periodic/recurring-expire-date>>
+m| YYYY-MM-DD
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringFrequency, periodic/recurring-frequency>>
+m| xxxx
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
++
+NOTE: It is not required to set the *check-payer-response* to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+m|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+m|
+|===
+
++
+. *Purchase*: This final step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set the ``periodic-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m|first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription_Subscription]
+==== Subsequent Payment without Authentication
+
+[#API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription_Subscription_OneStep]
+_Option 1: One-Step Merchant Initiated Transaction (MIT)_
+
+. *Purchase*: This final step in the transaction flow must reference the initial ``recurring`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring``.
++
+CAUTION: Set the ``periodic-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+
+[#API_CC_3DS2_PaymentFlows_MIT_FirstPaymentAndSubscription_Subscription_TwoStep]
+_Option 2: Two-Step Merchant Initiated Transaction (MIT)_
+
+[mermaid,API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_TwoStep,svg]
+----
+graph LR
+A("1. authorization (recurring amount)")-->B("2. capture-authorization (recurring amount)")
+----
+
+. *Authorization*: The *authorization* in the transaction flow must reference the initial ``recurring`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Include ``sequence-type`` set to ``recurring`` or ``final``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+|``recurring`` or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+'''
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription]
+=== Recurring Merchant-Initiated Transaction (MIT): Storing Credit Card Credentials and Scheduled Subscription
+
+[NOTE]
+====
+Authentication required: Yes; only for the initial transaction +
+Card-on-file flagging required: Yes
+====
+
+[#API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_AuthAndVoid]
+==== Storing Card Credentials (Reserve and Void Amount) with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_AuthAndVoid,svg]
+----
+graph LR
+A("1. check-enrollment (recurring amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. authorization (recurring amount)")-->E
+E("5. void-authorization (optional)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``recurring`` and the ``sequence-type`` to ``first``. Include the ``recurring-expire-date`` and ``recurring-frequency``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.8+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+    <recurring-expire-date>YYYY-MM-DD</recurring-expire-date>
+    <recurring-frequency>xxxx</recurring-frequency>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringExpireDate, periodic/recurring-expire-date>>
+m| YYYY-MM-DD
+
+m| <<CreditCard_3DS2_Fields_PeriodicRecurringFrequency, periodic/recurring-frequency>>
+m| xxxx
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process will be aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *authorization.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
++
+NOTE: It is not required to set the *check-payer-response* to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
+
++
+. *Authorization*: This step in the transaction flow must reference either the
+previous *check-enrollment*, or the *check-payer-response*, depending on whether
+the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the
+*check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id``
+returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+. *Void-authorization*: This step in the transaction flow must reference
+the ``transaction-id`` from the *authorization* response in the
+``parent-transaction-id`` field.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>void-authorization</transaction-type>
+<parent-transaction-id>25fee53e-2a44-46e5-b600-0875cc732974</parent-transaction-id>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_VoidAuthorization, void-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+[#API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_SubsequentNoAuth]
+==== Subsequent Payment without Authentication
+
+[#API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_SubsequentNoAuth_OneStep]
+==== Option 1: One-Step Merchant Initiated Transaction (MIT)
+
+. *Purchase*: This final step in the transaction flow must reference the initial ``recurring`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring``.
++
+CAUTION: Set the ``periodic-type`` to ``recurring``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| ``recurring``  or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_TwoStep]
+==== Option 2: Two-Step Merchant Initiated Transaction (MIT)
+
+[mermaid,API_CC_3DS2_PaymentFlows_RecurringMIT_StoringCCAndSubscription_TwoStep,svg]
+----
+graph LR
+A("1. authorization (recurring amount)")-->B("2. capture-authorization (recurring amount)")
+----
+
+. *Authorization*: The *authorization* in the transaction flow must reference the initial ``recurring`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set ``sequence-type`` to ``recurring`` or ``final``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>recurring</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| recurring
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+|``recurring`` or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+'''
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_InstallmentMIT_FirstPaymentAndInstallment]
+=== Installment as Merchant-Initiated Transaction (MIT): First Payment and Scheduled Installment
+
+[NOTE]
+====
+Authentication required: Yes; only for the initial transaction +
+Card-on-file flagging required: Yes
+====
+
+[#API_CC_3DS2_PaymentFlows_InstallmentMIT_FirstPaymentAndInstallment_FirstCI]
+==== First Payment (One-Step) with Authentication - Consumer-Initiated
+
+IMPORTANT: Check-enrollment with installment is currently under development and will be made available with the next update release.
+
+[mermaid,API_CC_3DS2_PaymentFlows_InstallmentMIT_FirstPaymentAndInstallment_FirstCI,svg]
+----
+graph LR
+A("1. check-enrollment (full amount + interest)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (first installment amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``installment``  and the ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.7+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>first</sequence-type>
+    <number-of-installments>xxx</number-of-installments>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| installment
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Periodic_NumberOfInstallments, periodic/number-of-installments>>
+m| xxx
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
++
+NOTE: It is not required to set the *check-payer-response* to ``installment``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+m|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+m|
+|===
+
++
+. *Purchase*: This final step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the *PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``installment``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| installment
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m|first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_InstallmentMIT_SubsequentNoAuth]
+==== Subsequent Payment without Authentication
+
+[#API_CC_3DS2_PaymentFlows_InstallmentMIT_SubsequentNoAuth_OneStep]
+==== Option 1: One-Step Merchant Initiated Transaction (MIT)
+
+. *Purchase*: This final step in the transaction flow must reference the initial ``installment`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring`` or ``final``.
++
+CAUTION: Set the ``periodic-type`` to ``installment``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| installment
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+ | ``recurring`` or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_InstallmentMIT_SubsequentNoAuth_TwoStep]
+==== Option 2: Two-Step Merchant Initiated Transaction (MIT)
+
+[mermaid,API_CC_3DS2_PaymentFlows_InstallmentMIT_SubsequentNoAuth_TwoStep,svg]
+----
+graph LR
+A("1. authorization (installment amount)")-->B("2. capture-authorization (installment amount)")
+----
+
+. *Authorization*: The *authorization* in the transaction flow must reference the initial ``installment`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set ``sequence-type`` to ``recurring`` or ``final``.
++
+CAUTION: Set the ``periodic-type`` to ``installment``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>installment</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| installment
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+|``recurring`` or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+'''
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_MITUCOF_FirstAndUnscheduledMIT]
+=== Merchant Initiated Transaction (MIT) with Unscheduled Credentials on File (UCOF): First Payment and Unscheduled Subsequent MIT
+
+[NOTE]
+====
+Authentication required: Yes; only for the initial transaction +
+Card-on-file flagging required: Yes
+====
+
+[#API_CC_3DS2_PaymentFlows_MITUCOF_FirstAndUnscheduledMIT_FirstPayment]
+==== First Payment (One-Step) with Authentication - Consumer-Initiated
+
+[mermaid,API_CC_3DS2_PaymentFlows_MITUCOF_FirstAndUnscheduledMIT_FirstPayment,svg]
+----
+graph LR
+A("1. check-enrollment (initial amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. purchase (initial amount)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request in a 3D Secure 2 payment flow. It initiates the payment session and checks if the consumer's card is enrolled in the 3D Secure 2 program.
++
+New 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated  (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ucof`` and the ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m|first
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *purchase.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+m|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+m|
+|===
+
++
+. *Purchase*: This final step in the transaction flow must reference either the previous *check-enrollment*, or the *check-payer-response*, depending on whether the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the *check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id`` returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ucof`` and the ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m|first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_MITUCOF_Subsequent_NoAuth_Purchase]
+==== Subsequent Payment without Authentication
+
+[#API_CC_3DS2_PaymentFlows_MITUCOF_Subsequent_NoAuth_OneStepMIT]
+==== Option 1: One-Step Merchant Initiated Transaction (MIT)
+
+. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring``.
++
+CAUTION: Set the ``periodic-type`` to ``ucof``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_MITUCOF_Subsequent_NoAuth_TwoStepMIT]
+==== Option 2: Two-Step Merchant Initiated Transaction (MIT)
+
+[mermaid,API_CC_3DS2_PaymentFlows_MITUCOF_Subsequent_NoAuth_TwoStepMIT,svg]
+----
+graph LR
+A("1. authorization (UCOF amount)")-->B("2. capture-authorization (UCOF amount)")
+----
+
+. *Authorization*: The *authorization* in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *purchase* response in the ``parent-transaction-id`` field. Set ``sequence-type`` to ``recurring`` or ``final``.
++
+CAUTION: Set the ``periodic-type`` to ``ucof``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+|``recurring`` or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+
+'''
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_UnscheduledMIT]
+=== Merchant Initiated Transaction (MIT) with Unscheduled Credentials on File (UCOF): Storing Credit Card Credentials and Unscheduled Subsequent MIT
+
+[NOTE]
+====
+Authentication required: Yes; only for the initial transaction +
+Card-on-file flagging required: Yes
+====
+
+IMPORTANT: No amount due at sign-up.
+
+
+[#API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_AuthAndVoid]
+==== Storing Card Credentials (Reserve and Void Amount) with Authentication
+
+[mermaid,API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_AuthAndVoid,svg]
+----
+graph LR
+A("1. check-enrollment (initial amount)")-->B
+B["2. ACS URL redirect"]-->C
+C("3. check-payer-response (optional)")-->D
+D("4. authorization (initial amount)")-->E
+E("5. void-authorization (optional)")
+class B squared-rect
+----
+
+. *Check-enrollment*: This is the initial request and initiates
+the payment session. New 3D Secure 2 fields can be found in
+the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+ifdef::env-wirecard[]
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+endif::[]
++
+CAUTION: For 3D Secure 2 consumer-initiated (CI) one-click checkout, include the new field ``three-d/version`` and set its value to ``2.1``. Set ``challenge-indicator`` to ``04``. Set the ``periodic-type`` to ``ucof`` and ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>check-enrollment</transaction-type>
+<account-holder>
+    <account-info>
+        <challenge-indicator>04</challenge-indicator>
+    </account-info>
+</account-holder>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<three-d>
+    <version>2.1</version>
+</three-d>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckEnrollment, check-enrollment>>
+
+m| <<CreditCard_Fields_AccountHolder_AccountInfo_ChallengeIndicator, account-holder/account-info/challenge-indicator>>
+m| 04
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_ThreeD_Version, three-d/version>>
+m| 2.1
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+As a result of the check-enrollment, you receive the *PAReq* with the ACS URL.
++
+. _Redirect the consumer to the ACS URL_: Send an HTTPS POST request including the ACS URL, the *<PAReq>*, the *<TermUrl>* and *<MD>*.
++
+--
+* The *<TermUrl>* is the web address of your server to receive the *PARes* (Payment Authentication response).
+* The *<MD>* is a hidden input parameter reserved for specific merchant data. The *<MD>* may be useful for retrieving transaction data from the database or recalling a transaction.
++
+NOTE: You do not need to define the *<MD>* value.
++
+CAUTION: This field is _mandatory_. If you omit the *<MD>* input type, an authentication error will occur and the payment process is aborted.
+--
++
+.Example: Auto Submission POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
+
++
+Once the consumer has been redirected, they receive an authentication prompt. The consumer enters their data. After successful authentication, the SSL-encrypted and digitally signed *PARes* (Payment Authentication response) will be posted to the *TermURL* via the consumer's browser.
+
++
+. *Check-payer-response* (optional): Use this request to receive, analyze and store authentication values on your side or use your connection to the {payment-gateway} for the "MPI Only" option.  The *check-payer-response* provides the authentication values needed later on in the *authorization.* It is executed _after_ you receive the *check-enrollment* response and the *PARes*. The *check-payer-response* must contain the following fields:
++
+--
+ * ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
+ * ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the *check-enrollment* response.
+--
++
+NOTE: It is not required to include ``periodic`` in the *check-payer-response*.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.3+a|
+----
+<transaction-type>check-payer-response</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfvdXWDmPnr2ZRHCX8VQziKCgyCDyx....</pares>
+</three-d>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CheckPayerResponse, check-payer-response>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+|===
+
++
+. *Authorization*: This step in the transaction flow must reference either the
+previous *check-enrollment*, or the *check-payer-response*, depending on whether
+the *check-payer-response* has been executed or not.
++
+--
+.. Following *check-enrollment*: Include the ``transaction-id`` from the
+*check-enrollment* response in the ``parent-transaction-id`` field.
+.. Following (optional) *check-payer-response*: Include the ``transaction-id``
+returned by the *check-payer-response* in the ``parent-transaction-id`` field.
+--
++
+If the *check-payer-response* was not executed, instead use the
+*PARes* received via TermURL as part of the response to the ACS HTTP POST request.
+
++
+CAUTION: Set the ``periodic-type`` to ``ucof`` and to ``sequence-type`` to ``first``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.6+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>fa377563-e89d-420e-ab6f-d9d368e6acaa</parent-transaction-id>
+<three-d>
+    <pares>eJydV1lzqsoWfv.......</pares>
+</three-d>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>first</sequence-type>
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<CreditCard_Fields_ThreeD, three-d/pares>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| first
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
++
+. *Void-authorization*: This step in the transaction flow must reference
+the ``transaction-id`` from the *authorization* response in the
+``parent-transaction-id`` field.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>void-authorization</transaction-type>
+<parent-transaction-id>25fee53e-2a44-46e5-b600-0875cc732974</parent-transaction-id>
+----
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_VoidAuthorization, void-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+endif::[]
+
+ifndef::env-nova[]
+[#API_CC_3DS2_PaymentFlows_MITUCOF_Subsequent_NoAuth_Authorization]
+==== Subsequent Payment without Authentication
+
+[#API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_OneStepMIT]
+==== Option 1: One-Step Merchant Initiated Transaction (MIT)
+
+. *Purchase*: This final step in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set the ``sequence-type`` to ``recurring`` (or ``final`` for the last recurring transaction).
++
+CAUTION: Set the ``periodic-type`` to ``ucof``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>purchase</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Purchase, purchase>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+m| recurring
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
+
+[#API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_TwoStepMIT]
+==== Option 2: Two-Step Merchant Initiated Transaction (MIT)
+
+[mermaid,API_CC_3DS2_PaymentFlows_MITUCOF_StoringCard_TwoStepMIT,svg]
+----
+graph LR
+A("1. authorization (UCOF amount)")-->B("2. capture-authorization (UCOF amount)")
+----
+
+. *Authorization*: The *authorization* in the transaction flow must reference the initial ``ucof`` transaction. Include the ``transaction-id`` from the _initial_ *authorization* response in the ``parent-transaction-id`` field. Set ``sequence-type`` to ``recurring`` or ``final``.
++
+CAUTION: Set the ``periodic-type`` to ``ucof``.
+
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.5+a|
+----
+<transaction-type>authorization</transaction-type>
+<parent-transaction-id>9bd387fd-e4ac-46d4-905a-b34382801cbb</parent-transaction-id>
+<periodic>
+    <periodic-type>ucof</periodic-type>
+    <sequence-type>recurring</sequence-type> (or
+    <sequence-type>final</sequence-type> in case of the last recurring transaction)
+</periodic>
+<card>
+    <merchant-tokenization-flag>true</merchant-tokenization-flag>
+</card>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_Authorization, authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+
+m| <<RestAPI_Fields_Periodic_PeriodicType, periodic/periodic-type>>
+m| ucof
+
+m| <<GeneralPlatformFeatures_Transactions_Recurring_Sequence, periodic/sequence-type>>
+|``recurring`` or ``final``
+
+m| <<CreditCard_3DS2_Fields_Card_MerchantTokenizationFlag, card/merchant-tokenization-flag>>
+m| true
+|===
++
+. *Capture-authorization*: This step in the transaction flow must reference the ``transaction-id`` from the *authorization* response in the ``parent-transaction-id`` field.
++
+[%autowidth]
+|===
+|XML 2+|Fields
+
+.2+a|
+----
+<transaction-type>capture-authorization</transaction-type>
+<parent-transaction-id>df92ce59-a39c-4e2d-a5d6-c3f952826acd</parent-transaction-id>
+----
+
+m| <<CreditCard_TransactionTypes, transaction-type>>
+m| <<CreditCard_TransactionTypesList_CaptureAuthorization, capture-authorization>>
+
+m| <<GeneralPlatformFeatures_ReferencingTransaction, parent-transaction-id>>
+|
+|===
+endif::[]
+
+//-

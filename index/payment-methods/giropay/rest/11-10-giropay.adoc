@@ -1,0 +1,336 @@
+[#giropay]
+== REST API & {payment-page-v1}
+_giropay_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#giropay_GeneralInformation_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none,]
+|===
+| Countries |Germany
+| Currencies |EUR
+|===
+
+[#giropay_GeneralInformation_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _giropay_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+
+[width=75%,stripes=none]
+|===
+.2+h| *Requests/Responses* | Format  | XML, NVP
+                          | Methods | POST, GET
+h| *IPN Encodement*      2+| Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#giropay_Transactions]
+=== Transactions
+
+[#giropay_Transactions_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details look at <<AppendixB,  Transaction Types>>.
+
+[%autowidth.strech,stripes=none,cols=",,"]
+|===
+| Transaction Type | Description | Link to the Sample
+
+| _get-url_ | A step in a group of transactions where the provider or
+bank's URL is retrieved for the Account Holder to be redirected to.
+| See <<giropay_Samples_geturl, samples>>.
+| _debit_ | Moves funds from the Account Holder to the merchant. Received
+as payment notification. | See <<giropay_Samples_geturl, samples>>.
+|===
+
+[#giropay_Transactions_ReferenceTransaction]
+==== Reference Transaction
+
+NOTE: For additional information regarding the referenced transaction
+functionality, see here: <<GeneralPlatformFeatures_CrossPayment, Cross-Payment-Methods Referencing>>.
+
+
+[#giropay_TestCredentials]
+=== Test Credentials
+
+[%autowidth.strech,stripes=none,cols="h, "]
+|===
+| URLs (Endpoints) | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) | 9b4b0e5f-1bc8-422e-be42-d0bad2eadabc
+| Username   | 16390-testing
+| Password   | 3!3013=D3fD8X7
+| Secret Key | 0c8c6f3a-1534-4fa1-99d9-d1c644d43709
+|===
+
+[#giropay_TestCredentials_AdditionalCredentials]
+==== Additional Test Credentials on _giropay_ Environment
+
+[%autowidth.strech,stripes=none,cols="h,"]
+|===
+| customerName1 | Paul Peterson
+| customerIBAN | DE12500105170648489890
+| Test Bank Account BIC | GENODETT488
+|===
+
+
+[#giropay_Workflow]
+=== Workflow
+
+[#giropay_Workflow_debit]
+==== _debit_
+
+NOTE: The merchant sends a _debit_ request to Wirecard and receives a response
+which contains the URL of the consumers online banking system to which
+the consumer must be redirected to. The consumer is redirected back to
+merchant's shop after the transaction is approved, and the merchant
+receives a payment notification from Wirecard.
+
+image::images/11-10-giropay/giropay_Workflow.png[giropay Workflow]
+
+. Consumer adds items to his/her shopping basket.
+. Consumer selects _giropay_.
+. The merchant sends a _get-url_ request to _{payment-gateway}._
+. {payment-gateway} processes and validates the
+transaction.
+. {payment-gateway} forwards the request to _giropay._
+. _giropay_ provides the URL of the consumer's online banking account
+for payment verification.
+. {payment-gateway} processes the response.
+. {payment-gateway} redirects the consumer to the provided
+online banking URL.
+. The consumer verifies the payment within the personal online banking
+system.
+. _giropay_ transfers funds from the consumer's bank account to the
+merchant's bank account.
+. _giropay_ sends a payment notification to the _{payment-gateway}._
+. {payment-gateway} processes the notification and sends the
+payment _debit_ notification to the merchant.
+. The merchant receives the notification with the payment result.
+
+NOTE: It is also possible to <<SEPACreditTransfer_TransactionTypes_refund, refund>>
+_giropay_ transactions via _SEPA Credit Transfer_ if the merchant's
+business flow requires this.
+
+[#giropay_Fields]
+=== Fields
+
+The fields used for _giropay_ requests, responses and notifications are
+the same as the REST API fields. Please refer to <<RestApi_Fields, REST API Fields>>
+or the request example for the fields required in a <<giropay_Samples_geturl, _debit_>> transaction.
+
+Only the fields listed below have different properties.
+
+The following elements are mandatory (M), optional (O) or conditional
+\(C) for a request/response/notification.
+
+[%autowidth.strech,stripes=none]
+|===
+h| Field | Cardinality | Datatype | Size | Description
+
+|bank-account/bic |C |xs:string |15 |One of BIC or bank-code must be
+provided, but not both.
+
+|bank-account/bank-code   |C |xs:string |15 |One of BIC or bank-code
+must be provided, but not both.
+|===
+
+[#giropay_Samples]
+=== Samples
+
+[#giropay_Samples_geturl]
+==== _get-url_/_debit_
+
+[#giropay_Samples_geturl_xml]
+===== XML
+
+.XML get-url Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/giropay_get-url_request_success_en.xml[]
+----
+
+.XML get-url Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/giropay_get-url_response_success_en.xml[]
+----
+
+.XML debit Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/giropay_debit_notification_success_en_18ad619c.xml[]
+----
+
+.XML get-url Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/giropay_get-url_request_failure_en.xml[]
+----
+
+.XML get-url Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/giropay_get-url_response_failure_en.xml[]
+----
+
+[#giropay_Samples_geturl_nvp]
+===== NVP
+
+.NVP get-url Response (Successful)
+
+[source,subs=attributes+]
+----
+ HTTP/1.1 201 Created
+ Server: Apache-Coyote/1.1
+ Content-Language: en-US
+ Content-Length: 1644
+ Date: Wed, 21 Oct 2015 18:36:42 GMT
+
+
+order_number=15957&payment_method_url=https%3A%2F%2Fgiropaytest1.fiducia.de%2FShopSystem%2Fbank%2FBankEntry_v2%3FRZKZ%3DXC%26RZBK%3D8076%26redirectData%3DmerchantId%253D8993370%2526merchantTxId%253DAC7090A9782211E5923A00163E1F53EB%2526txId%253DF00000FBCP%2526shopEndFailureURL%253Dhttps%25253A%25252F%25252Fdev.thesolution.com%25252Fengine%25252Fnotification%25252Fgiropaygad%25252Fredirect%25252Fac7090a9-7822-11e5-923a-00163e1f53eb%25252F%2526operatorSignature%253DAxwVt0bxn4voDEXZIXWGNImFuhBU1Ez6B%25252BeFE38UbbANqYPocGLkmkSTRFNqeyfShaVxZpW081IxFFh%25252B7AzCiOZ5B7B%25252FXV2GQmvWXpE5DlPnuZZYwVC4QrdH0H40XRM7NNZ2IJsor9PGePAInVhfZFZVBEq5MtZcUYZd%25252FstYWrbzD2QrlEB7Ddlopmuo8uHM8H07VbdiOw46Znx0X8kxZ%25252BaoEjDv7iUESuhROJsKK0o%25252Foy%25252BzrqCq6hPnQekXEz43OUyfZB%25252BFKdjGzFW3fjSF4Jilw1Hzzdy1MstnZIIWS6hANalp%25252FyB2%25252FDMso7tDhh9n3uNxTuLsu2tuerauhVLbIQ%25253D%25253D%2526operatorId%253D002%2526shopEndSuccessURL%253Dhttps%25253A%25252F%25252Fdev.thesolution.com%25252Fengine%25252Fnotification%25252Fgiropaygad%25252Fredirect%25252Fac7090a9-7822-11e5-923a-00163e1f53eb%25252F&transaction_type=debitget-url&locale=en&completion_time_stamp=20151021183642&status_code_1=201.0000&status_severity_1=information&transaction_state=success&transaction_id=ac7090a9-7822-11e5-923a-00163e1f53eb&first_name=John&merchant_account_id=ec68950e-1ffa-4bec-9218-792dc77a5109&ip_address=127.0.0.1&bank_account_bic=GENODETT488&order_detail=TestProduct&request_id=demo-123400&requested_amount=1.01&requested_amount_currency=EUR&email=john.doe%40{domain}&status_description_1=The+resource+was+successfully+created.&last_name=Doe&payment_method=giropay&
+----
+
+.NVP get-url Request (Successful)
+
+[source,subs=attributes+]
+----
+ POST http://10.0.0.114:8080/engine/rest/paymentmethods/ HTTP/1.1
+ Accept-Encoding: gzip,deflate
+ Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+ Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+ Accept: text/plain
+ Content-Length: 339
+ Host: 10.0.0.114:8080
+ Connection: Keep-Alive
+ User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+
+merchant_account_id=ec68950e-1ffa-4bec-9218-792dc77a5109&request_id=demo-123400&transaction_type=get-url&requested_amount_currency=EUR&requested_amount=1.01&first_name=John&last_name=Doe&email=john.doe@{domain}&order_number=15957&order_detail=TestProduct&locale=en&ip_address=127.0.0.1&payment_method=giropay&bank_account_bic=GENODETT488
+----
+
+.NVP debit Notification (Successful)
+
+[source,subs=attributes+]
+----
+ X-Request-Id: 78c0f284-d5e4-4c77-8363-5eba5069f815
+ Total-Route-Time: 0
+ Connect-Time: 4
+ Payment.Request-Id: 4f99be5c-af8c-4eda-ae90-20dc10a97dc9
+ Notification.Url: http://requestb.in/145yq7s1
+ Host: requestb.in
+ Breadcrumbid: ID-dev-app-n01-49221-1445441419984-0-6906
+ Via: 1.1 vegur
+ Content-Length: 4640
+ Connection: close
+ Content-Type: text/plain
+ Payment.Transaction-Id: 2da8e73f-7828-11e5-923a-00163e1f53eb
+ <?xml version="1.0" encoding="UTF-8"?>
+ <payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>ec68950e-1ffa-4bec-9218-792dc77a5109</merchant-account-id>
+ <transaction-id>2da8e73f-7828-11e5-923a-00163e1f53eb</transaction-id>
+ <request-id>4f99be5c-af8c-4eda-ae90-20dc10a97dc9</request-id>
+ <transaction-type>debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2015-10-21T19:16:06.000Z</completion-time-stamp>
+ <statuses>
+
+ <status code="201.1126" description="giropay:Successful confirmation
+ received from the bank." provider-transaction-id="F00000FBDC"
+severity="information"/>
+ </statuses>
+ <requested-amount currency="EUR">1.0</requested-amount>
+ <account-holder>
+ <first-name>John</first-name>
+ <last-name>Doe</last-name>
+ <email>john.doe@{domain}</email>
+ </account-holder>
+ <ip-address>127.0.0.1</ip-address>
+ <order-number>17622</order-number>
+ <order-detail>Test product 001</order-detail>
+ <notifications>
+ <notification url="http://requestb.in/145yq7s1"/>
+ </notifications>
+ <payment-methods>
+ <payment-method name="giropay"/>
+ </payment-methods>
+ <api-id>---</api-id>
+ <provider-transaction-reference-id>GIROPAY0028993370F00000FBDC</provider-transaction-reference-id>
+ <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+ <SignedInfo>
+ <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+ <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+ <Reference URI="">
+ <Transforms>
+ <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+ </Transforms>
+ <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+ <DigestValue>GA3lgrihlMT0is0alqTlXnh3MAQ=</DigestValue>
+ </Reference>
+ </SignedInfo>
+ <SignatureValue>afLVd67OjoTEJ2VbNqaG84baQQheFKekNan5db4jXjsGAwXlYa1rWzn0koGsK4LVPtgt1EHZjdRo
+ 9JhcLX4Qd+KrXW8zh35MffSlMm3JnbkTLDRL+Y8uLpGGhuH3eBolITz1ml0mft7POkwWefrhjLcj
+ TZmaumSpvF6FTMnJyS3j+vog9+3rE/2xYXfXabSg0IytNv1dR3oIkWafFUVMIk50s67f1LX2z1Yz
+ ywo6c9EKVXUhwcAa7R4h59izkrLumA15eS1wFV0jbDtcYjwNBcpYa7S1TcybyrDVpyO27VTRpzOl
+ LgEUJuka9kHbBgMxDizwKFAvbkn+Gk6OjIr+bg==</SignatureValue>
+ <KeyInfo>
+ <X509Data>
+ <X509SubjectName>CN=Manoj Sahu,OU=Operations,O=Wirecard Elastic Payments,L=Toronto,ST=ON,C=CA</X509SubjectName>
+ <X509Certificate>MIIDcDCCAligAwIBAgIETgQWGTANBgkqhkiG9w0BAQUFADB6MQswCQYDVQQGEwJDQTELMAkGA1UE
+ CBMCT04xEDAOBgNVBAcTB1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVu
+ dHMxEzARBgNVBAsTCk9wZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwHhcNMTEwNjI0MDQ0
+ NDA5WhcNMTQwMzIwMDQ0NDA5WjB6MQswCQYDVQQGEwJDQTELMAkGA1UECBMCT04xEDAOBgNVBAcT
+ B1Rvcm9udG8xIjAgBgNVBAoTGVdpcmVjYXJkIEVsYXN0aWMgUGF5bWVudHMxEzARBgNVBAsTCk9w
+ ZXJhdGlvbnMxEzARBgNVBAMTCk1hbm9qIFNhaHUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+ AoIBAQCc8rTt4N5fNeVzlsRgOXKDE2YUSfJx7xXBozFZ3Vh3XQyy3IpIuEfZz7004k4HeonfTxCN
+ etBvJ9rgNc0Cxrk/euMj3pOUrE9WYN2eAXC0r5pUIAZhIAnSxUSaIF3JKBxf7gDAik5d8RT5HaJV
+ 4n5cXJQ/uhAEYU3EGN/74UrD2UsOYD3VBXTJS5VgSi/c3IyLwhDbYIyU6j4fMKyHIlAMGzW7VgKD
+ 2pqu6BRysqUVdEEAvW2OmyVqGVyPkm87EiHSMMSar3CvYYxYqBN2KBUjabkvnRWbIzyQuyUyDeUb
+ QmhVQKL0WlMb5ev65m2VjGyDTGL5jfB14rSXRMGzeJ+LAgMBAAEwDQYJKoZIhvcNAQEFBQADggEB
+ ADgkuN/e2IFy7JXdbjNJbKBd3HLvFvK87dv8qQ+HK4qfCxYXh6aYhbKHJSA6C2pbOD3HBXoyovZr
+ mk/KqOyUL+unVcR+APjxX4KP25sdkplgmeQ47CWxtKAHZUTtWwAVI/WhsX89SSucBfIS5TJ54e7m
+ 02qvGoK8UA/IRbIQ6DZ9hEKV5VQKiMx3ubwwHGXfOWz2fKmeZBuTeY+HiTEH8KCHpfw2j8G+dDgU
+ jlp9LvjVNmJzfNBBk1Si0d/rhXmMzVSKj08tp1sPRK0/sJtJZBzQajpnsZ9NFfoJNdG13AzYwDP3
+ x/QspK0jYn1KZw1qz524VWoQoueR8Xj30A2jntA=</X509Certificate>
+ </X509Data>
+ </KeyInfo>
+ </Signature>
+ </payment>
+----
+
+.NVP get-url Request (Failure)
+
+[source,subs=attributes+]
+----
+ POST http://10.0.0.114:8080/engine/rest/paymentmethods/ HTTP/1.1
+ Accept-Encoding: gzip,deflate
+ Content-Type: application/x-www-form-urlencoded;charset=UTF-8
+ Authorization: Basic dGVhbWNpdHk6dGVhbWNpdHk=
+ Accept: text/plain
+ Content-Length: 335
+ Host: 10.0.0.114:8080
+ Connection: Keep-Alive
+ User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+
+
+merchant_account_id=ec68950e-1ffa-4bec-9218-792dc77a5109&request_id=demo-123444&transaction_type=get-url&requested_amount_currency=EUR&requested_amount=1.01&first_name=John&last_name=Doe&email=john.doe@{domain}&order_number=15957&order_detail=TestProduct&locale=en&ip_address=127.0.0.1&payment_method=giropay&bank_account_bic=testbic
+----
+
+.NVP get-url Response (Failure)
+
+[source,subs=attributes+]
+----
+ HTTP/1.1 201 Created
+ Server: Apache-Coyote/1.1
+ Content-Language: en-US
+ Content-Length: 536
+ Date: Wed, 21 Oct 2015 18:37:56 GMT
+
+
+order_number=15957&transaction_type=debitget-url&locale=en&completion_time_stamp=20151021183757&status_code_1=400.1197&status_severity_1=error&transaction_state=failed&transaction_id=d93f00f2-7822-11e5-923a-00163e1f53eb&first_name=John&merchant_account_id=ec68950e-1ffa-4bec-9218-792dc77a5109&ip_address=127.0.0.1&bank_account_bic=testbic&order_detail=TestProduct&request_id=demo-123444&requested_amount=1.01&requested_amount_currency=EUR&email=john.doe%40{domain}&status_description_1=BIC+is+invalid.&last_name=Doe&payment_method=giropay&
+----
+
+//-

@@ -1,0 +1,58 @@
+
+[#PPv2_Features_PaybyLink]
+
+== Pay by Link
+{payment-page-v2-abbr} offers the option to configure the expiration time & date of a
+payment URL (``payment-redirect-url``). By adding
+the ``hyperlink-expiration-time-stamp`` field to a normal payment request,
+you can set the time & date when the payment URL expires: This allows
+for using such URLs in different scenarios than instant payment, e.g.
+sending the payment URL as a part of a newsletter/email, MOTO (Mail
+Order/Telephone Order) payments, etc.
+
+*The maximum allowed value is one
+month in the future*, e.g. if the link is created on 01/05/2019, the latest date for
+the expiration stamp is 01/06/2019.
+
+NOTE: You can use Pay by Link with credit card payments or alternative payment
+methods; both are supported.
+
+Payment links with an expiration stamp redirect to a Hosted Payment
+Page. You remain fully PCI SAQ-A compliant using these links.
+
+[NOTE]
+.To set the expiration stamp for a payment link:
+====
+Add the ``hyperlink-expiration-time-stamp`` field to the payment request
+and set its value to the desired time & date.
+====
+
+[cols="v,v,v,,"]
+[%autowidth]
+|===
+| Field (NVP) | Field (JSON) | Data Type | JSON Parent| Description
+
+|hyperlink_expiration_time_stamp |hyperlink-expiration-time-stamp
+|yyyy-MM-ddTHH:mm:ss±HH:mm |payment ({}) |Indicates the expiration time & date of the respective payment hyperlink.
+|===
+
+.Example request (``hyperlink-expiration-time-stamp`` is at the end):
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2FeaturesPaybyLink_ToSetTheExpirationStampForAPaymentLink.json[]
+----
+
+* By specifying the ``hyperlink-expiration-time-stamp`` value in the
+request, you set the expiration time & date for the payment URL (default value is 30 minutes).
+* Each payment hyperlink can only be used once.
+* Specify redirect URLs in the request if you need to redirect your
+customers to a different page than your database defaults (or you have
+no defaults set). See
+the <<PPSolutions_PPv2_ConfigureRedirects, Configuring the Redirect Pages>> section for more details
+* The stamp uses ISO 8601 format with timezone,
+e.g. 2018-06-22T10:15:30+01:00.
+* The latest date for the expiration stamp is one month from the initial
+request creation.
+
+//-

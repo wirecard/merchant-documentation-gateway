@@ -1,0 +1,379 @@
+[#eps]
+== REST API & {payment-page-v1}
+_eps-Überweisung_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#eps_GeneralInformation_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+|*Countries* |AT, DE (giropay interoperability)
+|*Currencies* |EUR
+|===
+
+[#eps_GeneralInformation_Communication]
+=== Communication Formats
+This table illustrates how _eps-Überweisung_ notifications are encoded
+and which formats and methods can be used for requests and responses.
+
+[width=75%,",stripes=none]
+|===
+.2+h| *Requests/Responses* | Format | XML
+   | Methods |POST
+   h| *IPN Encodement* 2+| Base64 |
+|===
+
+[#eps_GeneralInformation_Banks]
+include::{root}/include/list-eps-banks.adoc[leveloffset=+4]
+
+[#eps_Transactions]
+=== Transactions
+
+[#eps_Transactions_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+[%autowidth.strech,stripes=none]
+[stripes=none]
+|===
+|Transaction Type |Description |Link to samples
+
+|_get-url_ |Initiation of a transaction triggering the redirect of the
+consumer to the eps system.
+| See <<eps_Samples, _get-url_ samples>>
+|_debit_ |Created during payment processing and finalized after consumer
+TAN confirmation/cancel etc. using eps system payment confirmation.
+| See <<eps_Samples, _debit_ samples>>
+|===
+
+[#eps_Transactions_ReferenceTransaction]
+==== Reference Transaction
+NOTE: For additional information regarding referenced transaction functionality, see <<GeneralPlatformFeatures_CrossPayment, Cross-Payment-Methods Referencing>>.
+
+[#eps_Transactions_Restrictions]
+==== Restrictions
+NOTE: When using _eps-Überweisung_, some banks do not transmit consumer data
+(e.g. account details) to {payment-gateway}. As these fields
+are mandatory for a refund (e.g. via SEPA _Credit Transfer_), the
+merchant is obliged to provide the consumer data to guarantee a
+successful _refund_.
+
+[#eps_TestCredentials]
+=== Test Credentials
+
+[cols="h,,"]
+[%autowidth.strech,stripes=none]
+[stripes=none]
+|===
+|*URL (Endpoint)*
+|For transaction type _get-url_
+|
+ifndef::env-nova[]
+``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+endif::[]
+ifdef::env-nova[]
+``\https://payments-test.wirecard.com/ee/rest/payments``
+endif::[]
+|*Merchant Account ID (MAID)*
+2+|1f629760-1a66-4f83-a6b4-6a35620b4a6d
+|*Username*
+2+|16390-testing
+|*Password*
+2+|3!3013=D3fD8X7
+|===
+
+.Additional Test Credentials on eps-Überweisung Environment
+[cols=",,"]
+[%autowidth.strech,stripes=none]
+[stripes=none]
+|===
+.2+h| *Ärzte- und Apotheker Bank*
+| BIC
+| BWFBATW1XXX
+| Login Data
+| Just click to continue - no input needed.
+3+| or
+.2+h| *Stuzza Bank*
+| BIC
+| STUZZATWXXX
+| Login Data
+| Please contact <<ContactUs, Merchant Support>> for complete test credentials.
+|===
+
+
+[#eps_Workflow]
+=== Workflow
+
+[#eps_Ueberweisung_debit]
+==== debit
+
+NOTE: The merchant sends a _get-url_ request to Wirecard and receives a response
+which contains either the URL of the consumers online banking system (if
+BIC is provided in the request) or the eps bank selection page, to which the
+consumer must be redirected. The consumer is redirected back to merchants shop after the
+transaction is approved and the merchant receives a _debit_ payment notification
+from {payment-gateway}.
+
+image::images/11-09-eps/eps_DebitWorkflow.png[width=950, align="center"]
+
+. Consumer adds items to their shopping basket.
+. Consumer selects _eps-Überweisung_.
+. The merchant sends a _get-url_ request to {payment-gateway}.
+. {payment-gateway} processes and validates the
+transaction.
+. {payment-gateway} forwards the request to
+_eps-Überweisung_.
+. _eps-Überweisung_ provides the URL of the consumer's online banking
+account for payment verification.
+. {payment-gateway} processes the response.
+. {payment-gateway} redirects the consumer to the provided
+online banking URL.
+. Consumer verifies the payment within the personal online banking system.
+. _eps-Überweisung_ transfers funds from the consumer's bank account
+to the merchant's bank account.
+. _eps-Überweisung_ sends a payment notification to the {payment-gateway}.
+. {payment-gateway} processes the notification and sends the
+payment _debit_ notification to the merchant.
+. The merchant receives the notification with the payment result.
+
+//-
+
+[#eps_giropayInteroperability]
+=== _eps-Überweisung_ & giropay
+
+SO implemented interlink to _eps-giropay_ scheme in Germany. If the
+merchant's contract allows to process those interoperability
+transactions, all _eps-giropay_ participating banks in Germany can also
+be reached with a technical _eps-Überweisung_ transaction.
+
+Supporting banks can be chosen by the consumer during bank selection on
+the SO bank selection page.
+
+More information according _eps-giropay_ interoperability:
+https://eservice.stuzza.at/de/haendler/eps-ueberweisung/eps-giropay-interoperabilitaet.html
+
+[#eps_giropayInteroperability_Restrictions]
+Restrictions are
+
+* Shop does not support bank selection, only the SO bank selection is
+supported for giropay banks.
+* Max. 10.000 EUR guaranteed for single payment initiation (amount can
+be higher than 10.000 EUR).
+* Remittance identifier limited to 35 characters for structured purpose
+or 140 characters for unstructured purpose (See field <<eps_Fields_Descriptor, descriptor>>).
+
+[#eps_RetrieveEpsPaymentDetails]
+=== Retrieve Payment Details
+
+Since _eps-Überweisung_ is an asynchronous payment method, the consumers
+payment data is provided asynchronously via a server 2 server notification
+from eps system.
+
+To retrieve buyers detail payment data the merchant must query payment
+data after receiving a debit notification or the redirect of the
+consumer back to the shop system from eps/online banking system.
+
+The debit payment returned as query result will contain consumer's
+payment details such as
+
+* account holder data
+* buyer's bank account data
+
+The data is included only if the consumer's bank provided the data in
+the final bank notification for successful payment. It is not mandatory
+for banks to send this data.
+
+Therefore, it is required to process a payment query using {payment-gateway-abbr} Rest
+interface after the shop system received a debit payment notification or
+the consumer has been redirected to the shop.
+
+See <<GeneralPlatformFeatures_RetrieveTransaction, Retrieve a Transaction>>
+for further information about retrieving transaction details.
+
+[#eps_Fields]
+=== Fields
+
+The fields used for _eps-Überweisung_ requests, responses and
+notifications are the same as the ReST API Fields.
+Please refer to the <<RestApi_Fields, REST API field list>>. Only the fields listed below have different properties,
+especially according to size.
+
+The following elements are mandatory (M), optional (O) or conditional
+\(C) for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[cols=",,,,v", options="header"]
+[frame=all]
+[%autowidth.strech,stripes=none]
+|===
+|*Field*
+|*Cardinality*
+|*Data Type*
+|*Size*
+|*Description*
+|descriptor
+|O
+|xs:string
+|140
+a|[#eps_Fields_Descriptor]
+The remittance identifier. Limit of 35 characters for structured purpose
+or 140 characters for unstructured purpose. Applied only if not already
+configured during merchant setup. Supports only limited character set:
+a b c d e f g h i j k l m n o p q r s t u v w x y z
+A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+0 1 2 3 4 5 6 7 8 9
+- € $ § % ! = # ~ ; + / ? : ( ) . , ' & > < " * { } [ ] @ \ _ ° ^ \|
+Ä Ö Ü ä ö ü ß
+Space
+|===
+
+[#eps_Samples]
+=== Samples
+
+NOTE: _eps-Überweisung_ returns coded payment method URLs in the response! +
+When you perform a test transaction, the ``<payment-method url>`` that
+is returned in the XML Response is encoded and cannot be used directly.
+You must decode the URL first to link to the correct page. You can use
+any tool that decodes URLs. Maybe you want to try Coder's Toolbox,
+available at:
+https://coderstoolbox.net/string/#!encoding=xml&action=decode&charset=us_ascii
+
+[#eps_Ueberweisung_GetUrlWithBankSelectionInMerchantShop]
+==== _get-url_ with Bank Selection in Merchant Shop
+
+[#eps_Ueberweisung_Success]
+===== Successful Request/Response and Notification
+
+.XML get-url Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_request_success_678a66.xml[]
+----
+
+.XML get-url Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_response_success_3fa946.xml[]
+----
+
+.XML debit Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_debit_notification_success_06a0802a.xml[]
+----
+
+.Base64 debit Notification (Successful)
+
+[source,subs=attributes+]
+----
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48cGF5bWVudCB4bWxucz0iaHR0cDovL3d3dy5lbGFzdGljLXBheW1lbnRzLmNvbS9zY2hlbWEvcGF5bWVudCIgeG1sbnM6bnMyPSJodHRwOi8vd3d3LmVsYXN0aWMtcGF5bWVudHMuY29tL3NjaGVtYS9lcGEvdHJhbnNhY3Rpb24iPjxtZXJjaGFudC1hY2NvdW50LWlkPjFmNjI5NzYwLTFhNjYtNGY4My1hNmI0LTZhMzU2MjBiNGE2ZDwvbWVyY2hhbnQtYWNjb3VudC1pZD48dHJhbnNhY3Rpb24taWQ+MDM2ODUwNDMtMmRiMi00ZjliLWE2NzItOTI1Y2U3MjQzZTkxPC90cmFuc2FjdGlvbi1pZD48cmVxdWVzdC1pZD5lMWI5N2FmZi1hZTlhLTRmYTEtOTAyYy1jZjc3YmE4ZDQyYjA8L3JlcXVlc3QtaWQ+PHRyYW5zYWN0aW9uLXR5cGU+ZGViaXQ8L3RyYW5zYWN0aW9uLXR5cGU+PHRyYW5zYWN0aW9uLXN0YXRlPnN1Y2Nlc3M8L3RyYW5zYWN0aW9uLXN0YXRlPjxjb21wbGV0aW9uLXRpbWUtc3RhbXA+MjAxOC0wNS0yOVQxMDo0NDoxMC4wMDBaPC9jb21wbGV0aW9uLXRpbWUtc3RhbXA+PHN0YXR1c2VzPjxzdGF0dXMgY29kZT0iMjAxLjAwMDAiIGRlc2NyaXB0aW9uPSJlcHM6VGhlIHJlc291cmNlIHdhcyBzdWNjZXNzZnVsbHkgY3JlYXRlZC4iIHNldmVyaXR5PSJpbmZvcm1hdGlvbiIvPjwvc3RhdHVzZXM+PHJlcXVlc3RlZC1hbW91bnQgY3VycmVuY3k9IkVVUiI+MS45OTwvcmVxdWVzdGVkLWFtb3VudD48cGFyZW50LXRyYW5zYWN0aW9uLWlkPjA2YTA4MDJhLWI4YzYtNDE2Zi04ZWY5LTM4ZjAxODI0OWU2ZjwvcGFyZW50LXRyYW5zYWN0aW9uLWlkPjxpcC1hZGRyZXNzPjEwLjEwLjI0NS45NDwvaXAtYWRkcmVzcz48bm90aWZpY2F0aW9ucz48bm90aWZpY2F0aW9uIHVybD0ibWFpbHRvOmFtaXJhLnpha2lAd2lyZWNhcmQuY29tIi8+PC9ub3RpZmljYXRpb25zPjxwYXltZW50LW1ldGhvZHM+PHBheW1lbnQtbWV0aG9kIG5hbWU9ImVwcyIvPjwvcGF5bWVudC1tZXRob2RzPjxhcGktaWQ+LS0tPC9hcGktaWQ+PFNpZ25hdHVyZSB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyI+PFNpZ25lZEluZm8+PENhbm9uaWNhbGl6YXRpb25NZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy14bWwtYzE0bi0yMDAxMDMxNSIvPjxTaWduYXR1cmVNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNyc2Etc2hhMjU2Ii8+PFJlZmVyZW5jZSBVUkk9IiI+PFRyYW5zZm9ybXM+PFRyYW5zZm9ybSBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNlbnZlbG9wZWQtc2lnbmF0dXJlIi8+PC9UcmFuc2Zvcm1zPjxEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGVuYyNzaGEyNTYiLz48RGlnZXN0VmFsdWU+V2hYNWpmQUdHV2Uvblo3MU8yaXZsN3RHcklLSExLbEhONUhIeTVVT2JEcz08L0RpZ2VzdFZhbHVlPjwvUmVmZXJlbmNlPjwvU2lnbmVkSW5mbz48U2lnbmF0dXJlVmFsdWU+UWQ3eE1QbmRxUytyNk5ZNHpGLzA5RG4zYlpYZWVlWnB0TExtUXZtRk1Yc213WFhEcktlZFJLMzFpcEJSdU5GaHEyVVh5N0NvcENEL1Q0NVJOT1cwcUlQcDdYak40anVDYlBLOFRLRFpGZXk0RFZiam9MSS9RM21xMG5hbGFveFA5dDk5L0o0dGgzVDhoK0tOUUlXQ3ZtUnowZEY0VVVWdlZtVWF5c2FxRXQ3eFQ1bm0zYzczanBBNU5rUFJBMXNYMFkwUTcwUWR5NmpJUGpwaFJoWUdndG5VTTZWcjFibjB1d2tpaUNBZk4xOUVjVENkbXo1THRXOUZRdjFyYTZ2Y0l3RUlpRzFyL2l5bS9NM0RzRjRCQnR0aEFFYkwxQjRZNXRvME9yVmRHaDFBRWFvako5MHZZZDYwRk1PdHFvYnMrajRHMENSdXRnWjVOdHdsR2NMNzBYdTdXRVdXdzc2T2NRZXh2WGFoNWkxV2d0dkZZSWNXTXlMbTBZTmUxYTdGalZlQTVXeXpvMmNSM24zcGg4VkZnM05wZUgrb0RueDFQczJOdklzcHhCWitEemFsQmNGZVFXSm1wT01sUTNvcVdsdDdZeHllaXFEalBtR3pzUEI4OTJNcWpTL1FxREd3Zlp6dlgzdS9TeVBuT29ERjdTaTlzMTg4enJlSG5qaitObFpZMWkxQjFzRUZKNTYxMDRxSmJRZHQrTzZzMVFxTGo2dktzMjZWclY0NzdsTkdoZ0RPRUtrZjFUUUZNeHI1a0RIYnAwd1orbnJwc2tJdCtBNmRuWTBvSDdkWHMrdUFLNkJSSysrVDIyZ09kZXhJOC9pSnNYWVNEZHJ3czA3TjNVeHhxMW1haDhKYkZDWU5oVVFMQjZoeFRHeUtiL3Mrd2ozNFZvOU8xVjA9PC9TaWduYXR1cmVWYWx1ZT48S2V5SW5mbz48WDUwOURhdGE+PFg1MDlTdWJqZWN0TmFtZT5MPUFzY2hlaW0sMi41LjQuND0jMTMwNjQyNjE3OTY1NzI2ZSxDTj1hcGktdGVzdC53aXJlY2FyZC5jb20sT1U9T3BlcmF0aW9ucyxPPVdpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJILEM9REU8L1g1MDlTdWJqZWN0TmFtZT48WDUwOUNlcnRpZmljYXRlPk1JSUY1RENDQk15Z0F3SUJBZ0lDTEhRd0RRWUpLb1pJaHZjTkFRRUxCUUF3V3pFTE1Ba0dBMVVFQmhNQ1JFVXhFVEFQQmdOVkJBb1RDRmRwY21WallYSmtNVGt3TndZRFZRUURGREIzYVhKbFkyRnlaQzFFVVMxTlZVTXRhVzUwWlhKdVlXd3RkMlZpYzJWeWRtbGpaUzFwYzNOMWFXNW5RMEZmTURJd0hoY05NVGN3TVRFeU1UTTFPVEkyV2hjTk1Ua3dNVEV5TVRNMU9USTJXakNCaWpFTE1Ba0dBMVVFQmhNQ1JFVXhJekFoQmdOVkJBb1RHbGRwY21WallYSmtJRlJsWTJodWIyeHZaMmxsY3lCSGJXSklNUk13RVFZRFZRUUxFd3BQY0dWeVlYUnBiMjV6TVI0d0hBWURWUVFERXhWaGNHa3RkR1Z6ZEM1M2FYSmxZMkZ5WkM1amIyMHhEekFOQmdOVkJBUVRCa0poZVdWeWJqRVFNQTRHQTFVRUJ4TUhRWE5qYUdWcGJUQ0NBaUl3RFFZSktvWklodmNOQVFFQkJRQURnZ0lQQURDQ0Fnb0NnZ0lCQUtTa0V4Qlk4RmpSY1pkcnhPdUpGK0haWTgrTWNRYU9COEIwRS9oVFVob2Nsc0Y0T0pOYU1UaGplN1I2dzZPWVdCTUtwc3NHbmdIRmFadjM1ckNvNVhWVXBKbWpaYTA0eXR4RTcyR0tPL3VQNHlJUjdaQlhaeDQyQjIyTUZhSkpaVGdQUkNDRmQ2anJ6OTA2QlovL0NtRUFtazVnS2VsZlB4ZldKZ0d5VFg2eHo3STlSL0c1N0UxeE5PdUVpaE4wbWE1UTJJaEQ3MU1QVnNlRklHYXp5ZkdiSkQ2cllZYmVCYk9RU0drLy9UTDhzZFJDbjBCTGNtNERINW9xY1B4REt6a2FCUDRvaE5rQ1dzeHBMTFN5VjZXeDBpaFQwUzFPTFZOa0VlVHZjcllnVWsxMjRWeUdhdHdXTlV1Q0JZeU9HUVNPR3FyVzhJSG1yaGp6elQwTlFvZzAvbTM4bHBkcXcvZVdtdDM5cWhPRHFTZklMVWsyRHh2MStXMElSS0pDS2NKcmNUYlhFUUN1SGwrWFdZK1UyQWhpbklQTlJBMEtYMm9PZ0MvL2lud3lLV1NHV0hkUW5hYWtlNjQ2UjF3SHF0b0VmQ3RFY2Z5YWVSK0lyTXIxckNBQTNSWitNSDFKNVVsVUNXY254UFQwa2FkNmRVd2UzUWpxM2pLNGdhRnpZVTJ5VlNjWDVMVlpNbFd5Mk5pR0NJdm5nSFFtaEFyRVN6eE1Wdno1TUVUWnVqZmF4NmhmbWlMTlJXdTBacXMwOU1weHk1ems1bS9XUmk1aXpiMHVCZUNmY0E2eDlwbWpNeDhNNE9HRzVSTzJIVFhTd0xZSlRLSTQ3VlhOc0xMT1krbk1GbWhqL2RrTEo1ZDN6STdFY3pUb1BNUkhtSEc3RXFFZEFmYmIrb1VsQWdNQkFBR2pnZ0dBTUlJQmZEQVJCZ05WSFE0RUNnUUlTNndWSUEwbUo5SXdFd1lEVlIwakJBd3dDb0FJUTJ3ZUZ0UTlCUTR3Q3dZRFZSMFBCQVFEQWdUd01JSUJRd1lEVlIwZkJJSUJPakNDQVRZd2dnRXlvSUlCTHFDQ0FTcUdnZFZzWkdGd09pOHZkMmx5WldOaGNtUXViR0Z1TDBOT1BYZHBjbVZqWVhKa0xVUlJMVTFWUXkxcGJuUmxjbTVoYkMxM1pXSnpaWEoyYVdObExXbHpjM1ZwYm1kRFFWOHdNaXhEVGoxRFJGQXNRMDQ5VUhWaWJHbGpJRXRsZVNCVFpYSjJhV05sY3l4RFRqMVRaWEoyYVdObGN5eERUajFEYjI1bWFXZDFjbUYwYVc5dUxHUmpQWGRwY21WallYSmtMR1JqUFd4aGJqOWpaWEowYVdacFkyRjBaVkpsZG05allYUnBiMjVNYVhOMFAySmhjMlUvYjJKcVpXTjBRMnhoYzNNOVExSk1SR2x6ZEhKcFluVjBhVzl1VUc5cGJuU0dVR2gwZEhBNkx5OWpjbXd1ZDJseVpXTmhjbVF1YkdGdUwwTlNURjkzYVhKbFkyRnlaQzFFVVMxTlZVTXRhVzUwWlhKdVlXd3RkMlZpYzJWeWRtbGpaUzFwYzNOMWFXNW5RMEZmTURJdVkzSnNNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFtbFVvaUVGUFJzT2pHUGI3U1lpdUpMeHFUWEN2WlFldVhpVXlkRjZGUWwveklwUi96U2x0YVpLSzg2TCsxaTd0MUM4OU95VFRYQkQ5Rk42RUttbEhvL3Vsc01uOVYyQjR6SzNsVC9OVWNsU1Q5OEJtQ2xhNEp6bStyb2VPSFRxbFB6M2dQUkppUHNyM3dkdk0rRlNBSjJNUmR2M2w3N21URTN2M2hqc1ZWTW1TaFIzVnd3cHhDSUNsM21wTXNTYUpaTHlKZE9Id3ZucFhzMW05a0VTd1BEM0RRM1JBUS9PR2EwcFB4QWtIYWF1b2c0RGhQdnIvbkJRbldIZDJVczViL2VwN0xNRTloWjh1M2h1L0tjNlZrMjRjNXAzV1VPaXlhVGl3K1ltM1FEWGwxd0JTbDlEZE05NEtibUFBUTVEL0ZVcXlRblNjNFRwbVl2SitJYXZhZzwvWDUwOUNlcnRpZmljYXRlPjwvWDUwOURhdGE+PC9LZXlJbmZvPjwvU2lnbmF0dXJlPjwvcGF5bWVudD4=
+----
+
+[#eps_Ueberweisung_Failure]
+===== Failure Request/Response
+
+.XML get-url Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_request_failure_820422.xml[]
+----
+
+.XML get-url Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_response_failure_dc1fc1.xml[]
+----
+
+[#eps_Ueberweisung_SuccessWithFailureNotification]
+===== Successful Request/Response with Failure Notification
+
+.XML get-url Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_notification_failure.xml[]
+----
+
+.XML get-url Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_response_failure_5ff6f6.xml[]
+----
+
+.XML debit Notification (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_debit_notification_failure_ba65bb58.xml[]
+----
+
+.Base64 debit Notification (Failure)
+
+[source,subs=attributes+]
+----
+PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48cGF5bWVudCB4bWxucz0iaHR0cDovL3d3dy5lbGFzdGljLXBheW1lbnRzLmNvbS9zY2hlbWEvcGF5bWVudCIgeG1sbnM6bnMyPSJodHRwOi8vd3d3LmVsYXN0aWMtcGF5bWVudHMuY29tL3NjaGVtYS9lcGEvdHJhbnNhY3Rpb24iPjxtZXJjaGFudC1hY2NvdW50LWlkPjFmNjI5NzYwLTFhNjYtNGY4My1hNmI0LTZhMzU2MjBiNGE2ZDwvbWVyY2hhbnQtYWNjb3VudC1pZD48dHJhbnNhY3Rpb24taWQ+YWQ1MTMyODMtZDM5MS00YWYwLWIzNTctMzJhMzZiY2RkYWY4PC90cmFuc2FjdGlvbi1pZD48cmVxdWVzdC1pZD5hMTMyOTAzMC0zNTcwLTQ5YzktYjZlMC0yMTI0NTA2N2U3YzY8L3JlcXVlc3QtaWQ+PHRyYW5zYWN0aW9uLXR5cGU+ZGViaXQ8L3RyYW5zYWN0aW9uLXR5cGU+PHRyYW5zYWN0aW9uLXN0YXRlPmZhaWxlZDwvdHJhbnNhY3Rpb24tc3RhdGU+PGNvbXBsZXRpb24tdGltZS1zdGFtcD4yMDE4LTA1LTI5VDEwOjUxOjU5LjAwMFo8L2NvbXBsZXRpb24tdGltZS1zdGFtcD48c3RhdHVzZXM+PHN0YXR1cyBjb2RlPSI1MDAuMTEyNyIgZGVzY3JpcHRpb249ImVwczpGYWlsZWQgY29uZmlybWF0aW9uIHJlY2VpdmVkIGZyb20gdGhlIHRoaXJkIHBhcnR5LiIgc2V2ZXJpdHk9ImVycm9yIi8+PC9zdGF0dXNlcz48cmVxdWVzdGVkLWFtb3VudCBjdXJyZW5jeT0iRVVSIj4xLjk5MDAwMDwvcmVxdWVzdGVkLWFtb3VudD48cGFyZW50LXRyYW5zYWN0aW9uLWlkPmJhNjViYjU4LWZiZWQtNDk4OC04N2VlLTk1MjBkYjlmOTY3OTwvcGFyZW50LXRyYW5zYWN0aW9uLWlkPjxpcC1hZGRyZXNzPjEwLjEwLjI0NS45NDwvaXAtYWRkcmVzcz48bm90aWZpY2F0aW9ucz48bm90aWZpY2F0aW9uIHVybD0ibWFpbHRvOmFtaXJhLnpha2lAd2lyZWNhcmQuY29tIi8+PC9ub3RpZmljYXRpb25zPjxwYXltZW50LW1ldGhvZHM+PHBheW1lbnQtbWV0aG9kIG5hbWU9ImVwcyIvPjwvcGF5bWVudC1tZXRob2RzPjxhcGktaWQ+LS0tPC9hcGktaWQ+PHByb2Nlc3NpbmctcmVkaXJlY3QtdXJsPmh0dHBzOi8vc2FuZGJveC1lbmdpbmUudGhlc29sdXRpb24uY29tL3Nob3AvcHJvY2Vzc2luZy5odG1sPC9wcm9jZXNzaW5nLXJlZGlyZWN0LXVybD48Y2FuY2VsLXJlZGlyZWN0LXVybD5odHRwczovL2RlbW9zaG9wLXRlc3Qud2lyZWNhcmQuY29tL2RlbW9zaG9wLyMhL2NhbmNlbDwvY2FuY2VsLXJlZGlyZWN0LXVybD48ZmFpbC1yZWRpcmVjdC11cmw+aHR0cHM6Ly9kZW1vc2hvcC10ZXN0LndpcmVjYXJkLmNvbS9kZW1vc2hvcC8jIS9lcnJvcjwvZmFpbC1yZWRpcmVjdC11cmw+PHN1Y2Nlc3MtcmVkaXJlY3QtdXJsPmh0dHBzOi8vZGVtb3Nob3AtdGVzdC53aXJlY2FyZC5jb20vZGVtb3Nob3AvIyEvc3VjY2Vzczwvc3VjY2Vzcy1yZWRpcmVjdC11cmw+PFNpZ25hdHVyZSB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyI+PFNpZ25lZEluZm8+PENhbm9uaWNhbGl6YXRpb25NZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy14bWwtYzE0bi0yMDAxMDMxNSIvPjxTaWduYXR1cmVNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNyc2Etc2hhMjU2Ii8+PFJlZmVyZW5jZSBVUkk9IiI+PFRyYW5zZm9ybXM+PFRyYW5zZm9ybSBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNlbnZlbG9wZWQtc2lnbmF0dXJlIi8+PC9UcmFuc2Zvcm1zPjxEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGVuYyNzaGEyNTYiLz48RGlnZXN0VmFsdWU+K0hTdGVjNDRVNjMzWWxhWmU0cFdjbHdEdTlId0UwZ01Na3ZtNGZXeEdQdz08L0RpZ2VzdFZhbHVlPjwvUmVmZXJlbmNlPjwvU2lnbmVkSW5mbz48U2lnbmF0dXJlVmFsdWU+SjNCKzBqa2JkSHBpaEZJeFNjcFp0TlRaSFM5d0Q1RzFGbkExRmJqU1R3UTZKNmdjY1VySHlrY25tMDJMZkRxS3g5bTZMUFIzTmFWMGlmakNvK3Q4dW5XcDZ1SVpkOXNRSGVoUVZ4c2k1YUlrUmhFRndFMDdqNStRTW5yMEV6aWF1VU1VdVByRmxMZTl3K1ZlTEQvck9EUTlBUzJhcTVVdUd1eTRlMi9LclRCMHRVWWhkcDlSS0dEU2c4Zm42dDR5WjZ4ZzUvRGgxeXBEVEpZbXN0VUF6ckNIelk5OW01QjNhVmN6TjRDckY4Z3ZUTjBCQ3Yvb2gwdlVxdFU1dy9GRHRkcXdnaVlibE5YTHFDSjdMbEpVUzVhRCt2SWorbklFYkw4NmhFV2psdkEzQkh5bkhXSTNEeDV2ajRGcWEyK00rODJSREd3QVVXRDR6clNOU0Q2Wmk0TGpaNmNBdWdEM21JZUtRM1RtQ0VCZHJPYWM4akdPN1pVMXl3SFlib3NKR0VKeWFZa0diMldwK3k0MmhvZFcvcldpSm9DT281QjFiOWc5Z29YM0FVVDM2S1lwckFZNlgwNjU3YkUvektZemE1TDYwQ1BjTzduUXZKZ3FCK2NxMWZ2c0o3Z0xOMnJ2WG9POE0xd1N6dlROL0hQYWhjcHFNVDFiZmlGN1NPUm1wcGQ4VXN5SXMvUkVJSFVnMFhWTXhoaTczdk9EaTJ4UUtWdS9mQlUvZDN2Z0cvVVUwNGRmOUIrTlY0ZDBCNExScng2dC9RY0g5ZHlPa0hQQi9xVFZQSWJnRDYxck5PV0wyQllTOHB5N1pDbHVrcDBUMUlUQ0ltSm1MNW1nemRleXdLdEQrYTJLQWVFN3IweWlYSXo3eUVUbUFNQk53NnlRaFJ3bmtlY25BNDA9PC9TaWduYXR1cmVWYWx1ZT48S2V5SW5mbz48WDUwOURhdGE+PFg1MDlTdWJqZWN0TmFtZT5MPUFzY2hlaW0sMi41LjQuND0jMTMwNjQyNjE3OTY1NzI2ZSxDTj1hcGktdGVzdC53aXJlY2FyZC5jb20sT1U9T3BlcmF0aW9ucyxPPVdpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJILEM9REU8L1g1MDlTdWJqZWN0TmFtZT48WDUwOUNlcnRpZmljYXRlPk1JSUY1RENDQk15Z0F3SUJBZ0lDTEhRd0RRWUpLb1pJaHZjTkFRRUxCUUF3V3pFTE1Ba0dBMVVFQmhNQ1JFVXhFVEFQQmdOVkJBb1RDRmRwY21WallYSmtNVGt3TndZRFZRUURGREIzYVhKbFkyRnlaQzFFVVMxTlZVTXRhVzUwWlhKdVlXd3RkMlZpYzJWeWRtbGpaUzFwYzNOMWFXNW5RMEZmTURJd0hoY05NVGN3TVRFeU1UTTFPVEkyV2hjTk1Ua3dNVEV5TVRNMU9USTJXakNCaWpFTE1Ba0dBMVVFQmhNQ1JFVXhJekFoQmdOVkJBb1RHbGRwY21WallYSmtJRlJsWTJodWIyeHZaMmxsY3lCSGJXSklNUk13RVFZRFZRUUxFd3BQY0dWeVlYUnBiMjV6TVI0d0hBWURWUVFERXhWaGNHa3RkR1Z6ZEM1M2FYSmxZMkZ5WkM1amIyMHhEekFOQmdOVkJBUVRCa0poZVdWeWJqRVFNQTRHQTFVRUJ4TUhRWE5qYUdWcGJUQ0NBaUl3RFFZSktvWklodmNOQVFFQkJRQURnZ0lQQURDQ0Fnb0NnZ0lCQUtTa0V4Qlk4RmpSY1pkcnhPdUpGK0haWTgrTWNRYU9COEIwRS9oVFVob2Nsc0Y0T0pOYU1UaGplN1I2dzZPWVdCTUtwc3NHbmdIRmFadjM1ckNvNVhWVXBKbWpaYTA0eXR4RTcyR0tPL3VQNHlJUjdaQlhaeDQyQjIyTUZhSkpaVGdQUkNDRmQ2anJ6OTA2QlovL0NtRUFtazVnS2VsZlB4ZldKZ0d5VFg2eHo3STlSL0c1N0UxeE5PdUVpaE4wbWE1UTJJaEQ3MU1QVnNlRklHYXp5ZkdiSkQ2cllZYmVCYk9RU0drLy9UTDhzZFJDbjBCTGNtNERINW9xY1B4REt6a2FCUDRvaE5rQ1dzeHBMTFN5VjZXeDBpaFQwUzFPTFZOa0VlVHZjcllnVWsxMjRWeUdhdHdXTlV1Q0JZeU9HUVNPR3FyVzhJSG1yaGp6elQwTlFvZzAvbTM4bHBkcXcvZVdtdDM5cWhPRHFTZklMVWsyRHh2MStXMElSS0pDS2NKcmNUYlhFUUN1SGwrWFdZK1UyQWhpbklQTlJBMEtYMm9PZ0MvL2lud3lLV1NHV0hkUW5hYWtlNjQ2UjF3SHF0b0VmQ3RFY2Z5YWVSK0lyTXIxckNBQTNSWitNSDFKNVVsVUNXY254UFQwa2FkNmRVd2UzUWpxM2pLNGdhRnpZVTJ5VlNjWDVMVlpNbFd5Mk5pR0NJdm5nSFFtaEFyRVN6eE1Wdno1TUVUWnVqZmF4NmhmbWlMTlJXdTBacXMwOU1weHk1ems1bS9XUmk1aXpiMHVCZUNmY0E2eDlwbWpNeDhNNE9HRzVSTzJIVFhTd0xZSlRLSTQ3VlhOc0xMT1krbk1GbWhqL2RrTEo1ZDN6STdFY3pUb1BNUkhtSEc3RXFFZEFmYmIrb1VsQWdNQkFBR2pnZ0dBTUlJQmZEQVJCZ05WSFE0RUNnUUlTNndWSUEwbUo5SXdFd1lEVlIwakJBd3dDb0FJUTJ3ZUZ0UTlCUTR3Q3dZRFZSMFBCQVFEQWdUd01JSUJRd1lEVlIwZkJJSUJPakNDQVRZd2dnRXlvSUlCTHFDQ0FTcUdnZFZzWkdGd09pOHZkMmx5WldOaGNtUXViR0Z1TDBOT1BYZHBjbVZqWVhKa0xVUlJMVTFWUXkxcGJuUmxjbTVoYkMxM1pXSnpaWEoyYVdObExXbHpjM1ZwYm1kRFFWOHdNaXhEVGoxRFJGQXNRMDQ5VUhWaWJHbGpJRXRsZVNCVFpYSjJhV05sY3l4RFRqMVRaWEoyYVdObGN5eERUajFEYjI1bWFXZDFjbUYwYVc5dUxHUmpQWGRwY21WallYSmtMR1JqUFd4aGJqOWpaWEowYVdacFkyRjBaVkpsZG05allYUnBiMjVNYVhOMFAySmhjMlUvYjJKcVpXTjBRMnhoYzNNOVExSk1SR2x6ZEhKcFluVjBhVzl1VUc5cGJuU0dVR2gwZEhBNkx5OWpjbXd1ZDJseVpXTmhjbVF1YkdGdUwwTlNURjkzYVhKbFkyRnlaQzFFVVMxTlZVTXRhVzUwWlhKdVlXd3RkMlZpYzJWeWRtbGpaUzFwYzNOMWFXNW5RMEZmTURJdVkzSnNNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFtbFVvaUVGUFJzT2pHUGI3U1lpdUpMeHFUWEN2WlFldVhpVXlkRjZGUWwveklwUi96U2x0YVpLSzg2TCsxaTd0MUM4OU95VFRYQkQ5Rk42RUttbEhvL3Vsc01uOVYyQjR6SzNsVC9OVWNsU1Q5OEJtQ2xhNEp6bStyb2VPSFRxbFB6M2dQUkppUHNyM3dkdk0rRlNBSjJNUmR2M2w3N21URTN2M2hqc1ZWTW1TaFIzVnd3cHhDSUNsM21wTXNTYUpaTHlKZE9Id3ZucFhzMW05a0VTd1BEM0RRM1JBUS9PR2EwcFB4QWtIYWF1b2c0RGhQdnIvbkJRbldIZDJVczViL2VwN0xNRTloWjh1M2h1L0tjNlZrMjRjNXAzV1VPaXlhVGl3K1ltM1FEWGwxd0JTbDlEZE05NEtibUFBUTVEL0ZVcXlRblNjNFRwbVl2SitJYXZhZzwvWDUwOUNlcnRpZmljYXRlPjwvWDUwOURhdGE+PC9LZXlJbmZvPjwvU2lnbmF0dXJlPjwvcGF5bWVudD4=
+----
+
+[#eps_Ueberweisung_GetUrlWithBankSelectionInSO]
+==== _get-url_ with Bank Selection in _eps-Überweisung_ SO System
+
+.XML get-url Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_request_success_998cd3.xml[]
+----
+
+.XML get-url Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_response_success_975f2b.xml[]
+----
+
+.XML debit Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_debit_notification_success_5d35ceae.xml[]
+----
+
+.Base64 debit Notification (Successful)
+
+[source,subs=attributes+]
+----
+ PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48cGF5bWVudCB4bWxucz0iaHR0cDovL3d3dy5lbGFzdGljLXBheW1lbnRzLmNvbS9zY2hlbWEvcGF5bWVudCIgeG1sbnM6bnMyPSJodHRwOi8vd3d3LmVsYXN0aWMtcGF5bWVudHMuY29tL3NjaGVtYS9lcGEvdHJhbnNhY3Rpb24iPjxtZXJjaGFudC1hY2NvdW50LWlkPjFmNjI5NzYwLTFhNjYtNGY4My1hNmI0LTZhMzU2MjBiNGE2ZDwvbWVyY2hhbnQtYWNjb3VudC1pZD48dHJhbnNhY3Rpb24taWQ+ZmIxMmQ1ZDktYjM3Mi00ZDMzLWE0ODctYzQ5YzdkYTE2MTYzPC90cmFuc2FjdGlvbi1pZD48cmVxdWVzdC1pZD4zOGYyY2VhZS03ODQzLTQ4ZjUtYjA1OS0zNTA2YjBjMzUzNzY8L3JlcXVlc3QtaWQ+PHRyYW5zYWN0aW9uLXR5cGU+ZGViaXQ8L3RyYW5zYWN0aW9uLXR5cGU+PHRyYW5zYWN0aW9uLXN0YXRlPnN1Y2Nlc3M8L3RyYW5zYWN0aW9uLXN0YXRlPjxjb21wbGV0aW9uLXRpbWUtc3RhbXA+MjAxOC0wNS0yOVQxMDo0Nzo1Ny4wMDBaPC9jb21wbGV0aW9uLXRpbWUtc3RhbXA+PHN0YXR1c2VzPjxzdGF0dXMgY29kZT0iMjAxLjAwMDAiIGRlc2NyaXB0aW9uPSJlcHM6VGhlIHJlc291cmNlIHdhcyBzdWNjZXNzZnVsbHkgY3JlYXRlZC4iIHNldmVyaXR5PSJpbmZvcm1hdGlvbiIvPjwvc3RhdHVzZXM+PHJlcXVlc3RlZC1hbW91bnQgY3VycmVuY3k9IkVVUiI+MS45OTwvcmVxdWVzdGVkLWFtb3VudD48cGFyZW50LXRyYW5zYWN0aW9uLWlkPjVkMzVjZWFlLTNkYjItNGJjNC05NjVkLTA3NWI2OGYxZTZmNjwvcGFyZW50LXRyYW5zYWN0aW9uLWlkPjxpcC1hZGRyZXNzPjEwLjEwLjI0NS45NDwvaXAtYWRkcmVzcz48bm90aWZpY2F0aW9ucz48bm90aWZpY2F0aW9uIHVybD0ibWFpbHRvOmFtaXJhLnpha2lAd2lyZWNhcmQuY29tIi8+PC9ub3RpZmljYXRpb25zPjxwYXltZW50LW1ldGhvZHM+PHBheW1lbnQtbWV0aG9kIG5hbWU9ImVwcyIvPjwvcGF5bWVudC1tZXRob2RzPjxhcGktaWQ+LS0tPC9hcGktaWQ+PFNpZ25hdHVyZSB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC8wOS94bWxkc2lnIyI+PFNpZ25lZEluZm8+PENhbm9uaWNhbGl6YXRpb25NZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy9UUi8yMDAxL1JFQy14bWwtYzE0bi0yMDAxMDMxNSIvPjxTaWduYXR1cmVNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNyc2Etc2hhMjU2Ii8+PFJlZmVyZW5jZSBVUkk9IiI+PFRyYW5zZm9ybXM+PFRyYW5zZm9ybSBBbGdvcml0aG09Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvMDkveG1sZHNpZyNlbnZlbG9wZWQtc2lnbmF0dXJlIi8+PC9UcmFuc2Zvcm1zPjxEaWdlc3RNZXRob2QgQWxnb3JpdGhtPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGVuYyNzaGEyNTYiLz48RGlnZXN0VmFsdWU+UmQ4QVphQ1BSYXpjSWtDNlY3YjdxbzNPNzdlTzQ1NnB0YlkwT0cyZ3NLdz08L0RpZ2VzdFZhbHVlPjwvUmVmZXJlbmNlPjwvU2lnbmVkSW5mbz48U2lnbmF0dXJlVmFsdWU+YmFuS0pTVWVhNU03SzJETUMwaklHZzNjYzZWWDFEMFJzb0l5cVorWTFHaEZQVThZczJOQW5OME1GVTZ0RFRNN2UxMEk5ZXdyaU9oR2w2VmliYytEWlBwdUg2NlpqREtBVDAzTHJYMVZJL2RWVG1DK1BYM0JTODRFeDNqU1dlKzFNaVFGdHd3NURZQml1cUFVUXZ1TklOb2FJUGZQK2grVmpTb1Vpd3RhdTk3Snp5Z0FaYWhOMjZES01OczNpOFZob0ZoV2dqaXNwQzF4UndsOU1IdG5TYWRuZ3NaWDdwQWdJb3o5L2JqaElyNktNNVpaUnpna3dVbUQzZXJ5Q0hzWHlJV2xUTXN3cUVXdWZCZk9DRDlRZnk1T284TnJiQ3JjdkhMM2FqOC9JZWxXemduV21jM2xmVFo2ZVNxTm9TUzlhY1cvclFrV295S3kwamlsSndGWTdLS081RHRBS0JLZUo5Sm92WjJKbTVSVTRyaXJ5cTFQUGNib1o2Z0ZpN2l6QzduU0R1bUF2Q2VIMUJwdUZ2OExhS3F1SVk5a3I4WWUvWElQN21ENjZLNHNsaDNlWDNFZytYbkFKbGhMSFBmVUxxNDJiQWgyQjlkNTI2OW5CWldJK0ZnNldiZUwwRVluK0cwd3dIRVpmQ1hNbjJpelYxNmxQQ3FkeW8zVkd3bFlkNFloWGlTMXlFRGJ5QTBXRm5iUXhDSk9wOXFzRHFCbU1JMGhWT2FKM2lPZGhSOG52Wng4cWt2dHlHQ2gyWE9wdFYvQng4SWczOG5GSnRPTU9ZSTg0RUFqMEF1RndCMEtGNEg5bWluR2Yyek1xaGI2cHVqS2R1b0wrMk1pWEhCcUNMbS91ZEJhaURjNUEwU2NsUU9sbU1CdENZaC9za2JWUE5KYzZLdWVMZmM9PC9TaWduYXR1cmVWYWx1ZT48S2V5SW5mbz48WDUwOURhdGE+PFg1MDlTdWJqZWN0TmFtZT5MPUFzY2hlaW0sMi41LjQuND0jMTMwNjQyNjE3OTY1NzI2ZSxDTj1hcGktdGVzdC53aXJlY2FyZC5jb20sT1U9T3BlcmF0aW9ucyxPPVdpcmVjYXJkIFRlY2hub2xvZ2llcyBHbWJILEM9REU8L1g1MDlTdWJqZWN0TmFtZT48WDUwOUNlcnRpZmljYXRlPk1JSUY1RENDQk15Z0F3SUJBZ0lDTEhRd0RRWUpLb1pJaHZjTkFRRUxCUUF3V3pFTE1Ba0dBMVVFQmhNQ1JFVXhFVEFQQmdOVkJBb1RDRmRwY21WallYSmtNVGt3TndZRFZRUURGREIzYVhKbFkyRnlaQzFFVVMxTlZVTXRhVzUwWlhKdVlXd3RkMlZpYzJWeWRtbGpaUzFwYzNOMWFXNW5RMEZmTURJd0hoY05NVGN3TVRFeU1UTTFPVEkyV2hjTk1Ua3dNVEV5TVRNMU9USTJXakNCaWpFTE1Ba0dBMVVFQmhNQ1JFVXhJekFoQmdOVkJBb1RHbGRwY21WallYSmtJRlJsWTJodWIyeHZaMmxsY3lCSGJXSklNUk13RVFZRFZRUUxFd3BQY0dWeVlYUnBiMjV6TVI0d0hBWURWUVFERXhWaGNHa3RkR1Z6ZEM1M2FYSmxZMkZ5WkM1amIyMHhEekFOQmdOVkJBUVRCa0poZVdWeWJqRVFNQTRHQTFVRUJ4TUhRWE5qYUdWcGJUQ0NBaUl3RFFZSktvWklodmNOQVFFQkJRQURnZ0lQQURDQ0Fnb0NnZ0lCQUtTa0V4Qlk4RmpSY1pkcnhPdUpGK0haWTgrTWNRYU9COEIwRS9oVFVob2Nsc0Y0T0pOYU1UaGplN1I2dzZPWVdCTUtwc3NHbmdIRmFadjM1ckNvNVhWVXBKbWpaYTA0eXR4RTcyR0tPL3VQNHlJUjdaQlhaeDQyQjIyTUZhSkpaVGdQUkNDRmQ2anJ6OTA2QlovL0NtRUFtazVnS2VsZlB4ZldKZ0d5VFg2eHo3STlSL0c1N0UxeE5PdUVpaE4wbWE1UTJJaEQ3MU1QVnNlRklHYXp5ZkdiSkQ2cllZYmVCYk9RU0drLy9UTDhzZFJDbjBCTGNtNERINW9xY1B4REt6a2FCUDRvaE5rQ1dzeHBMTFN5VjZXeDBpaFQwUzFPTFZOa0VlVHZjcllnVWsxMjRWeUdhdHdXTlV1Q0JZeU9HUVNPR3FyVzhJSG1yaGp6elQwTlFvZzAvbTM4bHBkcXcvZVdtdDM5cWhPRHFTZklMVWsyRHh2MStXMElSS0pDS2NKcmNUYlhFUUN1SGwrWFdZK1UyQWhpbklQTlJBMEtYMm9PZ0MvL2lud3lLV1NHV0hkUW5hYWtlNjQ2UjF3SHF0b0VmQ3RFY2Z5YWVSK0lyTXIxckNBQTNSWitNSDFKNVVsVUNXY254UFQwa2FkNmRVd2UzUWpxM2pLNGdhRnpZVTJ5VlNjWDVMVlpNbFd5Mk5pR0NJdm5nSFFtaEFyRVN6eE1Wdno1TUVUWnVqZmF4NmhmbWlMTlJXdTBacXMwOU1weHk1ems1bS9XUmk1aXpiMHVCZUNmY0E2eDlwbWpNeDhNNE9HRzVSTzJIVFhTd0xZSlRLSTQ3VlhOc0xMT1krbk1GbWhqL2RrTEo1ZDN6STdFY3pUb1BNUkhtSEc3RXFFZEFmYmIrb1VsQWdNQkFBR2pnZ0dBTUlJQmZEQVJCZ05WSFE0RUNnUUlTNndWSUEwbUo5SXdFd1lEVlIwakJBd3dDb0FJUTJ3ZUZ0UTlCUTR3Q3dZRFZSMFBCQVFEQWdUd01JSUJRd1lEVlIwZkJJSUJPakNDQVRZd2dnRXlvSUlCTHFDQ0FTcUdnZFZzWkdGd09pOHZkMmx5WldOaGNtUXViR0Z1TDBOT1BYZHBjbVZqWVhKa0xVUlJMVTFWUXkxcGJuUmxjbTVoYkMxM1pXSnpaWEoyYVdObExXbHpjM1ZwYm1kRFFWOHdNaXhEVGoxRFJGQXNRMDQ5VUhWaWJHbGpJRXRsZVNCVFpYSjJhV05sY3l4RFRqMVRaWEoyYVdObGN5eERUajFEYjI1bWFXZDFjbUYwYVc5dUxHUmpQWGRwY21WallYSmtMR1JqUFd4aGJqOWpaWEowYVdacFkyRjBaVkpsZG05allYUnBiMjVNYVhOMFAySmhjMlUvYjJKcVpXTjBRMnhoYzNNOVExSk1SR2x6ZEhKcFluVjBhVzl1VUc5cGJuU0dVR2gwZEhBNkx5OWpjbXd1ZDJseVpXTmhjbVF1YkdGdUwwTlNURjkzYVhKbFkyRnlaQzFFVVMxTlZVTXRhVzUwWlhKdVlXd3RkMlZpYzJWeWRtbGpaUzFwYzNOMWFXNW5RMEZmTURJdVkzSnNNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUFtbFVvaUVGUFJzT2pHUGI3U1lpdUpMeHFUWEN2WlFldVhpVXlkRjZGUWwveklwUi96U2x0YVpLSzg2TCsxaTd0MUM4OU95VFRYQkQ5Rk42RUttbEhvL3Vsc01uOVYyQjR6SzNsVC9OVWNsU1Q5OEJtQ2xhNEp6bStyb2VPSFRxbFB6M2dQUkppUHNyM3dkdk0rRlNBSjJNUmR2M2w3N21URTN2M2hqc1ZWTW1TaFIzVnd3cHhDSUNsM21wTXNTYUpaTHlKZE9Id3ZucFhzMW05a0VTd1BEM0RRM1JBUS9PR2EwcFB4QWtIYWF1b2c0RGhQdnIvbkJRbldIZDJVczViL2VwN0xNRTloWjh1M2h1L0tjNlZrMjRjNXAzV1VPaXlhVGl3K1ltM1FEWGwxd0JTbDlEZE05NEtibUFBUTVEL0ZVcXlRblNjNFRwbVl2SitJYXZhZzwvWDUwOUNlcnRpZmljYXRlPjwvWDUwOURhdGE+PC9LZXlJbmZvPjwvU2lnbmF0dXJlPjwvcGF5bWVudD4=
+----
+
+.XML get-url Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_request_failure_2ccaea.xml[]
+----
+
+.XML get-url Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_get-url_response_failure_3fadb2.xml[]
+----
+
+[#eps_Ueberweisung_QueryResult]
+==== Query Result
+
+.XML debit Payment Query Result
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/eps_debit_unknown_.xml[]
+----
+
+//-

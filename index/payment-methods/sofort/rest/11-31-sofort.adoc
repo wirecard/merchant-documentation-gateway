@@ -1,0 +1,324 @@
+[#Sofort]
+== REST API & {payment-page-v1}
+_Sofort_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#Sofort_PaymentMode]
+=== Countries and Currencies
+[width=75%,stripes=none,cols="1,3"]
+|===
+h|Countries |AT, BE, CH, CZ, DE, ES, IT, HU, NL, PL, SK and UK
+h|Currencies a|EUR, CHF, CZK, HUF PLN, GBP
+
+[NOTE]
+*Currency Availability* +
+CZK and HUF are valid _Sofort_ currencies but cannot be tested.
+
+|===
+
+[#Sofort_CommunicationFormats]
+=== Communication Formats
+This table illustrates how _Sofort_ notifications are encoded and
+which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| *Requests/Responses* | Format | Please contact <<ContactUs, Merchant Support>> for Format.
+                        | Methods | Please contact <<ContactUs, Merchant Support>> for Methods.
+h| *IPN Encodement*     2+| Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#Sofort_Transactions]
+=== Transactions
+
+[#Sofort_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look
+at <<AppendixB,  Transaction Types>>.
+
+[cols="25,85"]
+|===
+|Transaction Type |Description
+
+|_check-signature_ |Validates digital signature for a _Payment Page_
+transaction.
+
+|_get-url_ |A step in a group of transactions where the provider or
+bank's URL is retrieved for the Account Holder to be redirected to.
+
+|_debit_ |Moves funds from the Consumer Account to the Merchant Account.
+|===
+
+ifndef::env-nova[]
+[#Sofort_ReferenceTransaction]
+==== Reference Transaction
+
+NOTE: Additional information concerning the referenced transaction
+functionality can be found here: <<GeneralPlatformFeatures_CrossPayment,
+Cross-Payment-Methods Referencing>>
+endif::[]
+
+[#Sofort_Restrictions]
+==== Restrictions
+
+NOTE: When using _Sofort_ some banks do not transmit consumer data (e.g.
+name) to {payment-gateway}. As these fields are mandatory for a
+refund (e.g. via SEPA _Credit Transfer_), the merchant is obliged to
+provide the consumer data to guarantee a successful refund. +
+
+[#Sofort_TestCredentials]
+=== Test Credentials
+
+[cols="35h,65"]
+|===
+ifndef::env-nova[]
+| URLs (Endpoints) |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+endif::[]
+ifdef::env-nova[]
+h|URL (Endpoint) |``\https://payments-test.wirecard.com/ee/rest/payments``
+endif::[]
+| Merchant Account ID (MAID) | 6c0e7efd-ee58-40f7-9bbd-5e7337a052cd
+| Username | 16390-testing
+| Password | 3!3013=D3fD8X7
+| Secret Key | 58764ab3-5c56-450e-b747-7237a24e92a7
+|===
+
+[#Sofort_AdditionalCredentials]
+.Additional Test Credentials on _Sofort_ Environment
+
+[cols="15,10,10,20,40"]
+|===
+.2+| *Sort Code* .2+| *Country* | Germany
+                                        a| - 88888888
+                                           - 00000
+                                           - "Demo Bank"
+                            | Please use SFRT{ISO country code}20XXX, for example SFRT**DE**20XXX for Germany
+
+                            | all other a| - 00000
+                                           - "Demo Bank"
+                                           |
+| *User ID* 4+| any text, minimum 4 characters
+| *Password* 4+| any text, minimum 4 characters
+| *Account Number* 4+| select one from list provided by _Sofort_
+| *TAN* 4+| any text, minimum 4 characters
+|===
+
+
+[#Sofort_Workflow]
+=== Workflow
+
+image::images/11-31-sofort/Sofort_successful_transaction.png[Workflow of Successful Transaction]
+
+. Consumer chooses Sofort on the merchant's payment page
+. Consumer is re-directed and logs in to his/her online banking account
+. Consumer confirms the payment
+. Consumer is re-directed to the Sofort confirmation page
+//-
+
+In the case of a successful payment, the consumer is redirected back to
+merchant's website and the {payment-gateway} sends the merchant a
+notification of the successful transaction.
+
+ifndef::env-nova[]
+If the notification is not sent, the merchant has the possibility to
+send a request to <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction-ID>>
+or to <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request-ID>>.
+endif::[]
+
+ifdef::env-nova[]
+If the notification is not sent, the merchant has the possibility to
+send a request to <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction-ID>>.
+endif::[]
+
+The response will enable the merchant to retrieve the current status of
+the requested transaction.
+
+
+[#Sofort_Fields]
+=== Fields
+
+The following elements are mandatory (M), optional (O) or conditional
+\(C) for sending request/response/notification.
+
+[cols="15,10,10,10,10,10,35"]
+|===
+| Field | Request | Response | Notification | Data Type | Size | Description
+
+| merchant-account-id   | M | M | M | String | 36  | Unique identifier for a merchant account.
+| transaction-id        |   | M | M | String | 36  | The Transaction ID is the unique identifier for a transaction. It is generated by Wirecard.
+| request-id            | M | M | M | String | 150 | This is the identification number of the request. It has to be unique for each request.
+| transaction-type      | M | M | M | String | 30  | This is the type for a transaction.
+| transaction-state     |   | M | M | String | 12  | This is the status of a transaction.
+| completion-time-stamp |   | M | M | dateTime |   | This is the timestamp of completion of request.
+| status.code           |   | M | M | String | 12  | This is the code of the status of a transaction.
+| status.description    |   | M | M | String | 256 | This is the description to the status code of a transaction.
+| status.severity       |   | M | M | String | 20  | This field gives information if a status is a warning, an error or
+an information.
+| statuses.Status       |   | M | M | String | 12  | This is the status of a transaction.
+| requested-amount      | M | M | M | Decimal | 18.3 | This is the amount of the transaction. The amount of the decimal place
+is dependent of the currency.
+| parent-transaction-id | O | O | O | String | 36 | Transaction ID of the first transaction of a payment.
+| account-holder.address.city | O | O | O | String | 32 | This is the end-consumer's city.
+| account-holder.address.Country | O | O | O | String | 3 | This is the end-consumer's country.
+| account-holder.address.postal-code | O | O | O | String | 16 | This is the end-consumer's postal code.
+| account-holder.address.state   | O | O | O | String | 32 | This is the end-consumer's state.
+| account-holder.address.street1 | O | O | O | String | 128 | This is the first part of the end-consumer's street.
+| account-holder.address.street2 | O | O | O | String | 128 | This is the second part of the end-consumer's street.
+| account-holder.date-of-birth   | O | O | O | Date   | 0   | This is the end-consumer's birth date.
+| account-holder.email        | C | C | C | String | 64 | This is the end-consumer's email address. It is mandatory if the field
+wallet-account-id is not sent in the initial request.
+| account-holder.first-Name   | O | O | O | String | 27 | This is the first name of the end-consumer. The maximum size
+of first-name and last-name in combination is 27 characters.
+| account-holder.gender       | O | O | O | String | 1  | This is the end-consumer's gender.
+| account-holder.last-Name    | O | O | O | String | 27 |This is the last name of the end-consumer. The maximum size of
+first-name and last-name in combination is 27 characters.
+| account-holder.phone        | O | O | O | String | 32 | This is the phone number of the end-consumer.
+| bank-account.iban           | C | C | C | String | 32 | This is the Business Identifier Code of the bank of the end-consumer.
+This parameter has to be filled in case this element is sent in the
+request. Allowed are the following characters:
+([a-zA-Z]\{4}[a-zA-Z]\{2}[a-zA-Z0-9]\{2}([a-zA-Z0-9]\{3})?)
+| bank-account.bic            | C | C | C | String | 32 | This is the Business Identifier Code of the bank of the end-consumer.
+This parameter has to be filled in case this element is sent in the
+request. Allowed are the following characters:
+([a-zA-Z]\{4}[a-zA-Z]\{2}[a-zA-Z0-9]\{2}([a-zA-Z0-9]\{3})?)
+| bank-account.bank-name      |   | O | O | String | 50 | The name of the bank as returned by Sofort. To enable/disable this
+field, contact <<ContactUs, Merchant Support>>.
+| ip-address   | O | O | O | String | 15 | The global (internet) IP address of the consumers computer.
+| order-number | M | M | M | String | 64 | This is the order number of the merchant.
+| order-Detail | O | O | O | String | 65535 | This is a field for details of an order filled by the merchant.
+| descriptor   | M | M | M | String | 27 | Description on the settlement of the account holder's account about a
+transaction. The following characters are allowed: umlaut, -
+'0-9','a-z','A-Z',' ' , '+',',','-','.'
+| notifications.notification@url  | O | O | O | String | 256 | The URL to be used for the Instant Payment Notification. It overwrites
+the notification URL that is set up in the merchant configuration.
+| custom-field.field-name  | O | O | O | String | 36 | This is the name of the custom field.
+| custom-field.field-value | O | O | O | String | 256 | This is the content of the custom field. In this field the merchant can
+send additional information.
+| payment-methods.payment-method@name  | M | M | M | String | 15 | This is the name of the payment method that that is chosen from the
+end-consumer. _Value Sofort. should be used._
+| api-id                   |   |   | M | String |   | The API id is always returned in the notification.
+| instrument-country       | O | O | O | String | 2 | The instrument country is extracted from the IBAN.
+| processing-redirect-URL  | O | O | O | String | 256 | The URL to which the consumer will be redirected after he has fulfilled
+his payment. This is normally a page on the merchant's website.
+| cancel-redirect-URL      | M | M | M | String | 256 | The URL to which the consumer will be re-directed after he has cancelled
+a payment. This is normally a page on the merchant's Website.
+| success-redirect-URL     | M | M | M | String | 256 | The URL to which the consumer will be re-directed after a successful
+payment. This is normally a success confirmation page on the merchant's website.
+| Signature                |   |   | M | String |     | The Signature info, consisting of SignedInfo, SignatureValue and
+KeyInfo.
+|===
+
+
+[#Sofort_StatusCodes]
+=== Status Codes
+
+[%autowidth]
+|===
+| Status Code | Provider Code Description
+
+| 200.0000 | Transaction ok - consumer protection applied.
+| 201.0000 | Transaction OK
+| 201.1126 | Transaction OK
+| 500.1052 | A Provider is unavailable.
+| 500.1088 | The requested function is not supported.
+| 500.1094 | The Merchant Account is not properly configured for processing. Please contact technical support.
+| 500.1099 | Transaction processing refused. Please contact technical support.
+| 500.1108 | Transaction processing aborted.
+| 500.1109 | Malformed/Invalid Parameter. Please check your input.
+| 500.1127 | Failed confirmation received from the third party.
+| 501.999  | The acquirer returned an unknown response. Please contact technical support.
+| 500.2100 | Request processing failure.
+| 500.2380 | Account blacklist check failure.
+| 500.2417 | Unknown bank account
+|===
+
+
+[#Sofort_AdditionalFeatures]
+=== Additional Features
+
+[#Sofort_AdditionalFeatures_TimeFrame]
+==== Configure the Transaction Time Frame
+
+[NOTE]
+====
+- The merchant may configure the time frame in which the consumer has to
+complete the transaction. The time frame may last from 2 minutes up to
+30 minutes. The default value is 30 minutes.
+- For values outside of this time frame the respective minimum or maximum
+will be set (e.g. for 36 minutes the maximum of 30 minutes is set)
+- When reaching the timeout the transaction will be aborted and the
+consumer cannot finalize the purchase with the merchant.
+====
+
+[#Sofort_AdditionalFeatures_SofortLook]
+==== The Look of _Sofort._ on the Merchant's Website
+
+_Sofort_ requires merchants to follow certain guidelines when offering
+the payment method on their website.
+
+_Sofort_ recommends to place a link instead of the badge. By using the
+link, _Sofort_. will host the badge and update it automatically on the
+merchant's web site.
+
+_Sofort_ provides the badges in two formats and allows individual
+sizes:
+
+- The format is either svg or png. It is the merchant's decision which
+format to use by setting the correct file extension.
+- Using png determines the size directly according to the format.
+Leaving the size blank, the badge will be delivered with the standard
+width of 100 pixel.
+- _Sofort_ suggests a width between 100 and 300 pixel. To change the
+width from 100 pixel to e.g. 300 pixel, add "?width=300" directly after
+the format.
+//-
+
+The following is the general form of the link to the badge:
+
+``\https://cdn.klarna.com/1.0/shared/image/generic/badge/xx_XX/[name_of_the_badge]/standard/pink.[format][size]``
+
+[#Sofort_Examples]
+===== Examples
+
+. Use the _Sofort_ badge with the svg format and the standard size:
+
+``\https://cdn.klarna.com/1.0/shared/image/generic/badge/xx_XX/pay_now/standard/pink.svg``
+[start=2]
+. Display the badge with the png format and the size 300 pixel:
+
+``\https://cdn.klarna.com/1.0/shared/image/generic/badge/xx_XX/pay_now/standard/pink.png?width=300``
+
+[#Sofort_Samples]
+=== Samples
+
+Go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>, if you want to see corresponding notification samples.
+
+.XML Get-Url Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sofortbanking_get-url_request_success.xml[]
+----
+
+.XML Get-Url Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sofortbanking_get-url_response_success.xml[]
+----
+
+.XML Get-Url Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sofortbanking_get-url_request_failure.xml[]
+----
+
+.XML Get-Url Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/sofortbanking_get-url_response_failure.xml[]
+----
+
+//-

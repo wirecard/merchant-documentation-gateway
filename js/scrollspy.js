@@ -24,7 +24,7 @@ function updateMiniTOC() {
   }
   const sectionHeadElement = inViewportElement.find('h4').first();
   const sectionHeadID = sectionHeadElement.attr('id');
-  const navTitle = sectionHeadElement.text();
+  const navTitle = shortenForTOC(sectionHeadElement.text());
   // create MiniToc
   var _tmpMiniToc = $('<ul>', {
     id: 'minitoc'
@@ -63,7 +63,7 @@ function updateMiniTOC() {
   if (subsectionTitles.length) {
     subsectionTitles.each(function () {
       const subsectionElement = $(this);
-      const subsectionTitle = subsectionElement.text();
+      const subsectionTitle = shortenForTOC(subsectionElement.text());
       const sectionID = subsectionElement.attr('id');
       var miniTocElement = $('<li>');
       miniTocElement.attr('data-content-id', sectionID);
@@ -79,10 +79,10 @@ function updateMiniTOC() {
       _tmpMiniToc.append(miniTocElement);
     });
     $('#minitoc').replaceWith(_tmpMiniToc);
-    $('#minitoc').mouseover(() => {
+    $('#minitoc').mouseover(function () {
       $('#minitoc').addClass('minitoc-open');
       clearTimeout(miniTocCloseTimer);
-    }).mouseleave(() => {
+    }).mouseleave(function () {
       $('#minitoc').removeClass('minitoc-open');
     });
     highlightMiniToc(_tmpMiniTocInViewPortID);
@@ -114,9 +114,11 @@ function highlightTOC() {
   });
 }
 
-function miniTocClick(event, sectionElement, sectionID, callback = () => { }) {
+function miniTocClick(event, sectionElement, sectionID) {
+  var callback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function () {};
   event.preventDefault();
-  $('html, body').animate({ // add smooth scrolling
+  $('html, body').animate({
+    // add smooth scrolling
     scrollTop: sectionElement.offset().top
   }, 500).promise().then(callback);
   history.pushState(null, null, '#' + sectionID);

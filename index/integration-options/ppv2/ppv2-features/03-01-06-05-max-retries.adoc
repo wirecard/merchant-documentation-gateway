@@ -1,0 +1,61 @@
+
+[#PPv2_Features_MaxRetries]
+
+== Max Retries
+
+image::images/03-01-06-05-max-retries/MaxRetries.png[Max Retries, width=350, float="right"]
+
+The Max Retries feature allows consumers to try and resubmit the payment
+again if it fails. It works with all payment methods.
+
+[TIP]
+.An example situation:
+====
+A consumer attempts to pay with their credit card,
+but the payment fails.
+
+Payment page prompts the consumer whether they would like to retry the
+payment. They can resubmit the card information or select a different
+payment method altogether (depending on the configuration).
+====
+
+[NOTE]
+.To enable Max Retries for a transaction:
+====
+Add the ``max-retries`` field to the payment request and set it to the
+desired value.
+====
+
+[cols="v,v,,,"]
+[%autowidth]
+|===
+| Field (NVP) | Field (JSON) | Data Type | JSON Parent |Description
+
+|wpp_options_max_retries |max-retries |Numeric |options (\{ })
+|Indicates whether a consumer can retry the payment if it fails (as well
+as how many times).
+|===
+
+[#PPv2_Features_MaxRetries_ConfiguringMaxRetries]
+[discrete]
+=== Configuring Max Retries
+
+The rules for configuring Max Retries are simple:
+
+* If the value is *less than 0*, consumers have unlimited retries for
+failed payments.
+* If the value is *exactly 0*, consumers cannot retry payments: They are
+redirected to the ``fail-redirect-url`` page immediately.
+* If the value is *greater than 0*, that same value is the number of
+retries allowed; e.g. if ``max-retries`` value is ``2``, consumers are
+redirected to the ``fail-redirect-url`` only after two unsuccessful
+attempts.
+* Max Retries is disabled by default.
+
+//-
+
+.Example Request w/ Max Retries enabled (set to "unlimited retries")
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/WPP_FeaturesMaxRetriesConfiguringMaxRetries_ExampleRequestWMaxRetriesEnabledSetToUnlimitedRetries.json[]
+----

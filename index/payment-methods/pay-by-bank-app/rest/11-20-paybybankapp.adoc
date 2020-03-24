@@ -1,0 +1,440 @@
+[#API_PaybyBankapp]
+== REST API & {payment-page-v1}
+_Pay by Bank app (Zapp)_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#API_PaybyBankapp_General_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+|Countries
+|Please contact <<ContactUs, Merchant Support>> for Countries.
+|Currencies |GBP
+|===
+
+[#API_PaybyBankapp_General_Communication]
+=== Communication Formats
+This table illustrates how _PBBA_ notifications are encoded
+and which formats and methods can be used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses |Format |XML, JSON
+                        |Methods |POST
+h| IPN Encodements 2+|Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_PaybyBankapp_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look
+at <<AppendixB,  Transaction Types>>.
+
+[%autowidth]
+|===
+|Transaction Type |Description |Link to sample
+
+|_debit_ |receive funds from a consumer's account to ship the
+merchandise |See <<API_PaybyBankapp_Samples_debit, debit>> samples.
+|_refund-debit_ |refund an order, because consumer has returned
+merchandise |
+|===
+
+[#PaybyBankapp_TestCredentials]
+=== Test Credentials
+
+[%autowidth]
+|===
+ifndef::env-nova[]
+.2+h| URL(s) Endpoints |
+For the transaction type _debit_.        |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+                       |For the transaction type _refund-debit_. |``\https://{test-instance-hostname}/engine/rest/payments/``
+endif::[]
+ifdef::env-nova[]
+2+h| URL (Endpoint) |``\https://payments-test.wirecard.com/ee/rest/payments``
+endif::[]
+h| Merchant Account ID (MAID)
+2+|Please contact <<ContactUs, merchant support>> for complete test credentials.
+
+h| Username
+2+|70000-APITEST-AP
+
+h| Password
+2+|qD2wzQ_hrc!8
+
+h| Secret Key
+2+|4a4396df-f78c-44b9-b8a0-b72b108ac465
+|===
+
+[#API_PaybyBankapp_TestCredentials_Additional]
+==== Additional Test Credentials on _PBBA_ Environment
+
+[%autowidth]
+|===
+h|Merchant Account Name | ``WD Zapp``
+h|PE BCSig | 123456
+h|can use credit +
+(configuration parameter)
+a|true +
+*if false, use*: 8a817d99-04bc-4f40-9650-59f726079fa0
+
+h|mobile endpoint enabled
+(for Payment SDK purposes)
+a|yes
+|===
+
+[#API_PaybyBankapp_Workflow]
+=== Workflow
+
+[#API_PaybyBankapp_Workflow_debit]
+==== _debit_
+
+image::images/11-20-paybybankapp/paybybank_debit_workflow.png[Pay by Bank app Debit Workflow, height=250]
+
+. Consumers select products/services on merchant's website. (This can
+happen either with a desktop browser or a mobile device browser. See
+https://paybybankapp.mastercard.co.uk/personal[the PBBA Experience] for details).
+. Consumers select payment method _PBBA_.
+. Provider generates a unique code per _PBBA_ payment button.
+. Consumers log in to the Mobile Banking App (MBA).
+. Consumers enter the unique payment code.
+. Consumers confirm payment to their bank.
+. Consumers have the option to continue with or without
+<<API_PaybyBankapp_Fields_debit_withPC, PayConnect>> for the next purchase.
+. Consumers' bank processes the payment in real-time and sends a
+notification to provider and merchants.
+. Consumers' bank displays payment confirmation on MBA.
+. Merchants redirect consumers to a result page.
+
+//-
+
+[#API_PaybyBankapp_Workflow_refundrequest]
+==== _refund-request_
+
+image::images/11-20-paybybankapp/paybybank_refund_workflow.png[Pay by Bank app Refund Workflow, height=250]
+
+. Consumers request a refund from merchant.
+. Merchants send _refund_ request to Wirecard.
+. _{payment-gateway-abbr}_ requests refund account details of the consumers
+(transaction type _refund-request_).
+. _{payment-gateway-abbr}_ initiates refund using wiretransfer method (take several
+days).
+. After confirmation from bank, consumers are refunded (transaction type
+_refund-debit_).
+
+//-
+
+[#API_PaybyBankapp_Fields]
+=== Fields
+
+[#API_PaybyBankapp_Fields_debit_withPC]
+==== _debit_ with PayConnect
+
+This is faster checkout option without typing the unique 6-digit PBBA
+code to a mobile banking app. To support the PayConnect feature for
+Consumer desktop, laptop or tablet based payment journeys, the consumer
+has an option to link the browser he/she is using to a Mobile Banking
+App after a successful payment on the device which results in a
+PayConnect cookie being stored in the consumer's browser if consent is
+given.
+
+.How it works
+
+. Once the consumer has authorised an ECOM Transaction using a PBBA
+code the Consumer is given the option to enable PayConnect, which links
+the browser they are using to their mobile banking app. +
+image:images/11-20-paybybankapp/ui_payconnect.png[PayConnect, height=250]
+. On subsequent _PBBA_ transactions from the same browser the Consumer
+will receive a Push Notification on their linked Mobile device and upon
+action they automatically invoke their MBA.
+. The transaction is retrieved by the consumer's financial institution
+after the Consumer swipes the Push Notification and logs in to their
+MBA.
+
+//-
+
+The following elements are mandatory (M), optional (O) or conditional
+(C) for a request/response/notification. If the respective cell is
+empty, the field is disregarded or not sent.
+
+[%autowidth]
+|===
+|Field |Request |Response |Notification |Type |Size |Description
+
+|browser/user-agent                     |M |M |M |String |  |Browser User Agent
+|browser/time-zone                      |M |M |M |String |  |Browser Time Zone
+|browser/screen-resolution              |M |M |M |String |  |Browser Screen
+|browser/headers/header/name            |O |O |O |String |  |HTTP Active Header name
+|browser/headers/header/value           |O |O |O |String |  |HTTP Active Header value
+|browser/cookies/cookie/name            |O |O |O |String |  |Cookie name. Must be "*pcid*".
+|browser/cookies/cookie/value           |O |O |O |String |  |Cookie value
+|browser/cookies/cookie/max-age         |  |  |O |String |  |Cookie max age. Number of seconds until the cookie expires
+|custom-field/[@zapp.out.FIShortName]   |  |O |O |String |  |This message field specifies the Consumer's FI Short Name or the Name. If
+                                                             custom-field/[@zapp.out.CookieStatus] is Y, then FI Short Name must be set.
+|===
+
+[#API_PaybyBankapp_Fields_debit_withoutPC]
+==== _debit_ without PayConnect
+
+[%autowidth]
+|===
+|Field |Request |Response |Notification |Type |Size |Description
+
+|merchant-account-id                    |M |M |M |String  |36 |Unique identifier for a merchant account
+|transaction-id                         |  |M |M |String  |36 |The Transaction ID is the unique identifier for a transaction. It is generated by Wirecard.
+|request-id                             |M |M |M |String  |36 |This is the identification number of the request. *It has to be unique for each request.*
+|transaction-type                       |M |M |M |String  |22 |This is the type for a transaction. Must be *debit*.
+|payment-methods/payment-method[@name]  |M |M |M |String  |9  |The name of the Payment Method is "*zapp*".
+|requested-amount                       |M |M |M |Decimal |18,2 a|This is the amount of the transaction. The amount of the decimal place is dependent of the currency. Minimum is 0.01
+|requested-amount[@currency]            |M |M |M |String  |3  |Zapp supports *only GBP.*
+|ip-address                             |M |M |M |String  |   |IP address of the device.
+|device/type                            |M |O |  |Enum    |   |Type of device which submits the RTP. Enum types: mobile - mobile phone, pc - PC or laptop, tablet, other.
+|device/operating-system                |M |O |  |Enum    |   |Operating system used on the device. Enum types: android - Android, ios - Apple IOS, windows -
+                                                               Windows, windows-mobile - Windows Mobile OS, other.
+|custom-field/[@zapp.in.MerchantRtnStrng] |M |O |O |String    |  |Merchant Return String to redirect the Consumer from the
+                                                                                  Mobile Banking App to the Merchant's browser or App.
+|custom-field/[@zapp.in.TxType]           |M |O |O |String    |  |Type of Transaction.
+|custom-field/[@zapp.in.DeliveryType]     |M |O |O |String    |  |The delivery type chosen for the delivery of purchased goods.
+|custom-field/[@zapp.inout.ApTRId]                        |  |M |M |String    |  |The human readable Transaction Retrieval ID (Secure Token) generated by Zapp to
+                                                                                  uniquely identify the related Order.
+|custom-field/[@zapp.out.CookieStatus]                    |  |M |M |Y/N       |  |Cookie status for Payconnect services indicates if the cookie is valid and active.
+|custom-field/[@zapp.out.SetlmtRtvlId]                    |  |M |M |String    |  |The Settlement Retrieval Id must be present if the <RTPType> is IMMEDIATE
+                                                                                  and must not be present if <RTPType> is DEFERRED.
+|custom-field/[@zapp.inout.ApTransactionId]               |  |M |M |String    |  |The computer readable Transaction ID generated by Zapp to uniquely identify
+                                                                                  the Order [a-z A-Z 0-9].
+|custom-field/[@zapp.out.BRN]                             |  |M |M |String    |  |Short term Unique Basket Reference Number provided by Zapp to the Distributor to be
+                                                                                  conveyed to the consumer in order to retrieve order for payment.
+|custom-field/[@zapp.out.RtrvlExpiryTimeIntrvl]           |  |O |O |Number    |  |The Retrieval is the time taken from when the consumer hits the Merchant
+                                                                                  button and sees the transaction within their banking app
+|custom-field/[@zapp.out.ConfmtnExpiryTimeIntrvl]         |  |M |M |Number    |  |The Confirmation is from the time the consumer sees the transaction
+                                                                                  within their banking app and presses confirm to submit the payment
+|api-id                                                   |O |O |O |String    |  |A unique identifier assigned for every API.
+|transaction-state                                        |  |M |M |String    |7 |Transaction result status. Should be *success or failed*
+|Statuses/status[@code]                                   |  |M |M |String    |  |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                            |  |M |M |String    |  |Transaction status description (e.g. 201.0000).
+|statuses/status[@severity]                               |  |M |M |String    |  |Transaction status severity. Should be 'information' for successful transactions, 'error'
+                                                                                  for failed
+|completion-time-stamp                                    |  |M |M |Date time |  |Timestamp of the get-url transaction
+|===
+
+[#API_PaybyBankapp_Fields_refundrequest]
+==== _refund-request_
+
+[%autowidth]
+|===
+|Field |Request |Response |Notification |Type |Size |Description
+
+|merchant-account-id                                     |M |M |M |String    |36 |Unique identifier for a merchant account
+|request-id                                              |M |M |M |String    |36 |This is the identification number of the request. *It has to be unique for each request.*
+|transaction-type                                        |M |M |M |String    |22 |This is the type for a transaction. Must be _Refund-Request_
+|parent-transaction-id                                   |M |M |M |String    |36 |Transaction-id of debit transaction for which the refund is being done.
+|payment-methods/payment-method[@name]                   |M |M |M |String    |9 |The name of the Payment Method is "*zapp*".
+|requested-amount                                        |O |M |M |Decimal   |18,2 a| This is the amount of the transaction. When not defined the whole amount of parent transaction is used.
+|requested-amount[@currency]                             |M |M |M |String    |3 |Zapp supports *only GBP.*
+|custom-field/[@zapp.in.RefundReasonType] |M |O |O |String    |  |Used to complete the reason for the Refund, and when
+                                                                                 applicable will indicate whether a Refund is the result of a Query or Dispute case.
+|custom-field/[@zapp.in.RefundMethod]    |M |O |O |String    |  |The method of Refund that will be used by Wirecard to make the refund payment
+|custom-field/[@zapp.inout.MerchantRefundRef]            |O |O |O |String    |  |Merchant assigned reference for the Refund.
+|custom-field/[@zapp.in.CaseRefId]       |O |O |O |String    |  |Case Reference Id generated by Query/ZDMS to be populated when the Refund is a result of a Query or Dispute. The
+                                                                                 <zapp.in.CaseRefId> will hold value only when the
+                                                                                 <zapp.in.RefundReasonType> is DISPUTES
+|account-holder.last-Name                                |M |M |M |String    |50 |This is the last name of the end-consumer.
+|transaction-state                                       |  |M |M |String    |7  |Transaction result status. Should be *success or failed*
+|Statuses/status[@code]                                  |  |M |M |String    |   |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                           |  |M |M |String    |   |Transaction status description
+|statuses/status[@severity]                              |  |M |M |String    |   |Transaction status severity. Should be 'information' for successful transactions, 'error' for failed
+|completion-time-stamp                                   |  |M |M |Date time |   |Timestamp of the get-url
+transaction
+|===
+
+[#API_PaybyBankapp_Fields_refunddebit]
+==== _refund-debit_ Notification
+
+When refund is finished, the merchant receives _refund-debit_
+notification. Notification is send as Base64 Encoded XML message, unless
+the merchant has different configuration.
+
+[%autowidth]
+|===
+|Field |Notification |Type |Size |Description
+
+|merchant-account-id                                          |M |String    |36    |Unique identifier for a merchant account
+|request-id                                                   |M |String    |36    |This is the identification number of the request. *It has to be unique for each request.*
+|transaction-type                                             |M |String    |22    |This is the type for a transaction. Must be *refund-debit*.
+|parent-transaction-id                                        |M |String    |36    |Transaction-id of debit transaction for which the refund is being done.
+|payment-methods/payment-method[@name]                        |M |String    |9     |The name of the Payment Method is "*zapp*".
+|requested-amount                                             |M |Decimal   |18,2 a|This is the amount of the transaction. When not defined the whole amount of parent transaction is used.
+|requested-amount[@currency]                                  |M |String    |3     |Zapp supports *only GBP.*
+|custom-field/[@zapp.in.RefundReasonType]     |O |String    |      |Used to complete the reason for the Refund, and when applicable will
+                                                                                  indicate whether a Refund is the result of a Query or Dispute case.
+|custom-field/[@zapp.in.RefundMethod]        |O |String    |      |The method of Refund that will be used by Wirecard to make the refund payment
+|custom-field/[@zapp.inout.MerchantRefundRef]                 |O |String    |      |Merchant assigned reference for the Refund.
+|custom-field/[@zapp.in.CaseRefId]           |O |String    |      |Case Reference Id generated by Query/ZDMS to be populated when the Refund is
+                                                                                    a result of a Query or Dispute.The <zapp.in.CaseRefId>
+                                                                                    will hold value only when the <zapp.in.RefundReasonType>
+                                                                                    is DISPUTES
+|account-holder.last-Name                                     |M |String    |50    |This is the last name of the end-consumer.
+|transaction-state                                            |M |String    |7     |Transaction result status. Should be *success or failed*
+|Statuses/status[@code]                                       |M |String    |      |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                                |M |String    |      |Transaction status description
+|statuses/status[@severity]                                   |M |String    |      |Transaction status severity. Should be 'information' for successful transactions, 'error' for failed
+|completion-time-stamp                                        |M |Date time |      |Timestamp of the get-url transaction
+|Statuses/status[@code]                                       |M |String    |      |Transaction status code (e.g. 201.0000)
+|statuses/status[@description]                                |M |String    |      |Transaction status description
+|statuses/status[@severity]                                   |M |String    |      |Transaction status severity. Should be 'information' for successful transactions, 'error' for failed
+|ip-address                                                   |O |String    |      |
+|merchant-bank-account.iban                                   |O |String    |      |Iban of the bank account that is used to credit the refunded customer.
+|merchant-bank-account.bic                                    |O |String    |      |Bic of the bank account that
+                                                                                    is used to credit the refunded customer.
+|===
+
+[#API_PaybyBankapp_Fields_Custom]
+==== Custom Fields
+
+[%autowidth]
+|===
+|Field            |Potential values |Description
+
+.4+m|zapp.in.TxType
+                  |BILLPT           |Payment is for a Bill
+                  |PAYMT            |Payment is for retail item
+                  |INVOICE          |Payment is for an invoice
+                  |DONATIONS        |Payment is for Donations
+.6+m|zapp.in.DeliveryType
+                  |COLLST           |Collection from store. The Consumer chooses to collect the goods from store
+                  |DELTAD           |Delivery to address. The Consumer chooses to have goods delivered to the address specified
+                  |DIGDEL           |Digital delivery. The Consumer chooses to receive the digital delivery of item purchased
+                  |SERVICE          |Services provided. For SMB transactions where there is no need for a Delivery address
+                  |F2F              |Face-to-face transactions. Primarily for use with an SMB transaction.
+                  |NONE             |No delivery
+.7+m|zapp.in.RefundReasonType
+                  |DUPLICATEORDER   |Duplicate order. To be used when the Merchant has charged the Consumer twice by accident
+                  |GOODSRETURNED    |Goods returned. To be used when the Consumer returns goods to the Merchant for a refund
+                  |ORDERCANCELLED   |Order cancelled. To be used when the Consumer cancels their order
+                  |MERCHANTOUTOFSTOCK |Merchant out of stock. To be used by the Merchant when they have charged the Consumer but are out of stock
+                  |GOODSNOTRECV     |Goods not received. To be used when the goods are not received
+                  |LATECONFIRMATION |Late confirmation. To be used when confirmation is late
+                  |DISPUTES         |Disputes. To be used when there is a dispute
+.4+m|zapp.in.RefundMethod
+                  |BACS             |To be used if refund would be processed through BACS
+                  |CHAPS            |To be used if refund would be processed through CHAPS
+                  |FPS              |To be used if refund would be processed through FPS
+                  |OTHER            |To be used if refund would be processed through any other method
+m|zapp.in.CaseRefId            |any        |Reference number that should be included in this message when the Refund is a result of a disputed case.The <zapp.in.CaseRefId> can hold value only when the <zapp.in.RefundReasonType> is DISPUTES
+m|zapp.in.MerchantRtnStrng     |URI format |Merchant Return String to redirect the Consumer from the Mobile Banking App to the Merchant's browser or App
+m|zapp.inout.ApTRId            |any        |The human readable Transaction Retrieval ID (Secure Token) generated by Zapp to uniquely identify the related Order
+m|zapp.inout.ApTransactionId   |any        |The computer readable Transaction ID generated by Zapp to uniquely identify the Order
+m|zapp.inout.MerchantRefundRef |any        |Merchant's system generated reference number for the Refund Transaction. Max length is 35
+m|zapp.out.FIShortName         |any        |This message field specifies the Consumer's FI Short Name or the Name
+m|zapp.out.CookieStatus        |Y/N        |Cookie status for Payconnect services indicates if the cookie is valid and active
+m|zapp.out.BRN                 |any        |Short term Unique Basket Reference Number provided by Zapp to the Distributor to be conveyed to the consumer in order to retrieve order for payment
+m|zapp.out.SetlmtRtvlId        |any        |Settlement Id which will be mapped to the DSS message. This will be further used by participants for the reconciliation
+m|zapp.out.RefundTransactionId |any        |Unique Refund Transaction reference issued by Zapp to log the refund
+m|zapp.out.RefundTRId          |any        |The Refund Transaction Retrieval Id generated by Zapp
+m|zapp.out.RollNum             |any        |A reference commonly used by building societies to identify a specific account
+m|zapp.out.DirectConsumerAccountFlag |Y/N  |Indicates whether the account details provided are the Consumer's account or the CFI Holding Account.  Y = Consumer account N = Holding account
+m|zapp.out.UniqueRefId         |any        |Unique Identifier that needs to be included on the bank transfer when the Distributor sends money to the Consumer's CFI. This will allow the CFI to disperse the money correctly to the end consumer when the funds are received relating to a Refund Transaction
+a|(from EE release 1.130.0)
+``zapp.out.ConfmtnExpiryTimeIntrv`` |numeric  |The Confirmation is from the time the consumer sees the transaction within their banking app and presses confirm to submit the payment
+a|(from EE release 1.130.0)
+``zapp.out.RtrvlExpiryTimeIntrvl``  |numeric  |The Retrieval is the time taken from when the consumer hits the Merchant button and sees the transaction within their banking app
+|===
+
+[#API_PaybyBankapp_Samples]
+=== Samples
+
+[#API_PaybyBankapp_Samples_debit]
+==== _debit_
+
+[#API_PaybyBankapp_Samples_debit_withPC]
+===== With PayConnect
+
+._debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+POST https://{test-instance-hostname}/engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 1307
+Host: {test-instance-hostname}
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+Authorization: Basic NzAwMDAtQVBJVEVTVC1BUDpxRDJ3elFfaHJjITg=
+----
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_debit_response_success_87c979.xml[]
+----
+
+._debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_debit_notification_success_fb22856d.xml[]
+----
+
+[#API_PaybyBankapp_Samples_debit_withoutPC]
+===== Without PayConnect
+
+._debit_ Request (Successful)
+
+----
+POST https://{test-instance-hostname}/engine/rest/paymentmethods/ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Content-Type: application/xml;charset=UTF-8
+Content-Length: 989
+Connection: Keep-Alive
+User-Agent: Apache-HttpClient/4.1.1 (java 1.5)
+----
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_debit_request_success_ad66b3.xml[]
+----
+
+._debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_debit_response_success_670826.xml[]
+----
+
+._debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_debit_notification_success_3958a84c.xml[]
+----
+
+NOTE: For a failed notification, notice the 'failed' state of the transaction.
+
+[#API_PaybyBankapp_Samples_refundrequest]
+===== _refund-request_
+
+NOTE: Refund action triggers a request to return paid funds. Below request
+supplies consumer's bank account details kept by Wirecard. These are
+used to arrange a wiretransfer using BACS scheme (takes several days).
+
+._refund-request_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_refund-request_request_success_24b115ba.xml[]
+----
+
+._refund-request_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_refund-request_response_success_b1ca738d.xml[]
+----
+
+._refund-debit_ Notification (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/zapp_refund-debit_notification_success_1309ca5e.xml[]
+----
+
+//-

@@ -1,0 +1,455 @@
+
+[#GeneralPlatformFeatures_Transactions]
+== Transactions
+
+[#GeneralPlatformFeatures_ReferencingTransaction]
+=== Referencing a Transaction
+
+With the {payment-gateway} a payment process can reference two
+subsequent transactions.
+
+This reference can be accomplished in two different ways:
+
+- For 
+ifdef::env-wirecard[]
+alternative payment methods (such as _PayPal_ and _SEPA_) and
+endif::[]
+_credit card_ the merchant can reference transactions via the
+transaction ID.
+- For _credit card_ payments the merchant can also
+ <<CreditCard_PaymentFeatures_Tokenization, use a token>>.
+
+//-
+
+[#GeneralPlatformFeatures_ReferencingTransaction_byID]
+==== Referencing by Transaction ID
+
+Referencing by transaction ID uses the field <``parent-transaction-id``>.
+
+In that case the <``transaction-id``> of the preceding transaction will be
+referenced as the <``parent-transaction-id``> of the follow up transaction.
+
+Be aware that the ``parent-transaction-id`` is also referred to as
+``reference-transaction-id``.
+
+The following example for PayPal shows the use of
+<``parent-transaction-id``>:
+
+[%autowidth]
+|===
+|Transaction No. |Transaction Type |<transaction-id> |<parent-transaction-id>
+
+|1 |authorization |1234567 |empty
+|2 |capture-authorization |8901235 |1234567
+|etc |void-authorization |6789012 |8901235
+|===
+
+[#GeneralPlatformFeatures_Transactions_Recurring]
+=== Recurring Transaction
+
+A recurring transaction is a repetitive set of transactions. In general
+the recurrence occurs on a regular basis (e.g. paying annual fees for an
+insurance). A <<GeneralPlatformFeatures_ReferencingTransaction, reference to such a transaction>>
+always means that the subsequent transaction has
+a functional dependency on the preceding transaction.
+
+This could be, for example, a repeating transaction in a standard
+transaction workflow which occurs on a regular schedule.
+
+To submit a recurring transaction, the merchant must submit a request
+with a specific transaction type. It depends on the payment method,
+which transaction types apply. Currently the {payment-gateway}
+supports recurring transactions with the payment methods <<CreditCard, Credit Card>>
+ifdef::env-wirecard[]
+, <<API_PaymentMethods_PayPal, PayPal>>, and <<SEPA>>
+endif::[]
+.
+If the merchant wants to use recurring transactions the request must
+provide the corresponding PERIODIC TYPE and a SEQUENCE TYPE.
+
+[#GeneralPlatformFeatures_Transactions_Recurring_Periodic]
+==== The Periodic Type
+
+The *PERIODIC TYPE* element is chosen specifically by the merchant and
+depends on the merchant's business model. One of the following two
+periodic types must be chosen:
+
+- *_installment_:* one in a set that completes a financial transaction
+and
+- *_recurring_*: one in a set that occurs repeatedly, such as a
+subscription.
+
+//-
+
+Both transactions will be processed the same way.
+
+[#GeneralPlatformFeatures_Transactions_Recurring_Sequence]
+==== The Sequence Type
+
+Additionally, the sub-element *SEQUENCE TYPE* with one of the following
+sequences must be submitted:
+
+- *_first_*: The first transaction in a series of recurring transactions
+- *_recurring_*: A transaction that is part of a series of recurring
+transactions.
+- *_final_*: The final transaction in a series of recurring
+transactions. A payment with this sequence type completes a chain of
+recurring payments.
+
+//-
+
+[#GeneralPlatformFeatures_Transactions_Recurring_Restrictions]
+==== Restrictions
+
+To ensure proper processing, please take into consideration the
+following restrictions:
+
+- _Recurring_ and _final_ transactions are required to be matched to
+the _first_ transaction.
+- A request with sequence type _first_ may only contain a
+parent-transaction ID referring to another transaction which has been
+submitted without a periodic type.
+- A _recurring_ or _final_ transaction may only be referenced to a
+parent _first_ if it is on status SUCCESS.
+- Where a _first_ transaction has been voided, a
+subsequent _recurring_ or _final_ transaction will not be accepted.
+- After a transaction with sequence type _final_ has been submitted, it
+is not possible to submit another _recurring_ or _final_ transaction for
+this series.
+- Only one periodic type may be used for the complete series of
+recurring payments. This means that the periodic type in a subsequent
+transaction must match the periodic type sent in the _first_ request.
+
+[#GeneralPlatformFeatures_RetrieveTransaction]
+=== Retrieve a Transaction
+
+The {payment-gateway} allows the merchant to submit payment
+transactions, as well as search for payments and merchant data. 
+
+In the standard process, the merchant is informed via <<GeneralPlatformFeatures_IPN, IPN>>
+about the status of a submitted transaction. _Retrieve Transaction_ is
+an option for the merchant to find out the status of a transaction, if,
+for some reason, the IPN has not been received. Lacking an IPN can
+happen due to the fact that the transaction has not reached its final
+status or additional information from providers are not present at the
+point of time the _Retrieve_ query was sent. So in case the notification
+was sent the status is final.
+
+There are <<GeneralPlatformFeatures_IPN_Delay, several reasons>>
+why _Retrieve Transaction_ shall not be launched immediately
+after submitting a transaction and still waiting for the IPN.
+
+[#GeneralPlatformFeatures_RetrieveTransaction_Formats]
+==== Formats and Methods
+
+[cols="h,"]
+|===
+|Request Formats | XML, NVP (credit card only)
+|Response Formats | XML, HTML, JSON
+|Request Methods | GET
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_TransactionID]
+==== Retrieve Transaction by Transaction-ID
+
+Retrieving a transaction using a _Transaction-ID_ returns a single
+transaction belonging to a merchant account. The _Transaction-ID_
+attribute must match the value that was included in the transaction
+response sent by {payment-provider-name}. An error occurs if the _Transaction-ID_ is
+not available (request must be submitted later again) or the requested
+user is not authorized to see the content. The desired content type can
+be set through the _Accept_-header or by specifying an extension.
+
+The <<GeneralPlatformFeatures_IPN, Notification file (IPN)>> the merchant gets (based on configuration), is the standard
+process to gather information about a submitted transaction. The reason
+for this is that it could happen that the transaction has not reached
+final status or additional information from providers are not present at
+the point of time the _Retrieve_ query was sent. So in case the
+notification was sent the status is final.
+
+[#GeneralPlatformFeatures_RetrieveTransaction_TransactionID_Endpoint]
+.Endpoint
+
+[cols="h,"]
+|===
+|URL
+
+|``\https://{test-instance-hostname}/engine/rest/merchants/{merchant-account-id}/payments/{transaction-id}``
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_TransactionID_Fields]
+.Fields
+
+Mandatory (M) or optional (O).
+
+[%autowidth]
+|===
+|Field |Cardinality |Datatype |Size
+
+m|merchant-account-id |M |Alphanumeric |36
+m|transaction-id |M |Alphanumeric |36
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_TransactionID_SampleURL]
+.Sample URL to a Merchant's Endpoint
+
+``\https://{test-instance-hostname}/engine/rest/merchants/ba261be8-af94-11df-ab7800163e5eafd7/payments/048b27e0-9c31-4cab-9eab-3b72b1b4d498``
+
+[#GeneralPlatformFeatures_RetrieveTransaction_TransactionID_Response]
+.Response when retrieving a transaction
+
+The response corresponds to the transaction type of the transaction
+being retrieved. For example, the transaction type = 'purchase' and the
+transaction type = 'tokenize' have different responses when the
+transaction is being created and that same response will occur for this
+retrieval. See the sample responses as described for each transaction
+type.
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestID]
+==== Retrieve Transaction by Request-ID
+
+Retrieving a transaction using a Request-ID returns a single transaction
+belonging to a Merchant Account. The request-id attribute must match a
+request-id that was submitted during the creation of a transaction. An
+error is returned if the request-id is not available or the user is not
+authorized to see the content. The desired content type can be set
+through the "Accept"-header with value "*application/xml*" or by
+specifying an extension.
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestID_Endpoint]
+.Endpoint
+
+[cols="h,"]
+|===
+|URL
+|``\https://{test-instance-hostname}/engine/rest/merchants/\{merchant-account-id}/payments/search?payment.request-id=\{request-id}``
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestID_Fields]
+.Fields
+
+Mandatory (M) or optional (O).
+
+[%autowidth]
+|===
+|Field |Cardinality |Datatype |Size
+
+m|merchant-account-id |M |Alphanumeric |36
+m|request-id |M |Alphanumeric |150
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestID_Sample]
+.Sample URL to a Merchant's Endpoint
+
+``\https://{test-instance-hostname}/engine/rest/merchants/ba261be8-af94-11df-ab78-00163e5eafd7/payments/search?payment.request-id=048b27e0-9c31-4cab-9eab-3b72b1b4d498``
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestID_Response]
+.Response when retrieving a transaction
+
+The behavior of a response is the same no matter whether you receive it
+for a transaction by _Request-ID_ or Transaction-ID.
+
+The details are described in section
+<<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction-ID>>.
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestIDCategory]
+==== Retrieve Transaction by Request-ID and Category
+
+Retrieving a transaction using a Request-ID and Category returns a
+single transaction belonging to a Super Merchant Account with resolving
+category. The request-id attribute must match a request-id that was
+submitted during the creation of a transaction with Super Merchant. An
+error is returned if the request-id is not available or the user is not
+authorized to see the content. The desired content type can be set
+through the "Accept"-header with value "*application/xml*" or by
+specifying an extension.
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestIDCategory_Endpoint]
+.Endpoint
+
+[cols="h,"]
+|===
+|URL
+|``\https://{test-instance-hostname}/engine/rest/resolver-category/{category-id}/payments/?request_id={request-id}``
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestIDCategory_Fields]
+.Fields
+
+Mandatory (M) or optional (O).
+
+[%autowidth]
+|===
+|Field |Cardinality |Datatype |Size
+
+|``request-id`` |M |Alphanumeric |150
+|``resolver-category`` |M |Alphanumeric |32
+|===
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestIDCategory_SampleURL]
+.Sample URL to a Merchant's Endpoint
+
+``\https://{test-instance-hostname}/engine/rest/resolver-category/CATEGORY_X/payments/?request_id=c1052ad7-1372-4755-b6e1-fb32e7519be1``
+
+[#GeneralPlatformFeatures_RetrieveTransaction_RequestIDCategory_SampleResponse]
+.Sample: XML Authorization Response (Successful)
+
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeaturesRetrieveTransactionRequestIDCategorySampleResponse_GeneralRequestSampleForRedirect_URL.xml[]
+----
+
+[#GeneralPlatformFeatures_Transactions_Storing]
+=== Storing Additional Data
+
+In addition to processing transactions, {payment-gateway} also
+permits the storage and later retrieval of additional information.
+
+The use of  the header "custom-field" permits the client application to
+store key-value pairs with each transaction.
+
+
+In the following example, the client application has stored a _purchase order_,
+_invoice_, _crm-id_, _customer-tier_ and _promotional-code_.
+
+This information is also echoed back in any response querying the status
+of a transaction.  It is also possible to see this information in the
+reporting system.
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/GeneralPlatformFeaturesTransactionsStoring.xml[]
+----
+
+[#GeneralPlatformFeatures_Transactions_View]
+=== View Transactions in Browser
+
+You can check your transactions in the browser. All you need is the
+following URL:
+
+``\https://\{hostname}/engine/rest/merchants/\{merchant-account-id}/payments/search?payment.request-id=\{request-id}``
+
+Enter this URL in your browser and replace the following variables:
+
+- {hostname}:
+* if test environment: \http://{test-instance-hostname}
+* if production environment: \http://{instance-hostname}
+- {merchant-account-id}: Use the appropriate Test Merchant Account ID
+- {request-id}: Use the appropriate Request ID
+
+//-
+
+When you login with the username and password of the test account, you
+can see the result of the transaction in your browser.
+
+ifdef::env-wirecard[]
+
+[#GeneralPlatformFeatures_Transactions_TransactionTypes]
+=== Transaction Types
+
+
+[#GeneralPlatformFeatures_Transactions_CheckSignatureAuthorization]
+==== _check-signature/authorization_
+
+_check-signature_ and its related transaction types are transaction
+types that are dependent on the payment method not of elementary need for
+processing via {payment-gateway}. Some payment methods just
+provide the possibility to verify if this payment method is allowed to
+process by this consumer account or to verify if the account data are
+valid. In _{enterprise-portal-abbr}_ both Transaction Types are visible.   
+
+[NOTE]
+====
+.Example
+For <<Sofort>> the transaction type _check-signature_ can be submitted to validate the
+digital signature.
+====
+
+[#GeneralPlatformFeatures_Transactions_GetUrlPendingDebitCredit]
+==== _get-url/pending-debit/pending-credit_
+
+_get-url_ and its related transaction types are transaction types that
+depend on the payment method of elementary need for processing via
+{payment-gateway}. Because of that for some payment methods
+they are additionally created automatically even they were not sent via
+the integration option. In _{enterprise-portal-abbr}_ these Transaction Types are visible.
+
+[NOTE]
+====
+.Example
+For <<SEPADirectDebit, SEPA Direct Debit>> the transaction type _pending-credit_ is created in
+addtion to the _credit_ that was submitted to visualize the process
+steps.
+
+- submitted _credit_ => visible in _{enterprise-portal-abbr}_ _pending-credit_ and _credit_
+- submitted _debit_ => visible in _{enterprise-portal-abbr}_ _pending-debit_ and _debit_
+====
+
+
+[#GeneralPlatformFeatures_Transactions_AutoSale]
+==== _auto-sale_
+
+_auto-sale_ is a pseudo transaction type, which has been created for the
+purpose of offering merchants and easier way to integrate the standard
+and most widely used "SALE" transactions. _auto-sale_ does not exist as
+an individual transaction type. It is only a place-holder which is used
+by the {payment-gateway} to decide which transaction type
+should be used for a specific transaction. When using _auto-sale_,
+the merchant is not required to send a specific transaction-type for
+each credit card or alternative payment method request.
+
+[#GeneralPlatformFeatures_Transactions_AutoSale_BasicConfiguration]
+.Basic Configuration
+
+A merchant is automatically configured to use the default settings for
+_auto-sale_.
+
+The {payment-gateway} has already configured a default
+transaction type for _auto-sale_ per payment method. The default values
+are:
+
+- For credit card, _auto-sale_ corresponds to  _purchase._
+- For all other alternative payment methods, _auto-sale_ corresponds to
+_debit._
+
+//-
+
+If a merchant sends in a transaction with transaction type _auto-sale_,
+these default values will be used.
+
+The transaction type stored in the database for a transaction request
+will not be stored as _auto-sale_, meaning the response to a payment
+request will include the actual transaction type and not _auto-sale_. It
+will be stored with the transaction type configured behind _auto-sale_.
+For example, a credit card transaction will be stored with transaction
+type _purchase_.
+
+[#GeneralPlatformFeatures_Transactions_AutoSale_ExtendedConfiguration]
+.Extended Configuration
+
+A merchant may override these default transaction types by configuring
+their own default transaction types. Each payment method may be
+configured individually for _auto-sale_.
+
+This is configured in the merchant account setup. For example, a
+merchant may specify that for credit card, _auto-sale_ shall correspond
+to _authorization_. This will override the automatically set
+correspondence of _auto-sale_ to _purchase_.
+
+Please contact Merchant Support to setup an extended configuration.
+
+[#GeneralPlatformFeatures_Transactions_AutoSale_Currency]
+.Currency Configuration
+
+In addition to transaction type, _auto-sale_ may also be configured for
+a specific currency. The merchant is able to have multi default
+transaction types depending on the currency.
+
+.Example
+
+``Merchant-id-1``, ``Creditcard``, ``EUR``, ``authorization``;
+``Merchant-id-1``, ``Creditcard``, ``CZK``, ``purchase``;
+``Merchant-id-1``, ``Creditcard``, ``GBP``, ``authorization-only``;
+
+endif::[]

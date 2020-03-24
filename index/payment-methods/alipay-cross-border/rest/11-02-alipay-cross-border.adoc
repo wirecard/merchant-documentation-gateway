@@ -1,0 +1,343 @@
+[#API_AlipayCrossBorder]
+== REST API & {payment-page-v1}
+_Alipay Cross-border_ is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#API_AlipayCrossBorder_Introduction_General_PaymentMode]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+|Countries |Worldwide
+|Currencies |AUD, CAD, CHF, DKK, EUR, GBP, HKD, JPY, KRW, NOK, NZD,
+SEK, SGD, THB, USD
+|===
+
+[#API_AlipayCrossBorder_Introduction_General_CommunicationFormats]
+=== Communication Formats
+
+This table illustrates how _Alipay Cross-border_ notifications are
+encoded and which languages and methods can be used for requests and
+responses.
+[width=75%,stripes=none]
+|===
+.2+h|Requests/Responses | Format | XML
+                        | Methods | POST, GET
+h|IPN Encodement      2+| Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_AlipayCrossBorder_TransactionTypes]
+=== Transaction Types
+
+For transaction type details which are not given here look at
+<<AppendixB,  Transaction Types>>.
+
+[%autowidth.stretch,stripes=none]
+|===
+|Transaction Type |Description |Link to the sample
+
+|_debit_          |        | <<API_AlipayCrossBorder_Samples_General_debit, _debit_ samples>>
+
+Used with
+<<API_AlipayCrossBorder_Samples_autoDebit_debit_withPeriodic, autoDebit>>,
+containing a <periodic>.
+
+|_refund-debit_ |
+|<<API_AlipayCrossBorder_Samples_General_refundDebit, _refundDebit_ samples>>
+
+|_authorization-only_ |Used with auto-debit: Initiates the sign
+agreement between _Alipay Cross-border_ and the consumer. |
+<<API_AlipayCrossBorder_Samples_autoDebit_authorizationOnly_Sign, _authorization-only_ (sign) samples>>
+
+<<API_AlipayCrossBorder_Samples_autoDebit_authorizationOnly_Unsign, _authorization-only_ (unsign) samples>>
+|===
+
+[#AlipayCrossBorder_TestCredentials]
+=== Test Credentials
+
+.Test Credentials
+[%autowidth.stretch,stripes=none]
+|===
+ifndef::env-nova[]
+.2+h|URL(s) Endpoints |For the transaction types _authorization-only_ and _debit._ |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+|For the transaction types _refund-debit_ and _refund-request_. |``\https://{test-instance-hostname}/engine/rest/payments/``
+endif::[]
+ifdef::env-nova[]
+h|URL (Endpoint) 2+|``\https://payments-test.wirecard.com/ee/rest/payments``
+endif::[]
+h|Merchant Account ID (MAID)
+2+|47cd4edf-b13c-4298-9344-53119ab8b9df
+h|Username
+2+|16390-testing
+h|Password
+2+|3!3013=D3fD8X7
+|===
+
+[#API_AlipayCrossBorder_TestCredentials_Additional]
+==== Additional test credentials on _Alipay Cross-border's_ environment
+
+._debit_ and _refund-debit_: For Merchants and Consumers
+[%autowidth.stretch,stripes=none,column= "h,"]
+|===
+.2+h|Merchant Account |Partner |2088101122136241
+|Key
+|760bdzec6y9goq7ctyx96ezkz78287de
+.4+h|Consumer Account
+|Account Name
+|``\alipaytest20091@gmail.com``
+|Password
+|111111
+|Payment Password
+|111111
+|Captcha Code
+|8888
+|===
+
+._auto-debit_: For Merchants and Consumers
+[%autowidth.stretch,stripes=none]
+|===
+.2+h|Merchant Account |Partner |2088621880535422
+|Key
+|2l2o3ew9ke8d3ojobck40tvur6pmj00h
+.3+h|Consumer Account
+|Account Name
+|15145493455
+|Password
+|a111111
+|Payment Password
+|b111111
+|===
+
+[#API_AlipayCrossBorder_Workflow]
+=== Workflow
+
+._debit_ Workflow
+image::images/11-02-alipay-cross-border/AlipayCB_debit_Workflow.png[debit Workflow]
+
+. Consumers add items to shopping basket.
+. Consumers select Payment Method _Alipay Cross-border_.
+. Merchant initiates a _debit_ transaction.
+. _Alipay Cross-border_ responds with a redirection URL to the merchant.
+. Merchant redirects consumer to _Alipay Cross-border_.
+. Consumers enter their account data and confirm the payment.
+. _Alipay Cross-border_ processes the transaction
+. {payment-gateway} receives transaction status.
+. {payment-gateway} sends transaction status to merchant and
+redirects the consumer to the merchant.
+. Merchant receives the transaction's status and displays the
+completion of the payment process to the consumer.
+//-
+
+[#API_AlipayCrossBorder_Fields]
+=== Fields
+
+The fields used for _Alipay Cross-border_ requests, responses and
+notifications are the same as the REST API Fields. Please refer to:
+<<RestApi_Fields, REST API Fields>>.
+
+[#API_AlipayCrossBorder_Fields_autoDebit]
+==== _auto-debit_
+
+Only the _auto-debit_ fields listed below have different properties.
+
+The following elements are mandatory (M), optional (O) or conditional
+(C) for a request/response/notification.
+
+[%autowidth,stripes=none]
+|===
+|Field | Cardinality | Datatype | Size | Description
+
+|periodic/periodic-type |M |xs:string |15 |Periodic type value can only
+be _recurring._
+
+|periodic/sequence-type |M |xs:string |15 |Sequence type value can be
+_first_, _recurring_ or _final_ depending on transaction type.
+|===
+
+[#API_AlipayCrossBorder_Features]
+=== Features
+
+[#API_AlipayCrossBorder_Features_MobilePaymentService]
+==== Mobile Payment Service
+
+The merchant can use the parameter _entry mode_ to route the process
+directly to the mobile endpoint.
+
+When using ReST API the provision of the mobile endpoint has to be
+indicated in the paramenter _entry mode_ with each request.
+
+When using HPP/EPP {payment-gateway} detects the device in use
+automatically and displays the corresponding payment page.
+
+Merchants using HPP/EPP can overwrite the auto detect function. They
+must send the paramenter _entry mode_ in each request.
+
+[#API_AlipayCrossBorder_Features_MobilePaymentService_Customizing]
+===== Customizing
+
+Use the Provider Parameter *connector.wap.autodetect* to customize the
+activation of the layout type. The layout can either be _mobile_ or
+_desktop_.
+
+When the parameter is set to _true_, it depends on the value of the
+_entry mode_, set by the merchant.
+
+When the parameter is set to _false_, all payment processes will
+activate the desktop layout.
+
+[#API_AlipayCrossBorder_Features_MobilePaymentService_Overview]
+===== Overview
+
+When Provider Parameter *connector.wap.autodetect* is set to _true_.
+
+[%autowidth.stretch,stripes=none]
+|===
+3+|Attribute |REST API |HPP/EPP
+
+|Name |Attribute Sent? |Value |   |
+.3+|entry-mode (ReST API) +
+entry_mode (HPP/EPP)
+|no  |Activates desktop layout. |Detects device type automatically
+|yes |mcommerce |Activates layout for mobile payment. |Activates layout for mobile payment.
+|yes |<<API_Fields_Payment, other value>> or no value |Every other value activates desktop layout. |Every other value activates desktop layout.
+|===
+
+For further questions, please contact your <<ContactUs, sales manager>>.
+
+[#API_AlipayCrossBorder_Features_autoDebit]
+==== _auto-debit_
+
+The _auto-debit_ service is used for enabling consumers using _Alipay
+Cross-border_ to make recurring purchases (subject to _Alipay
+Cross-border_ confirmation of authorization). Merchants initiate a
+request for collecting payments from consumers in accordance with
+_Alipay Cross-border's auto-debit_ Service Agreement.
+
+[#API_AlipayCrossBorder_Features_autoDebit_Workflow]
+===== Workflow
+
+._auto-debit_ Workflow
+image::images/11-02-alipay-cross-border/AlipayCB_auto-debit_Workflow.png[Alipay Cross-border auto-debit_Workflow,height=250]
+
+. The consumer selects the payment method _Alipay Cross-border_.
+. The merchant requests the consumer to sign in to _Alipay
+Cross-border_.
+. {payment-gateway-abbr} requests a redirect URL from _Alipay Cross-border_.
+. _Alipay Cross-border_ generates a redirect URL and sends it to _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} forwards the redirect URL to the merchant.
+. The merchant redirects the consumer to _Alipay Cross-border_.
+. The consumer enters his access key and the password.
+. _Alipay Cross-border_ confirms the consumer's access credentials.
+. {payment-gateway-abbr} forwards the confirmation to the merchant and redirects the
+consumer to the merchant's shop.
+. The merchant displays the confirmation page to the consumer.
+. If the merchant offers recurring payments, the merchant initiates an
+auto-debit request to _{payment-gateway-abbr}_.
+. {payment-gateway-abbr} forwards this request to _Alipay Cross-border_.
+. _Alipay Cross-border_ processes the payment and sends a payment
+notification to the consumer.
+
+[#API_AlipayCrossBorder_Samples]
+=== Samples
+
+_Alipay Cross-border_ returns coded payment method URLs in the response!
+
+When you perform a test transaction, the <``payment-method-url``> that
+is returned in the XML response is encoded and cannot be used directly.
+You must decode the URL first to link to the correct page. You can use
+any tool that decodes URLs. Maybe you want to try Coder's Toolbox,
+available at:
+https://coderstoolbox.net/string/#!encoding=xml&action=decode&charset=us_ascii.
+
+[#API_AlipayCrossBorder_Samples_General]
+==== General
+
+[#API_AlipayCrossBorder_Samples_General_debit]
+===== _debit_
+
+._debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_debit_request_success_en.xml[]
+----
+
+._debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_debit_response_success_en.xml[]
+----
+
+
+[#API_AlipayCrossBorder_Samples_General_refundDebit]
+===== _refund-debit_
+
+._refund-debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_refund-debit_request_success.xml[]
+----
+
+._refund-debit_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_refund-debit_response_success_en_a9bbf42e.xml[]
+----
+
+[#API_AlipayCrossBorder_Samples_autoDebit]
+==== _auto-debit_
+
+[#API_AlipayCrossBorder_Samples_autoDebit_authorizationOnly_Sign]
+===== _authorization-only_ (Sign Agreement)
+
+._authorization-only_ (Sign) Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_authorization-only_request_success_recurring_first.xml[]
+----
+
+._get-url (Sign) Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_get-url_response_success_recurring_first.xml[]
+----
+
+[#API_AlipayCrossBorder_Samples_autoDebit_debit_withPeriodic]
+===== _debit_ (with <periodic>)
+
+._debit_ Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_debit_request_success_recurring_recurring_649cb805.xml[]
+----
+
+._get-url_ Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_get-url_response_success_en_recurring_recurring_649cb805.xml[]
+----
+
+[#API_AlipayCrossBorder_Samples_autoDebit_authorizationOnly_Unsign]
+===== _authorization-only_ (Unsign Agreement)
+
+._authorization-only_ (Unsign) Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_authorization-only_request_success_recurring_final_f704f0a9.xml[]
+----
+
+._authorization-only_ (Unsign) Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/alipay-xborder_authorization-only_response_success_recurring_final_f704f0a9.xml[]
+----
+
+//-
