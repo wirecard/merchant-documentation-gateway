@@ -1,0 +1,1411 @@
+{
+	"info": {
+		"_postman_id": "ac44012e-6f7b-44e6-bb50-d1d5381ae9b2",
+		"name": "delayed-shipment_unexpected",
+		"description": "A consumer places an order for a product or service. The merchant fulfills the order in a single shipment, but with a delay. This delay may be expected or unexpected and could exceed the expiration date of the authorization.\r\n\r\na. Immediately\r\n\ti. Check-enrollment (full amount)\r\n\tii. Authorization (full amount)\r\nb. When delay is realized (authorization expires)\r\n\ti. Void-Authorization (full amount)\r\nc. When ready to ship\r\n\ti. Authorization (full amount)\r\n\tii. Capture (full amount)\r\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "2.2.a.i.1 Check Enrollment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be28bcf2-5fcd-499d-9cc0-fa90af733e3d",
+						"exec": [
+							"// Convert XML output to JSON format\r",
+							"var xml2JsonData = xml2Json(responseBody);\r",
+							"\r",
+							"var xml = cheerio.load(responseBody, {\r",
+							"  ignoreWhitespace: true,\r",
+							"  xmlMode: true\r",
+							"});\r",
+							"\r",
+							"//console.log(xml.xml()); // Serialize the jQuery as a string\r",
+							"\r",
+							"pm.globals.set(\"$p_guwid_enroll\", xml(\"payment\").find(\"transaction-id\").text());\r",
+							"pm.globals.set(\"$pareq\", xml(\"payment\").find(\"three-d\").find(\"pareq\").text());\r",
+							"pm.globals.set(\"$acs_url\", xml(\"payment\").find(\"three-d\").find(\"acs-url\").text());\r",
+							"\r",
+							"console.info(\"Check Enrollment GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());\r",
+							"console.info(\"PAREQ: \"+xml(\"payment\").find(\"three-d\").find(\"pareq\").text());\r",
+							"console.info(\"ACS-URL: \"+xml(\"payment\").find(\"three-d\").find(\"acs-url\").text());\r",
+							"\r",
+							"var $status=xml(\"payment\").find(\"transaction-state\").text();\r",
+							"\r",
+							"pm.test(\"Check Enrollment\", function(){\r",
+							"    pm.expect($status).to.equal(\"success\"); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Check Enrollment Transaction ID: \"+pm.globals.get(\"$p_guwid_enroll\"), function(){\r",
+							"    pm.expect(pm.globals.get(\"$p_guwid_enroll\")).not.equal(null);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"ACS-URL: \"+pm.globals.get(\"$acs_url\"), function(){\r",
+							"    pm.expect(pm.globals.get(\"$acs_url\")).not.equal(null);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"PAREQ: \"+pm.globals.get(\"$pareq\"), function(){\r",
+							"        pm.expect(pm.globals.get(\"$pareq\")).not.equal(null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f37884bf-d593-4dbb-88e1-08535c4d9354",
+						"exec": [
+							"",
+							"var guid = (function() {",
+							"  function s4() {",
+							"    return Math.floor((1 + Math.random()) * 0x10000)",
+							"               .toString(16)",
+							"               .substring(1);",
+							"  }",
+							"  return function() {",
+							"    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +",
+							"           s4() + '-' + s4() + s4() + s4();",
+							"  };",
+							"})();",
+							"",
+							"pm.globals.set(\"$descriptor\", \"3DS-2 Use-Cases: Delayed Shipment - Un-Expected Dalay\");",
+							"pm.globals.set(\"$handler\", guid());",
+							"console.info(\"UUID: \"+pm.globals.get(\"$handler\"));",
+							"",
+							"",
+							"pm.globals.set(\"$p_guwid\", null);",
+							"pm.globals.set(\"$p_guwid_enroll\", null);",
+							"pm.globals.set(\"$p_guwid_check\", null);",
+							"pm.globals.set(\"$p_guwid_auth_1\", null);",
+							"pm.globals.set(\"$p_guwid_auth_2\", null);",
+							"pm.globals.set(\"$p_guwid_auth_only\", null);",
+							"",
+							"",
+							"pm.globals.set(\"$pares\", null);",
+							"pm.globals.set(\"$pareq\", null);",
+							"pm.globals.set(\"$acs_url\", null);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "8mhwavKVb91T",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "70000-APILUHN-CARD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "text/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>check-enrollment</transaction-type>\n    <requested-amount currency=\"EUR\">0</requested-amount>\n    <notifications format=\"application/json\">\n        <notification url=\"http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a\"></notification>\n    </notifications>\n    <account-holder>\n        <first-name>Manon</first-name>\n        <last-name>Mertens</last-name>\n        <email>m.mertens@example.com</email>\n        <phone>+3228089336</phone>\n        <mobile-phone>+32496000000</mobile-phone>\n        <address>\n            <street1>Rue de la Loi 1</street1>\n            <city>Brussels</city>\n            <state>BRU</state>\n            <country>BE</country>\n            <postal-code>1000</postal-code>\n        </address>\n        <success-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/success</success-redirect-url>\n        <fail-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/error</fail-redirect-url>\n        <cancel-redirect-url>https://demoshop-test.wirecard.com/demoshop/#/cancel</cancel-redirect-url>\n        <iso-transaction-type>01</iso-transaction-type>\n        <merchant-crm-id>XWLfrzuGhpajYxFiFgNScwcLhtIOvXNxMIcrxIPTHqgroaFiPNDqMxGBXYUhMVBZ</merchant-crm-id>\n        <account-info>\n            <authentication-method>01</authentication-method>\n            <authentication-timestamp>2019-05-05T21:46:00.000Z</authentication-timestamp>\n            <challenge-indicator>04</challenge-indicator>\n            <creation-date>2019-05-05Z</creation-date>\n            <update-date>2019-06-07Z</update-date>\n            <password-change-date>2019-06-08Z</password-change-date>\n            <shipping-address-first-use>2019-06-09Z</shipping-address-first-use>\n            <transactions-last-day>1</transactions-last-day>\n            <transactions-last-year>10</transactions-last-year>\n            <card-transactions-last-day>2</card-transactions-last-day>\n            <purchases-last-six-months>4</purchases-last-six-months>\n            <suspicious-activity>false</suspicious-activity>\n            <card-creation-date>2018-06-16Z</card-creation-date>\n        </account-info>\n    </account-holder>\n    <shipping>\n        <first-name>Manon</first-name>\n        <last-name>Mertens</last-name>\n        <address>\n            <street1>Rue de la Loi 1</street1>\n            <city>Brussels</city>\n            <state>BRU</state>\n            <country>BE</country>\n            <postal-code>1000</postal-code>\n        </address>\n        <shipping-method>home_delivery</shipping-method>\n    </shipping>\n    <card>\n        <account-number>5413330300201192</account-number>\n        <expiration-month>01</expiration-month>\n        <expiration-year>2023</expiration-year>\n        <card-security-code>192</card-security-code>\n        <card-type>mastercard</card-type>\n        <account-type>02</account-type>\n    </card>\n    <ip-address>127.0.0.1</ip-address>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n    <payment-methods>\n        <payment-method name=\"creditcard\"/>\n    </payment-methods>\n    <device>\n        <render-options>\n            <interface>01</interface>\n            <ui-type>01</ui-type>\n        </render-options>\n    </device>\n    <browser>\n        <time-zone>360</time-zone>\n        <screen-resolution>800x600</screen-resolution>\n        <challenge-window-size>01</challenge-window-size>\n        <color-depth>48</color-depth>\n        <java-enabled>true</java-enabled>\n        <language>en</language>\n    </browser>\n    <risk-info>\n        <availability>01</availability>\n        <delivery-mail>m.mertens@example.com</delivery-mail>\n        <delivery-timeframe>04</delivery-timeframe>\n        <gift>\n            <gift-card id=\"09754139-a2db-48c0-af1b-c89c4a31b645\">\n                <amount currency=\"EUR\">9.99</amount>\n            </gift-card>\n        </gift>\n        <preorder-date>2019-07-16Z</preorder-date>\n        <reorder-items>01</reorder-items>\n    </risk-info>\n</payment>"
+				},
+				"url": {
+					"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"wirecard",
+						"com"
+					],
+					"path": [
+						"engine",
+						"rest",
+						"payments",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		},
+		{
+			"name": "2.2.a.i.2 Webhook",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be28bcf2-5fcd-499d-9cc0-fa90af733e3d",
+						"exec": [
+							"responseHTML = cheerio(pm.response.text()); console.log(responseHTML.find('[name=\"PaRes\"]').val());\r",
+							"pm.globals.set(\"$pares\", responseHTML.find('[name=\"PaRes\"]').val());\r",
+							"\r",
+							"console.log(\"PARES: \"+responseHTML.find('[name=\"PaRes\"]').val());\r",
+							"\r",
+							"pm.test(\"Consumer Redirect with ACS URL and PARES\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"PARES: \"+pm.globals.get(\"$pares\"), function(){\r",
+							"        pm.expect(pm.globals.get(\"$pares\")).not.equal(null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f37884bf-d593-4dbb-88e1-08535c4d9354",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/x-www-form-urlencoded"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "PaReq",
+							"value": "{{$pareq}}",
+							"type": "text"
+						},
+						{
+							"key": "TermUrl",
+							"value": "http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a",
+							"type": "text"
+						},
+						{
+							"key": "MD",
+							"value": "Manon Mertens",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{$acs_url}}",
+					"host": [
+						"{{$acs_url}}"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		},
+		{
+			"name": "2.2.a.i.3  Check-Payer-Response",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c077fed1-54bf-489b-97bb-db5fab20228f",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "0452501a-d310-4418-ad70-a9248b7fc195",
+						"exec": [
+							"// Convert XML output to JSON format",
+							"var xml2JsonData = xml2Json(responseBody);",
+							"",
+							"var xml = cheerio.load(responseBody, {",
+							"  ignoreWhitespace: true,",
+							"  xmlMode: true",
+							"});",
+							"",
+							"pm.globals.set(\"$p_guwid_check\", xml(\"payment\").find(\"transaction-id\").text());",
+							"",
+							"console.info(\"CheckPayerResponse GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());",
+							"console.info(\"Authenticated: \"+xml(\"payment\").find(\"three-d\").find(\"cardholder-authentication-status\").text());",
+							"console.info(\"3DSV: \"+xml(\"payment\").find(\"three-d\").find(\"version\").text());",
+							"console.info(\"ECI: \"+xml(\"payment\").find(\"three-d\").find(\"eci\").text());",
+							"console.info(\"CAVV: \"+xml(\"payment\").find(\"three-d\").find(\"cardholder-authentication-value\").text());",
+							"console.info(\"DSTranID: \"+xml(\"payment\").find(\"three-d\").find(\"ds-transaction-id\").text());",
+							"",
+							"var $status=xml(\"payment\").find(\"transaction-state\").text();",
+							"",
+							"pm.test(\"Check Payer Response\", function(){",
+							"    pm.expect($status).to.equal(\"success\"); ",
+							"});",
+							"",
+							"pm.test(\"Check Payer Response Transaction ID: \"+pm.globals.get(\"$p_guwid_check\"), function(){",
+							"    pm.expect(pm.globals.get(\"$p_guwid_check\")).not.equal(null);",
+							"});",
+							"",
+							"pm.test(\"3DS Version: \"+xml(\"payment\").find(\"three-d\").find(\"version\").text(), function(){",
+							"    pm.expect(xml(\"payment\").find(\"three-d\").find(\"version\").text()).to.equal(\"2.1.0\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "8mhwavKVb91T",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "70000-APILUHN-CARD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "text/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>check-payer-response</transaction-type>\n    <parent-transaction-id>{{$p_guwid_enroll}}</parent-transaction-id>\n    <three-d>\n        <pares>eJxlUV1v2zAM/CuDn6tCkqmvPKbOihTYVixBi+2NlpnUmGOvslygHfbfR63osmF8ko486u70ozpipnt83icc521TraorGxRAUMZrLR0E7yxXdVGd5uMdpbmfRp5Sl5KhQ+pjZmCgeWbwC0OJHhea874/0Xbsc48DN7TUUkgttHyn7EraVe149DZNeYrTcN6qL1/35odE1Ox2lJ4onaUZIyXAAUUbnRLgQyeCca3oALTqWoeOYmEXwi5jXt5E4ZIfaMx9xKL2DoeFuPPt+pOv7Qv59cf3X+GUymkr728eff30H2n//J054zIMFxXFnulS//vWZ8K5uHid6cdMCX+nczUt5fLWwTifLbm21XCI7IFLQOeKuYiC84/WIrU+FkvdXxQlLcpD3QlrZC0AqBatDiBAUge+Q28ImEIpTekDfwwe/wjf9ceRpabivtmsa6MbuzHGhWYTVFBrMD7U3m40Z2u9brwJofr5C/GOp2c=</pares>\n    </three-d>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n</payment>"
+				},
+				"url": {
+					"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"wirecard",
+						"com"
+					],
+					"path": [
+						"engine",
+						"rest",
+						"payments",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		},
+		{
+			"name": "2.2.a.ii  Authorization",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be28bcf2-5fcd-499d-9cc0-fa90af733e3d",
+						"exec": [
+							"// Convert XML output to JSON format\r",
+							"var xml2JsonData = xml2Json(responseBody);\r",
+							"\r",
+							"var xml = cheerio.load(responseBody, {\r",
+							"  ignoreWhitespace: true,\r",
+							"  xmlMode: true\r",
+							"});\r",
+							"\r",
+							"\r",
+							"console.info(\"AuthO GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"var $status=xml(\"payment\").find(\"transaction-state\").text();\r",
+							"pm.globals.set(\"$p_guwid_auth_1\", xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Authorization Transaction\", function(){\r",
+							"    pm.expect($status).to.equal(\"success\"); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"AuthO Transaction ID: \"+pm.globals.get(\"$p_guwid_auth_1\"), function(){\r",
+							"    pm.expect(pm.globals.get(\"$p_guwid_auth_1\")).not.equal(null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f37884bf-d593-4dbb-88e1-08535c4d9354",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "8mhwavKVb91T",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "70000-APILUHN-CARD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>authorization</transaction-type>\n    <requested-amount currency=\"EUR\">10.00</requested-amount>\n    <parent-transaction-id>4a225905-7815-413d-9ce9-9ac7a1a9eb71</parent-transaction-id>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n</payment>"
+				},
+				"url": {
+					"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"wirecard",
+						"com"
+					],
+					"path": [
+						"engine",
+						"rest",
+						"payments",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		},
+		{
+			"name": "2.2.b.i  Void Authorization",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be28bcf2-5fcd-499d-9cc0-fa90af733e3d",
+						"exec": [
+							"// Convert XML output to JSON format\r",
+							"var xml2JsonData = xml2Json(responseBody);\r",
+							"\r",
+							"var xml = cheerio.load(responseBody, {\r",
+							"  ignoreWhitespace: true,\r",
+							"  xmlMode: true\r",
+							"});\r",
+							"\r",
+							"\r",
+							"console.info(\"Void AuthO GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"var $status=xml(\"payment\").find(\"transaction-state\").text();\r",
+							"pm.globals.set(\"$p_guwid_void_auth\", xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Void Authorization Transaction\", function(){\r",
+							"    pm.expect($status).to.equal(\"success\"); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Void AuthO Transaction ID: \"+pm.globals.get(\"$p_guwid_void_auth\"), function(){\r",
+							"    pm.expect(pm.globals.get(\"$p_guwid_void_auth\")).not.equal(null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f37884bf-d593-4dbb-88e1-08535c4d9354",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "8mhwavKVb91T",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "70000-APILUHN-CARD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>void-authorization</transaction-type>\n    <requested-amount currency=\"EUR\">10.00</requested-amount>\n    <notifications format=\"application/json\">\n        <notification url=\"http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a\"></notification>\n    </notifications>\n    <parent-transaction-id>83ce0b88-c645-45a5-bbec-24fdaea27921</parent-transaction-id>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n</payment>"
+				},
+				"url": {
+					"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"wirecard",
+						"com"
+					],
+					"path": [
+						"engine",
+						"rest",
+						"payments",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		},
+		{
+			"name": "2.2.c.i Re-Authorization",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be28bcf2-5fcd-499d-9cc0-fa90af733e3d",
+						"exec": [
+							"// Convert XML output to JSON format\r",
+							"var xml2JsonData = xml2Json(responseBody);\r",
+							"\r",
+							"var xml = cheerio.load(responseBody, {\r",
+							"  ignoreWhitespace: true,\r",
+							"  xmlMode: true\r",
+							"});\r",
+							"\r",
+							"\r",
+							"console.info(\"Re-AuthO GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"var $status=xml(\"payment\").find(\"transaction-state\").text();\r",
+							"pm.globals.set(\"$p_guwid_auth_2\", xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"pm.test(\"Re-Authorization Transaction\", function(){\r",
+							"    pm.expect($status).to.equal(\"success\"); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Re-AuthO Transaction ID: \"+pm.globals.get(\"$p_guwid_auth_2\"), function(){\r",
+							"    pm.expect(pm.globals.get(\"$p_guwid_auth_2\")).not.equal(null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f37884bf-d593-4dbb-88e1-08535c4d9354",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "8mhwavKVb91T",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "70000-APILUHN-CARD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>authorization</transaction-type>\n    <requested-amount currency=\"EUR\">10.00</requested-amount>\n    <parent-transaction-id>83ce0b88-c645-45a5-bbec-24fdaea27921</parent-transaction-id>\n    <authorization-reason>reauthorization</authorization-reason>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n</payment>"
+				},
+				"url": {
+					"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"wirecard",
+						"com"
+					],
+					"path": [
+						"engine",
+						"rest",
+						"payments",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		},
+		{
+			"name": "2.2.c.ii Capture",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "be28bcf2-5fcd-499d-9cc0-fa90af733e3d",
+						"exec": [
+							"// Convert XML output to JSON format\r",
+							"var xml2JsonData = xml2Json(responseBody);\r",
+							"\r",
+							"var xml = cheerio.load(responseBody, {\r",
+							"  ignoreWhitespace: true,\r",
+							"  xmlMode: true\r",
+							"});\r",
+							"\r",
+							"\r",
+							"console.info(\"Capture GUWID: \"+xml(\"payment\").find(\"transaction-id\").text());\r",
+							"\r",
+							"\r",
+							"var $status=xml(\"payment\").find(\"transaction-state\").text();\r",
+							"\r",
+							"pm.test(\"Capture Transaction\", function(){\r",
+							"    pm.expect($status).to.equal(\"success\"); \r",
+							"});\r",
+							"\r",
+							"pm.test(\"Capture Transaction ID: \"+xml(\"payment\").find(\"transaction-id\"), function(){\r",
+							"    pm.expect(xml(\"payment\").find(\"transaction-id\")).not.equal(null);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "f37884bf-d593-4dbb-88e1-08535c4d9354",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "8mhwavKVb91T",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "70000-APILUHN-CARD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA=="
+					},
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/xml"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <merchant-account-id>33f6d473-3036-4ca5-acb5-8c64dac862d1</merchant-account-id>\n    <request-id>{{$guid}}</request-id>\n    <transaction-type>capture-authorization</transaction-type>\n    <requested-amount currency=\"EUR\">10.00</requested-amount>\n    <notifications format=\"application/json\">\n        <notification url=\"http://www.webhook.site/68f1326e-311d-4ef8-a998-1c3c66cc497a\"></notification>\n    </notifications>\n    <parent-transaction-id>bb8e2008-2bd9-4348-8eba-1e4bce508c54</parent-transaction-id>\n    <order-detail>{{$handler}}</order-detail>\n    <descriptor>{{$descriptor}}</descriptor>\n</payment>"
+				},
+				"url": {
+					"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+					"protocol": "https",
+					"host": [
+						"api-test",
+						"wirecard",
+						"com"
+					],
+					"path": [
+						"engine",
+						"rest",
+						"payments",
+						""
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "3D (Automatic Card Brand Recognition) Sign In",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": " Basic NzAwMDAtQVBJTFVITi1DQVJEOjhtaHdhdktWYjkxVA==",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": " application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://api-test.wirecard.com/engine/rest/payments/",
+							"protocol": "https",
+							"host": [
+								"api-test",
+								"wirecard",
+								"com"
+							],
+							"path": [
+								"engine",
+								"rest",
+								"payments",
+								""
+							]
+						}
+					},
+					"status": "Internal Server Error",
+					"code": 500,
+					"_postman_previewlanguage": "xml",
+					"header": [
+						{
+							"key": "Cache-Control",
+							"value": "no-cache, no-store, max-age=0, must-revalidate"
+						},
+						{
+							"key": "Pragma",
+							"value": "no-cache"
+						},
+						{
+							"key": "Expires",
+							"value": "0"
+						},
+						{
+							"key": "X-XSS-Protection",
+							"value": "1; mode=block"
+						},
+						{
+							"key": "X-Content-Type-Options",
+							"value": "nosniff"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/xml;charset=UTF-8"
+						},
+						{
+							"key": "Content-Language",
+							"value": "en-US"
+						},
+						{
+							"key": "Content-Length",
+							"value": "303"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 19 Jun 2019 11:44:51 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "close"
+						},
+						{
+							"key": "Server",
+							"value": ""
+						},
+						{
+							"key": "Strict-Transport-Security",
+							"value": "max-age=16070400; includeSubDomains"
+						}
+					],
+					"cookie": [],
+					"body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n<payment xmlns=\"http://www.elastic-payments.com/schema/payment\">\n    <transaction-state>failed</transaction-state>\n    <statuses>\n        <status code=\"400.1031\" description=\"Possible malformed request. Please check your input\" severity=\"error\"/>\n    </statuses>\n</payment>"
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "8mhwavKVb91T",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "70000-APILUHN-CARD",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "e0531a95-68de-4186-b723-0176e8ad7893",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "c2a6ad07-f462-4705-80ff-96b8210d086a",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
