@@ -12,6 +12,7 @@
 //
 
 var redirectMap = {
+  "/WPP.html" : "IntegrationGuides_WPP_v2.html",
   "/display/PTD/API+merchant+specification" : "RestApi.html",
   "/display/PTD/Appendix+K:+Test+Access+Data+and+Credentials" : "AppendixK.html",
   "/display/PTD/Wirecard+Payment+Page" : "PPv2.html",
