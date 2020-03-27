@@ -12,7 +12,8 @@ function zoomImage(e) {
 function addZoomToLargeImages() {
     const contentWrapperWidth = $('div#content').width();
     $('img').each(function (i, img) {
-        if ($(img).attr('data-has-zoom') == 'true') {
+        if ($(img).attr('data-has-zoom') == 'true' ||
+            $(img).attr('no-zoom')) {
             return true;
         }
         const hasZoomClass = $(img).parent().parent().hasClass('zoom');
@@ -45,7 +46,7 @@ function isSVG(img) {
  * based on // zoom-vanilla.js - 2.0.6 (https://github.com/spinningarrow/zoom-vanilla.js)
  * modified for correct svg handling in calculateZoom()
  */
-document.addEventListener('DOMContentLoaded', function () {    
+document.addEventListener('DOMContentLoaded', function () {
     +function () {
         "use strict";
         var OFFSET = 80
