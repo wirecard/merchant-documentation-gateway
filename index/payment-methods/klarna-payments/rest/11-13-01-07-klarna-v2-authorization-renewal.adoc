@@ -1,19 +1,11 @@
 [#Klarnav2_TransactionTypes_authorizationRenewal]
 ==== _authorization-renewal_
-Use this transaction type to postpone the expiry date of an existing authorization: +
- ``authorization-renewal`` resets the authorization validity period to 28 days (default setting - <<ContactUs, contact Merchant Support>> for changes), starting with the date of the ``authorization-renewal``.
+Use this transaction type to postpone the expiry date of an existing authorization:
 
-NOTE: Max. authorization validity period limit: +
+* ``authorization-renewal`` resets the authorization validity period to 28 days (default setting - <<ContactUs, contact Merchant Support>> for changes), starting with the date of the ``authorization-renewal``.
+* You can only renew authorizations that have not yet been captured/voided.
+* Max. authorization validity period limit: +
 You cannot renew an authorization to more than 180 days in total. 
-
-
-////
-An authorization is valid by default for 14 days.
-
-After the authorization is expired, it cannot be activated, but can be prolonged using the authorization-renewal transaction.
-////
-
-You can only renew authorizations that have not yet been captured/voided.
 
 
 [#KlarnaV2_TransactionTypes_authorizationRenewal_Fields]
@@ -21,7 +13,7 @@ You can only renew authorizations that have not yet been captured/voided.
 
 Fields can be **M**andatory or **O**ptional.
 
-[%autowidth]
+[%autowidth, stripes=none]
 [cols="m,,,,"]
 |===
 |Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Data Type |Size |Description
@@ -80,21 +72,6 @@ Format: 3-character abbreviation according to ISO 4217.
 |
 |Description of ...
 
-|payment-methods. +
-payment-method@name
-|O 
-|String
-|15 
-a|The name of the payment method used for the transaction. 
-
-Accepted values: 
-
-  - ``klarna-finance`` for _Klarna_ payment in installments
-  - ``klarna-debit`` for _Klarna_ direct debit 
-  - ``klarna-transfer`` for _Klarna_ online bank transfer
-  - ``klarna-paylater`` for _Klarna_ payment on invoice
-//-
-
 |order-number	
 |O 
 |String
@@ -132,146 +109,17 @@ Possible values:
 |
 |The timestamp documents the time and date when the transaction was completed.
 
-|notifications. +
-notification-url 
-|O 
-|String
-|256
-|The URL to which _{payment-gateway}_ sends an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>> for pending reservations or the transaction outcome. It overwrites the notification URL that is set up in your merchant configuration.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_paymentMethod.adoc[tags=**;!txTypes]
 
-4+<.>s|account-holder.
-s|Contains consumer data.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_notifications.adoc[]
 
-|date-of-birth 
-|O 
-|Date 
-|
-|Consumer's date of birth. +
-Format: _Klarna_ accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. + 
-If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
-
-|first-name 
-|O 
-|String
-|32 
-|Consumer's first name.
-
-|last-name 
-|O 
-|String
-|32 
-|Consumer's last name.
-
-|email 
-|O 
-|String
-|64 
-|Consumer's email address.
-
-|gender 
-|O 
-|String
-|1 
-|Consumer's gender.
-
-|phone 
-|O 
-|String
-|32 
-|Consumer's phone number. +
-Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here>> for details.
-
-4+<.>s|account-holder.address.
-s|Consumer's address.
-
-|street1 
-|O 
-|String
-|128 
-|Street of the consumer's address.
-
-|street2	
-|O 
-|String
-|128 
-|House number of the consumer's address.	 
-
-|city 
-|O 
-|String
-|32 
-|City of the consumer's address.
-
-|country 
-|M 
-|String
-|3 
-|<<KlarnaV2_CountriesCurrencies, Country code>> of the consumer's address.
-
-|postal-code 
-|O 
-|String
-|16 
-|Postal/ZIP code of the consumer's address.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_accountHolder.adoc[]
 
 include::{root}/include/klarna-payments/fields/klarnaPayments_fields_shipping_followUp.adoc[**;!*]
 
 include::{root}/include/klarna-payments/fields/orderItems-responseOnly.adoc[]
 
-4+<.>s|statuses.status.
-s|Contains information on the status of a specific transaction.
-
-|code
-|Response only
-|String
-|12
-|Transaction status code.
-
-|description
-|Response only
-|String
-|256
-|Transaction status message.
-
-|severity
-|Response only
-|String
-|20
-a|The definition of the status message. Possible values:
-
-- ``information``
-- ``warning``
-- ``error``
-
-//-
-
-|@provider-code
-|Response only
-|String
-|34
-|Original _Klarna_ error code.
-
-|@provider-message
-|Response only|String
-|
-|Error message to be shown to the consumer as required by _Klarna_.
-
-|@provider-transaction-id 
-|Response only
-|String
-|36
-|_Klarna_ reservation number.
-
-4+<.>s|additional-provider-data.provider-data
-s|Contains max. 1 additional data item for _Klarna_.
-
-|request
-|O
-|String
-|
-|Content should be an object containing any of the keys and sub objects described in https://developers.klarna.com/api/#payments-api-create-a-new-credit-session serialised to JSON. +
-E.g. +
- ``{"marketplace_seller_info":[{"product_category":"Women''s Fashion","product_name":"Women Sweatshirt"}]}`` +
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_status.adoc[]
 
 |===
 
