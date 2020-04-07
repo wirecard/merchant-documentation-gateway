@@ -3,8 +3,7 @@
 
 Klarna Payments support <<GeneralPlatformFeatures_Transactions_Recurring, Recurring>> transactions. +
 
-If you send appropriate values for ``periodic-type`` and ``sequence-type``, {payment-gateway} generates a consumer token that can be used for recurring payments.
-
+To initiate recurring payments, you need to provide appropriate values for ``periodic-type`` and ``sequence-type`` in your ``authorization`` request. From these values, {payment-gateway} generates a consumer token that can be used for recurring payments.
 
 
 [#KlarnaV2_TransactionTypes_authorizationRecurring_Fields]
@@ -47,7 +46,7 @@ Allowed characters:  ``[a-z0-9-\_]``.
 |Numeric
 |18,3
 |Total order amount to be reserved. The number of decimal places depends on the currency. +
-The requested amount must be equal to the amount sum of all order items.
+The requested amount must be equal to the total amount of all order items.
 
 Use ``.`` (decimal point) as separator.
 
@@ -58,6 +57,13 @@ Use ``.`` (decimal point) as separator.
 a|The <<KlarnaV2_CountriesCurrencies, currency>> of the requested/contested
 transaction amount. +
 Format: 3-character abbreviation according to ISO 4217.
+
+|parent-transaction-id
+|M/O 
+|String	
+|36	
+a|Enter the ``transaction-id`` of a preceding _authorization_. That can be either the first (``initial``) or any other previous (``recurring``) authorization. +
+**Mandatory** for recurring authorizations with sequence type ``recurring`` or ``final`.`
 
 |order-number	
 |O 
@@ -70,39 +76,7 @@ If set, it shows as "order number" on _Klarna_'s payment confirmation page.
 |M 
 |String
 |5 
-|A 5-letter code which indicates what <<KlarnaV2_Locales, language>> the payment page is rendered in (RFC 1766).
-
-|parent-transaction-id
-|M/O 
-|String	
-|36	
-a|Enter the ``transaction-id`` of a preceding _authorization_. This can be either the first (``initial``) or any other previous (``recurring``) authorization. +
-**Mandatory** for recurring authorizations with sequence type ``recurring`` or ``final`.`
-
-5+<.>h|``periodic``
-
-|periodic-type
-|M
-|String
-|24	
-a|Periodic type of recurring/periodic purchase: +
-
-* ``recurring``
-* ``installment``
-//-
-
-Both values are equivalent.
-
-|sequence-type
-|M
-|String
-|10	
-a|Sequence type of recurring/periodic purchase: +
-
-* ``first`: For initial authorization request. is send to engine/rest/paymentmethods endpoint.`
-* ``recurring``: For recurring authorization requests that follow the initial recurring purchase or other recurring purchase(s). Authorization request is send to engine/rest/payments endpoint.
-* ``final``: For the last recurring authorization. Authorization request is send to engine/rest/payments endpoint.
-//-
+|A 5-letter code that indicates what <<KlarnaV2_Locales, language>> the payment page is rendered in (RFC 1766).
 
 |transaction-id 
 |Response only
@@ -127,6 +101,31 @@ Possible values:
 |DateTime
 |
 |The timestamp documents the time and date when the transaction was completed.
+
+4+<.>h|``periodic`` h|**For recurring payments.**
+
+|periodic-type
+|M
+|String
+|24	
+a|Periodic type of recurring/periodic purchases: +
+
+* ``recurring``
+* ``installment``
+//-
+
+Both values are processed in the same way.
+
+|sequence-type
+|M
+|String
+|10	
+a|Specifies the occurence of an authorization in a sequence of recurring/periodic purchases: +
+
+* ``first``: For initial authorization request.
+* ``recurring``: For recurring authorization requests that follow the initial recurring purchase or other recurring purchase(s).
+* ``final``: For the last recurring authorization.
+//-
 
 include::{root}/include/klarna-payments/fields/klarnaPayments_fields_paymentMethod.adoc[tags=**;!txTypes]
 
