@@ -10,6 +10,23 @@ If _Klarna_ accepts the order, it guarantees the payment once the authorized amo
 An ``authorization`` is valid for 28 days (default setting - <<ContactUs, contact Merchant Support>> for changes). This can be extended with an <<Klarnav2_TransactionTypes_authorizationRenewal, ``authorization-renewal``>>.
 
 
+[#KlarnaV2_TransactionTypes_authorization_autoCapture]
+===== auto-capture
+
+For digital goods/services, authorizations can be captured automatically: 
+
+* A <<KlarnaV2_TransactionTypes_captureAuthorization, ``capture-authorization``>> follows automatically straight after a successful ``authorization``.
+* You can also auto-capture <<KlarnaV2_TransactionTypes_authorizationRecurring, recurring payments>>.
+* No changes to your merchant configuration are needed.
+//-
+
+To activate auto-capture, set the ``auto-capture`` field to ``true`` in your authorization request.
+
+NOTE: This feature is only for digital goods/services: +
+The <<KlarnaV2_TransactionTypes_authorization_Fields_orderItems, ``order-item.type``>> of each <<KlarnaV2_TransactionTypes_authorization_Fields_orderItems, ``order-item``>> must be <<KlarnaV2_TransactionTypes_authorization_Fields_orderItems, ``digital``.>> +
+Otherwise, the authorization cannot be captured automatically.
+
+
 [#KlarnaV2_TransactionTypes_authorization_Workflow]
 ===== _authorization_/_pending-authorization_ Workflow
 
@@ -43,8 +60,7 @@ M->>C: redirects to payment status page
 ----
 
 . Consumer checks out products.
-. -> Send an _authorization_ request to _{payment-gateway}_. This request must contain order data (e.g. amount, order number, order items), consumer data (e.g. name, billing
-and shipping address, client IP address).
+. -> Send an _authorization_ request to _{payment-gateway}_. This request must contain order data (e.g. amount, order number, order items) and consumer data (e.g. name, billing/shipping address).
 . _{payment-gateway}_ forwards the request to _Klarna_.
 . _Klarna_ creates a session token and sends it to _{payment-gateway}_.
 . _{payment-gateway}_ creates a _pending-authorization_ transaction.
@@ -179,7 +195,7 @@ Possible values:
 |
 |The timestamp documents the time and date when the transaction was completed.
 
-include::{root}/include/klarna-payments/fields/klarnaPayments_fields_paymentMethod.adoc[tags=**;!txTypes;!installments;adjust-authorization]
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_paymentMethod.adoc[tags=**;!txTypes;!installments;!adjust-authorization]
 
 include::{root}/include/klarna-payments/fields/klarnaPayments_fields_notifications.adoc[]
 
@@ -224,24 +240,6 @@ E.g. +
  ``{"marketplace_seller_info":[{"product_category":"Women''s Fashion","product_name":"Women Sweatshirt
 
 |===
-
-
-[#KlarnaV2_TransactionTypes_authorization_autoCapture]
-===== auto-capture
-
-For digital goods/services, authorizations can be captured automatically: 
-
-* A <<KlarnaV2_TransactionTypes_captureAuthorization, ``capture-authorization``>> follows automatically straight after a successful ``authorization``.
-* You can also auto-capture <<KlarnaV2_TransactionTypes_authorizationRecurring, recurring payments>>.
-* No changes to your merchant configuration are needed.
-//-
-
-To activate auto-capture, set the ``auto-capture`` field to ``true`` in your authorization request.
-
-NOTE: This feature is only for digital goods/services: +
-The <<KlarnaV2_TransactionTypes_authorization_Fields_orderItems, ``order-item.type``>> of each <<KlarnaV2_TransactionTypes_authorization_Fields_orderItems, ``order-item``>> must be <<KlarnaV2_TransactionTypes_authorization_Fields_orderItems, ``digital``.>> +
-Otherwise, the authorization cannot be captured automatically.
-
 
 [#KlarnaV2_TransactionTypes_authorization_Samples]
 ===== _authorization_ Samples
