@@ -50,7 +50,17 @@ M-->>M: processes response
 
 . _{payment-gateway}_ updates the initial (or already adjusted) authorization and forwards the request to _Klarna_. 
 . _Klarna_ updates order amount and/or address and returns the result of the adjustment.
-. _{payment-gateway}_ sends you the _adjust-authorization_ response which contains the status code.
+. _{payment-gateway}_ sends you the _adjust-authorization_ response which contains the status code. +
++
+[NOTE]
+====
+If your adjust-authorization request does not change the preceding authorization, the response indicates this with two statuses:
+
+. <status code="201.0000" description="guaranteed:The resource was successfully created." severity="information"/>
+. <status code="201.1150" description="Transaction already processed, no data has been updated." severity="information" provider-transaction-id="218d62d1-dc28-4e20-af84-2ba405cc949c"/>
+
+//-
+====
 . -> Process the _adjust-authorization_ response.
 
 //-
@@ -188,15 +198,5 @@ NOTE: {{txnId}} serves as placeholder. Enter the ``transaction-id`` of the prece
 ----
 include::{root}/samples/xml/Klarnav2_adjustAuthorization_response.xml[]
 ----
-
-[NOTE]
-====
-If your adjust-authorization request does not change the preceding authorization, the response indicates this with two statuses:
-
-. <status code="201.0000" description="guaranteed:The resource was successfully created." severity="information"/>
-. <status code="201.1150" description="Transaction already processed, no data has been updated." severity="information" provider-transaction-id="218d62d1-dc28-4e20-af84-2ba405cc949c"/>
-
-//-
-====
 
 //-
