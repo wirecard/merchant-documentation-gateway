@@ -39,8 +39,6 @@ Each field table contains the following columns:
 - <<APIRef_FieldDefs_DataTypes, Data Type>>
 - <<APIRef_FieldDefs_Size, Size>> (for request elements only)
 
-
-
 //-
 
 IMPORTANT: Field definitions may vary by transaction type. Deviations from standard field definitions are given with the respective transaction type.
@@ -95,18 +93,21 @@ endif::[]
 | card
 | <<CC_Fields_xmlelements_request_card, X>>
 |  
- 
-// | card-emv
-// | <<CC_Fields_xmlelements_request_cardemv, X>>
-// | 
+
+ifndef::env-nova[]
+
+| card-emv
+| <<CC_Fields_xmlelements_request_cardEMV, X>>
+| <<CC_Fields_xmlelements_response_cardEMV, X>>
 
 // | card-pin
-// | <<CC_Fields_xmlelements_request_cardpin, X>>
+// | <<CC_Fields_xmlelements_cardPIN, X>>
 // | 
 
 // |card-raw
-// | <<CC_Fields_xmlelements_request_cardraw, X>>
+// | <<CC_Fields_xmlelements_cardRaw, X>>
 // | 
+endif::[]
 
 | card-token
 | <<CC_Fields_xmlelements_request_cardtoken, X>>
@@ -133,6 +134,15 @@ endif::[]
 | gift-card
 | <<CC_Fields_xmlelements_request_giftcard, X>>
 | 
+ifndef::env-nova[]
+// | encryption-context
+// | <<CC_Fields_xmlelements_request_encryptionContext, X>>
+// | 
+
+| iso
+| <<CC_Fields_xmlelements_request_ISO, X>>
+| 
+endif::[]
 
 | notifications
 | <<CC_Fields_xmlelements_request_notification, X>>
@@ -306,6 +316,10 @@ include::{root}/include/fields/rest_cc/request/req-browser.adoc[]
 
 :listname: CC_Fields_xmlelements
 
+``card`` is a child of  <<CC_Fields_xmlelements_request_payment, payment>>. ``card`` details are sent only in the first transaction request when the card is used for the first time. Due to
+<<CreditCard_PaymentFeatures_Tokenization_Introduction, PCI DSS>> compliance, ``card`` details are immediately replaced by a token. Beginning with the first response, this
+token is used for every consecutive transaction (request and response) that is performed with this credit card. Token data is provided with the <<CC_Fields_xmlelements_request_cardtoken, card-token>> element.
+
 include::{root}/include/field-list-headers/rest_cc/request/req-card.adoc[]
 
 [cols="30m,6,9,7,48a"]
@@ -318,24 +332,36 @@ include::{root}/include/fields/rest_cc/request/req-card.adoc[]
 
 :!listname:
 
-//[#CC_Fields_xmlelements_request_cardemv]
-//.card-emv
-//
-//``card-emv`` is a child of <<CC_Fields_xmlelements_request_card, card>>. 
-//
-//
-//[#CC_Fields_xmlelements_request_cardpin]
-//.card-pin
-//
-//``card-pin`` is a child of <<CC_Fields_xmlelements_request_card, card>>. 
-//
-//
-//[#CC_Fields_xmlelements_request_cardraw]
-//.card-raw
-//
-//``card-raw`` is a child of
-//<<CC_Fields_xmlelements_request_card, card>>
+ifndef::env-nova[]
+[#CC_Fields_xmlelements_request_cardEMV]
+.card.card-emv
 
+For card present transactions.
+
+:listname: CC_Fields_xmlelements
+
+[cols="30m,6,9,7,48a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | <<APIRef_FieldDefs_DataTypes, Data Type>> | Size | Description
+
+include::{root}/include/fields/rest_cc/request/req-card-emv.adoc[]
+
+|===
+
+:!listname:
+
+// [#CC_Fields_xmlelements_cardPIN]
+// .card.card-pin
+
+// include::{root}/include/fields/rest_cc/request/req-card-pin.adoc[]
+
+
+// [#CC_Fields_xmlelements_cardRaw]
+// .card.card-raw
+
+// include::{root}/include/fields/rest_cc/request/req-card-raw.adoc[]
+
+endif::[]
 
 [#CC_Fields_xmlelements_request_cardtoken]
 .``card-token.``
@@ -442,6 +468,29 @@ include::{root}/include/field-list-headers/rest_cc/request/req-gift-cards.adoc[]
 include::{root}/include/fields/rest_cc/request/req-gift-cards.adoc[]
 
 |===
+
+ifndef::env-nova[]
+// [#CC_Fields_xmlelements_request_encryptionContext]
+// .encryption-context
+
+// include::{root}/include/fields/rest_cc/request/req-encryption-context.adoc[]
+
+
+[#CC_Fields_xmlelements_request_ISO]
+.iso
+
+For card present transactions.
+
+[cols="30m,6,9,7,48a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | <<APIRef_FieldDefs_DataTypes, Data Type>> | Size | Description
+
+include::{root}/include/fields/rest_cc/request/req-iso.adoc[]
+
+|===
+
+endif::[]
+
 
 [#CC_Fields_xmlelements_request_notification]
 .``notification.``
@@ -671,6 +720,23 @@ include::{root}/include/field-list-headers/rest_cc/response/res-custom-field.ado
 include::{root}/include/fields/rest_cc/response/res-custom-field.adoc[]
 
 |===
+
+ifndef::env-nova[]
+
+[#CC_Fields_xmlelements_response_cardEMV]
+.``card.card-emv``
+
+For card present transactions.
+
+[cols="30m,9,7,48a"]
+|===
+|Field | <<APIRef_FieldDefs_DataTypes, Data Type>> |Size |Description
+
+include::{root}/include/fields/rest_cc/response/res-card-emv.adoc[]
+
+|===
+
+endif::[]
 
 [#CC_Fields_xmlelements_response_status]
 .``status.``
