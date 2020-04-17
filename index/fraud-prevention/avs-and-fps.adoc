@@ -1,0 +1,348 @@
+[#FraudPrevention]
+== Fraud Prevention
+
+[#FraudPrevention_AVS]
+=== Address Verification System
+
+Each card scheme maintain an own set of return codes. To facilitate the
+implementation Wirecard maps those codes to a uniformed set of scheme
+independent response codes.
+
+[#FraudPrevention_AVS_PaymentResponse]
+==== AVS in Payment Response
+
+If merchant's Wirecard provider account is configured to store AVS data
+(``connector.avs.data.store=true``) the AVS result is returned as additional
+part in the payment response and notification.
+
+.Response with AVS Data
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/creditcard_authorization_response__d45ef252.xml[]
+----
+
+[#FraudPrevention_AVS_WirecardResponseCodes]
+==== Wirecard Response Codes
+
+The following table outlines the set of codes used by Wirecard. This
+uniformed codes should be the preferred source for decisions related to AVS.
+
+[cols="4,4,9"]
+|===
+| Response Code | Message         | Description
+
+| 0             | Reserved        | Reserved.
+| F             | Exact Match     | Street address and zip code match.
+| P             | Partial Match   | Either street address or zip codes do not match.
+| U             | AVS unavailable | Address information is unavailable or the Issuer does not support AVS.
+| E             | Error           | AVS not performed due to an error or insufficient data.
+| N             | No Match        | Neither address nor zip code match.
+|===
+
+[#FraudPrevention_AVS_AuthorizationEntity]
+==== Authorization Entity
+
+The Authorization Entity defines the party responding to the AVS Request.
+
+[cols="4,13"]
+|===
+| Authorization Entity | Message
+
+| 2                    | Response provided by Intermediate processor.
+| 5                    | Response provided by issuer processor.
+|===
+
+[#FraudPrevention_AVS_ProviderResponseCode]
+==== Provider Response Code
+
+The Provider Response Code is the code returned from the provider. If
+the business case was activated for AVS the code it is returned together
+in the response, together with the human readable Provider Response
+Message. The following table lists the current set of codes used by the
+card schemes and outlines the mapping between the Provider Response Code
+and the unified Wirecard Response Code. Please note that the actual
+Provider Response Code depends on the actual used provider and could be
+also changed and extended by the provider.
+So it may differ from the table below. Therefore Wirecard recommends the
+preferred usage of the Wirecard Response Code.
+
+[#FraudPrevention_AVS_AmericanExpress]
+===== American Express
+
+[cols="4,3,10"]
+|===
+| American Express Code | Wirecard Response Code | Description
+
+| A                     | P             | CSC and Address Matched
+| F                     | F             | All Data Matched
+| N                     | P             | CSC Match
+| U                     | U             | Data Not Checked
+| Y                     | F             | All Data Matched
+| Z                     | P             | CSC and Postcode Matched
+| F                     | Exact Match   | Street address and zip code match
+|===
+
+[#FraudPrevention_AVS_AmericanExpressAAV]
+===== American Express AAV (enhanced AVS)
+
+[cols="4,3,10"]
+|===
+| American Express Code | Wirecard Response Code | Description
+
+| Y                     | F             | Yes, Billing Address and Postal Code are both correct.
+| N                     | N             | No, Billing Address and Postal Code are both incorrect.
+| A                     | P             | Billing Address only correct.
+| Z                     | P             | Billing Postal Code only correct.
+| U                     | U             | Information unavailable.
+| S                     | U             | SE not allowed AAV function.
+| R                     | E             | System unavailable; retry.
+| L                     | P             | CM Name and Billing Postal Code match.
+| M                     | F             | CM Name, Billing Address and Postal Code match.
+| O                     | P             | CM Name and Billing Address match.
+| K                     | P             | CM Name matches.
+| D                     | P             | CM Name incorrect, Billing Postal Code matches.
+| E                     | P             | CM Name incorrect, Billing Address and Postal Code match.
+| F                     | P             | CM Name incorrect, Billing Address matches.
+| W                     | N             | No, CM Name Billing Address and Postal Code are all incorrect.
+|===
+
+[#FraudPrevention_AVS_Mastercard]
+===== Mastercard
+
+[cols="4,3,10"]
+|===
+| Mastercard Code | Wirecard Response Code | Description
+
+| A               | P             | Address matches, postal code does not.
+| N               | N             | Neither address nor postal code match.
+| R               | E             | Retry. System unable to process.
+| S               | U             | AVS currently not supported.
+| U               | U             | No data from issuer authorization system.
+| W               | P             | For U.S. addresses, nine-digit postal code matches, address does not. For addresses outside U.S., postal code matches, address does not.
+| X               | F             | For U.S. addresses, nine-digit postal code and address match. For addresses outside U.S., postal code and address match.
+| Y               | F             | For U.S. addresses only, five-digit postal code and address match.
+| Z               | P             | For U.S. addresses only, five-digit postal code matches, address does not.
+|===
+
+[#FraudPrevention_AVS_Visa]
+===== Visa
+
+[cols="6,6,9,30"]
+|===
+| Visa Code | Type          | Wirecard Response Code | Description
+
+| A         | Domestic      | P             | The address information matches. The postcode does not match.
+| B         | International | P             | Street address matches, but postal code not verified. Returned only for non U.S.-issued Visa cards.
+| C         | International | N             | Street address and postal code do not match. Returned only for non U.S.-issued Visa cards.
+| D         | International | F             | The match is exact: both the address and the postcodes match. No representment rights.
+| E         | Domestic      | E             | AVS data is invalid or AVS is not allowed for this card type.
+| G         | International | U             | Address information is unavailable, or the Issuer does not support AVS. Acquirer has representment rights.
+| I         | International | U             | Address information is unavailable, or the Issuer does not support AVS. Acquirer has representment rights.
+| P         | International | P             | Postal code matches, but street address not verified. Returned only for non U.S.-issued Visa cards.
+| R         | Domestic      | U             | System unavailable.
+| S         | Domestic      | U             | U.S.-issuing bank does not support AVS.
+| M         | International | F             | The match is exact: both the address and the postcodes match. No representment rights.
+| N         | Domestic      | N             | The match is not exact, either because the postcode and/or the addresses do not match.
+| U         | Domestic      | U             | Address information unavailable. Returned if the U.S. bank does not support non-U.S. AVS or if the AVS in a U.S. bank is not functioning properly.
+| W         | Domestic      | P             | Street address does not match, but 9-digit postal code matches.
+| X         | Domestic      | F             | Street address and 9-digit postal code match.
+| Y         | Domestic      | F             | Street address and 5-digit postal code match.
+| Z         | Domestic      | P             | The postcode information matches. The address information does not match.
+|===
+
+[#FraudPrevention_DeviceFingerprinting]
+=== Device Fingerprint
+
+[#FraudPrevention_DeviceFingerprint_Integration]
+==== Integration
+
+In order to integrate Wirecard's _Device Fingerprint (FPS)_ with your
+website, you need to insert _Profiling Tags_ on web pages where you will
+profile consumer's devices. You can either insert the tags directly into
+your website, or use our iframe service to embed the tags within an
+iframe.
+
+_Profiling Tags_ are placed on HTML pages served by your web
+application, and allow Wirecard to collect device information from the
+consumer's browser. You need to identify pages in your web application
+in which to place the tags that ensures that their devices are profiled
+before submitting a transaction.
+
+[#FraudPrevention_DeviceFingerprint_Sample]
+===== HTML Sample for Profiling Tags
+
+.Profiling Tags
+[source,html]
+----
+<script type="text/javascript" src="https://h.wirecard.com/fp/tags.js?org_id=6xxznhva&session_id=session_id"></script>
+<noscript>
+   <iframe style="width: 100px; height: 100px; border: 0; position: absolute; top: -5000px;" src="https://h.wirecard.com/tags?org_id=6xxznhva&session_id=session_id"></iframe>
+</noscript>
+----
+
+The ``org_id`` is fix for all merchants: value is ``6xxznhva``.
+
+The ``session_id`` is a temporary identifier that is unique to the
+consumer's session.
+
+- It must be 10 to 128 characters long.
+- The following characters are allowed: upper and lower case English letters, 
+digits, underscore, hyphen (``[a-zA-Z0-9_-]``)
+- Recommended format: ``<merchant_id>_<random_string>``
+  * ``merchant_id``: Merchant Account ID (MAID) or Merchant Account Resolver Category
+  * ``random_string``: generated by the merchant
+- Example of ``session_id``: +
+  ``9105bb4f-ae68-4768-9c3b-3eda968f57ea_2019-01-01_085310001_123456`` +
+  (``MAID_date_time_number``) 
+
+//- 
+
+NOTE: The ``session_id`` must be unique for at least 30 minutes, otherwise existing device information 
+will be overwritten. 
+
+As a final optional consideration you may want to remove the reference
+to ``\http://h.wirecard.com`` and set up web server
+redirection instead to avoid placing a third-party domain name inside
+your HTML.
+
+For this you will need to set up a DNS entry for your sub-domain that
+redirects to ``\http://h.wirecard.com`` and give your
+certificate to Wirecard to be placed on the device identification
+server.
+
+NOTE: Creating separate certificates will cause additional costs.
+
+[#FraudPrevention_DeviceFingerprint_Transmit]
+==== Transmit to {payment-gateway-abbr}
+
+To use the _Device Fingerprint_ the ``session_id`` (generated as above)
+has to be transmitted with the payment transaction to the {payment-gateway}.
+
+The {payment-gateway} provides the field ``device/fingerprint``
+for this process. For details see the <<RestApi_Fields, REST API Fields>> list.
+
+[#FraudPrevention_FPS]
+=== Wirecard Fraud Prevention Suite
+
+Fraud is one of the major threats to turnover and revenue for every
+online merchant. By using fraud prevention methods every merchant is
+able to participate and benefit from the still growing online market.
+The Wirecard Fraud Prevention Suite (FPS) helps to identify fraud early
+in the sales process and to prevent it before it happens. FPS checks
+every incoming transaction using a complex set of rules. By using this
+rule set, the merchant will benefit from the experience of other
+merchants in the market segment incorporated into the rules.
+
+[#FraudPrevention_FPS_CreditCardRiskFraud]
+==== Credit Card Check
+
+The {payment-gateway} has a built-in functionality to perform
+risk check before processing the credit card payment if configured for
+the certain merchant account. This usually includes fraud check using
+Wirecard Fraud Prevention Suite (FPS) solution. The result of the risk
+check can be a rejection/approval of the payment transaction or an FPS
+case which needs to be resolved manually using the FPS merchant cockpit.
+
+There are 2 scenarios in the credit card payment processing where the
+FPS check is involved.
+
+image::images/12-fraud-prevention/risk_and_fraud_check.png[Workflow of Risk and Fraud Check]
+
+[#FraudPrevention_FPS_CreditCardRiskFraud_Ecommerce]
+===== Transaction processing in E-Commerce mode
+
+. The merchant sends an _authorization_, _authorization-only_,
+_final-authorization_, _preauthorization_ or _purchase_ payment transaction
+request.
+. The system performs a risk/FPS check.
+
+//-
+
+* The risk/FPS check results in a rejection:
+.. the corresponding credit card payment transaction is declined.
+.. the transaction state in the response is set to ``failed``.
+.. a corresponding status code is returned (for details please see
+<<StatusCodes, Transaction Status Codes>>).
+
+* The risk/FPS check results in an approval:
+.. the payment transaction is processed.
+
+//-
+
+If the system needs to create a case according to FPS rules, the
+corresponding payment transaction will be executed. Depending on the
+outcome of the payment transaction the following scenarios are possible:
+
+
+* The payment transaction is successful
+.. The system creates a case in FPS.
+.. FPS adds the status code ``100.0101 "FPS case created"``.
+.. The system returns a response (The merchant usually needs to put the
+order process on hold and perform a manual check of the created case
+using the FPS merchant cockpit portal).
+.. The merchant resolves the case (FPS notifies the merchant via a
+technical XML notification sent to the special endpoint in the merchant
+system and the order process can continue).
+
+//-
+
+* The payment transaction has failed
+.. The system does not create a case in FPS.
+.. The system returns the corresponding error status code with the response.
+
+//-
+
+[#FraudPrevention_FPS_CreditCardRiskFraud_3DS]
+===== Using 3D Secure
+. Merchant sends a check-enrollment request.
+. The system performs a risk/FPS check (similar to e-commerce transaction).
+
+//-
+
+* The risk/FPS check results in a rejection:
+
+.. The system declines the check enrollment transaction.
+.. The system sets the transaction state in the response to ``failed``.
+.. The system returns a corresponding status code (for details please see
+<<StatusCodes, Transaction Status Codes>>).
+
+//-
+
+* The risk/FPS check results in an approval:
+
+.. The system performs the enrollment check. If a case needs to be
+created according to FPS rules, the system performs the enrollment
+check.
+
+//-
+
+NOTE: No corresponding status code will be added to the check enrollment
+response.
+
+Based on the outcome of the previous enrollment check, the system
+executes an authorization or purchase transaction.
+
+NOTE: The following _authorization_ or _purchase_ transaction will be executed
+without a new FPS check.
+
+* The authorization or purchase transaction is successful:
+
+.. The system creates a case in FPS.
+.. FPS adds the status code ``100.0101 "FPS case created"``.
+.. The system returns the response.
+.. The merchant puts the order process on hold.
+.. The merchant (or a dedicated Wirecard team) performs a manual check
+of the created case using the FPS merchant cockpit portal.
+.. The merchant (or a dedicated Wirecard team) resolves the case.
+.. FPS notifies the merchant via a technical XML notification
+(FPS sends it to the special endpoint in the merchant system).
+.. The order process can continue.
+
+//-
+
+* The authorization or purchase transaction has failed:
+
+.. FPS does not create a case.
+.. The system returns the corresponding error status code with the response.
+
+//-
