@@ -4,10 +4,11 @@
 | Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
 | account-number 
-| M/O 
+| M/O
 | String 
-| 36 
-| Card account number of the consumer. It is mandatory if <<CC_Fields_xmlelements_request_cardtoken,``card-token``>> is not used.
+| 36	
+| The embossed or encoded number that identifies the card issuer to which a transaction is to be routed and the account to which it is to be charged unless specific instructions indicate otherwise. In the case of a credit card, this is the primary account number. +
+Mandatory for credit card transactions if <<CC_Fields_xmlelements_request_cardtoken,``card-token``>> is not used.
 
 | account-type
 | O
@@ -17,53 +18,37 @@
 Accepted values: +
 ``01`` = Not Applicable. +
 ``02`` = Credit. +
-``03`` = Debit. +
+``03`` = Debit. 
 
 Include this field
 
 - if you want consumers to select the account type they are using before completing their purchase.
 - for certain markets, e.g. Brazil.
 
+//-
+
 Otherwise, the field is optional.
 
-|card-emv
-// <<CC_Fields_xmlelements_request_cardemv, card-emv>>
-|O 
-| 
-| 
-|For EMV data for credit card of the consumer.
-
-|card-pin
-// <<CC_Fields_xmlelements_request_cardpin, card-pin>>
-|O 
-| 
-| 
-|PIN data for credit card of the consumer.
-
-|card-raw
-// <<CC_Fields_xmlelements_request_cardraw, card-raw>> 
-|O 
-| 
-| 
-|The raw card data.
-
-|card-security-code 
-|M/O 
-|String 
-|4 
-|Card's security code. +
-Depending on the configuration it may be mandatory.
+| card-security-code 
+| M/O 
+| String	
+| 4	
+| A security feature for credit or debit card transactions, providing increased protection against credit card or debit card fraud. The card security code is located on the back of credit or debit cards and is typically a separate group of 3 digits to the right of the signature strip. + 
+ifndef::env-nova[]
+On American Express cards, the card security code is a printed, not embossed, group of four digits on the front towards the right. +
+endif::[]
+Depending on your merchant account settings it may be mandatory.
 
 |card-type 
-|M 
+|M/O 
 |String 
 |15 
-a|
+a| 
 ifdef::env-nova[]
 Card brand. +
-Accepted values:
+Accepted values: +
 
-- ``mastercard``
+- ``mastercard`` 
 - ``visa``
 
 //-
@@ -71,49 +56,43 @@ Accepted values:
 endif::[]
 
 ifndef::env-nova[]
-Card brand, e.g. ``visa``. Please refer to the <<Appendix_Xml, Payment XSD>> for the complete list of supported card types.
+Card brand, e.g. ``visa``. +
+Please refer to the <<Appendix_Xml, Payment XSD>> for the complete list of supported card types.
 endif::[]
 
-|expiration-month 
-|M 
-|Number 
-|2 
-|Card's expiration month.
+Mandatory for credit card transactions.
 
-|expiration-year 
-|M 
-|Number 
-|4 
-|Card's expiration year.
+| expiration-month 
+| M/O 
+| Numeric 
+| 2 
+| The 2-digit representation of the expiration month of the ``account-number``. Mandatory for credit card transactions if <<{listname}_Fields_xmlelements_request_cardtoken,``card-token``>> is not used.
 
-|issue-number 
-|M 
-|Number 
-|4 
-|Card's issue number.
+| expiration-year 
+| M/O
+| Numeric	
+| 4 
+| The 4-digit representation of the expiration year of the ``account-number``. Mandatory for credit card transactions if <<{listname}_Fields_xmlelements_request_cardtoken,``card-token``>> is not used.
 
-|merchant-tokenization-flag 
-|M/O  
-|Boolean 
+| merchant-tokenization-flag 
+| M/O  
+| Boolean 
 |  
-|Set to ``true`` as soon as consumer's card data has been stored for future transactions. Maps the Visa field ``Stored Credential``. + 
+| This flag is set to ``true`` as soon as the consumer's card data has been stored for future transactions. +
+Maps the Visa field ``Stored Credential``. +
+ifndef::env-nova[]
 Mandatory for one-click checkout.
+endif::[]
 
-|start-month 
-|M 
-|Number 
-|2 
-|Card's issue start month (i.e. valid from).
+| [[{listname}_CC_Fields_xmlelements_card_track1]]track-1	
+| O	
+| String	
+| 79 
+| "Track" of information on a credit card that usually contains credit card number, expiration date and consumer name.
 
-|start-year 
-|M 
-|Number 
-|4 
-|Card's issue start year (i.e. valid from).
-
-|track-2 
-|O 
-|String 
-|256 
-|"Track" of information on a credit card that usually contains credit card number and expiration date.
+| [[{listname}_CC_Fields_xmlelements_card_track2]]track-2	
+| O	
+| String	
+| 40 
+| "Track" of information on a credit card that usually contains credit card number and expiration date.
 |===
