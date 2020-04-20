@@ -1,0 +1,203 @@
+[#avs_and_fps]
+== AVS and Fraud Prevention Suite
+
+[#avs_and_fps_avs]
+=== Address Verification System (AVS)
+
+AVS verifies credit card data. It compares the billing address sent in the transaction with the issuer's billing information of the cardholder. 
+
+NOTE: AVS applies to cardholder addresses from the U.S., the U.K., and Canada.
+
+The consumer must provide the <<CC_Fields_xmlelements_request_address, full billing address>>. Otherwise AVS cannot be performed.
+
+//-
+
+By default, AVS only compares the house number and ZIP/postal code. 
+
+====
+Let's assume the consumer sends this billing address: 
+
+121 W Houston St +
+New York City +
+NY +
+10012 +
+U.S. 
+
+//-
+
+AVS compares 121 and 10012 from the transaction with the issuer's billing information of the cardholder.
+====
+
+[#avs_and_fps_PaymentResponse]
+==== AVS in Payment Response
+
+Visa and Mastercard have specific AVS rules and guidelines for chargeback processing in the United States. +
+To facilitate the implementation {payment-provider-name} maps those codes to a uniform set of response codes independent of the issuer.
+
+If merchant's Wirecard provider account is configured to store AVS data
+(``connector.avs.data.store=true``) the AVS result is returned as additional
+part in the payment response and notification.
+
+.Response with AVS Data
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/creditcard_authorization_response__d45ef252.xml[]
+----
+
+[#avs_and_fps_WirecardResponseCodes]
+===== Wirecard Response Codes
+
+The following table outlines the set of codes used by Wirecard. This
+uniformed codes should be the preferred source for decisions related to AVS.
+
+[cols="4,4,9"]
+|===
+| Response Code | Message         | Description
+
+| 0             | Reserved        | Reserved.
+| F             | Exact Match     | Street address and zip code match.
+| P             | Partial Match   | Either street address or zip codes do not match.
+| U             | AVS unavailable | Address information is unavailable or the Issuer does not support AVS.
+| E             | Error           | AVS not performed due to an error or insufficient data.
+| N             | No Match        | Neither address nor zip code match.
+|===
+
+[#avs_and_fps_AuthorizationEntity]
+===== Authorization Entity
+
+The Authorization Entity defines the party responding to the AVS Request.
+
+[cols="4,13"]
+|===
+| Authorization Entity | Message
+
+| 2                    | Response provided by Intermediate processor.
+| 5                    | Response provided by issuer processor.
+|===
+
+[#avs_and_fps_ProviderResponseCode]
+===== Provider Response Code
+
+The Provider Response Code is the code returned from the provider. If
+the business case was activated for AVS the code it is returned together
+in the response, together with the human readable Provider Response
+Message. The following table lists the current set of codes used by the
+issuer and outlines the mapping between the Provider Response Code
+and the unified Wirecard Response Code. Please note that the actual
+Provider Response Code depends on the actual used provider and could be
+also changed and extended by the provider.
+So it may differ from the table below. Therefore Wirecard recommends the
+preferred usage of the Wirecard Response Code.
+
+[#avs_and_fps_AmericanExpress]
+[discrete]
+.American Express
+
+[cols="4,3,10"]
+|===
+| American Express Code | Wirecard Response Code | Description
+
+| A                     | P             | CSC and Address Matched
+| F                     | F             | All Data Matched
+| N                     | P             | CSC Match
+| U                     | U             | Data Not Checked
+| Y                     | F             | All Data Matched
+| Z                     | P             | CSC and Postcode Matched
+| F                     | Exact Match   | Street address and zip code match
+|===
+
+[#avs_and_fps_AmericanExpressAAV]
+[discrete]
+.American Express AAV (enhanced AVS)
+
+[cols="4,3,10"]
+|===
+| American Express Code | Wirecard Response Code | Description
+
+| Y                     | F             | Yes, Billing Address and Postal Code are both correct.
+| N                     | N             | No, Billing Address and Postal Code are both incorrect.
+| A                     | P             | Billing Address only correct.
+| Z                     | P             | Billing Postal Code only correct.
+| U                     | U             | Information unavailable.
+| S                     | U             | SE not allowed AAV function.
+| R                     | E             | System unavailable; retry.
+| L                     | P             | CM Name and Billing Postal Code match.
+| M                     | F             | CM Name, Billing Address and Postal Code match.
+| O                     | P             | CM Name and Billing Address match.
+| K                     | P             | CM Name matches.
+| D                     | P             | CM Name incorrect, Billing Postal Code matches.
+| E                     | P             | CM Name incorrect, Billing Address and Postal Code match.
+| F                     | P             | CM Name incorrect, Billing Address matches.
+| W                     | N             | No, CM Name Billing Address and Postal Code are all incorrect.
+|===
+
+[#avs_and_fps_Mastercard]
+[discrete]
+.Mastercard grants liability shift, if
+
+* the ``authorization`` response message includes a positive AVS response of X or Y.
+* the shipping address and the AVS-confirmed address are identical. 
+
+[cols="4,3,10"]
+|===
+| Mastercard Code | Wirecard Response Code | Description
+
+| A               | P             | Address matches, postal code does not.
+| N               | N             | Neither address nor postal code match.
+| R               | E             | Retry. System unable to process.
+| S               | U             | AVS currently not supported.
+| U               | U             | No data from issuer authorization system.
+| W               | P             | For U.S. addresses, nine-digit postal code matches, address does not. For addresses outside U.S., postal code matches, address does not.
+| X               | F             | For U.S. addresses, nine-digit postal code and address match. For addresses outside U.S., postal code and address match.
+| Y               | F             | For U.S. addresses only, five-digit postal code and address match.
+| Z               | P             | For U.S. addresses only, five-digit postal code matches, address does not.
+|===
+
+[#avs_and_fps_Visa]
+[discrete]
+.Visa grants liability shift, if
+
+* AVS sends you a positive “Y” response in the ``authorization`` message and billing and shipping addresses are the same. You must submit proof of the shipping address and signed proof of delivery.
+* you submit an AVS query during authorization and receive a “U” response from a card issuer. This response means the card issuer is unavailable or does not support AVS.
+
+// link must be checked after merge of PSPDOC-1562!
+
+[cols="6,6,9,30"]
+|===
+| Visa Code | Type          | Wirecard Response Code | Description
+
+| A         | Domestic      | P             | The address information matches. The postcode does not match.
+| B         | International | P             | Street address matches, but postal code not verified. Returned only for non U.S.-issued Visa cards.
+| C         | International | N             | Street address and postal code do not match. Returned only for non U.S.-issued Visa cards.
+| D         | International | F             | The match is exact: both the address and the postcodes match. No representment rights.
+| E         | Domestic      | E             | AVS data is invalid or AVS is not allowed for this card type.
+| G         | International | U             | Address information is unavailable, or the Issuer does not support AVS. Acquirer has representment rights.
+| I         | International | U             | Address information is unavailable, or the Issuer does not support AVS. Acquirer has representment rights.
+| P         | International | P             | Postal code matches, but street address not verified. Returned only for non U.S.-issued Visa cards.
+| R         | Domestic      | U             | System unavailable.
+| S         | Domestic      | U             | U.S.-issuing bank does not support AVS.
+| M         | International | F             | The match is exact: both the address and the postcodes match. No representment rights.
+| N         | Domestic      | N             | The match is not exact, either because the postcode and/or the addresses do not match.
+| U         | Domestic      | U             | Address information unavailable. Returned if the U.S. bank does not support non-U.S. AVS or if the AVS in a U.S. bank is not functioning properly.
+| W         | Domestic      | P             | Street address does not match, but 9-digit postal code matches.
+| X         | Domestic      | F             | Street address and 9-digit postal code match.
+| Y         | Domestic      | F             | Street address and 5-digit postal code match.
+| Z         | Domestic      | P             | The postcode information matches. The address information does not match.
+|===
+
+//-
+
+[#avs_and_fps_fps]
+=== AVS and {payment-provider-name} Fraud Prevention Suite (FPS)
+
+FPS reacts to the specific AVS return codes. A post-authorization check either accepts the transaction or rejects it in case AVS does not match. 
+
+In case of rejection FPS initiates a ``void-authorization``.
+
+(+++Add Flow: Cardholder-> Merchant-> Wirecard Payment Gateway-> Wirecard Risk Engine with Fraud Prevention Suite pre-auth check-> Wirecard Gateway authorization request-> Issuer authorization and AVS response > Wirecard Gateway → Wirecard Risk Engine with Fraud Prevention Suite postauth check → -- Wirecard Gateway-> Merchant→ Cardholder +++)
+
+If you are based in the United States, we recommend to use the default FPS setting. This setting declines a transaction, if the AVS response does not contain an exact match.
+
+Contact our <<ContactUs, Merchant Support>>, if you want to customize your AVS settings. 
+
+//-
