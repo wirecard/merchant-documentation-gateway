@@ -8,7 +8,7 @@ Use this transaction type to postpone the expiry date of an existing authorizati
 
 [NOTE]
 ====
-* You can only renew authorizations that have not yet been captured/voided.
+* You can only renew authorizations that have not yet been voided or totally captured.
 * Max. authorization validity period limit: +
 You cannot renew an authorization to more than 180 days in total. 
 * You cannot renew authorizations that have already expired.
@@ -47,32 +47,32 @@ Allowed characters:  ``[a-z0-9-\_]``.
 |M  
 |String
 |30 
-|The requested transaction type. Set this field to `authorization-renewal`.
+|The requested transaction type. Set this field to ``authorization-renewal``.
 
 |parent-transaction-id
 |M
 |String 
 |36
-|Enter the ``transaction-id`` of the preceding ``authorization`` or ``adjust-authorization``.
+|Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_.
 
 |parent-transaction-amount
 |Response only
 |String 
 |18,3
-|``requested-amount`` of the preceding ``authorization`` or ``adjust-authorization``.
+|``requested-amount`` of the preceding _authorization_ or _adjust-authorization_.
 
 |parent-transaction-amount@currency
 |Response only
 |String 
 |3
-|``requested-amount@currency`` of the preceding ``authorization`` or ``adjust-authorization``.
+|``requested-amount@currency`` of the preceding _authorization_ or _adjust-authorization_.
 
 |requested-amount  
 |Response only
 |Numeric
 |18,3
-|Total order amount to be reserved. The number of decimal places depends on the currency. +
-The requested amount must be equal to the total amount of all order items.
+|Total amount with extended validation period. If the preceding _authorization_ or _adjust-authorization_ has not been partially captured, this equals the ``requested-amount`` of the preceding transaction. +
+The number of decimal places depends on the currency.
 
 |[[KlarnaV2_TransactionTypes_authorizationRenewal_Fields_requestedAmount_currency]]requested-amount@currency 
 |Response only
@@ -86,14 +86,13 @@ Format: 3-character abbreviation according to ISO 4217.
 |Response only
 |String
 |
-|``order-detail`` of the preceding ``authorization`` or ``adjust-authorization``.
+|``order-detail`` of the preceding _authorization_ or _adjust-authorization_.
 
 |order-number	
 |Response only 
 |String
 |255 
-|Order number of the merchant. +
-If you send it, it shows as "order number" on _Klarna_'s payment confirmation page.
+|Order number of the merchant as sent in the preceding _authorization_ or _adjust-authorization_. Shows as "order number" on _Klarna_'s payment confirmation page.
 
 |locale	
 |Response only
@@ -150,6 +149,8 @@ include::{root}/include/klarna-payments/fields/klarnaPayments_fields_status.adoc
 ----
 include::{root}/samples/xml/Klarnav2_authorizationRenewal_request.xml[]
 ----
+
+NOTE: {{txnId}} serves as placeholder. Enter the ``transaction-id`` of the preceding _authorization_, _adjust-authorization_ or _pending-authorization_ that is to be canceled.
 
 ._authorization-renewal_ Response
 [source,xml,subs=attributes+]

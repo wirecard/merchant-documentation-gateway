@@ -68,25 +68,11 @@ Format: 3-character abbreviation according to ISO 4217.
 a|Enter the ``transaction-id`` of a preceding _authorization_. That can be either the first (``initial``) or any other previous (``recurring``) authorization. +
 **Mandatory** for recurring authorizations with <<KlarnaV2_TransactionTypes_authorizationRecurring_Fields_sequenceType, ``sequence-type`` ``recurring``>> or <<KlarnaV2_TransactionTypes_authorizationRecurring_Fields_sequenceType, ``final``.>>
 
-|parent-transaction-amount
-|Response only
-|String 
-|18,3
-|``requested-amount`` of the preceding ``authorization``. +
-Not returned for recurring authorizations with <<KlarnaV2_TransactionTypes_authorizationRecurring_Fields_sequenceType, ``sequence-type`` ``first``.>>
-
-|parent-transaction-amount@currency
-|Response only
-|String 
-|3
-|``requested-amount@currency`` of the preceding ``authorization``. +
-Not returned for recurring authorizations with <<KlarnaV2_TransactionTypes_authorizationRecurring_Fields_sequenceType, ``sequence-type`` ``first``.>>
-
 |auto-capture
 |O
 |Boolean
 |
-a|Set this field to ``true`` to enable auto-capture. +
+a|Set this field to ``true`` to enable <<KlarnaV2_TransactionTypes_authorization_autoCapture, auto-capture.>> +
 If this ``authorization`` is successful, it will be <<KlarnaV2_TransactionTypes_authorization_autoCapture, captured automatically.>> +
 For <<KlarnaV2_TransactionTypes_{listname}_Fields_orderItem_type_digital, digital goods/services>> only.
 
@@ -127,6 +113,20 @@ Possible values:
 |
 |The timestamp documents the time and date when the transaction was completed.
 
+|parent-transaction-amount
+|Response only
+|String 
+|18,3
+|``requested-amount`` of the preceding ``authorization``. +
+Not returned for recurring authorizations with <<KlarnaV2_TransactionTypes_authorizationRecurring_Fields_sequenceType, ``sequence-type`` ``first``.>>
+
+|parent-transaction-amount@currency
+|Response only
+|String 
+|3
+|``requested-amount@currency`` of the preceding ``authorization``. +
+Not returned for recurring authorizations with <<KlarnaV2_TransactionTypes_authorizationRecurring_Fields_sequenceType, ``sequence-type`` ``first``.>>
+
 4+<.>h|``periodic`` h|**For recurring payments.**
 
 |[[KlarnaV2_TransactionTypes_authorizationRecurring_Fields_periodicType]]periodic-type
@@ -149,13 +149,13 @@ a|Specifies the occurence of an authorization in a sequence of recurring/periodi
 
 * ``first``:
  ** For the initial authorization request.
- ** Endpoint: ``\https://api-test.wirecard.com/engine/rest/payments/``
+ ** Endpoint: ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
 * ``recurring``:
  ** For recurring authorization requests that follow the initial recurring payment or any further recurring payments.
- ** Endpoint: ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+ ** Endpoint: ``\https://api-test.wirecard.com/engine/rest/payments/``
 * ``final``: 
  ** For the last recurring authorization of a sequence.
- ** Endpoint: ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+ ** Endpoint: ``\https://api-test.wirecard.com/engine/rest/payments/``
 //-
 
 include::{root}/include/klarna-payments/fields/klarnaPayments_fields_paymentMethod.adoc[tags=**;!mandatory;!optional;!adjust-authorization;!non-recurring]
@@ -171,24 +171,6 @@ include::{root}/include/klarna-payments/fields/klarnaPayments_fields_shipping.ad
 include::{root}/include/klarna-payments/fields/klarnaPayments_fields_orderItems.adoc[]
 
 include::{root}/include/klarna-payments/fields/klarnaPayments_fields_status.adoc[]
-
-|@provider-code
-|Response only
-|String
-|34
-|Original _Klarna_ error code.
-
-|@provider-message
-|Response only
-|String
-|
-|Error message to be shown to the consumer as required by _Klarna_.
-
-|@provider-transaction-id 
-|Response only
-|String
-|36
-|_Klarna_ reservation number.
 
 4+<.>h|``additional-provider-data.provider-data``
 h|**Contains max. 1 additional data item for _Klarna_.**
