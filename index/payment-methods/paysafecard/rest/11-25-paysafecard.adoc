@@ -27,7 +27,7 @@ Australia, New Zealand
 Egypt
 
 |Currencies
-|AED, ARS, AUD, BRL, CAD, CHF, CZK, DKK, EGP, EUR, GBP, GEL, HRK, HUF,
+|AED, ARS, AUD, BRL, CAD, CHF, CZK, DKK, EGP, EUR, GBP, GEL, HRK, HUF, 
 KWD, MXN, NOK, NZD, PEN, PLN, RON, SAR, SEK, TRY, USD, UYU
 |===
 
@@ -49,9 +49,6 @@ h|IPN Encodement
 
 This table lists all transaction types available for _paysafecard_.
 
-NOTE: Some of the transaction types cannot be used in the requests. Refer to
-the columns below for an overview.
-
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
 at <<AppendixB,  Transaction Types>>.
 
@@ -59,34 +56,36 @@ at <<AppendixB,  Transaction Types>>.
 [stripes=none]
 [cols="v,,,,,v"]
 |===
-|Transaction Type |Description |Request <<paysafecard_TransactionTypes_RequestFootnote, [1]>> |Response/IPN <<paysafecard_TransactionTypes_RequestFootnote, [2]>> |_{enterprise-portal-url}_ <<paysafecard_TransactionTypes_RequestFootnote, [3]>> v|Link to sample
+|Transaction Type |Description |Request <<paysafecard_TransactionTypes_RequestFootnote, [1]>> |Response/IPN <<paysafecard_TransactionTypes_RequestFootnote, [2]>> |_{enterprise-portal-url}_ <<paysafecard_TransactionTypes_RequestFootnote, [3]>> v|Link to samples
 
 |_debit_ |Creates a request to charge the specified amount from the
 consumer's _paysafecard_. |YES | YES |YES
-|<<paysafecard_samples_debit, debit sample>>
+|<<paysafecard_samples_debit, debit samples>>
 
-|_authorization_ |Authorizes merchant to charge specific amount from
-consumer's _paysafecard_ in the future by capture-authorization request.
+|_authorization_ |Authorizes you to charge a specific amount from
+consumer's _paysafecard_ (by a future _capture-authorization_ request).
 |YES |YES  |YES
-|<<paysafecard_Samples_authorization, authorization sample>>
+|<<paysafecard_Samples_authorization, authorization samples>>
 
-|_capture-authorization_ |Captures full or partial amount, until the
-authorization limit is not exceeded. Only available on
-a successful _authorization_ which was neither voided nor fully
+|_capture-authorization_ |Captures full or partial amount until you reach the
+authorization limit. Only available after
+a successful _authorization_ that was neither voided nor fully
 captured yet. |YES  |YES |YES
-|<<paysafecard_samples_captureAuthorization, capture-authorization sample>>
+|<<paysafecard_samples_captureAuthorization, capture-authorization samples>>
 
-|_void-authorization_ |Only available on a
+|_void-authorization_ |Only available after a
 successful _authorization_ which was neither voided nor captured yet.
-Authorization is voided as a whole. |YES  |YES  |YES
-|<<paysafecard_Samples_voidAuthorization, void-authorization sample>>
+Voids the _authorization_ as a whole. |YES  |YES  |YES
+|<<paysafecard_Samples_voidAuthorization, void-authorization samples>>
 
 |_get-url_ |Retrieves the URL of the _paysafecard_ landing page for the
 consumer to be redirected to. |NO |YES |YES |
+
+|_credit_ |Use this transaction type to send money (back) to the consumer via paysafecard without referencing to a previous payment. |YES |YES |YES |<<paysafecard_Samples_credit, credit samples>>
 |===
 
 [#paysafecard_TransactionTypes_RequestFootnote]
-[1] YES in "Request" indicates that the transaction type is sent in the request.
+[1] YES in "Request" indicates that the transaction type can be sent in the request.
 
 [#paysafecard_TransactionTypes_ResponseFootnote]
 [2] YES in "Response/IPN" indicates that the transaction type appears in either response or notification.
@@ -103,9 +102,19 @@ consumer to be redirected to. |NO |YES |YES |
 [stripes=none]
 |===
 .2+h|URLs (Endpoints)
-|For transaction types ``debit``, ``authorization`` and ``credit``
+a|For transaction types
+
+* ``debit`` +
+* ``authorization`` +
+* ``credit``
+//-
 |``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
-|For transaction types ``capture-authorization`` and ``void-authorization``
+a|For transaction types
+
+* ``capture-authorization``
+* ``void-authorization``
+//-
+
 |``\https://{test-instance-hostname}/engine/rest/payments/``
 h|Merchant Account ID (MAID)
 2+|493f9abe-0028-4631-b72e-836a7e3695af
@@ -137,15 +146,16 @@ h|Secret Key
 image::images/11-25-paysafecard/paysafecard_workflow_debit_REST.png[Debit Workflow with RestAPI, width=950]
 
 . Consumer initiates a transaction.
-. Merchant sends a request with type _debit_ and consumer's data to
-the endpoint of _{payment-gateway-abbr}_.
-. {payment-gateway-abbr} sends a response to the merchant with generated URL
-to _paysafecard_ landing page.
-. The merchant redirects the consumer to the _paysafecard_ landing
-page (The URL for redirection is in the response message, field
-“payment-methods/payment-method/@url”).5. The consumer enters 16-digit PIN and submits the transaction.
+. Send a request with transaction type _debit_ and consumer's data to
+the _{payment-gateway-abbr}_ endpoint.
+. {payment-gateway-abbr} sends a response to you. It contains the field
+``payment-methods/payment-method/@url``, which is the URL
+to the _paysafecard_ landing page.
+. Use this URL to redirect the consumer to the _paysafecard_ landing
+page.
+. Consumer enters 16-digit PIN and submits the transaction.
 . _paysafecard_ sends the authorization status to _{payment-gateway-abbr}_.
-. {payment-gateway-abbr} sends a Success/Failed notification to the merchant.
+. _{payment-gateway-abbr}_ sends you a Success/Failed notification.
 
 //-
 
@@ -156,9 +166,8 @@ image::images/11-25-paysafecard/paysafecard_workflow_debit_HPP.png[Debit Workflo
 
 . Consumer selects payment method _paysafecard_.
 . {payment-gateway-abbr} redirects consumer from website to _paysafecard_ landing page.
-. Consumer enters _paysafecard_ PIN and clicks on Pay button on
-_paysafecard_ landing page.
-. Re-direct to merchant confirmation page.
+. On _paysafecard_ landing page, consumer enters _paysafecard_ PIN and clicks on Pay button.
+. Redirect to merchant confirmation page.
 
 //-
 
@@ -168,21 +177,31 @@ _paysafecard_ landing page.
 image::images/11-25-paysafecard/paysafecard_workflow_authorization.png[Authorization Workflow, width=950]
 
 . Consumer initiates a transaction.
-. Merchant sends a request with type _authorization_ and consumer's
-data to the endpoint of _{payment-gateway-abbr}_.
-. {payment-gateway-abbr} sends a response to the merchant with generated URL
-to _paysafecard_ landing page.
-. The merchant redirects the consumer to the _paysafecard_ landing
-page (The URL for redirection is in the response message, field
-"payment-methods/payment-method/@url").
-. The consumer enters 16-digit PIN and submits the transaction.
+. Send a request with transaction type _authorization_ and consumer's
+data to the _{payment-gateway-abbr}_ endpoint.
+. {payment-gateway-abbr} sends a response to you. It contains the field
+``payment-methods/payment-method/@url``, which is the URL
+to the _paysafecard_ landing page.
+. Use this URL to redirect the consumer to the _paysafecard_ landing
+page.
+. Consumer enters 16-digit PIN and submits the transaction.
 . Authorization transaction is created.
 . _paysafecard_ sends the authorization status to _{payment-gateway-abbr}_.
-. {payment-gateway-abbr} sends a Success/Failed notification to the merchant.
-. Merchant voids or captures the transaction using transaction type
-_void-authorziation_ or _capture-authorization_.
+. {payment-gateway-abbr} sends a Success/Failed notification to you.
 . _paysafecard_ sends the transaction status to _{payment-gateway-abbr}_.
 . {payment-gateway-abbr} sends a Success/Failed notification to the merchant.
+. You can void or capture the transaction using transaction type
+_void-authorziation_ or _capture-authorization_.
+
+//-
+
+[#paysafecard_credit]
+==== credit
+
+.  Send a _credit_ request to _{payment-gateway-abbr}_.
+.  {payment-gateway-abbr} processes the transaction.
+.  {payment-gateway-abbr} sends you a response with the transaction result.
+.  {payment-gateway-abbr} sends you an IPN with the final transaction status.
 
 //-
 
@@ -190,35 +209,31 @@ _void-authorziation_ or _capture-authorization_.
 === Fields
 
 The fields used for _paysafecard_ requests, responses and
-notifications are the same as the REST API Fields. Please refer to the <<RestApi_Fields, REST API field list>> or the request example for the fields required in
-a <<paysafecard_samples_debit, debit>> transaction.
+notifications are the same as the <<RestApi_Fields, REST API Fields>>.
 
-Only the fields listed below have different properties.
+Only one field has different properties:
 
-[#paysafecard_Fields_Table]
-==== _debit, authorization, capture, void_ transaction
-
-[cols=",,,,,,v", options="header"]
+[cols="m,,,,v", options="header"]
 [frame=all]
 [%autowidth]
 |===
-|Field |Request |Response |Notification |Data Type |Size |Description
+|Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Data Type |Size |Description
 
-v|account-holder.merchant-crm-id
+|account-holder.merchant-crm-id
 |M
-|M
-|M
-|Alphanumeric
+|String
 |64
-|Unique ID identifying the consumer of your online shop, e.g. from your CRM system.
-The parameter must not be a human readable e-mail address.
-However, if an email address is used it has to be hashed beforehand by the merchant.
+|Unique ID identifying the consumer in your online shop, e.g. in your CRM system.
+The parameter must not be a human readable email address.
+However, if you use an email address, you have to hash it first.
 |===
+
+For information on the other fields required in a paysafecard transaction, refer to the <<RestApi_Fields, REST API field list>> or the <<paysafecard_Samples, __paysafecard__ samples>>.
 
 [#paysafecard_Samples]
 === Samples
 
-For XML we do not list any notification samples. Click the link to view corresponding <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
+Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here for Notification Examples>>.
 
 [#paysafecard_Samples_authorization]
 ==== authorization
@@ -342,6 +357,37 @@ include::{root}/samples/xml/paysafecard_debit_request_failure_DE_DE.xml[]
 [source,xml,subs=attributes+]
 ----
 include::{root}/samples/xml/paysafecard_debit_response_failure_DE_DE.xml[]
+----
+
+[#paysafecard_Samples_credit]
+==== credit
+
+.XML credit Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paysafecard_credit_request_success_de_DE.xml[]
+----
+
+.XML credit Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paysafecard_credit_response_success_de_DE.xml[]
+----
+
+.XML credit Request (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paysafecard_credit_request_failure_de_DE.xml[]
+----
+
+.XML credit Response (Failure)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/paysafecard_credit_response_failure_de_DE.xml[]
 ----
 
 //-
