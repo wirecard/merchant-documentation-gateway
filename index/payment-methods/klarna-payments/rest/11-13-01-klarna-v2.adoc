@@ -4,17 +4,22 @@
 == REST API
 
 [#KlarnaV2_Introduction]
-_Klarna Payments_ offers 3 payment options: 
+_Klarna Payments_ offers 4 payment methods: 
 
-* **Pay now** +
-    ** direct debit (payment-method name: ``klarna-debit``)
-    ** bank transfer (payment-method name: ``klarna-transfer``)
+* **``klarna-debit``** +
+    ** Direct debit.
     ** Type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
-* **Pay later**
-    ** payment-method name: ``klarna-paylater``
+    ** Supports <<KlarnaV2_TransactionTypes_authorizationRecurring, recurring payments and subscriptions>>.
+* **``klarna-transfer``** +
+    ** Bank transfer via consumer's online banking.
+    ** Type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+    ** Supports <<KlarnaV2_TransactionTypes_authorizationRecurring, recurring payments and subscriptions>>.
+* **``klarna-paylater``** +
+    ** Payment on invoice.
     ** Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
-* **Financing (Slice it)** +
-    ** payment-method name: ``klarna-finance``
+    ** Supports <<KlarnaV2_TransactionTypes_authorizationRecurring, recurring payments and subscriptions>>.
+* **``klarna-finance``** +
+    ** Payment in installments.
     ** Type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
 //-
@@ -26,7 +31,7 @@ NOTE: _Klarna_ accepts only physical persons as consumers.
 [#KlarnaV2_CountriesCurrencies]
 === Countries and Currencies
 
-[width=75%,cols="h,",stripes=none]
+[%autowidth,cols="h,",stripes=none]
 [cols="1h,5"]
 |===
 |Countries |Austria, Denmark, Finland, Germany, Netherlands, Norway, Sweden, Switzerland, UK
@@ -35,29 +40,29 @@ NOTE: _Klarna_ accepts only physical persons as consumers.
 
 [#KlarnaV2_CountriesProductMatrix]
 ==== Product Availability
-[width=75%,cols="h,",stripes=none]
+[%autowidth,cols="h,a",stripes=none]
 [cols="1,2"]
 |===
 |Country |Available Payment Options
 
 |Austria
-|Pay now, Pay later
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``
 |Denmark
-|Pay now, Pay later, Financing (Slice it)
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``, ``klarna-financing``
 |Finland
-|Pay now, Pay later, Financing (Slice it)
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``, ``klarna-financing``
 |Germany
-|Pay now, Pay later, Financing (Slice it)
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``, ``klarna-financing``
 |Netherlands
-|Pay now, Pay later
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``
 |Norway	
-|Pay now, Pay later, Financing (Slice it)
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``, ``klarna-financing``
 |Sweden	
-|Pay now, Pay later, Financing (Slice it)
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``, ``klarna-financing``
 |Switzerland
-|Pay now, Pay later
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``
 |UK	
-|Pay now, Pay later, Financing (Slice it)
+|``klarna-debit``, ``klarna-transfer``, ``klarna-paylater``, ``klarna-financing``
 |===
 
 [#KlarnaV2_Locales]
@@ -100,8 +105,7 @@ NOTE: _Klarna_ accepts only physical persons as consumers.
 [#KlarnaV2_CommunicationFormats]
 === Communication Formats
 
-This table illustrates how _Klarna Pay Now_, _Pay Later_ and _Financing (Slice it)_
-notifications are encoded and which formats and methods can be used for
+This table illustrates how _Klarna Pay Now_, _Pay Later_ and _Financing_ notifications are encoded and which formats and methods can be used for
 requests and responses.
 
 [width=75%,stripes=none]
@@ -114,73 +118,109 @@ requests and responses.
 [#KlarnaV2_TestCredentials]
 === Test Credentials
 
-[%autowidth,cols=",,"]
+[%autowidth,stripes=none,cols="h,a,"]
 |===
-.2+s| URLs (Endpoints)    | for transaction type __authorization__
-| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
-a| for transaction types 
+.2+| URLs (Endpoints)    
+| For transaction type 
 
-* __adjust-authorization__ 
-* __void-authorization__ 
-* __capture-authorization__ 
-* __refund-capture__ 
-//* __adjust-capture__
+* ``authorization``
+//-
+
+For the initial authorization of recurring payments: +
+
+* transaction type ``authorization`` **and** sequence-type ``first``
+//-
+
+| ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
+
+a| For transaction types 
+
+* ``authorization-renewal``
+* ``adjust-authorization``
+* ``adjust-capture``
+* ``capture-authorization``
+* ``refund-capture``
+* ``void-authorization``
+//-
+
+For recurring payments: +
+
+ * transaction type ``authorization`` **and** sequence-type ``recurring`` or ``final``
 
 //-
 
 | ``\https://{test-instance-hostname}/engine/rest/payments/``
-2+s| Merchant Account ID (MAID) | f570c123-62f1-4a0d-8688-d999a05d50d4
-2+s| Username            | 16390-testing
-2+s| Password            | 3!3013=D3fD8X7
-2+s| Secret Key          | 0fb50d2c-8ab5-4d53-ac69-b707b1319148
+| Merchant Account ID (MAID) 2+| f570c123-62f1-4a0d-8688-d999a05d50d4
+| Username            2+| 16390-testing
+| Password            2+| 3!3013=D3fD8X7
+| Secret Key          2+| 0fb50d2c-8ab5-4d53-ac69-b707b1319148
 |===
 
 [#KlarnaV2_TransactionTypes]
 === Transaction Types
 
-Transaction types available for _Klarna Pay now_, _Pay later_, _Financing (Slice it)_:
+Transaction types available for _Klarna Pay now_, _Pay later_, _Financing_:
 
 [%autowidth]
 |===
 |Transaction Type |Description |Link to Fields/Samples
 
-|<<Klarnav2_TransactionTypes_authorization, _authorization_>> |Performs an order risk check and an order reservation. Once an order is reserved, the payment is guaranteed.
-|<<KlarnaV2_TransactionTypes_authorization_Fields, _authorization_{nbsp}fields>> +
-<<KlarnaV2_TransactionTypes_authorization_Samples, _authorization_{nbsp}samples>>
+|<<Klarnav2_TransactionTypes_authorization, _authorization_>> 
+|Performs an order risk check and an order reservation. Once an order is reserved, the payment is guaranteed.
+|<<KlarnaV2_TransactionTypes_authorization_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_authorization_Samples, samples>> +
+<<KlarnaV2_TransactionTypes_authorizationRecurring_Fields, fields for recurring payments>> +
+<<KlarnaV2_TransactionTypes_authorizationRecurring_Samples, samples for recurring payments>>
 
-|<<Klarnav2_TransactionTypes_adjustAuthorization, _adjust-authorization_>> |Updates/adds additional information to a preceding authorization. You can only adjust authorizations that have not yet been captured.
-|<<KlarnaV2_TransactionTypes_adjustAuthorization_Fields, _adjust&#8209;authorization_{nbsp}fields>> +
-<<KlarnaV2_TransactionTypes_adjustAuthorization_Samples, _adjust&#8209;authorization_{nbsp}samples>>
+|<<Klarnav2_TransactionTypes_authorizationRenewal, _authorization-renewal_>> 
+|Extends the validity period of an existing authorization. You can only renew authorizations that have not yet been captured/voided.
+|<<KlarnaV2_TransactionTypes_authorizationRenewal_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_authorizationRenewal_Samples, samples>>
 
-|<<KlarnaV2_TransactionTypes_voidAuthorization, _void-authorization_>> |Cancels a total order amount or a partial order amount that has not been captured before.
+|<<Klarnav2_TransactionTypes_adjustAuthorization, _adjust-authorization_>> 
+|Updates/adds additional information to a preceding authorization. You can only adjust authorizations that have not yet been captured.
+|<<KlarnaV2_TransactionTypes_adjustAuthorization_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_adjustAuthorization_Samples, samples>>
+
+|<<KlarnaV2_TransactionTypes_voidAuthorization, _void-authorization_>> 
+|Cancels a total order amount or a partial order amount that has not been captured before.
 Once canceled, no further operations on the order are possible.
-|<<KlarnaV2_TransactionTypes_voidAuthorization_Fields, _void&#8209;authorization_{nbsp}fields>> +
-<<KlarnaV2_TransactionTypes_voidAuthorization_Samples, _void&#8209;authorization_{nbsp}samples>>
+|<<KlarnaV2_TransactionTypes_voidAuthorization_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_voidAuthorization_Samples, samples>>
 
-|<<KlarnaV2_TransactionTypes_captureAuthorization, _capture-authorization_>> |Full or partial capture of a reserved
+|<<KlarnaV2_TransactionTypes_captureAuthorization, _capture-authorization_>> 
+|Full or partial capture of a reserved
 order. Once captured, the invoice is generated and sent to the
 consumer. _Klarna_ pays the order amount to you according to the agreed billing period.
-|<<KlarnaV2_TransactionTypes_captureAuthorization_Fields, _capture&#8209;authorization_{nbsp}fields>> +
-<<KlarnaV2_TransactionTypes_captureAuthorization_Samples, _capture&#8209;authorization_{nbsp}samples>>
+|<<KlarnaV2_TransactionTypes_captureAuthorization_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_captureAuthorization_Samples, samples>>
 
-|<<KlarnaV2_TransactionTypes_refundCapture, _refund-capture_>> |Full or partial refund of a captured order amount.
-|<<KlarnaV2_TransactionTypes_refundCapture_Fields, _refund&#8209;capture_{nbsp}fields>> +
-<<KlarnaV2_TransactionTypes_refundCapture_Samples, _refund&#8209;capture_{nbsp}samples>>
+|<<KlarnaV2_TransactionTypes_adjustCapture, _adjust-capture_>> 
+|Updates/adds shipping/tracking information to an existing capture.
+|<<KlarnaV2_TransactionTypes_adjustCapture_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_adjustCapture_Samples, samples>>
+
+|<<KlarnaV2_TransactionTypes_refundCapture, _refund-capture_>> 
+|Full or partial refund of a captured order amount.
+|<<KlarnaV2_TransactionTypes_refundCapture_Fields, fields>> +
+<<KlarnaV2_TransactionTypes_refundCapture_Samples, samples>>
 
 |===
 
 
-//|<<KlarnaV2_TransactionTypes_adjustCapture, _adjust-capture_>> |Updates/adds shipping/tracking information to an existing capture.
-//|<<KlarnaV2_TransactionTypes_adjustCapture_Fields, _adjust&#8209;capture_ fields>>
-
-
 include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-01-klarna-v2-authorization.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-08-klarna-v2-authorizationRecurring.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-07-klarna-v2-authorization-renewal.adoc[]
 
 include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-02-klarna-v2-adjust-authorization.adoc[]
 
 include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-03-klarna-v2-void-authorization.adoc[]
 
 include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-04-klarna-v2-capture-authorization.adoc[]
+
+include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-06-klarna-v2-adjust-capture.adoc[]
 
 include::{root}/index/payment-methods/klarna-payments/rest/11-13-01-05-klarna-v2-refund-capture.adoc[]
 
