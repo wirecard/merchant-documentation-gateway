@@ -1,15 +1,17 @@
-//:payment-method-name: Klarna
+:txTypeName: adjustAuthorization
 
 [#Klarnav2_TransactionTypes_adjustAuthorization]
 ==== _adjust-authorization_
 
 Use this transaction type to update a preceding _authorization_ or to add new information to it. 
 
-You  can update
+You can update
 
-* order amount,
-* billing address
+* order amount.
+* billing address.
 * shipping address.
+
+//-
 
 [NOTE] 
 ====
@@ -18,9 +20,12 @@ You  can update
 //-
 ====
 
+For ``klarna-paylater``, the updated authorization amount can exceed the amount that has initially been authorized.
 If the change of an _authorization_ increases the total order amount, _Klarna_ performs another risk check. A new risk check can lead to a rejection of the
 authorization adjustment request. In this case, the initial _authorization_ is
 still valid and can be updated, captured or canceled.
+
+For ``klarna-debit``, ``klarna-transfer`` and ``klarna-finance``, the updated authorization amount must not exceed the amount that has been initially authorized.
 
 To refer to a specific _authorization_ or _adjust-authorization_, you need the ``parent-transaction-id``, which is the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_.
 
@@ -47,7 +52,17 @@ M-->>M: processes response
 
 . _{payment-gateway}_ updates the initial (or already adjusted) authorization and forwards the request to _Klarna_. 
 . _Klarna_ updates order amount and/or address and returns the result of the adjustment.
-. _{payment-gateway}_ sends you the _adjust-authorization_ response which contains the status code.
+. _{payment-gateway}_ sends you the _adjust-authorization_ response which contains the status code. +
++
+[NOTE]
+====
+If your adjust-authorization request does not change the preceding authorization, the response indicates this with two statuses:
+
+. <status code="201.0000" description="guaranteed:The resource was successfully created." severity="information"/>
+. <status code="201.1150" description="Transaction already processed, no data has been updated." severity="information" provider-transaction-id="218d62d1-dc28-4e20-af84-2ba405cc949c"/>
+
+//-
+====
 . -> Process the _adjust-authorization_ response.
 
 //-
@@ -57,23 +72,21 @@ M-->>M: processes response
 
 Fields can be mandatory (M) or optional (O).
 
-[%autowidth]
-[cols="e,,,,,"]
+[%autowidth, stripes=none]
+[cols="m,,,,"]
 |===
-|Field |Request |Response |Data Type |Size |Description
+|Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Data Type |Size |Description
 
 |merchant-account-id 
 |O 
-|M 
-|Alphanumeric 
+|String 
 |36 
 |A unique identifier assigned
 to every merchant account (by {payment-provider-name}).
 
 |request-id 
 |M
-|M 
-|Alphanumeric 
+|String 
 |150
 a|A unique identifier assigned by the merchant
 to each request. Used when searching for or referencing it later.
@@ -83,34 +96,32 @@ uses it to generate a random ``request-id`` for testing.
 
 Allowed characters:  ``[a-z0-9-\_]``.
 
-|parent-transaction-id
-|M
-|M
-|Alphanumeric 
-|36
-|Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_.
-
 |transaction-type 
 |M 
-|M 
-|Alphanumeric
+|String
 |30 
 |The requested transaction type. Set this field to `adjust-authorization`.
 
-|requested-amount  
+|parent-transaction-id
 |M
+|String 
+|36
+|Enter the ``transaction-id`` of the preceding _authorization_ or _adjust-authorization_.
+
+|requested-amount  
 |M
 |Numeric
 |18,3
 |Total order amount to be reserved. The number of decimal places depends on the currency. +
-The requested amount must be equal to the sum of all order item amounts. It must not exceed the amount of the preceding _authorization_.
+The requested amount must be equal to the sum of all order item amounts. +
+For ``klarna-debit``, ``klarna-transfer`` and ``klarna-financing``, it must not exceed the amount of the preceding _authorization_. +
+For ``klarna-paylater``, you may adjust the ``requested-amount`` to a higher value than the preceding authorization. 
 
-Use ``,`` (comma) as separator.
+Use ``.`` (decimal point) as separator.
 
 |[[KlarnaV2_TransactionTypes_adjustAuthorization_Fields_requestedAmount_currency]]requested-amount@currency 
 |M 
-|M 
-|Alphanumeric
+|String
 |3 
 a|The <<KlarnaV2_CountriesCurrencies, currency>> of the requested/contested
 transaction amount. +
@@ -118,45 +129,44 @@ Format: 3-character abbreviation according to ISO 4217.
 
 |order-detail
 |O
-|O
-|Alphanumeric
+|String
 |
-|Description of the update/change.
+|Description of update/change.
 
-|payment-methods. +
-payment-method@name
+|order-number	
 |O 
-|M 
-|Alphanumeric
-|15 
-a|The name of the payment method used for the transaction. 
+|String
+|255 
+|Order number as provided by merchant. +
+If you send it, it shows as "order number" on _Klarna_'s payment confirmation page.
 
-Possible values: 
+|parent-transaction-amount
+|Response only
+|String 
+|18,3
+|``requested-amount`` of the preceding _authorization_ or _adjust-authorization_.
 
-  - ``klarna-finance`` for payment in installments (Financing/Slice it)
-  - ``klarna-debit`` for _Klarna_ direct debit (Pay now) 
-  - ``klarna-transfer`` for _Klarna_ bank transfer (Pay now)
-  - ``klarna-paylater`` for _Klarna_ payment on invoive (Pay later)
-//-
+|parent-transaction-amount@currency
+|Response only
+|String 
+|3
+|``requested-amount@currency`` of the preceding _authorization_ or _adjust-authorization_.
 
 |locale	
-|-
-|M 
-|Alphanumeric
+|Response only 
+|String
 |5 
-|A 5-letter code which indicates what <<KlarnaV2_Locales, language>> the payment page is rendered in (RFC 1766).
+|A 5-letter code that indicates what <<KlarnaV2_Locales, language>> the payment page is rendered in (RFC 1766).
 
 |transaction-id 
-|-
-|M 
-|Alphanumeric
+|Response only
+|String
 |36
 |A unique identifier assigned for every transaction. Generated by {payment-provider-name}. Used when searching for or referencing it later.
 
 |transaction-state 
-|-
-|M 
-|Alphanumeric
+|Response only
+|String
 |12
 a|Transaction status. +
 Possible values: 
@@ -167,303 +177,24 @@ Possible values:
 //-
 
 |completion-time-stamp
-|-
-|M
+|Response only
 |DateTime
 |
 |The timestamp documents the time and date when the transaction was completed.
 
-|notifications. +
-notification-url 
-|O 
-|O 
-|Alphanumeric
-|256
-|The URL to which _{payment-gateway}_ sends an <<GeneralPlatformFeatures_IPN_NotificationExamples, Instant Payment Notification (IPN)>> for pending reservations or the transaction outcome. It overwrites the notification URL that is set up in your merchant configuration.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_paymentMethod.adoc[tags=**;!mandatory;!MO;!recurring;!initialAuthorization]
 
-5+<.>s|account-holder.
-s|Contains consumer data.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_notifications.adoc[]
 
-|date-of-birth 
-|-
-|O 
-|Date 
-|
-|Consumer's date of birth. +
-Format: _Klarna_ accepts only ``dd-MM-YYYY`` or ``YYYY-MM-dd``. + 
-If you provide a different format, _Klarna_ prompts the consumer to enter their birth date during the payment process.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_accountHolder.adoc[tags=**;!txTypes]
 
-|first-name 
-|O 
-|O 
-|Alphanumeric
-|32 
-|Consumer's first name.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_accountHolderAddress.adoc[tags=**;!authorization]
 
-|last-name 
-|O 
-|O 
-|Alphanumeric
-|32 
-|Consumer's last name.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_shipping.adoc[]
 
-|email 
-|O 
-|O 
-|Alphanumeric
-|64 
-|Consumer's email address.
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_orderItems.adoc[]
 
-|gender 
-|-
-|O 
-|Alphanumeric
-|1 
-|Consumer's gender.
-
-|phone 
-|O 
-|O 
-|Alphanumeric
-|32 
-|Consumer's phone number. +
-Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here>> for details.
-
-5+<.>s|account-holder.address.
-s|Consumer's address.
-
-|street1 
-|O 
-|O 
-|Alphanumeric
-|128 
-|Street of the consumer's address.
-
-|street2	
-|O 
-|O 
-|Alphanumeric
-|128 
-|House number of the consumer's address.	 
-
-|city 
-|O 
-|O 
-|Alphanumeric
-|32 
-|City of the consumer's address.
-
-|country 
-|O
-|M 
-|Alphanumeric
-|3 
-|<<KlarnaV2_CountriesCurrencies, Country code>> of the consumer's address.
-
-|postal-code 
-|O 
-|O 
-|Alphanumeric
-|16 
-|Postal/ZIP code of the consumer's address.
-
-5+<.>s|shipping. 
-s|Consumer's shipping information.
-
-|first-name 
-|O 
-|O 
-|Alphanumeric
-|32 
-|Recipient's first name.  
-
-|last-name 
-|O 
-|O 
-|Alphanumeric
-|32 
-|Recipient's last name. 
-
-|email 
-|O 
-|O 
-|Alphanumeric
-|64 
-|Recipient's email address. 	
-
-|phone 
-|O 
-|O 
-|Alphanumeric
-|32 
-|Recipient's phone number.  +
-Phone numbers need to be validated. Click <<Klarnav2_phoneNumberValidation, here>> for details.
-
-5+<.>s|shipping.address.
-s|Consumer's shipping address.
-
-|street1 
-|O 
-|O 
-|Alphanumeric
-|128 
-|Street of the recipient's address.
-
-|street2 
-|O 
-|O 
-|Alphanumeric
-|128 
-|House number of the recipient's address.	 
-
-|house-extension 
-|- 
-|O 
-|Alphanumeric
-|32 
-|House extension of the recipient's address.	 
-
-|city 
-|O 
-|O 
-|Alphanumeric
-|32 
-|City of the recipient's address.
-
-|country 
-|O
-|O
-|Alphanumeric
-|3 
-|Country code of the recipient's address.
-
-|postal-code 
-|O 
-|O 
-|Alphanumeric
-|16 
-|Postal/ZIP code of the recipient's address.
-
-5+<.>s|order-items.order-item.
-s|Description of a specific order item.
-
-|name 
-|M 
-|M 
-|Alphanumeric
-|256 
-|Name of the item in the shopping basket.
-
-|description 
-|O 
-|O 
-|Alphanumeric
-|1024 
-|Description of the item in the shopping basket.
-
-|article-number 
-|O 
-|O 
-|Alphanumeric
-|256 
-|EAN or other merchant-side article identifier.
-
-|quantity 
-|M
-|M
-|Numeric 
-|n/a  
-|Total number of this item in the shopping basket.
-
-|amount 
-|M 
-|M 
-|Numeric 
-|18,3 
-|Item’s price per unit.  +
-
-Use ``,`` (comma) as separator.
-
-|amount@currency 
-|M 
-|M 
-|Alphanumeric
-|3 
-|<<KlarnaV2_CountriesCurrencies, Currency>> of this item's price. Must match the <<KlarnaV2_TransactionTypes_adjustAuthorization_Fields_requestedAmount_currency, order currency (requested amount currency)>>. +
-Format: 3-character abbreviation according to ISO 4217.
-
-|type
-|M 
-|M
-|Alphanumeric
-|n/a
-a|Order item type. +
-Possible values: 
-
-  - ``shipment_fee``
-  - ``handling_fee``
-  - ``discount``
-  - ``physical``
-  - ``sales_tax``
-  - ``digital``
-  - ``gift_card``
-  - ``store_credit``
-
-//-
-
-|tax-rate 
-|O 
-|O 
-|Numeric
-|5,2 
-a|Item’s tax rate per unit in percent. +
-*M* if ``tax-amount`` is specified.
-
-|tax-amount 
-|O 
-|O 
-|Numeric
-|5,2 
-a|Item’s tax value per unit. +
-*M* if ``tax-rate`` is specified.
-
-|discount	
-|O
-|O
-|Numeric
-|18,3 
-|The discount value for one order item.  +
-Use ``,`` (comma) as separator.
-
-5+<.>s|statuses.status.
-s|Contains information on the status of a specific transaction.
-
-|code
-|-
-|M
-|Alphanumeric
-|12
-|Transaction status code.
-
-|description
-|-
-|M
-|Alphanumeric
-|256
-|Transaction status message.
-
-|severity
-|-
-|M
-|Alphanumeric
-|20
-a|The definition of the status message. Possible values:
-
-- ``information``
-- ``warning``
-- ``error``
-
-//-
+include::{root}/include/klarna-payments/fields/klarnaPayments_fields_status.adoc[]
 
 |===
 
@@ -483,5 +214,7 @@ NOTE: {{txnId}} serves as placeholder. Enter the ``transaction-id`` of the prece
 ----
 include::{root}/samples/xml/Klarnav2_adjustAuthorization_response.xml[]
 ----
+
+:!txTypeName:
 
 //-
