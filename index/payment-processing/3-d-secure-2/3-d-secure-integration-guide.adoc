@@ -5,14 +5,14 @@ Processing 3D Secure 2 transactions differs from standard payment processing.
 
 To enable 3D Secure 2, include
 
-- an additional transaction type in the payment flow: <<3DS2_checkenrollment, check-enrollment>>.
+- two additional transaction types in the payment flow: <<3DS2_checkenrollment, check-enrollment>> and <<3DS2_checkpayer, check-payer-response (optional)>>.
 - <<3DS2_Fields, 3D-Secure-specific fields>> in the initial payment request.
 
 //-
 
 [NOTE] 
 ====
-The <<3DS2_Workflows, 3D Secure 2 workflow>> remains identical to the 3D Secure 1 workflow. If you already have an existing 3D Secure 1 integration and want to migrate to 3D Secure 2, you simply need to include additional 3D-Secure-2-specific fields in the initial payment request.  +
+The <<3DS2_Workflows, 3D Secure 2 workflow>> remains identical to the 3D Secure 1 workflow. If you already have an existing 3D Secure 1 integration and want to migrate to 3D Secure 2, simply include additional 3D-Secure-2-specific fields in the initial payment request.  +
 
 As the new 3D Secure 2 protocol will shortly replace 3D Secure 1, we strongly recommend you to implement 3D Secure 2 as soon as possible.
 ====
@@ -38,14 +38,22 @@ However, not all transactions that exceed the original ``requested-amount`` will
 In those cases, chargeback liability protection will not apply to the same extent as for fully authenticated amounts.
 ==== 
 
-With 3D Secure 2, the amount of data collected with check-enrollment is significantly higher than with 3D Secure 1. This allows a more comprehensive risk analysis. 
+With 3D Secure 2 the amount of data collected with check-enrollment is significantly higher than with 3D Secure 1. This allows a more comprehensive risk analysis. 
+
+[#3DS2_checkpayer]
+.Check-payer-response (optional)
+
+This request is used to receive, analyze and store authentication values. The check-payer-response returns the authentication values needed in the payment transaction that follows. These include the ``dsTransId``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the ``three-d/version``.
+
+Excecuting the check-payer-response is optional. If the check-payer-response is not exectued, use instead the ``PARes`` received via ``TermURL`` to access the authenciation values needed in the payment transaction that follows.
+
 
 [#3DS2_3DSecureFields]
 .3D-Secure-specific fields
 
 To process 3D Secure transactions, include 3D-Secure-specific fields in the initial payment request. 
 
-For 3D Secure 2, more 3D-Secure-specific fields have to be included than for 3D Secure 1. For more information on 3D-Secure-specific fields, go to our <<3DS2_Fields, 3D Secure 2 Fields section>>.
+For 3D Secure 2, more 3D-Secure-specific fields have to be included than for 3D Secure 1.  3D-Secure-specific fields can be found in the <<3DS2_Fields, 3D Secure 2 field table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 
 ====
 Check out how to implement 3D Secure 2 for different integration options:

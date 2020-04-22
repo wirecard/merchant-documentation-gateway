@@ -1,3 +1,6 @@
+:cc-exp-year: 2023
+:cc-exp-month: 01
+
 [#3DS2_IntegrationGuide_REST]
 == 3D Secure 2 for REST API
 
@@ -47,7 +50,7 @@ You must reference either the previous-check-enrollment or the check-payer-respo
 //-
 --
 +
-If the check-payer-response was not executed, use instead the ``PARes`` received via ``TermURL`` as part of the response to the ACS HTTP POST request.
+If the check-payer-response was not executed, use instead the ``PARes`` received via ``TermURL`` as part of the response to the <<3DS2_IntegrationGuide_REST_AutoSubmission, ACS HTTPS POST request>>.
 
 //-
 
@@ -63,7 +66,7 @@ For more detailed payment flows of typical use cases, go to our <<CreditCard_3DS
 [#3DS2_IntegrationGuide_REST_example]
 === Payment-Processing Example
 
-We provide a postman collection containing ready-made XML samples for each step of a one-time payment transaction.
+We provide a postman collection containing ready-made JSON samples for each step of a one-time payment transaction.
 
 The 3D Secure 2 payment-processing example is *designed for the testing environment* and *does not use real information.*
 
@@ -72,7 +75,7 @@ The 3D Secure 2 payment-processing example is *designed for the testing environm
 s|Get the 3D Secure 2 postman collection for a one-time payment transaction: a|pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/one-time-payment.postman_collection.json" target="_blank" rel="noreferrer noopener" download>Download</a>]
 |===
 
-NOTE: Download a <<3DS2_Testing_Samples, 3D Secure 2 postman collection for all use cases>>.
+NOTE: Download a 3D Secure 2 postmann collection for all use cases <<3DS2_Testing_Samples, here>>.
 
 [#3DS2_IntegrationGuide_REST_example_credentials]
 ==== Test Credentials
@@ -123,7 +126,7 @@ You can now run the collection.
 
 [NOTE]
 ====
-For more details on 3D Secure fields included in the sample requests, go to our <<3DS2_Fields, 3D Secure 2 Fields section>>. 
+More details on 3D Secure fields included in the sample requests can be found in the <<3DS2_Fields, 3D Secure 2 field table>>. 
 ifdef::env-wirecard[]
 ifndef::env-nova[]
 They are also included in the <<Appendix_Xml, REST API payment XSD>>.
@@ -135,21 +138,21 @@ endif::[]
 Our samples work with https://webhook.site[Webhook.site] to simulate the ACS URL where the consumer will be redirected to for authentication. This allows you to obtain the PARes.
 
 
-To integrate Webhook.site in a test setup:
+To manually integrate Webhook.site in a test setup:
 
 . Send a check-enrollment request. +
-A check-enrollment response containing the ``<PAReq>``, the ``<TermUrl>`` and ``<MD>`` is returned.
+A check-enrollment response containing the ``PAReq``, the ``TermUrl`` and ``MD`` is returned.
 
 . Open https://webhook.site[Webhook.site].
 
 . Click *Edit* in the header bar. +
 A pop-up window opens.
 
-. Copy paste the HTTP POST request in the field *Response Body*. 
+. Copy paste the HTTPS POST request in the field *Response Body*. 
 +
 
 [#3DS2_IntegrationGuide_REST_AutoSubmission]
-.HTTP POST Request
+.HTTPS POST Request
 [source,html]
 ----
 <html>
@@ -181,7 +184,7 @@ A pop-up window opens.
 *Timeout before response* = 0
 ====
 
-. In the Auto Submission POST request 
+. In the HTTPS POST request 
 .. replace the value ``PaReq`` and the action ``AcsUrl`` with the values  from the check-enrollment response.
 .. replace the value ``TermUrl`` with *your randomly generated URL* from the webhook site.
 
@@ -191,9 +194,9 @@ The pop-up window closes.
 . In the new tab, click *Continue.*
 . Enter the password ``{three-d-s-pw}`` and click *Submit* (if required).
 . Return to the previous webhook tab. +
-You can find the PARes in the Form Values section.
-. Copy the PARes and return to Postman.
-. Enter the PARes and the ``transaction-id`` of the check-enrollment response in the check-payer-response request.
+You can find the ``PARes`` in the Form Values section.
+. Copy the ``PARes`` and return to Postman.
+. Enter the ``PARes`` and the ``transaction-id`` of the check-enrollment response in the check-payer-response request.
 . Send the check-payer-response request.
 . Complete the payment transaction.
 
