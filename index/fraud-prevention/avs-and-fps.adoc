@@ -1,20 +1,17 @@
-[#avs_and_fps]
-== AVS and Fraud Prevention Suite
+The Address Verification System (AVS) verifies credit card data. It compares the billing address sent in the transaction with the issuer's billing information of the cardholder. +
+{payment-provider-name} Fraud Prevention Suite (FPS), then, offers the possibility to react to specific AVS return codes.
 
-[#avs_and_fps_avs]
-=== Address Verification System (AVS)
+[#AVS_and_FPS_AVS]
+==  AVS
 
-AVS verifies credit card data. It compares the billing address sent in the transaction with the issuer's billing information of the cardholder. 
+If you want to use AVS your Wirecard provider account must be configured ``connector.avs.data.store=true``. +
+For details contact our <<ContactUs, Merchant Support>>.
 
 NOTE: AVS applies to cardholder addresses from the U.S., the U.K., and Canada.
 
-The consumer must provide the full billing address. Otherwise AVS cannot be performed.
+The consumer must provide the <<CC_Fields_xmlelements_request_address, full billing address>>. Otherwise AVS cannot be performed.
 
-include::{root}/include/fields/rest_cc/request/req-address.adoc[]
-
-//-
-
-By default, AVS only compares the house number and ZIP/postal code. 
+While a complete address is provided for an Address verification, only the numeric portion of the address is verified by the issuer. Typically, only the house number and ZIP/postal code are compared.
 
 ====
 Let's assume the consumer sends this billing address: 
@@ -30,36 +27,35 @@ U.S.
 AVS compares 121 and 10012 from the transaction with the issuer's billing information of the cardholder.
 ====
 
-[#avs_and_fps_fps]
-=== AVS and {payment-provider-name} Fraud Prevention Suite (FPS)
+[#AVS_and_FPS_FPS]
+==  AVS and FPS Interaction
 
-FPS reacts to the specific AVS return codes. A post-authorization check either accepts the transaction or rejects it in case AVS does not match. 
+With a post-authorization check FPS either accepts the transaction or rejects it in case AVS does not match. 
 
 In case of rejection FPS initiates a ``void-authorization``.
 
-(+++Add Flow: Cardholder-> Merchant-> Wirecard Payment Gateway-> Wirecard Risk Engine with Fraud Prevention Suite pre-auth check-> Wirecard Gateway authorization request-> Issuer authorization and AVS response > Wirecard Gateway → Wirecard Risk Engine with Fraud Prevention Suite postauth check → -- Wirecard Gateway-> Merchant→ Cardholder +++)
+// (+++Add Flow: Cardholder-> Merchant-> Wirecard Payment Gateway-> Wirecard Risk Engine with Fraud Prevention Suite pre-auth check-> Wirecard Gateway authorization request-> Issuer authorization and AVS response > Wirecard Gateway → Wirecard Risk Engine with Fraud Prevention Suite postauth check → -- Wirecard Gateway-> Merchant→ Cardholder +++)
+// Flow shall be integrated via TikZ
 
 If you are based in the United States, we recommend to use the default FPS setting. This setting declines a transaction, if the AVS response does not contain an exact match.
 
-Contact our <<ContactUs, Merchant Support>>, if you want to customize your AVS settings. 
+Contact our <<ContactUs, Merchant Support>>, if you want to customize your AVS setting with different logics. 
 
-[#avs_and_fps_IssuerCargeback]
-=== Issuer's Chargeback Rules
+[#AVS_and_FPS_IssuerCargeback]
+== Issuer's Chargeback Rules
 
 Visa and Mastercard have specific AVS rules and guidelines for chargeback processing in the United States.
 
 .Mastercard grants liability shift, if
 
 * the ``authorization`` response message includes a positive AVS response of X or Y.
-* the shipping address and the AVS-confirmed address are identical. 
+* the address to which the merchandise was sent was the same as the AVS-confirmed address.
 
 .Visa grants liability shift, if
 
-* AVS sends you a positive “Y” response in the ``authorization`` message and billing and shipping addresses are the same. You must submit proof of the shipping address and signed proof of delivery.
+* AVS sends you a positive “Y” response in the ``authorization`` message if billing and shipping addresses are the same. You will need to submit proof of the shipping address and signed proof of delivery.
 * you submit an AVS query during authorization and receive a “U” response from a card issuer. This response means the card issuer is unavailable or does not support AVS.
 
-Look at the <<FraudPrevention_AVS_ProviderResponseCode, complete list>> of the Provider Response Codes and their {payment-provider-name} mapped values.
-
-// link must be checked after merge of PSPDOC-1562!
+Look at the complete list of the <<FraudPrevention_AVS_ProviderResponseCode, Provider Response Codes>> and their {payment-provider-name} mapped values.
 
 //-
