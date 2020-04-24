@@ -1,16 +1,22 @@
 [#3DS2_Worfklow]
 == Workflows
 
-Generally the 3D Secure 2 workflow remains identical to the 3D Secure 1 workflow. Unlike 3D Secure 1 though, 3D Secure 2 introduces the opportunity for frictionless authentication. Thus 3D Secure 2 transactions can follow either a frictionless or a challenge flow. Based on provided information and resultant risk analysis, the issuing bank decides which flow is triggerd.
+Generally the 3D Secure 2 workflow remains identical to the 3D Secure 1 workflow. Unlike 3D Secure 1 though, 3D Secure 2 introduces the opportunity for frictionless authentication. Thus, 3D Secure 2 transactions can follow either a frictionless or a challenge flow. Based on provided information and resultant risk analysis, the issuing bank decides which flow is triggerd.
 
-- *Frictionless Flow:* The information provided is sufficient. No further authentication / cardholder interaction is required. This is typically the case for low-value and low-risk transactions.
+- *Frictionless Flow:* The information provided is sufficient. No further authentication / cardholder interaction required. This is typically the case for low-value and low-risk transactions.
 - *Challenge Flow:* There is not enough information. The transaction is rated as high-risk. An authentication challenge is triggered and consumers are asked for additional information.
 +
-NOTE: Sending specific 3D Secure 2 fields in the initial payment request reduces the likelihood of an authentication challenge. More details on 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure 2 field table>>.
+NOTE: Sending specific 3D Secure 2 fields in the initial payment request reduces the likelihood of an authentication challenge. More details on 3D Secure 2 fields can be found in the <<CreditCard_CreditCard_CreditCard_3DS2_Fields, 3D Secure 2 field table>>.
 
 If the issuer does not support 3D Secure 2, an automatic fallback to 3D Secure 1 is initiated.
 
 Find the schematic diagrams for Frictionless Flow, Challenge Flow and Fallback to 3D Secure 1 below.
+
+[NOTE]
+====
+Make sure to distinguish between the terms authentication and authorization. Authentication confirms the cardholder's identity.
+Authorization checks whether the cardholder's account holds sufficient funds and reserves the respective amount for later payment. 
+====
 
 [#3DS2_worfklow_3DS2FF]
 === 3D Secure 2.1 Frictionless Flow
@@ -21,12 +27,12 @@ image::images/16-05-appendix-f/3DSfrictionless.svg[3D Secure 2 Frictionless Work
 *1.1* Consumer (cardholder) checkout on your payment page. +
 
 ifndef::env-nova[]
-*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure fields table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure fields table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>.
  +
 endif::[]
 
 ifdef::env-nova[]
-*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure fields table>>. +
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure fields table>>. +
 endif::[]
 
 *1.3* {payment-gateway} checks the 3D Secure version supported by the issuer with the 3D Secure server. +
@@ -40,11 +46,11 @@ endif::[]
 *2.5* The Issuer ACS gathers the information and redirects the 3D Secure method completion information to the
 {payment-provider-name} 3D Secure Router URL. +
 *2.6* The {payment-provider-name} 3D Secure Router initiates authentication with the issuer's ACS via the scheme directory server. +
-*2.7* The {payment-provider-name} 3D Secure Router posts the SSL-encrypted and digitally signed PARes (Payment Authentication response) to the TermURL via the consumer’s browser. +
+*2.7* The {payment-provider-name} 3D Secure Router posts the SSL-encrypted and digitally signed ``PARes`` (Payment Authentication response) to the TermURL via the consumer’s browser. +
 
 *3.* _Check-payer-response_ _(optional) and_ _PARes_ _verification_: Use this request to receive, analyze and store authentication values.  The check-payer-response returns the authentication values needed in the payment transaction that follows. It is executed _after_ you receive the check-enrollment response and the ``PARes``. +
 *3.1* Send a POST request with transaction type check-payer-response to {payment-gateway}. Provide the ``parent-transaction-id`` using the ``transaction-id`` from the check-enrollment response, and the ``PARes``. +
-*3.2* {payment-gateway} decodes the PARes, checks the signature and retrieves the final authentication values. +
+*3.2* {payment-gateway} decodes the ``PARes```, checks the signature and retrieves the final authentication values. +
 *3.3* {payment-gateway} returns the final authentication values in the response of the check-payer-response transaction. These include the ``dsTransId``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the 3D Secure version (expected 2.1.0). +
 
 
@@ -59,11 +65,11 @@ image::images/16-05-appendix-f/3DSchallenge.svg[3D Secure 2 Challenge Workflow, 
 *1.1* Consumer (cardholder) checkout on your payment page. +
 
 ifndef::env-nova[]
-*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure fields table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>. +
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure fields table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>. +
 endif::[]
 
 ifdef::env-nova[]
-*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure 2 fields table>>. +
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 fields table>>. +
 endif::[]
 
 *1.3* {payment-gateway} checks the 3D Secure version supported by the issuer with the 3D Secure server. +
@@ -100,11 +106,11 @@ image::images/16-05-appendix-f/3DSfallback.svg[3D Secure 2 Fallback Workflow, al
 *1.1* Consumer (cardholder) checkout on your payment page. +
 
 ifndef::env-nova[]
-*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure fields table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>.+
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure fields table>>. They are also included in the <<Appendix_Xml, REST API payment XSD>>.+
 endif::[]
 
 ifdef::env-nova[]
-*1.2* Initiate the payment session with {payment-gateway} using the *check-enrollment* transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<3DS2_Fields, 3D Secure 2 fields section>>. +
+*1.2* Initiate the payment session with {payment-gateway} using the *check-enrollment* transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 fields section>>. +
 endif::[]
 
 *1.3* {payment-gateway} checks the 3D Secure version supported by the issuer with the 3D Secure server. If 3D Secure 2 is not supported then the 3D Secure server initiates the fallback to version 1 via the 3D Secure MPI. +
