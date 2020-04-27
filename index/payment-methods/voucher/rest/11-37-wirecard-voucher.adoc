@@ -120,10 +120,11 @@ image::images/11-37-wirecard-voucher/WirecardVoucher_Workflow.png[Wirecard Vouch
 [#WirecardVoucher_Fields]
 === Fields
 
-Payment fields required for the _Wirecard Voucher_ are the same fields as
-the <<RestApi_Fields, REST API Fields>>. Additionally, voucher element should
-be present.
+Payment fields required for _Wirecard Voucher_ are the same fields as
+the <<RestApi_Fields, REST API Fields>>.
 
+[#WirecardVoucher_Fields_Voucher]
+==== Additional Voucher Fields
 
 Fields can be **M**andatory or **O**ptional.
 
@@ -138,15 +139,17 @@ Fields can be **M**andatory or **O**ptional.
 | Unique code for payment and voucher processing. +
  Returned in _enrollment_ response for further use. +
 
-Mandatory for _authorization-only_.
+Mandatory for
 
-Mandatory <<WirecardVoucher_Fields_Footnote, *[navy]#^1^#*>> for
-
-* _activation_ 
+* _activation_.
 * _reserve_.
 * _purchase_.
 * _redeem_.
+* _authorization-only_.
 //-
+
+You have to send either ``voucher-code`` or ``voucher-serial-number``. +
+If you send both, {payment-gateway} proceeds with ``voucher-code``.
 
 | voucher-brand-id    
 | M
@@ -164,12 +167,12 @@ Mandatory <<WirecardVoucher_Fields_Footnote, *[navy]#^1^#*>> for
 | O            
 | String
 | 255  
-| Used as operational comment.
+| Used as operational comment and as ``reasonId`` for creating a voucher.
 
 | alternative-amount  
 | O            
 | Integer
-| 18
+| 18.0
 | Used for merchant specific currencies (bonuses, km, etc.).
 
 | voucher-serial-number       
@@ -179,12 +182,17 @@ Mandatory <<WirecardVoucher_Fields_Footnote, *[navy]#^1^#*>> for
 | Identifies the voucher in reports and support requests. +
 Returned in an _enrollment_ response for further use. +
 
-Mandatory <<WirecardVoucher_Fields_Footnote, *[navy]#^1^#*>> for
+Mandatory for
 
 * _activation_ 
 * _reserve_.
 * _purchase_.
 * _redeem_.
+* _authorization-only_.
+//-
+
+You have to send either ``voucher-code`` or ``voucher-serial-number``. +
+If you send both, {payment-gateway} proceeds with ``voucher-code``.
 
 | voucher-type      
 | M/O
@@ -197,7 +205,7 @@ Mandatory for _enrollment_.
 | O            
 | Boolean
 | 
-| In enrollment request: Set this flag to ``true`` to create and activate a new voucher in one go.
+| In _enrollment_ request: Set this flag to ``true`` to create and activate a new voucher in one go.
 
 | voucher-amount       
 | Response only        
@@ -223,6 +231,7 @@ Mandatory for _enrollment_.
 * ``INVALID``
 * ``DEACTIVATED``
 * ``EXPIRED``
+//-
 
 | voucher-expiration-date      
 | Response only
@@ -245,10 +254,12 @@ Send this ``external-correlation-id`` to link it to the generated ``voucher-code
 
 |===
 
-[#WirecardVoucher_Fields_Footnote]
-*[navy]#1#* You have to send either ``voucher-code`` or ``voucher-serial-number``. If you send both, {payment-gateway} proceeds with ``voucher-code``.
+// <<WirecardVoucher_Fields_Footnote, *[navy]#^1^#*>> 
+//
+//[#WirecardVoucher_Fields_Footnote]
+// *[navy]#1#* You have to send either ``voucher-code`` or ``voucher-serial-number``. If you send both, {payment-gateway} proceeds with ``voucher-code``.
 
----
+// ---
 
 [NOTE]
 ==== 
