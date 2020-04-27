@@ -1,10 +1,11 @@
 [#3DS2_Worfklow]
 == Workflows
 
-Generally the 3D Secure 2 workflow remains identical to the 3D Secure 1 workflow. Unlike 3D Secure 1 though, 3D Secure 2 introduces the opportunity for frictionless authentication. Thus, 3D Secure 2 transactions can follow either a frictionless or a challenge flow. Based on provided information and resultant risk analysis, the issuing bank decides which flow is triggerd.
+Generally, the 3D Secure 2 workflow remains identical to the 3D Secure 1 workflow. Unlike 3D Secure 1 though, 3D Secure 2 introduces the opportunity for frictionless authentication. Thus, 3D Secure 2 transactions can follow either a frictionless or a challenge flow. Based on provided data and resultant risk analysis, the issuing bank decides which flow is triggered.
 
-- *Frictionless Flow:* The information provided is sufficient. No further authentication / cardholder interaction required. This is typically the case for low-value and low-risk transactions.
-- *Challenge Flow:* There is not enough information. The transaction is rated as high-risk. An authentication challenge is triggered and consumers are asked for additional information.
+- *Frictionless Flow:* The consumer is authenticated passively. No further consumer interaction required. 
+- *Challenge Flow:* An authentication challenge is triggered. The consumer is prompted to provide further information.
+
 +
 NOTE: Sending specific 3D Secure 2 fields in the initial payment request reduces the likelihood of an authentication challenge. More details on 3D Secure 2 fields can be found in the <<CreditCard_CreditCard_CreditCard_3DS2_Fields, 3D Secure 2 field table>>.
 
@@ -52,7 +53,6 @@ endif::[]
 *3.1* Send a POST request with transaction type check-payer-response to {payment-gateway}. Provide the ``parent-transaction-id`` using the ``transaction-id`` from the check-enrollment response, and the ``PARes``. +
 *3.2* {payment-gateway} decodes the ``PARes```, checks the signature and retrieves the final authentication values. +
 *3.3* {payment-gateway} returns the final authentication values in the response of the check-payer-response transaction. These include the ``dsTransId``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the 3D Secure version (expected 2.1.0). +
-
 
 *4.* _Complete the payment transaction_: Proceed with the respective transaction-type (e.g. authorization, purchase, authorization-only). Use the final authentication values received either from the check-enrollment response(e.g. ``PARes`` and ``parent-transaction-id``), or from step 3.3 (check-payer-response response).
 
