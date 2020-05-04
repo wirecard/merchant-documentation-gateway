@@ -1,0 +1,126 @@
+
+[#FraudPrevention_FPS]
+== Wirecard Fraud Prevention Suite
+
+Fraud is one of the major threats to turnover and revenue for every
+online merchant. By using fraud prevention methods every merchant is
+able to participate and benefit from the still growing online market.
+The Wirecard Fraud Prevention Suite (FPS) helps to identify fraud early
+in the sales process and to prevent it before it happens. FPS checks
+every incoming transaction using a complex set of rules. By using this
+rule set, the merchant will benefit from the experience of other
+merchants in the market segment incorporated into the rules.
+
+[#FraudPrevention_FPS_CreditCardRiskFraud]
+=== Credit Card Check
+
+The {payment-gateway} has a built-in functionality to perform
+risk check before processing the credit card payment if configured for
+the certain merchant account. This usually includes fraud check using
+Wirecard Fraud Prevention Suite (FPS) solution. The result of the risk
+check can be a rejection/approval of the payment transaction or an FPS
+case which needs to be resolved manually using the FPS merchant cockpit.
+
+There are 2 scenarios in the credit card payment processing where the
+FPS check is involved.
+
+image::images/12-fraud-prevention/risk_and_fraud_check.png[Workflow of Risk and Fraud Check]
+
+[#FraudPrevention_FPS_CreditCardRiskFraud_Ecommerce]
+==== Transaction processing in E-Commerce mode
+
+. The merchant sends an _authorization_, _authorization-only_,
+_final-authorization_, _preauthorization_ or _purchase_ payment transaction
+request.
+. The system performs a risk/FPS check.
+
+//-
+
+* The risk/FPS check results in a rejection:
+.. the corresponding credit card payment transaction is declined.
+.. the transaction state in the response is set to ``failed``.
+.. a corresponding status code is returned (for details please see
+<<StatusCodes, Transaction Status Codes>>).
+
+* The risk/FPS check results in an approval:
+.. the payment transaction is processed.
+
+//-
+
+If the system needs to create a case according to FPS rules, the
+corresponding payment transaction will be executed. Depending on the
+outcome of the payment transaction the following scenarios are possible:
+
+
+* The payment transaction is successful
+.. The system creates a case in FPS.
+.. FPS adds the status code ``100.0101 "FPS case created"``.
+.. The system returns a response (The merchant usually needs to put the
+order process on hold and perform a manual check of the created case
+using the FPS merchant cockpit portal).
+.. The merchant resolves the case (FPS notifies the merchant via a
+technical XML notification sent to the special endpoint in the merchant
+system and the order process can continue).
+
+//-
+
+* The payment transaction has failed
+.. The system does not create a case in FPS.
+.. The system returns the corresponding error status code with the response.
+
+//-
+
+[#FraudPrevention_FPS_CreditCardRiskFraud_3DS]
+==== Using 3D Secure
+. Merchant sends a check-enrollment request.
+. The system performs a risk/FPS check (similar to e-commerce transaction).
+
+//-
+
+* The risk/FPS check results in a rejection:
+
+.. The system declines the check enrollment transaction.
+.. The system sets the transaction state in the response to ``failed``.
+.. The system returns a corresponding status code (for details please see
+<<StatusCodes, Transaction Status Codes>>).
+
+//-
+
+* The risk/FPS check results in an approval:
+
+.. The system performs the enrollment check. If a case needs to be
+created according to FPS rules, the system performs the enrollment
+check.
+
+//-
+
+NOTE: No corresponding status code will be added to the check enrollment
+response.
+
+Based on the outcome of the previous enrollment check, the system
+executes an authorization or purchase transaction.
+
+NOTE: The following _authorization_ or _purchase_ transaction will be executed
+without a new FPS check.
+
+* The authorization or purchase transaction is successful:
+
+.. The system creates a case in FPS.
+.. FPS adds the status code ``100.0101 "FPS case created"``.
+.. The system returns the response.
+.. The merchant puts the order process on hold.
+.. The merchant (or a dedicated Wirecard team) performs a manual check
+of the created case using the FPS merchant cockpit portal.
+.. The merchant (or a dedicated Wirecard team) resolves the case.
+.. FPS notifies the merchant via a technical XML notification
+(FPS sends it to the special endpoint in the merchant system).
+.. The order process can continue.
+
+//-
+
+* The authorization or purchase transaction has failed:
+
+.. FPS does not create a case.
+.. The system returns the corresponding error status code with the response.
+
+//-
