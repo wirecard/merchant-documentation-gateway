@@ -1,7 +1,15 @@
-[%autowidth]
-[cols="m,,,,a"]
-|===
-| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
+
+// tag::three-ds[]
+
+|number-of-installments
+|M/O
+|Number
+|3
+a|Indicates the maximum number of authorizations permitted for installment payments. +
+
+*Mandatory* only for installment payments with ``periodic-type`` = ``installment``. Sent in authentication of the first transaction.
+
+// end::three-ds[]
 
 | periodic-type 
 | M/O 
@@ -10,40 +18,42 @@
 a| Indicates the recurring payment type. +
 Accepted values: +
 
-- ``recurring``: Used for recurring payments of a subscription. +
-- ``installment``: Used for partial payments of an installment payment. +
-- ``ucof``:  **U**nscheduled **C**redential **o**n **F**ile is used to reference a regularly based transaction to an already successfully submitted transaction. +
-//(<<CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ucof, Unscheduled Credential on File>>) is used to reference a regularly based transaction to an already successfully submitted transaction. +
-- ``ci``: **C**onsumer **I**nitiated identifies the consumer as the initiator of the transaction.
+* ``recurring``: is used for the recurring payments of a subscription. +
+* ``installment``: is used for the partial payments of an installment payment. +
+* ``ucof``: (<<CreditCard_PaymentFeatures_RecurringTransaction_PeriodicTypes_ucof, Unscheduled Credential on File>>) is used to reference a regularly based transaction to an already successfully submitted transaction. +
+* ``ci``: (Consumer Initiated) identifies the consumer as the initiator of the transaction.
 
 //-
 
-| sequence-type 
-| M/O 
-| Enumeration 
-| 9 
-a| Specifies the phase of a recurring transaction. +
-Accepted values: +
-
-- ``first``: Used for the first payment of a recurring series. +
-- ``recurring``: Used for all intermediate payments of a recurring series. +
-- ``final``: Used for the last payment of a recurring series.
-
-//-
+// tag::three-ds[]
 
 | recurring-expire-date
 | M/O
 | Date 
 | 10
-| Date after which no further recurring payments using this card are allowed. +
-Mandatory in 3DS2 recurring transactions.  +
-Format: ``{date-pattern}``
+a|Date after which recurring payments with this card are no longer allowed. Accepted format: {date-pattern}. +
 
-| recurring-frequency
+*Mandatory* only for installment payments with ``periodic-type`` = ``installment``. Sent in authentication of the first transaction.
+
+|recurring-frequency
+|M/O 
+|Number
+|4
+a|Indicates the minimum number of days between individual authorizations. +
+
+*Mandatory* only for recurring payments (installments or subscriptions)  with ``periodic-type`` = ``installment`` or ``periodic-type`` = ``recurring``. Sent in authentication of the first transaction.  
+
+// end::three-ds[]
+
+| sequence-type 
 | M/O 
-| Number
-| 4
-| The minimum number of days between individual authorizations. +
-Mandatory in 3DS2 recurring transactions. 
+| Enumeration 
+| 9 
+a|Indicates the phase of a recurring transaction. +
+Accepted values: +
 
-|===
+* ``first``: is used for the first payment of a recurring series. +
+* ``recurring``: is used for all the intermediate payments of a recurring series. +
+* ``final``: is used for the last payment of a recurring series.
+
+//-
