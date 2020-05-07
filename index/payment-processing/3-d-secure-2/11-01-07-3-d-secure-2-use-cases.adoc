@@ -5,10 +5,13 @@ The following list covers the most typical use cases and business scenarios. Ple
 For standard *check-enrollment* request and response samples, head to our <<CreditCard_Samples_CheckEnrollment_3DS2, Credit Card Samples>> section.
 You can find more details on the implementation of these use cases in our <<API_CC_3DS2_PaymentFlows, 3D Secure 2 Payment Flows>>.
 
+include::{root}/index/payment-processing/3-d-secure-2/use-cases/general-multi-party-commerce.adoc[leveloffset=+1]
+
+'''
 include::{root}/index/payment-processing/3-d-secure-2/use-cases/one-time-payment.adoc[leveloffset=+1]
 
-//-
 
+'''
 [#CreditCard_3DS2_UseCase_DelayedShipment]
 === Delayed Shipment
 
@@ -167,29 +170,6 @@ _Per UCOF payment (MIT)_
 
 
 '''
-[#CreditCard_3DS2_UseCase_MultiPartyCommerce]
-=== General Multi-Party Commerce
-
-The consumer buys a product or service from a merchant. At the time of purchase, the consumer acquires an additional product or service provided by a separate merchant. This separate merchant charges for the additional product or service.
-For example, the consumer purchases a washing machine and a breakdown and repair insurance.
-
-[#CreditCard_3DS2_UseCase_MultiPartyCommerce_tx]
-==== For a successful transaction:
-
-_The consumer-facing merchant (i.e. where the consumer buys the primary product or service, e.g. the washing machine) sends the following requests_:
-
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a _transaction-id._
-. *Authorization* (amount due with consumer-facing merchant): Send a second request with transaction type ``authorization``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field. If the request is successful, the response contains a new _transaction-id_.
-. *Capture* (amount due with consumer-facing merchant): Send a third request with transaction type ``capture``. Include the ``transaction-id`` from the previous _authorization_ response in the ``parent-transaction-id`` field.
-+
-_Each merchant (when ready to ship / deliver)..._
-+
-. *Authorization* (remaining amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope for SCA; therefore, ``check-enrollment`` is not required prior to this request.
-. *Capture* the remaining amount.
-
-//-
-
-'''
 [#CreditCard_3DS2_UseCase_AgentModel]
 === Agent Model
 
@@ -328,6 +308,9 @@ _Payment per installment (MIT)_
 [#CreditCard_3DS2_UseCase_Special]
 == Special 3D Secure 2 Use Cases
 
+include::{root}/index/payment-processing/3-d-secure-2/use-cases/one-click-checkout.adoc[leveloffset=+1]
+
+'''
 [#CreditCard_3DS2_UseCase_Special_ChangingTerms]
 === Changing Terms of an Existing Payment Agreement (MIT)
 
@@ -345,47 +328,7 @@ If a change is initiated by merchants, ``check-enrollment`` is not needed if the
 
 If a change is initiated by consumers, authentication is only required, if the agreed payment terms clearly cover the eventuality of such changes and the merchant has appropriate risk management in place. In case there are any doubts that the original agreement covers the change, treating the transaction as a new agreement by performing a _check-enrollment_ request (for the new amount) is highly recommended. Examples include consumers up- or downgrading their software subscriptions.
 
-[#CreditCard_3DS2_UseCase_Special_CardOnFile]
-=== Card-on-File Transactions
-
-For card-on-file transactions, merchants store the consumer's card data (as a token) for future transactions. Thus, when the consumer returns to the merchant's shop, they don't need to re-enter their data.
-
-WARNING: Before storing credentials on file, consumers must be clearly informed how the credentials will be used in the future. Obtain the consumers' consent.
-
-[#CreditCard_3DS2_UseCase_Special_AddCardOnFile_add]
-==== To add a card on file:
-
-.Independent of purchase (standard scenario)
-
-. *Check-enrollment* (zero amount):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
-
-//-
-
-NOTE: Zero-amount processing is not supported by all acquirers. If you experience difficulties, please consult the alternative scenario below.
-
-.Independent of purchase (alternative scenario)
-
-. *Check-enrollment* (minimal amount: e.g. 1.00 EUR):  This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization* (minimal amount: e.g. 1.00 EUR): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
-. *Void-authorization* (_authorization_ amount): Send a third request with transaction type ``void-authorization``. The agreement has been signed by means of the ``authorization`` transaction. Void the amount provided in the _authorization_ request to conclude the workflow.
-
-.During purchase
-
-. *Check-enrollment* (payment amount): This is the initial request. It initiates the agreement set-up. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-+
-NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
-+
-
-. *Authorization* (payment amount): Send a second request with transaction type ``authorization``. This request serves to sign the agreement. The request must contain ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
-. *Capture* (payment amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
-
-//-
-
-====
-WARNING: For subsequent transactions that use stored card details, use ``<periodic-type>ci</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``.
-====
-
+'''
 [#CreditCard_3DS2_UseCase_MOTO_Transactions]
 === Mail Order Telephone Order (MOTO) Transactions
 
