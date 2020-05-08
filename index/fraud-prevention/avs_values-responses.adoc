@@ -1,0 +1,148 @@
+[#FraudPrevention_AVS_ValueResponse]
+== AVS Values and Responses
+
+Each card scheme maintains an own set of response codes. To facilitate the implementation {payment-provider-name} maps those codes to a uniform set of scheme independent response codes.
+
+[#FraudPrevention_AVS_PaymentResponse]
+=== AVS in Payment Response
+
+If you use AVS you receive the AVS result as additional part in the <<CC_Fields_xmlelements_response_avs, payment response>> and notification.
+
+.Response with AVS Data
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/creditcard_authorization_response__d45ef252.xml[]
+----
+
+[#FraudPrevention_AVS_{payment-provider-name}ResponseCodes]
+=== {payment-provider-name} Response Codes
+
+{payment-provider-name} uses the following uniform set of response codes. This set should be the preferred source for decisions related to AVS.
+
+[cols="4,4,9"]
+|===
+| Response Code | Message         | Description
+
+| 0             | Reserved        | Reserved.
+| F             | Exact Match     | Street address and zip code match.
+| P             | Partial Match   | Either street address or zip codes do not match.
+| U             | AVS unavailable | Address information is unavailable or the Issuer does not support AVS.
+| E             | Error           | AVS not performed due to an error or insufficient data.
+| N             | No Match        | Neither address nor zip code match.
+|===
+
+//-
+
+[#FraudPrevention_AVS_AuthorizationEntity]
+=== Authorization Entity
+
+The authorization entity defines the party responding to the AVS request.
+
+[cols="4,13"]
+|===
+| Authorization Entity | Message
+
+| 2                    | Response provided by Intermediate processor.
+| 5                    | Response provided by issuer processor.
+|===
+
+//-
+
+[#FraudPrevention_AVS_SchemeResponseCode]
+=== Card Scheme's Response Codes
+
+The card scheme returns a response code, together with a human readable response message. The following tables list the current set of codes which the card schemes use. The tables map the card scheme's response code with the uniform {payment-provider-name} response code. 
+
+NOTE: Each card scheme can change or extend the response code list. It may differ from the table below. {payment-provider-name} recommends to preferably use the uniform <<FraudPrevention_AVS_{payment-provider-name}ResponseCodes, {payment-provider-name} response code>>.
+
+[#FraudPrevention_AVS_AmericanExpress]
+==== American Express
+
+[cols="4,3,10"]
+|===
+| American Express Code | {payment-provider-name} Response Code | Response Message
+
+| A                     | P             | CSC and Address Matched.
+| F                     | F             | All Data Matched.
+| N                     | P             | CSC Match.
+| U                     | U             | Data Not Checked.
+| Y                     | F             | All Data Matched.
+| Z                     | P             | CSC and Postcode Matched.
+| F                     | Exact Match   | Street address and zip code match.
+|===
+
+//-
+
+[#FraudPrevention_AVS_AmericanExpressAAV]
+==== American Express AAV (enhanced AVS)
+
+[cols="4,3,10"]
+|===
+| American Express Code | {payment-provider-name} Response Code | Provider Response Message
+
+| Y                     | F             | Yes, Billing Address and Postal Code are both correct.
+| N                     | N             | No, Billing Address and Postal Code are both incorrect.
+| A                     | P             | Billing Address only correct.
+| Z                     | P             | Billing Postal Code only correct.
+| U                     | U             | Information unavailable.
+| S                     | U             | SE not allowed AAV function.
+| R                     | E             | System unavailable; retry.
+| L                     | P             | CM Name and Billing Postal Code match.
+| M                     | F             | CM Name, Billing Address and Postal Code match.
+| O                     | P             | CM Name and Billing Address match.
+| K                     | P             | CM Name matches.
+| D                     | P             | CM Name incorrect, Billing Postal Code matches.
+| E                     | P             | CM Name incorrect, Billing Address and Postal Code match.
+| F                     | P             | CM Name incorrect, Billing Address matches.
+| W                     | N             | No, CM Name Billing Address and Postal Code are all incorrect.
+|===
+
+//-
+
+[#FraudPrevention_AVS_Mastercard]
+==== Mastercard
+
+[cols="4,3,10"]
+|===
+| Mastercard Code | {payment-provider-name} Response Code | Provider Response Message
+
+| A               | P             | Address matches, postal code does not.
+| N               | N             | Neither address nor postal code match.
+| R               | E             | Retry. System unable to process.
+| S               | U             | AVS currently not supported.
+| U               | U             | No data from issuer authorization system.
+| W               | P             | For U.S. addresses, nine-digit postal code matches, address does not. For addresses outside U.S., postal code matches, address does not.
+| X               | F             | For U.S. addresses, nine-digit postal code and address match. For addresses outside U.S., postal code and address match.
+| Y               | F             | For U.S. addresses only, five-digit postal code and address match.
+| Z               | P             | For U.S. addresses only, five-digit postal code matches, address does not.
+|===
+
+//-
+
+[#FraudPrevention_AVS_Visa]
+==== Visa
+
+[cols="6,6,9,30"]
+|===
+| Visa Code | Type          | {payment-provider-name} Response Code | Provider Response Message
+
+| A         | Domestic      | P             | The address information matches. The postcode does not match.
+| B         | International | P             | Street address matches, but postal code not verified. Returned only for non U.S.-issued Visa cards.
+| C         | International | N             | Street address and postal code do not match. Returned only for non U.S.-issued Visa cards.
+| D         | International | F             | The match is exact: both the address and the postcodes match. No representment rights.
+| E         | Domestic      | E             | AVS data is invalid or AVS is not allowed for this card type.
+| G         | International | U             | Address information is unavailable, or the Issuer does not support AVS. Acquirer has representment rights.
+| I         | International | U             | Address information is unavailable, or the Issuer does not support AVS. Acquirer has representment rights.
+| P         | International | P             | Postal code matches, but street address not verified. Returned only for non U.S.-issued Visa cards.
+| R         | Domestic      | U             | System unavailable.
+| S         | Domestic      | U             | U.S.-issuing bank does not support AVS.
+| M         | International | F             | The match is exact: both the address and the postcodes match. No representment rights.
+| N         | Domestic      | N             | The match is not exact, either because the postcode and/or the addresses do not match.
+| U         | Domestic      | U             | Address information unavailable. Returned if the U.S. bank does not support non-U.S. AVS or if the AVS in a U.S. bank is not functioning properly.
+| W         | Domestic      | P             | Street address does not match, but 9-digit postal code matches.
+| X         | Domestic      | F             | Street address and 9-digit postal code match.
+| Y         | Domestic      | F             | Street address and 5-digit postal code match.
+| Z         | Domestic      | P             | The postcode information matches. The address information does not match.
+|===
+
+//-
