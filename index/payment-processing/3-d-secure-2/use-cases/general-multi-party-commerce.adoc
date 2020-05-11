@@ -1,0 +1,64 @@
+[#API_CC_3DS2_UseCases_General_MultiParty_Commerce]
+== General Multi-Party Commerce
+
+In general multi-party commerce, a consumer buys a product or service from a primary, consumer-facing merchant. At the time of purchase, the consumer acquires an additional product or service provided by a secondary, non-consumer facing merchant. This merchant charges for the additional product or service. +
+For example, a consumer purchases a washing machine (from the primary merchant) and a breakdown and repair insurance (from the secondary merchant).
+
+
+[NOTE]
+====
+Authentication required: Yes  
+====
+
+Download a Postman collection for this use case 
+pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/general-multi-party-commerce.postman_collection.json" target="_blank" rel="noreferrer noopener" download>here.</a>]
+
+The 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. +
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+
+. *Check-Enrollment* 
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[] 
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment-response.adoc[] 
++
+NOTE: Only the primary merchant must perform the authentication for the full amount.
+
+. *Redirect the Consumer to the ACS URL*
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[] 
+
+. *Check-Payer-Response* (optional)
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[] 
+
+. *Authorization*
++
+include::{root}/include/3-d-secure/3-d-secure-2-authorization-transaction.adoc[] 
++
+NOTE: This step authorizes the amount due for the primary product or service (e.g. the washing machine).
+
+. *Capture-Authorization*
++
+include::{root}/include/3-d-secure/3-d-secure-2-capture-authorization-transaction.adoc[] 
++
+NOTE: This step captures the amount due for the primary product or service (e.g. the washing machine).
+
+. *Authorization*
++
+NOTE: This step authorizes the remaining amount due for the additional product or service (e.g. the breakdown and repair insurance). 
++
+WARNING: Set the ``parent-transaction-id`` field to the ``transaction-id`` value of the first authorization.
++
+As merchant-initiated transactions (MIT) are not within the scope of SCA, a check-enrollment is not required prior to this request.
++
+WARNING: To mark this transaction as merchant-initiated, set the ``authorization-reason`` field to ``reauthorization``.
+
+. *Capture-Authorization*
++
+NOTE: This step captures the remaining amount due for the additional product or service (e.g. the breakdown and repair insurance).
+
+//-
+
+
+

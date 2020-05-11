@@ -1,0 +1,201 @@
+[#API_CC_3DS2_UseCases_CIOneClickCheckout]
+== One-Click Checkout
+
+For one-click checkout transactions, merchants store the consumer's card details (as a token) for future transactions. If the consumer wants to buy goods at a later point in time, they can do so without having to re-enter their card details.
+
+Card details can be either stored <<API_CC_3DS2_UseCases_CIOneClickCheckout_IndependentOfPayment, independently of a payment>> or <<API_CC_3DS2_UseCases_CIOneClickCheckout_DuringPayment, during a payment>>.
+
+. **Independent of payment:** A consumer creates an account with an online shop and provides their credit card details upon registration. At the moment of registration, no money is transferred.
+. **During payment:** The credit card details are stored during the consumer's first checkout.
+
+//-
+
+WARNING: Before storing card details on file, consumers must be clearly informed how they will be used in the future. Obtain the consumers' consent.
+
+[NOTE]
+====
+Authentication required: Yes +
+Card-on-file flagging required: Yes
+====
+
+[#API_CC_3DS2_UseCases_CIOneClickCheckout_IndependentOfPayment]
+=== Option 1: One-Click Checkout - Independent of Payment
+
+Download a Postman collection for this use case option 
+pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/one-click-checkout_independend_of_payment.postman_collection.json" target="_blank" rel="noreferrer noopener" download>here.</a>] 
+
+The 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. +
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+
+. *Check-Enrollment* (initial transaction, zero amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+[CAUTION]
+====
+- Include the ``three-d/version`` field and set its value to ``2.1``.
+- Set the ``challenge-indicator`` to ``04``.
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment-response.adoc[]
++
+
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
++
+
+. *Check-Payer-Response* (optional) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the check-payer-response. 
++
+
+. *Authorization-Only* (zero amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authorization-transaction.adoc[]
++
+[CAUTION]
+====
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+
+. *Check-Enrollment* (subsequent transaction, payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+[CAUTION]
+====
+- Include the ``three-d/version`` field and set its value to ``2.1``.
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+NOTE: It is not required to set the ``challenge-indicator`` to ``04``.
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment-response.adoc[]
++
+
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
++
+
+. *Check-Payer-Response* (optional) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the check-payer-response. 
++
+
+. *Authorization* (payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authorization-transaction.adoc[]
++
+[CAUTION]
+====
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+
+. *Capture-Authorization* (payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-capture-authorization-transaction.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the capture-authorization.
+
+//-
+
+[#API_CC_3DS2_UseCases_CIOneClickCheckout_DuringPayment]
+=== Option 2: One-Click Checkout - During Payment
+
+Download a Postman collection for this use case option 
+pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/one-click-checkout_during_payment.postman_collection.json" target="_blank" rel="noreferrer noopener" download>here.</a>] 
+
+The 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. + 
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+
+. *Check-Enrollment* (initial transaction, payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+[CAUTION]
+====
+- Include the ``three-d/version`` field and set its value to ``2.1``.
+- Set the ``challenge-indicator`` to ``04``.
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment-response.adoc[]
++
+NOTE: This is a transaction used to sign a card-on-file agreement. Therefore, Strong Customer Authentication is required. Exemptions do not apply.
++
+
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
++
+
+. *Check-Payer-Response* (optional) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the check-payer-response. 
++
+
+. *Authorization* (payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authorization-transaction.adoc[]
++
+[CAUTION]
+====
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``first``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+
+. *Capture-Authorization* (payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-capture-authorization-transaction.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the capture-authorization.
++
+
+. *Check-Enrollment* (subsequent transaction, payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+[CAUTION]
+====
+- Include the ``three-d/version`` field and set its value to ``2.1``.
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+[NOTE]
+====
+- The ``token-id`` can be used instead of the ``account-number``.
+- It is not required to set the ``challenge-indicator`` to ``04``.
+====
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment-response.adoc[]
++
+
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
++
+
+. *Check-Payer-Response* (optional) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the check-payer-response. 
++
+
+. *Authorization* (payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authorization-transaction.adoc[]
++
+[CAUTION]
+====
+- Set the ``periodic-type`` to ``ci`` (consumer-initiated) and the ``sequence-type`` to ``recurring``. 
+- Include the ``merchant-tokenization-flag`` field and set its value to ``true``.
+====
++
+
+. *Capture-Authorization* (payment amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-capture-authorization-transaction.adoc[]
++
+NOTE: It is not required to include the ``periodic-type`` and ``sequence-type`` fields in the capture-authorization.
+
+//-
