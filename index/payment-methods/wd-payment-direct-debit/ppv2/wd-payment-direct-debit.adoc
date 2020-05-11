@@ -1,0 +1,443 @@
+:payment-method-name: {payment-provider-name} Payment Guaranteed Direct Debit
+
+[#PPv2_PaymentDirectDebit]
+== {payment-page-v2}
+
+_{payment-method-name}_ allows the consumer to pay directly from their bank account. The invoicing, direct debit and collection process (dunning) is handled by {payment-provider-name}. _{payment-method-name}_ ensures that merchants receive the payment amount from {payment-provider-name} prior to settlement with consumers.
+
+_{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+[#PPv2_PaymentDirectDebit_GeneralInformation]
+=== General Information
+
+include::{root}/include/ppv2-general-information.adoc[]
+
+Below, we provide sample requests for the transaction type <<PPv2_PaymentDirectDebit_TransactionType_authorization, _authorization_>>, including a field list with short descriptions.
+
+include::{root}/include/ppv2-general-information-2.adoc[]
+
+[#PPv2_PaymentDirectDebit_TestCredentials]
+=== Test Credentials
+
+[cols="20h,80"]
+|===
+|URI (Endpoint) 
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+
+|Merchant Account ID (MAID) 
+|3cfb0fb7-59e2-4d92-847f-37121d633844
+
+|Username 
+|16390-testing
+
+|Password 
+|3!3013=D3fD8X7
+
+|Secret Key (used for response verification) 
+|cf0b29fc-a6ab-474d-b6be-92e9596e9107
+|===
+
+[#PPv2_PaymentDirectDebit_TestCredentials_Additional]
+.Test Credentials for the _{payment-method-name}_ Environment
+
+[cols="20h,80"]
+|===
+|IBAN 
+|DE42512308000000060004
+
+|BIC 
+|WIREDEMMXXX
+
+|Bank 
+|Test Bank
+|===
+
+[#PPv2_PaymentDirectDebit_Countries]
+=== Countries and Currencies
+
+[cols="20h,80"]
+|===
+|Countries
+|Germany
+
+|Currencies
+|EUR
+|===
+
+[#PPv2_PaymentDirectDebit_TransactionType_authorization]
+=== Transaction Type _authorization_
+
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+
+[#PPv2_PaymentDirectDebit_Samples]
+
+=== Sample Workflow
+
+We provide JSON examples for each step of this process. You can find them below.
+
+.Request Headers
+
+.Request Headers
+[cols="20h,80"]
+|===
+|Authorization
+|"Authorization"="Basic" + base64 (“username:password”). Use username and password as given in your {payment-provider-name} contract to base64-encode the authorization.
+|Content-Type
+|application/json
+|===
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2_GuaranteedDirectDebit_TransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[%autowidth, cols="m,,,,,,,"]
+|===
+4+|Field (JSON) |Data Type |Cardinality |Size |Description
+
+3+|merchant-account-id
+m|value
+|String
+|Mandatory
+|36
+|A unique identifier assigned to every merchant account (by {payment-provider-name}).
+
+4+|request-id
+|String
+|Mandatory
+|150
+|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random request-id. +
+Allowed characters: `[a-z0-9-_ ]`
+
+4+|transaction-type
+|String
+|Mandatory
+|36
+a|The requested transaction type. Available transaction types for _{payment-method-name}_:
+
+- `authorization`
+
+//-
+
+.2+|requested-amount
+3+m|currency
+|String
+|Mandatory
+|3
+|The currency of the requested/contested transaction amount. For _{payment-method-name}_ payments, the currency must be set to ``EUR``.
+Format: 3-character abbreviation according to ISO 4217.
+
+3+m|value
+|Numeric
+|Mandatory
+|11
+|The full amount that is requested/contested in a transaction. 2 decimal places allowed. +
+Use `.` (decimal point) as the separator.
+
+|payment-methods
+m|payment-method
+2+m|name
+|String
+|Optional
+|15
+|The name of the payment method used. Set this value to ``guaranteeddirectdebit``.
+
+.10+m|account-holder
+.5+m|address
+2+m|street1
+|String
+|Optional
+|128
+|The first line of the street address of the consumer.
+
+2+m|state
+|String
+|Optional
+|32
+|The state or province of the address of the consumer.
+
+2+m|country
+|Token
+|Optional
+|3
+|The Country Id of the address of the consumer.
+
+2+m|city
+|String
+|Optional
+|32
+|The city of the address of the consumer.
+
+2+m|postal-code
+|String
+|Optional
+|16
+|The postal code or ZIP of the address of the consumer.
+
+3+m|first-name
+|String
+|Mandatory 
+|32
+|The first name of the consumer.
+
+3+m|last-name
+|String
+|Mandatory 
+|32
+|The last name of the consumer.
+
+3+m|email
+|String
+|Mandatory 
+|64
+|The email address of the consumer.
+
+3+m|phone
+|String
+|Mandatory 
+|32
+|The phone number of the consumer.
+
+3+m|date-of-birth
+|String
+|Mandatory 
+|n/a
+|The date of birth of the consumer.
+
+4+|ip-address
+|String
+|Optional
+|45
+a|The internet protocol address of the consumer as recorded by the entity receiving the transaction attempt from the consumer. 
+
+4+|order-number
+|String
+|Mandatory 
+|64
+a|String provided by the merchant, to store the 'Order Number' for the transaction.
+
+.7+|order-items
+.7+m|order-item
+2+m|name
+|Alphanumeric
+|Mandatory 
+|
+a|Name of the item in the basket.
+
+2+m|description
+|String 
+|Mandatory
+|
+a|Description of the item in the basket.
+
+2+m|article-number
+|String
+|Mandatory
+|
+a|EAN or other article identifier for merchant.
+
+.2+m|amount
+m|value
+|Numeric
+|Mandatory
+|
+|The item price per unit.
+
+m|currency
+|String
+|Mandatory
+|3
+|The currency of the item price per unit.
+
+2+m|tax-rate
+|Numeric
+|Mandatory
+|
+a|The item tax rate per unit.
+
+2+m|quantity
+|Numeric
+|Mandatory
+|
+a|The total count of items in the order.
+
+4+|locale
+|String
+|Optional
+|6
+|A set of parameters that defines the user’s language, country and any special
+variant preferences that the user wants to see in their user interface.
+Typically used in conjunction with Hosted Payment Page.
+
+4+|creditor-id
+|String
+|Optional
+|256
+|The creditor ID of the merchant, allowing processing of _{payment-method-name}_ transactions.
+
+.2+|mandate
+3+m|mandate-id
+|String
+|Optional
+|35
+|The mandate Id for the mandate generated between the consumer and the merchant allowing
+the merchant to debit the consumer’s bank account.
+
+3+m|signed-date
+|String
+|Optional
+|19
+|The date that the mandate was signed.
+
+4+|success-redirect-url
+|String
+|Mandatory
+|256
+|The URL to which the consumer is redirected after a successful payment, e.g. ``\https://{pp-redirect-url-success}``.
+
+4+|cancel-redirect-url
+|String
+|Mandatory
+|256
+|The URL to which the consumer is redirected after having canceled a payment, e.g. ``\https://{pp-redirect-url-cancel}``.
+
+4+|fail-redirect-url
+|String
+|Mandatory
+|256
+|The URL to which the consumer is redirected after an unsuccessful payment, e.g. ``\https://{pp-redirect-url-error}``.
+|===
+
+
+.2. Redirect the Consumer to the Payment Page (Sample Response URL)
+
+[source,json,subs=attributes+]
+----
+{
+  "payment-redirect-url": "https://{pp-test-instance-hostname}/?wPaymentToken=A_2xknKaa5bl18Rmm1qCVFLBuGhl2eai5stNEtNbTgE"
+}
+----
+
+include::{root}/include/ppv2-redirect-instructions.adoc[]
+
+.3. Parse and Process the _authorization_ Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2_GuaranteedDirectDebit_TransactionTypeAuthorization_DecodedPaymentResponse.json[]
+----
+
+[%autowidth]
+|===
+4+|Field (JSON) |Data Type |Description
+
+m|payment-methods
+m|payment-method
+2+m|payload
+|String
+|The value of ``payload`` depends on the payment method. +
+Always empty for _{payment-method-name}_.
+
+.2+m|custom-fields
+.2+m|custom-field
+2+m|field-name
+|String
+|The merchant defined name of the custom field.
+
+2+m|field-value
+|String
+|The merchant defined name of the custom field.
+
+4+m|transaction-id
+|String
+a|A unique identifier assigned to every transaction. This information is
+returned in the response only.
+
+4+m|transaction-state
+|Token
+a|The current transaction state. Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+//-
+
+Typically, a transaction starts with an "in-progress"
+state and finishes with either the "success" or the "failed" state. This information is returned in the
+response only.
+
+4+m|completion-time-stamp
+|DateTime
+|The UTC/ISO time-stamp documents the time & date when the transaction was executed. +
+Format: ``YYYY-MM-DDThh:mm:ss`` (ISO).
+
+.3+m|statuses
+.3+m|status
+2+m|description
+|String
+|Text used to describe the transaction status. This information is returned in the response only.
+
+2+m|severity
+|Token
+|The severity of the transaction, can be information, warning, or error. This information
+is returned in the response only.
+
+2+m|code
+|String
+|The status of a transaction. This is primarily used in conjunction with the transaction state
+to determine the exact details of the status of the transaction. This information is returned in
+the response only.
+
+m|account-holder
+3+m|account-info
+|
+|The value of ``account-info`` depends on the payment method. +
+Empty when the ``account-info`` field is not used in the request.
+
+4+m|api-id
+|Token
+|A unique identifier assigned to every API.
+
+m|device
+3+m|fingerprint
+|String
+|A device fingerprint is information about a remote computing device, collected by the merchant
+for identification purposes. Fingerprints can be used to fully or partially
+identify individual users or devices even when cookies are turned off.
+
+4+m|descriptor
+|String
+|The description of the transaction displayed on the account holder’s statement.
+In the case of a credit card statement, it can be dynamically set per transaction.
+It is only supported by some acquirers.
+|===
+
+
+[#PPv2_PaymentDirectDebit_PostProcessing]
+=== Post-Processing Operations
+
+{payment-page-abbr} is best used for one-off payments (e.g. regular, independent _debit_ transactions) or the initial transaction in a chain of them (e.g. a first _authorization_ in a chain of recurring transactions).
+However, when it comes to referencing a transaction for any kind of post-processing operation - such as a refund of one of your _debit_ transactions - use our <<RestApi, REST API>> directly.
+
+IMPORTANT: Check the REST API <<API_PaymentDirectDebit, _{payment-method-name}_ specification>> for details on _{payment-method-name}_ -specific post-processing operations.
+
+[#PPv2_PaymentDirectDebit_JSONFields]
+=== JSON/NVP Field Reference
+include::{root}/include/ppv2-apm-optional-fields.adoc[]
+
+[#PPv2_PaymentDirectDebit_JSONNVPReference]
+
+include::{root}/include/ppv2-apm-json-nvp-reference.adoc[]
+
+//-
