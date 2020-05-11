@@ -1,0 +1,213 @@
+:cc-exp-year: 2023
+:cc-exp-month: 01
+
+[#3DS2_IntegrationGuide_REST]
+== 3D Secure 2 for REST API
+
+[NOTE] 
+====
+The <<3DS2_Workflow, 3D Secure 2 workflow>> remains identical to the 3D Secure 1 workflow.
+====
+
+[#3DS2_IntegrationGuide_REST_integration]
+=== Step-by-Step Integration
+
+|===
+a|_How to integrate 3D Secure 2 for REST API:_
+
+. Check-Enrollment
+. Redirect the Consumer to the Access Control Server (ACS) URL
+. Check-Payer-Response (optional)
+. Complete the Payment Transaction
+
+//-
+|===
+
+. *Check-Enrollment* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment-response.adoc[]
++
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
++
+. *Check-Payer-Response (optional)* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
++
+. *Complete the Payment Transaction* +
+Proceed with the respective transaction type (e.g. authorization, purchase, authorization-only).
++
+You must reference either the previous check-enrollment or the check-payer-response, depending on whether the check-payer-response has been executed or not.
++
+--
+- Following check-enrollment: Enter the transaction ID from the check-payer-response in the ``parent-transaction-id`` field.
+- Following (optional) check-payer-response: Enter the transaction ID from the check-payer-response in the ``parent-transaction-id`` field.
+--
++
+If the check-payer-response was not executed, use instead the ``PARes`` received via ``TermURL`` as part of the response to the ACS HTTPS POST request.
+
+//-
+
+[NOTE]
+====
+Make sure to distinguish between the terms *authentication* and *authorization:* 
+
+- Authentication confirms the cardholder's identity.
+- Authorization checks whether the cardholder's account holds sufficient funds and reserves the respective amount for later payment. 
+
+//-
+====
+
+Detailed payment flows of typical 3D Secure 2 use cases can be found <<CreditCard_3DS2_UseCases, here>>. More information on the general 3D Secure 2 worflows is given in the <<3DS2_Workflow, 3D Secure 2 Workflows>> section.
+
+[#3DS2_IntegrationGuide_REST_example]
+=== Payment-Processing Example
+
+We provide a Postman collection containing ready-made JSON samples for each step of a one-time payment transaction.
+
+The 3D Secure 2 payment-processing example is *designed for the testing environment* and *does not use real information.*
+
+[%autowidth, cols="70,30"]
+|===
+s|Get the 3D Secure 2 Postman collection for the one-time payment transaction: a|pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/one-time-payment-option-one.postman_collection.json" target="_blank" rel="noreferrer noopener" download>Download</a>]
+|===
+
+// NOTE: Download a 3D Secure 2 postman collection for all our 3D Secure 2 use cases <<3DS2_Testing_Samples, here>>.
+
+[NOTE]
+====
+More details on 3D Secure fields included in the sample requests can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. 
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+====
+
+[#3DS2_IntegrationGuide_REST_example_credentials]
+.Test Credentials
+
+The Postman collection is preconfigured with the following test credentials:
+
+[%autowidth, cols="h,", stripes="none"]
+|===
+| URL (Endpoint)           
+| ``\https://{rest-api-test-endpoint}``
+
+| Merchant Account ID (MAID) 
+| 33f6d473-3036-4ca5-acb5-8c64dac862d1
+
+| Username                   
+| 70000-APILUHN-CARD
+
+| Password                   
+| 8mhwavKVb91T
+
+2+h|Test Card
+|Card Number 
+|5413330300201192
+
+|Expiration Date 
+|{cc-exp-month}/{cc-exp-year}
+
+|CVV 
+|192
+|===
+
+You can find further test credentials and test card types in our <<3DS2_Testing, 3D Secure 2 Testing>> section. 
+
+[#3DS2_IntegrationGuide_REST_example_run]
+.Run the Collection
+
+Import and run the collection with https://www.postman.com/postman[Postman].
+
+To import the collection in Postman,
+
+. Download the collection.
+
+. Open Postman and click *Import* in the header bar.
+
+. Click *Choose Files* and select the respective collection file. 
++
+
+The collection appears in the _Collections_ tab in the sidebar.
+
+
+
+To run the collection in Postman,
+
+. Select it and click on the arrow next to the collection name.
+
+. Click *Run*.
++
+Requests included in the collection run automatically in series. 
+
+//-
+
+[NOTE]
+====
+A successful test setup requires the integration of an ACS simulator. It allows you to simulate the ACS communication and to obtain the ``PARes``. 
+====
+
+Our samples work with https://webhook.site[Webhook.site] to simulate the ACS URL. The communication with Webhook.site is already set up in our collection. This allows for automatic testing without interruption. 
+
+To manually integrate Webhook.site in a test setup, 
+
+. Send a check-enrollment request. +
+A check-enrollment response containing the ``PAReq``, the ``TermUrl`` and ``MD`` is returned.
+
+. Open https://webhook.site[Webhook.site].
+
+. Click *Edit* in the header bar. +
+A pop-up window opens.
+
+. Copy/paste the HTTPS POST request in the field *Response Body*. 
++
+
+[#3DS2_IntegrationGuide_REST_AutoSubmission]
+.HTTPS POST Request
+[source,html]
+----
+<html>
+   <head>
+      <meta HTTP-EQUIV="Content-Type" content="text/html; charset=UTF-8" />
+      <meta HTTP-EQUIV="Cache-Control" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Pragma" CONTENT="no cache" />
+      <meta HTTP-EQUIV="Expires" CONTENT="0" />
+   </head>
+   <body OnLoad="AutoSubmitForm();">
+      <form name="downloadForm" action="AcsUrl" method="POST">
+         <input type="hidden" name="PaReq" value="PaReq" />
+         <input type="hidden" name="TermUrl" value="TermUrl" />
+         <input type="hidden" name="MD" value="optionalValue" />
+         <SCRIPT LANGUAGE="Javascript">
+            <!--function AutoSubmitForm() { document.downloadForm.submit();}//-->
+         </SCRIPT>
+         <input type="submit" name="continue" value="Continue" />
+      </form>
+   </body>
+</html>
+----
++
+
+[NOTE] 
+====
+*Default status code* = 200 +
+*Content type* = text/html +
+*Timeout before response* = 0
+====
+
+. In the HTTPS POST request 
+.. replace the value ``PAReq`` and the action ``AcsUrl`` with the values  from the check-enrollment response.
+.. replace the value ``TermUrl`` with *your randomly generated URL* from Webhook.site.
+
+. Click *Save*. +
+The pop-up window closes.
+. Next to your randomly generated URL, click *Open in a new tab.* +
+. In the new tab, click *Continue.*
+. Enter the password ``{three-d-s-pw}`` and click *Submit* (if required).
+. Return to the previous webhook tab. +
+You can find the ``PARes`` in the _Form Values_ section.
+. Copy the ``PARes`` and return to Postman.
+. Enter the ``PARes`` and the ``transaction-id`` of the check-enrollment response in the check-payer-response request.
+. Send the check-payer-response request.
+. Complete the payment transaction.
+
+//-
+
