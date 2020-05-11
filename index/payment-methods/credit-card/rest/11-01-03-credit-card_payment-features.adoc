@@ -457,19 +457,17 @@ directly.
 
 Requests in _Payment Facilitator_ traffic require additional sub
 merchant information in the
-<<CC_Fields_xmlelements_request_submerchantinfo, sub-merchant-info>>>
+<<CC_Fields_xmlelements_request_submerchantinfo, ``sub-merchant-info``>>
 tag of each first request in the transaction flow (e.g.
 ``check-enrollment``, ``authorization-only``, ``authorization`` or
 ``purchase``).
 
-The _sub merchant information_ is only required for MasterCard traffic,
-but {payment-provider-name} recommends to send it for every credit card brand to avoid
-complexity in implementation.
+The sub merchant information is mandatory for MasterCard, Visa, UPI and JCB traffic.
 
-NOTE: Each transaction type must contain ``<sub-merchant-info>`` in the
-initial step. For the following steps ``<sub-merchant-info>`` is not
-mandatory, but {payment-provider-name} recommends to send ``<sub-merchant-info>`` in every
-step. This helps to avoid complexity in implementation.
+NOTE: For each transaction flow the first request must contain ``sub-merchant-info``. For the following steps ``sub-merchant-info`` is not
+mandatory. We recommend to send ``sub-merchant-info`` in every step. This avoids complexity in implementation.
+
+For details contact <<ContactUs, Merchant Support>>.
 
 ifdef::env-wirecard[]
 [#CreditCard_PaymentFeatures_PaymentFacilitator_HowItWorks]
@@ -734,7 +732,7 @@ Account Updater also covers brand flips between these two.
 
 .What is updated by Account Updater?
 
-<<CreditCard_PaymentFeatures_RecurringTransaction, Recurring payments>> need a ``transaction-id`` of a preceding transaction to refer to (i.e. ``parent-transaction-id``). If credit card details change, Account Updater updates the corresponding ``transaction-id`` and returns the updated ``transaction-id`` to the merchant. 
+<<CreditCard_PaymentFeatures_RecurringTransaction, Recurring payments>> need a ``transaction-id`` of a preceding transaction to refer to (i.e. ``parent-transaction-id``). If credit card details change, Account Updater updates the corresponding ``transaction-id`` and returns the updated ``transaction-id`` to the merchant.
 
 ---
 
@@ -753,7 +751,7 @@ image::images/11-01-03-credit-card_payment-features/Account_Updater_Workflow.png
 //----
 //sequenceDiagram
 //    Merchant->>SFTP Server: 1. Upload request file
-//    SFTP Server->>Account Updater: 2. Retrieve request file  
+//    SFTP Server->>Account Updater: 2. Retrieve request file
 //    participant A as Schemes (MC/Visa)
 //   Account Updater->>+A:  3. Request scheme data
 //Note over Issuers: <--    populate<br/> <-- schemes<br/> <--   continuously
@@ -782,14 +780,14 @@ The ``FLIX`` folder contains two customized subfolders: ``from ...`` and ``to ..
 [#CreditCard_PaymentFeatures_AccountUpdater_Files]
 ====== Files
 
-Both the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>> and the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>> are plain text files without extension. 
+Both the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Request, request file>> and the <<CreditCard_PaymentFeatures_AccountUpdater_Files_Response, response file>> are plain text files without extension.
 The fields within the files are seperated by ``;``. All fields are mandatory, unless otherwise indicated.
 Default encoding is UTF-8.
 
 [#CreditCard_PaymentFeatures_AccountUpdater_Files_Request]
 .Request File
 
-The request file contains original ``transaction-id`` information. 
+The request file contains original ``transaction-id`` information.
 The request file name must have a specific format:
 
 image::images/11-01-03-credit-card_payment-features/Account_Updater_request_file_name.png[Account Updater request file name, width=79%, align=center]
@@ -871,7 +869,7 @@ The response file has the same name as the corresponding request file, only with
 [.text-center]
 *AU.[red]#RES#.ID<MAID>.D<YYMMDD>.S<3-digit seq #>*
 
-It contains 
+It contains
 
 * updated ``transaction-id`` information (i.e. information on credit card details changes) in case of success.
 * response codes, describing the credit card details changes in case of success.
@@ -906,7 +904,7 @@ NOTE: If a record is invalid (e.g. invalid or missing ``transaction-id``), Accou
 Indicates a detail line.
 * ``rfu:`` +
 Reserved for future use.
-* ``transaction-id``: + 
+* ``transaction-id``: +
 Retrieved from an existing transaction. This ``transaction-id`` will be checked by Account Updater and supplemented with the ``new-transaction-id`` if credit card details have changed.
 * ``new-transaction-id``: +
 New ``transaction-id`` retrieved from updated credit card details. Use this ``transaction-id`` to reference to in recurring payments.
@@ -970,13 +968,13 @@ Invalid request files can not be processed. Account Updater copies invalid reque
 +
 --
 A ``transaction-id`` is invalid if it cannot be matched with a credit card number. +
-If one or more ``transaction-id``s are invalid or missing, Account Updater 
+If one or more ``transaction-id``s are invalid or missing, Account Updater
 
   * creates a response error file that contains all invalid records
   * saves it in /``FLIX``/``toMerchant``/``error``
   * sends an email notification to the email adress configured by merchant support or given in the request file header. +
 
-Invalid records are marked accordingly in the response error file. 
+Invalid records are marked accordingly in the response error file.
 
 NOTE: Even if a request file contains invalid or missing ``transaction-id``s, records with valid ``transaction-id``s  are processed as normal, and you can retrieve a response success file from ``FLIX``/``to …​``/``new``.
 --
@@ -990,7 +988,7 @@ _Visa_ provides a loyalty program called _Visa Offers._ With the _Visa Offers Pl
 [#CreditCard_PaymentFeatures_VOP_TransactionTypes]
 ==== Transaction Types
 
-_Visa Offers Platform_ uses the transaction type _enrollment_ only. 
+_Visa Offers Platform_ uses the transaction type _enrollment_ only.
 It is needed to enroll a card in the _Visa Offers Platform._
 
 [#CreditCard_PaymentFeatures_VOP_TestCredentials]
@@ -1041,9 +1039,9 @@ A field can either be *mandatory* (M) or *optional* (O).
 5+h| payment
 
 | merchant-account-id
-| M 
-| String 
-| 36 
+| M
+| String
+| 36
 | Unique identifier for a merchant account.
 
 | request-id
@@ -1126,7 +1124,7 @@ At least one of the following must be present: ``consumer-id``, ``email`` or ``p
 // | 32
 // | This is the phone number of the consumer. At least one of the following must be present: consumer-id, email or phone. +
 
-// NOTE: If +1 999 555 0100 is the phone number in international format, then ``9995550100`` is the value of the _phone_ field. 
+// NOTE: If +1 999 555 0100 is the phone number in international format, then ``9995550100`` is the value of the _phone_ field.
 
 | phone-country-code
 | M/O
@@ -1172,37 +1170,37 @@ _Visa Offers Platform_ sets the PromoCode to upper case upon receipt. Alphanumer
 3+h| payment
 
 | transaction-id
-| String 
+| String
 | Unique identifier for a transaction. It is generated by {payment-provider-name}.
 
 | instrument-country
-| String 
+| String
 a| The instrument country retrieves the issuer country of a certain credit card. It returns a two-digit country code. +
 
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
 
 3+h| statuses
 
-| status  
-| String 
+| status
+| String
 | Status of a transaction.
 
-| status@code 
-| String 
+| status@code
+| String
 | Code of the status of a transaction.
 
-| status@description 
-| String 
+| status@description
+| String
 | Description of the status code of a transaction.
 
-| status@severity 
-| String 
+| status@severity
+| String
 | Provides information if a status is a ``warning``, an ``error`` or an ``information``.
 
 3+h| card-data
 
-| issuer-name  
-| String 
+| issuer-name
+| String
 a| Name of the card issuer. +
 
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
@@ -1210,11 +1208,11 @@ NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Togg
 3+h| loyalty
 
 | user-id
-| String 
+| String
 | Unique _VOP_ user ID generated by the _VOP_ system upon successful enrollment.
 
 | card-id
-| String 
+| String
 | Unique _VOP_ card ID generated by the _VOP_ system upon successful enrollment.
 |===
 
@@ -1227,9 +1225,9 @@ NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Togg
 5+h| payment
 
 | merchant-account-id
-| M 
-| String 
-| 36 
+| M
+| String
+| 36
 | Unique identifier for a merchant account.
 
 | request-id
@@ -1315,13 +1313,13 @@ _Visa Offers Platform_ sets the PromoCode to upper case upon receipt. Alphanumer
 
 | user-id
 | M
-| String 
+| String
 | 36
 | Unique _Visa Offers Platform_ user ID generated by the _VOP_ system upon successful enrollment.
 
 | card-id
 | O
-| String 
+| String
 | 36
 | Unique _Visa Offers Platform_ card ID generated by the _VOP_ system upon successful enrollment.
 |===
@@ -1335,37 +1333,37 @@ _Visa Offers Platform_ sets the PromoCode to upper case upon receipt. Alphanumer
 3+h| payment
 
 | transaction-id
-| String 
+| String
 | Unique identifier for a transaction. It is generated by {payment-provider-name}.
 
 | instrument-country
-| String 
+| String
 a| Country code of the card issuer. +
 
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
 
 3+h| statuses
 
-| status  
-| String 
+| status
+| String
 | Status of a transaction.
 
-| status@code 
-| String 
+| status@code
+| String
 | Code of the status of a transaction.
 
-| status@description 
-| String 
+| status@description
+| String
 | Description of the status code of a transaction.
 
-| status@severity 
-| String 
+| status@severity
+| String
 | Provides information if a status is a ``warning``, an ``error`` or an ``information``.
 
 3+h| card-data
 
-| issuer-name  
-| String 
+| issuer-name
+| String
 a| Name of the card issuer. +
 
 NOTE: Returned only if engine has enabled FEATURE_CARD_TYPE_SERVICE or X-WD-Toggle-EnableFeature=FEATURE_CARD_TYPE_SERVICE header is sent with request.
