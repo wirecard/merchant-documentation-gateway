@@ -1,8 +1,8 @@
-[#GuaranteedInvoice]
+[#API_PaymentInvoice]
 == REST API & {payment-page-v1}
-_Guaranteed Invoice by Wirecard_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+_{payment-provider-name} Payment on Invoice_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
-[#GuaranteedInvoice_CountriesandCurrencies]
+[#API_PaymentInvoice_CountriesandCurrencies]
 === Countries and Currencies
 [width=75%,cols="1h,3",stripes=none]
 |===
@@ -11,9 +11,9 @@ _Guaranteed Invoice by Wirecard_ is a type of <<PaymentMethods_PaymentMode_Offli
 | Currencies   | EUR, CHF
 |===
 
-[#GuaranteedInvoice_Communication]
+[#API_PaymentInvoice_Communication]
 ==== Communication Formats
-This table illustrates how _Guaranteed Invoice by Wirecard_ notifications are encoded and which formats and methods can be
+This table illustrates how _{payment-provider-name} Payment on Invoice_ notifications are encoded and which formats and methods can be
 used for requests and responses.
 [width=75%,stripes=none]
 |===
@@ -22,7 +22,7 @@ used for requests and responses.
    h| IPN Encodement   2+| NVP (plain text)
 |===
 
-[#GuaranteedInvoice_TransactionTypes]
+[#API_PaymentInvoice_TransactionTypes]
 === Transaction Types
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
@@ -37,7 +37,7 @@ at <<AppendixB,  Transaction Types>>.
                     consumer makes an order. All order items must be listed for the shopping
                     basket. The authorization amount must match the value of the items in
                     the basket.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
 
 |capture-authorization | Used to capture the reserved funds at the moment
                          when some or all goods are physically delivered to the consumer.
@@ -47,20 +47,20 @@ at <<AppendixB,  Transaction Types>>.
                          items that were delivered to the consumer in this delivery, not the ones
                          that were delivered before or are waiting to be delivered. The total
                          amount of the capture must be the value of the items in the basket.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
 
 |void-authorization | Used when the consumer wishes to cancel some or all
                       (not yet shipped) items from the order. Available only for a successful
                       ``authorization`` response which was not yet voided or captured. Partial and
                       multiple void are allowed, until all items from the order are canceled
                       or shipped. Basket items only list those items which are being canceled from the order.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
 
 |refund-capture | Used when the consumer wishes to return some or all
                   delivered goods. Available on a successful ``capture-authorization``.
                   Partial and multiple refunds are allowed, until all delivered items have
                   been returned. Basket items list only those items which are being returned to the merchant.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
 
 |credit | Used when merchant wishes to grant a discount on an existing
           order. Items from this order may already be delivered to the consumer.
@@ -69,12 +69,12 @@ at <<AppendixB,  Transaction Types>>.
           delivered goods to the consumer. The credit transaction must include a
           basket item representing the discount. The credit transaction must refer
           to the successful authorization transaction ID.
-                                | <<GuaranteedInvoice_Samples_GuaranteedInvoice, _Guaranteed Invoice by Wirecard_ samples>>
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
 |===
 
 [NOTE]
 ====
-. <<GuaranteedInvoice_BasketItemsDetails, Basket items>>  must be specified in every request.
+. <<API_PaymentInvoice_BasketItemsDetails, Basket items>>  must be specified in every request.
 . The response for each ``authorization`` request returns an individual
 string (an alphanumerical code) in the
 field ``descriptor``.
@@ -91,7 +91,7 @@ are shipped in separate shipments.
 //-
 ====
 
-[#GuaranteedInvoice_TestCredentials]
+[#API_PaymentInvoice_TestCredentials]
 === Test Credentials
 
 [%autowidth,stripes=none]
@@ -105,26 +105,26 @@ are shipped in separate shipments.
    h| Secret Key                2+| 555d998b-15db-46a9-8f1f-d9bc3ec66b19
 |===
 
-[#GuaranteedInvoice_Workflow]
+[#API_PaymentInvoice_Workflow]
 === Workflow
 
-[#GuaranteedInvoice_StandardProcess]
+[#API_PaymentInvoice_StandardProcess]
 ==== Standard Process
 
-[#GuaranteedInvoice_GuaranteedInvoice]
-===== Guaranteed Invoice by Wirecard
+[#API_PaymentInvoice_GuaranteedInvoice]
+===== {payment-provider-name} Payment on Invoice
 
-image::images/11-11-guaranteed-invoice/guaranteed_invoice_workflow.png[Guaranteed Invoice by Wirecard Workflow, width=950, align="center"]
+image::images/11-11-guaranteed-invoice/guaranteed_invoice_workflow.png[{payment-provider-name} Payment on Invoice Workflow, width=950, align="center"]
 
 . Consumer adds items to shopping basket.
-. Consumer selects the payment method _Guaranteed Invoice by Wirecard._
+. Consumer selects the payment method _{payment-provider-name} Payment on Invoice._
 . Merchant sends an ``authorization`` request including items to
-Wirecard.
+{payment-provider-name}.
 . Merchant receives an ``authorization`` response, including the
 descriptor (an alphanumerical code).
-. Merchant sends a ``capture`` request to Wirecard when the items
+. Merchant sends a ``capture`` request to {payment-provider-name} when the items
 are ready for delivery.
-. After a successful ``capture`` request, Wirecard or Merchant generates
+. After a successful ``capture`` request, {payment-provider-name} or Merchant generates
 the invoice, including the descriptor (an alphanumerical code).
 . Merchant waits for the incoming payment.
 . If any payment changes are necessary, the following transaction types
@@ -132,19 +132,19 @@ are available: ``credit``, ``refund-capture`` or ``void-authorization``.
 
 //-
 
-[#GuaranteedInvoice_ProcessChain]
+[#API_PaymentInvoice_ProcessChain]
 ==== Process Chain
 
 Every merchant needs to follow the process chains below successfully in
-a test environment to get an approval to go live. Wirecard checks and
+a test environment to get an approval to go live. {payment-provider-name} checks and
 approves the frontend/checkout and invoices (if generated and sent out
 by the merchant).
 
 NOTE: Please provide us with the order number and descriptor for each
 transaction.
 
-[#GuaranteedInvoice_SimpleProcessChainforGuaranteedInvoice]
-===== Simple Process Chain for Guaranteed Invoice by Wirecard
+[#API_PaymentInvoice_SimpleProcessChainforGuaranteedInvoice]
+===== Simple Process Chain for {payment-provider-name} Payment on Invoice
 
 .A: Partial Cancelations
 
@@ -206,8 +206,8 @@ transaction.
 
 //-
 
-[#GuaranteedInvoice_ComplexProcessChainforGuaranteedInvoice]
-===== Complex Process Chain for Guaranteed Invoice by Wirecard
+[#API_PaymentInvoice_ComplexProcessChainforGuaranteedInvoice]
+===== Complex Process Chain for {payment-provider-name} Payment on Invoice
 
 .X: Reduction & Adjustment Charges
 
@@ -235,11 +235,11 @@ transaction.
 
 //-
 
-[#GuaranteedInvoice_Fields]
+[#API_PaymentInvoice_Fields]
 === Fields
 
 The following elements are mandatory *M*, optional *O* or conditional
-*C* for sending a request for the payment method _Guaranteed Invoice by Wirecard_ (complete field
+*C* for sending a request for the payment method _{payment-provider-name} Payment on Invoice_ (complete field
 list available in <<RestApi_Fields, REST API field list>>):
 
 [%autowidth,stripes=none, cols="v,,,,"]
@@ -268,7 +268,7 @@ list available in <<RestApi_Fields, REST API field list>>):
 |M
 |Alphanumeric
 |30
-|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for _Guaranteed Invoice by Wirecard_.
+|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for _{payment-provider-name} Payment on Invoice_.
 
 |_requested-amount_
 |M
@@ -310,7 +310,7 @@ list available in <<RestApi_Fields, REST API field list>>):
 |C
 |Alphanumeric
 |
-|Wirecard Bank creditor identifier, provided by Wirecard Support
+|{payment-provider-name} Bank creditor identifier, provided by {payment-provider-name} Support
 
 |_locale_
 |O
@@ -489,7 +489,7 @@ If empty or with wrong value, German language is used by default. The same logic
 [discrete]
 ==== shipping
 
-|Shipping fields have to match the billing address (specified as <<GuaranteedInvoice_Fields_AccountHolder, account-holder>>).
+|Shipping fields have to match the billing address (specified as <<API_PaymentInvoice_Fields_AccountHolder, account-holder>>).
 
 |_shipping/first-name_
 |O
@@ -514,7 +514,7 @@ If empty or with wrong value, German language is used by default. The same logic
 [discrete]
 ==== shipping/address
 
-|Shipping/address fields have to match the billing address (specified as <<GuaranteedInvoice_Fields_AccountHolderAddress, account-holder.address>>).
+|Shipping/address fields have to match the billing address (specified as <<API_PaymentInvoice_Fields_AccountHolderAddress, account-holder.address>>).
 
 |_shipping/address/street1_
 |O
@@ -573,14 +573,14 @@ If empty or with wrong value, German language is used by default. The same logic
 |C
 |Alphanumeric
 |
-|Mandate ID will be generated by Wirecard. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt"
+|Mandate ID will be generated by {payment-provider-name}. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt"
 
 |===
 
-[#GuaranteedInvoice_Features]
+[#API_PaymentInvoice_Features]
 === Features
 
-[#GuaranteedInvoice_Features_Bankaccountdetails]
+[#API_PaymentInvoice_Features_Bankaccountdetails]
 ==== Bank Account Details
 
 consist either of
@@ -596,7 +596,7 @@ and ``gender``. An address within the account holder details must
 
 NOTE: Shipping address has to match the billing address.
 
-[#GuaranteedInvoice_BasketItemsDetails]
+[#API_PaymentInvoice_BasketItemsDetails]
 ==== Basket Items Details
 
 Basket items details must be sent along with every request. Content of
@@ -627,13 +627,13 @@ payment details on provider and they can be obtained from {payment-gateway} late
 | _order-items.order-item.quantity_       | M                      | Number       | Total count of items in the order.
 |===
 
-[#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice]
-==== Device Fingerprint (Guaranteed Invoice by Wirecard)
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice]
+==== Device Fingerprint ({payment-provider-name} Payment on Invoice)
 
-[#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice_Introduction]
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_Introduction]
 ===== Introduction
 
-_Device Fingerprint (Guaranteed Invoice by Wirecard)_ is a method of fraud
+_Device Fingerprint ({payment-provider-name} Payment on Invoice)_ is a method of fraud
 protection and able to identify technical devices. Fraudsters learn to
 exploit the weaknesses of traditional fraud prevention tools over time.
 We protect businesses from fraud and loss of revenue with innovative
@@ -644,7 +644,7 @@ describes the procedure of a _Device Fingerprint_ call and how to
 implement its result in the PAYMENT_QUERY operation and PAYMENT_REQUEST
 operation.
 
-[#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice_UniqueToken]
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_UniqueToken]
 ===== Generate a Unique Token
 
 To generate a fingerprint you first need to create a unique token within
@@ -661,7 +661,7 @@ $customerId = $customerObject->getId();
 $deviceIdentToken = md5($customerId . "_" . $timestamp);
 ----
 
-[#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice_RunJavaScript]
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_RunJavaScript]
 ===== Run JavaScript
 
 We recommend outputting the _Device Fingerprint_ JavaScript code as
@@ -690,30 +690,30 @@ Please ensure that this script is executed only one-time per session
 </object>
 ----
 
-[#GuaranteedInvoice_DeviceFingerprint_GuaranteedInvoice_DataTransferToWirecard]
-===== Data Transfer to Wirecard
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_DataTransferTo{payment-provider-name}]
+===== Data Transfer to {payment-provider-name}
 
 Please transfer the ``deviceIdentToken`` within the authorization request to
-Wirecard. You can find a corresponding XML sample for either <<GuaranteedInvoice_Samples_GuaranteedInvoice, Guaranteed Invoice by Wirecard>> or <<GuaranteedDirectDebit_Samples_DirectDebit, Guaranteed Direct Debit>>.
+{payment-provider-name}. You can find a corresponding XML sample for either <<API_PaymentInvoice_Samples_GuaranteedInvoice, {payment-provider-name} Payment on Invoice>> or <<API_PaymentDirectDebit_Samples_DirectDebit, {payment-provider-name} Payment Guaranteed Direct Debit>>.
 
-[#GuaranteedInvoice_RegularConsumers]
+[#API_PaymentInvoice_RegularConsumers]
 ==== Regular Consumers
 
 Regular consumers who pay their bills on time are important capital for
-each merchant. With Wirecard, merchants can use this capital as a
+each merchant. With {payment-provider-name}, merchants can use this capital as a
 payment method.
 
 To accomplish that, merchants submit a list with the order and
-payment history of their consumers to Wirecard.
+payment history of their consumers to {payment-provider-name}.
 
 https://wcdwl.ratepay.com/index.php/en/overview.html[Here] you can
 find which format (and content) you need for the list and how to upload
 it.
 
-[#GuaranteedInvoice_ConsenttoGeneralTermsandConditions]
+[#API_PaymentInvoice_ConsenttoGeneralTermsandConditions]
 ==== Consent to General Terms and Conditions
 
-During checkout, the consumer has to agree to Wirecard's general terms
+During checkout, the consumer has to agree to {payment-provider-name}'s general terms
 and conditions. They have to give their consent by ticking an
 appropriate checkbox.
 
@@ -722,7 +722,7 @@ appropriate checkbox.
 
 |English
 |I herewith confirm that I have read the https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy
-notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for Wirecard payment types and that I accept their validity.
+notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for {payment-provider-name} payment types and that I accept their validity.
 a|
 - https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy notice]:
 link to
@@ -732,7 +732,7 @@ link to
 https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/
 |Deutsch
 |Hiermit bestätige ich, dass ich die https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]
-und https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzlichen Geschäftsbedingungen] für Wirecard-Zahlarten zur Kenntnis genommen habe und mit deren Geltung einverstanden bin.
+und https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzlichen Geschäftsbedingungen] für {payment-provider-name}-Zahlarten zur Kenntnis genommen habe und mit deren Geltung einverstanden bin.
 a|
 - https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]:
 link to
@@ -745,21 +745,21 @@ https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-f
 Make sure that the privacy notice and the additional terms and
 conditions are linked properly.
 
-[#GuaranteedInvoice_AdditionalBusinessContitions]
+[#API_PaymentInvoice_AdditionalBusinessContitions]
 ===== Additional Business Conditions
 
-When consumers use _Guaranteed Invoice by Wirecard,_
-payments with debt discharging effect can be made solely to Wirecard.
+When consumers use _{payment-provider-name} Payment on Invoice,_
+payments with debt discharging effect can be made solely to {payment-provider-name}.
 
-[#GuaranteedInvoice_Samples]
+[#API_PaymentInvoice_Samples]
 === Samples
 
 Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for corresponding notification samples.
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice]
-==== Guaranteed Invoice by Wirecard
+[#API_PaymentInvoice_Samples_GuaranteedInvoice]
+==== {payment-provider-name} Payment on Invoice
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice_Authorization]
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_Authorization]
 ===== _authorization_
 
 .XML authorization Request (Successful)
@@ -774,7 +774,7 @@ include::{root}/samples/xml/ratepay-invoice_authorization_request_success_nl.xml
 include::{root}/samples/xml/ratepay-invoice_authorization_response_success_nl.xml[]
 ----
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice_CaptureAuthorization]
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_CaptureAuthorization]
 ===== _capture-authorization_
 
 .XML capture-authorization Request (Successful)
@@ -789,7 +789,7 @@ include::{root}/samples/xml/ratepay-invoice_capture-authorization_request_succes
 include::{root}/samples/xml/ratepay-invoice_capture-authorization_response_success_nl_32783284.xml[]
 ----
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice_Credit]
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_Credit]
 ===== _credit_
 
 .XML credit Request (Successful)
@@ -804,7 +804,7 @@ include::{root}/samples/xml/ratepay-invoice_credit_request_success_32783284.xml[
 include::{root}/samples/xml/ratepay-invoice_credit_response_success_nl_32783284.xml[]
 ----
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice_RefundCapture]
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_RefundCapture]
 ===== _refund-capture_
 
 .XML refund-capture Request (Successful)
@@ -820,7 +820,7 @@ include::{root}/samples/xml/ratepay-invoice_refund-capture_response_success_nl_7
 ----
 
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice_VoidAuthorization]
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_VoidAuthorization]
 ===== _void-authorization_
 
 .XML void-authorization Request (Successful)
@@ -836,8 +836,8 @@ include::{root}/samples/xml/ratepay-invoice_void-authorization_request_success_3
 include::{root}/samples/xml/ratepay-invoice_void-authorization_response_success_nl_32783284.xml[]
 ----
 
-[#GuaranteedInvoice_Samples_GuaranteedInvoice_DeviceIdentToken]
-===== _authorization_ Request to Wirecard
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_DeviceIdentToken]
+===== _authorization_ Request to {payment-provider-name}
 
 .deviceIdentToken Transfer
 [source,xml,subs=attributes+]
