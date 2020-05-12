@@ -7,7 +7,7 @@ You have to trigger the payment of a constant amount at regular intervals. For t
 . All succeeding payments are merchant-initiated transactions that do not need SCA.
 
 //-
-A common business scenario would be subscription fees for a software-as-a-service (SaaS) solution, or for video streaming services.
+A common business scenario would be subscription fees for video/audio streaming services or for software-as-a-service solutions.
 
 WARNING: When setting up the recurring payment plan you have to inform your consumer about the conditions of the agreement in explicit terms.
 
@@ -50,11 +50,19 @@ The captured amount must not exceed the authorized amount.
 . *Authorization* (subscription fee) as MIT +
 // Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
 The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
-As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response in the ``parent-transaction-id`` field (see step 4).
+As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
 . *Capture* or *Purchase* (subscription fee) +
 Send a request with transaction type ``capture`` or ``purchase``. +
-As ``parent-transaction-id``, enter the ``transaction-id`` from the *second* authorization response (see step 6). +
-The amount in the capture/purchase request must not exceed the authorized amount.
+As ``parent-transaction-id``, enter the ``transaction-id`` from the *last* authorization response (see step 6). +
+The ``requested-amount`` in the capture request must not exceed the authorized amount.
+
+*or*
+
+. *Purchase* (subscription fee) +
+Send a request with transaction type ``purchase``. +
+The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
+The ``requested-amount`` in the purchase request must not exceed the authorized amount.
 
 //-
 
@@ -94,8 +102,14 @@ As ``parent-transaction-id``, enter the ``transaction-id`` from the check-enroll
 // Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
 The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
-. *Capture* or *Purchase* (sucscription fee) +
-Send a request with transaction type ``capture`` or ``purchase``. +
+. *Capture* (sucscription fee) +
+Send a request with transaction type ``capture``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization response (see step 5).
 
+*or*
+
+. *Purchase* (sucscription fee) +
+Send a request with transaction type ``purchase``. +
+The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
 //-
