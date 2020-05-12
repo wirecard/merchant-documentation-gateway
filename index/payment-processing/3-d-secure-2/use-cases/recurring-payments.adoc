@@ -1,13 +1,14 @@
 [#API_CC_3DS2_UseCase_Recurring_Same]
 == Recurring Payments - Same Amount
 
+A common business scenario would be subscription fees for video/audio streaming services or for software-as-a-service solutions.
+
 You have to trigger the payment of a constant amount at regular intervals. For that purpose, you have to set up a recurring agreement:
 
 . The first payment is consumer-initiated and therefore requires Strong Customer Authentication. This first payment can also be a zero amount without actual funds transfer.
-. All succeeding payments are merchant-initiated transactions that do not need SCA.
+. All succeeding payments are merchant-initiated transactions (MIT) that do not need SCA.
 
 //-
-A common business scenario would be subscription fees for video/audio streaming services or for software-as-a-service solutions.
 
 WARNING: When setting up the recurring payment plan you have to inform your consumer about the conditions of the agreement in explicit terms.
 
@@ -40,18 +41,18 @@ The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<seq
 As ``parent-transaction-id``, enter the ``transaction-id`` from the check-enrollment response.
 . *Capture* (subscription fee due at sign-up) +
 Send a request with transaction type ``capture``. +
-As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization response in the ``parent-transaction-id`` field. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization response. +
 The captured amount must not exceed the authorized amount.
 
 //-
 
-.For each subsequent recurring payment (MIT)
+.For each subsequent recurring payment (merchant-initiated)
 [start=6]
-. *Authorization* (subscription fee) as MIT +
+. *Authorization* (subscription fee) +
 // Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
 The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
-. *Capture* or *Purchase* (subscription fee) +
+. *Capture* (subscription fee) +
 Send a request with transaction type ``capture`` or ``purchase``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the *last* authorization response (see step 6). +
 The ``requested-amount`` in the capture request must not exceed the authorized amount.
@@ -96,9 +97,9 @@ The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<seq
 As ``parent-transaction-id``, enter the ``transaction-id`` from the check-enrollment response.
 
 //-
-.For each subsequent recurring payment (MIT)
+.For each subsequent recurring payment (merchant-initiated)
 [start=5]
-. *Authorization* (sucscription fee) as MIT +
+. *Authorization* (sucscription fee) +
 // Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
 The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
