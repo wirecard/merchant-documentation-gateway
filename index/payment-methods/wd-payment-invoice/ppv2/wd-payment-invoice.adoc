@@ -1,0 +1,404 @@
+:payment-method-name: {payment-provider-name} Payment on Invoice
+
+[#PPv2_PaymentInvoice]
+== {payment-page-v2}
+
+With _{payment-provider-name} Payment on Invoice_, {payment-provider-name} guarantees that merchants receive the payment amount, even if the consumer does not pay.
+
+The consumer pays by invoice upon receipt of the goods. {payment-provider-name} pays the merchant the order amount prior to settlement with the consumer. The invoicing and collection process (including dunning) is also handled by {payment-provider-name}.
+
+This payment method is available for *German merchants* only.
+
+_{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+[#PPv2_PaymentInvoice_GeneralInformation]
+=== General Information
+include::{root}/include/ppv2-general-information.adoc[]
+
+<<PPv2_PaymentInvoice_TransactionType_authorization, Below>> you find a sample request for the available transaction type authorization, including a field list with short descriptions.
+
+include::{root}/include/ppv2-general-information-2.adoc[]
+
+
+[#PPv2_PaymentInvoice_TestCredentials]
+=== Test Credentials
+
+Test Credentials for Transaction Type
+<<PPv2_PaymentInvoice_TransactionType_authorization, _authorization_>>.
+
+[%autowidth, cols=","]
+|===
+h| URI (Endpoint)
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+h| Merchant Account ID (MAID)
+| 7d7edecb-b008-4f05-9103-308c81cf2ea2
+h| Username
+| 16390-testing
+h| Password
+| 3!3013=D3fD8X7
+|===
+
+[#PPv2_PaymentInvoice_Countries]
+=== Countries and Currencies
+[cols="20h,80"]
+|===
+|Countries    
+|Germany
+|Currencies   
+|EUR
+|===
+
+[#PPv2_PaymentInvoice_ProcessChain]
+[WARNING]
+====
+To get the approval to go live, every merchant needs to complete a number of <<API_PaymentInvoice_ProcessChain, process chains>> in a test environment successfully. {payment-provider-name} checks and approves the frontend/checkout and invoices (if generated and sent out by the merchant).
+====
+
+[#PPv2_PaymentInvoice_TransactionType_authorization]
+=== Transaction Type _authorization_
+
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer. For _{payment-provider-name} Payment on Invoice_, it also triggers a creditworthiness-check.
+
+For a successful transaction:
+
+. Create a payment session (initial request).
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+
+[#PPv2_PaymentInvoice_Samples]
+=== Sample Workflow
+
+We provide JSON examples for this process. You can find them below.
+
+
+
+[#PPv2_PaymentInvoice_Sample]
+.Request Headers
+
+[%autowidth, cols=","]
+|===
+| Authorization
+| "Authorization"="Basic" + base64 ("username:password"). Use username and password as given in your
+Wirecard contract to base64-encode the authorization.
+| Content-Type
+| application/json
+|===
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2GuaranteedInvoiceTransactionTypeAuthorizationRequest.json[]
+----
+NOTE:  <<PPv2_PaymentInvoice_TransactionType_authorization_orderItem, All Shopping basket items (order-items)>> must be specified in every request. + 
+The authorized amount must match the total value of the items in the basket.
+
+[%autowidth]
+[cols="m,,,,,,,"]
+|===
+4+|Field (JSON) |Data Type |Mandatory/Optional |Size |Description
+
+|merchant-account-id 3+m|value |String |Mandatory |36 |A unique identifier assigned
+to every merchant account (by {payment-provider-name}).
+4+|request-id |String |Mandatory |150 a|A unique identifier assigned by the merchant
+to each request. Used when searching for or referencing it later.
+
+You may enter any ``request-id`` that has never been used before.
+
+As the request ID must be unique, ``{{$guid}}`` serves as a placeholder; Postman
+uses it to generate a random ``request-id`` for testing.
+
+Allowed characters:  ``[a-z0-9-\_]``.
+
+4+|transaction-type |String |Mandatory |n/a a|The requested transaction type. For _{payment-method-name}_, the transaction-type must be set to ``authorization``.
+
+.2+|requested-amount  
+3+m|currency |String |Mandatory |3 a|The currency of the requested/contested
+transaction amount. Must be ``EUR``.
+3+m|value |Numeric |Mandatory |9.2 a|The full amount that is requested/contested in a transaction. The amount must be between a defined minimum value and a defined maximum value. +
+
+2 decimal digits allowed. +
+Use . (decimal point) as the separator.
+
+Format: 3-character abbreviation according to ISO 4217.
+
+.10+|account-holder .5+m|address 2+m|street1 |String |Mandatory |64 |The first line of the consumer's address street.
+
+2+|state |String |Mandatory |32 |The consumer's state.
+
+2+|country |String |Mandatory |2 |The consumer's country code.
+
+2+|city |String |Mandatory |32 |The consumer's city.
+
+2+|postal-code |String |Mandatory |16 |The postal/ZIP code of the consumer's address.
+
+3+m|first-name |String |Mandatory |32 |Consumer's first name.
+
+3+m|last-name |String |Mandatory |32 |Consumer's last name.
+
+3+m|email |String |Mandatory |64 |Consumer's email address.
+
+3+m|phone |String |Mandatory |32 |Consumer's phone number.
+
+3+m|date-of-birth |String |Mandatory |n/a |Consumer's date of birth. {payment-provider-name} validates the consumer's age to check if they are eligible for payment with _{payment-provider-name} Payment on Invoice_.
+
+4+|order-number |String |Mandatory |32 v|Merchant-side order number. +
+Allowed characters: [a-zA-Z0-9+]
+
+.6+|[[PPv2_GuaranteedInvoice_TransactionType_authorization_orderItem]]order-items .6+m|order-item .2+m|name m|description |String |Mandatory |100 |Name of the item in the shopping basket.
+
+|article-number |String |Mandatory |40 |EAN or other merchant side article identifier.
+
+.2+m|amount m|value |Numeric |Mandatory |10 |Item’s price per unit.
+|currency |String |Mandatory |3 |Currency of this item's price. Must be ``EUR``.
+
+2+|tax-rate |Numeric |Mandatory |4 |Item’s tax rate per unit.
+
+2+|quantity |Numeric |Mandatory |5 |Total number of this item in the shopping basket.
+
+4+|locale |String |Optional |2 |A 2-letter code which indicates what language the payment page is rendered in (ISO 639-1).
+
+4+|success-redirect-url |String |Mandatory |2000 a|The URL to which the consumer
+is redirected after a successful payment,
+e.g. ``\https://{pp-redirect-url-success}``
+4+|fail-redirect-url |String |Mandatory |2000 a|The URL to which the consumer is
+redirected after a failed payment,
+e.g. ``\https://{pp-redirect-url-error}``
+4+|cancel-redirect-url |String |Mandatory |2000 a|The URL to which the consumer
+is redirected after having canceled a payment,
+e.g. ``\https://{pp-redirect-url-cancel}``
+
+|payment-methods 2+m|payment-method m|name |String |Mandatory |256 |The name of the payment method used for the transaction, i.e. ``ratepay-invoice``.
+|===
+
+
+.2. Redirect the Consumer to the Payment Page (Sample Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2GuaranteedInvoiceTransactionTypeAuthorizationRedirectURL.json[]
+----
+
+[%autowidth, cols="m,v,"]
+|===
+|Field (JSON) |Data Type |Description
+
+|payment-redirect-url |String |The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+At this point, you need to redirect your consumer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+Consumers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. 
+
+
+[NOTE]
+====
+[#PPv2_PaymentInvoice_ConsenttoGeneralTermsandConditions]
+.Checkout
+
+During checkout, the consumer has to agree to {payment-provider-name}'s general terms and conditions. They have to give their consent by ticking the
+respective checkbox.
+
+
+[#PPv2_PaymentInvoice_AdditionalBusinessContitions]
+.Additional Business Conditions
+
+When consumers use _{payment-method-name},_
+payments with debt discharging effect can be made solely to {payment-provider-name}.
+====
+
+_Possible transaction results_:
+
+- Successful (``transaction-state: success``),
+- Failed (``transaction-state: failed``),
+- Canceled (``transaction-state: failed``):The consumer canceled the payment before/after submission
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the ``statuses`` object of the payment response. Canceled
+payments are returned as ``failed``, but the
+``status description`` indicates it was canceled.
+
+In any case (unless the consumer cancels the transaction on a 3^rd^ party provider page), a base64-encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more details on redirection targets after payment and transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+
+----
+include::{root}/samples/json/PPv2GuaranteedInvoiceTransactionTypeAuthorizationResponse.json[]
+----
+
+[WARNING]
+====
+The response for each ``authorization`` request returns the field ``descriptor``, a unique alphanumerical code identifying the authorization. This ``descriptor`` must be printed on all invoice documents and saved by the merchant (used by consumers in bank transfers; German:
+"Verwendungszweck").
+====
+
+In addition to the request fields, the response returns the following fields:
+
+[%autowidth]
+[cols="m,,,,"]
+|===
+3+|Field (JSON) |Data Type |Description
+
+3+|ip-address |String a|The internet protocol address of the account holder as
+recorded by the entity receiving the transaction attempt from the account holder.
+ Supported IP versions: IPv4 and IPv6.
+
+.2+|custom-fields 2+m|field-name |String |The custom field name is ``terms-consent-checked``. The corresponding ``field-value`` indicates whether or not the consumer agreed to the <<PPv2_PaymentInvoice_ConsenttoGeneralTermsandConditions, General Terms and Conditions>> by ticking the checkbox.
+
+2+|field-value |Boolean a|
+
+- ``true``: Consumer accepted the General Terms and Conditions.
+- ``false``: Consumer did not accept the General Terms and Conditions.
+
+3+|transaction-id |String |A unique identifier assigned to every transaction.
+Used when searching for or referencing it later.
+3+|transaction-state |String a|The current transaction state.
+
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+
+//-
+
+Typically, a transaction starts with state ``in-progress`` and finishes with
+state either ``success`` or ``failed``. This information is returned in the response
+only.
+3+|completion-time-stamp |DateTime a|The UTC/ISO time-stamp documents the
+time and date when the transaction was executed.
+
+Format: ``YYYY-MM-DDThh:mm:ss`` (ISO).
+
+.4+|status 2+m|code |String |Status code of the status message.
+
+2+|description |String |The description of the transaction status message.
+Click here  for a complete list of status descriptions.
+
+2+|severity |String a|The definition of the status message.
+
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+//-
+
+2+|provider-transaction-id |String |A unique transaction identifier generated by the provider.
+
+|payment-methods m|payment-method m|payload |String |The value of ``payload`` depends on the payment method. +
+Always empty for _{payment-method-name}_.
+
+3+|api-id |String |Identifier of the currently used API.
+|device 2+m|fingerprint |String |<<API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice, Click for a detailed fingerprint description>>.
+
+3+|descriptor |String |The descriptor (German: “Verwendungszweck”) must be printed on all invoice documents. It must be used by the consumer on bank transfers.
+|===
+
+[#PPv2_PaymentInvoice_PostProcessingOperations]
+=== Post-Processing Operations 
+WPP is best used for one-off payments (e.g. regular, independent _authorization_ transactions) or the initial transaction in a chain of them (e.g. a first _authorization_ in a chain of recurring transactions). However, when it comes to referencing a transaction for any kind of post-processing operation - such as a capturing of one of your _authorization_ transactions - use our <<RestApi, REST API>> directly.
+
+IMPORTANT: Check the REST API <<API_PaymentInvoice, {payment-method-name} specification>> for details on {payment-method-name}-specific post-processing operations.
+
+[#PPv2_PaymentInvoice_JSONNVPFields]
+=== JSON/NVP Field Reference
+
+NVP equivalents for JSON fields (for migrating merchants).
+
+Here you can:
+
+- find the NVP equivalents for JSON fields (for migrating merchants),
+- see the structure of a request (optional fields included).
+
+//-
+
+[#PPv2_PaymentInvoice_JSONNVPFields_request]
+.JSON Structure for _{payment-method-name}_ Requests
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2GuaranteedInvoice_JSONNVP_FieldReference_JSON_StructureForGuaranteedInvoiceRequests.json[]
+----
+
+[%autowidth, cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|merchant_account_id |value |merchant-account-id
+|request_id |request-id |payment
+|transaction_type |transaction-type |payment
+|requested_amount_currency |currency |requested-amount
+|requested_amount |value |requested-amount
+|payment_method |payment-method [ { } ]/name |payment-methods
+|first_name |first-name |account-holder
+|last_name |last-name |account-holder
+|email |email |account-holder
+|phone |phone |account-holder
+|date_of_birth |date-of-birth |account-holder 
+|country |address [ { } ]/ country |account-holder
+|city |address [ { } ]/ city |account-holder
+|postal_code |address [ { } ]/ postal-code |account-holder
+|state |address [ { } ]/ state |account-holder
+|orderItems[n].name |order-item [ { } ]/name |order-items
+|orderItems[n].description |order-item [ { } ]/description |order-items
+|orderItems[n].articleNumber |order-item [ { } ]/article-number |order-items
+|orderItems[n].amount.value |amount [ { } ]/value |order-item
+|orderItems[n].amount.currency |amount [ { } ] |order-items
+|orderItems[n].taxRate |order-item [ { } ]/tax-rate |order-items
+|orderItems[n].quantity |order-item [ { } ]/quantity |order-items
+|order_number |order-number |payment
+|success_redirect_url |success-redirect-url |payment
+|fail_redirect_url |fail-redirect-url |payment
+|cancel_redirect_url |cancel-redirect-url |payment
+|===
+
+
+.Response-Only Fields
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2GuaranteedInvoice_JSON_NVPFieldsRequest_ResponseOnlyFields.json[]
+----
+
+[#PPv2_PaymentInvoice_JSONNVPFields_response]
+[cols="e,e,e"]
+|===
+|Field (NVP) |Field (JSON) |JSON Parent
+
+|ip_address |ip-address |payment
+|field_name_1 |custom-field( {} )/ field-name |custom-fields
+|field_value_1 |custom-field( {} )/ field-value |custom-fields
+|transaction_id |transaction-id |payment
+|transaction_state |transaction-state |payment
+|completion_time_stamp |completion-time-stamp |payment
+|status_severity_n |status ([ {} ])/ severity |statuses
+|status_code_n |status ([ {} ])/ code |statuses
+|status_description_n |status ([ {} ])/ description |statuses
+|provider_transaction_id_n |status ([ {} ])/ provider-transaction-id |statuses
+|api_id |api-id |payment
+|device_fingerprint |fingerprint |device
+|descriptor |descriptor |payment
+|===
+
+//-

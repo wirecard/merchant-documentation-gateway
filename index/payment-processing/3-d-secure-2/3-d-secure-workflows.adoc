@@ -1,0 +1,111 @@
+[#3DS2_Workflow]
+== Workflows
+
+Generally, the 3D Secure 2 workflow remains identical to the 3D Secure 1 workflow. Unlike 3D Secure 1 though, 3D Secure 2 introduces the opportunity for frictionless authentication. Thus, 3D Secure 2 transactions can follow either a frictionless or a challenge flow. Based on provided data and resultant risk analysis, the issuing bank decides which flow is triggered.
+
+- *Frictionless Flow:* The consumer is authenticated passively. No further consumer interaction is required. 
+- *Challenge Flow:* An authentication challenge is triggered. The consumer is prompted to provide further information.
+
++
+NOTE: Sending specific 3D Secure 2 fields in the initial payment request reduces the likelihood of an authentication challenge. More details on 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section.
+
+If the issuer does not support 3D Secure 2, an automatic fallback to 3D Secure 1 is initiated.
+
+Find the schematic diagrams for Frictionless Flow, Challenge Flow and Fallback to 3D Secure 1 below.
+
+[NOTE]
+====
+Make sure to distinguish between the terms *authentication* and *authorization:*
+
+- Authentication confirms the cardholder's identity.
+- Authorization checks whether the cardholder's account holds sufficient funds and reserves the respective amount for later payment. 
+
+//-
+====
+
+[#3DS2_worfklow_3DS2FF]
+=== 3D Secure 2.1 Frictionless Flow
+
+image::images/16-05-appendix-f/3DSfrictionless.svg[3D Secure 2 Frictionless Workflow, align="center"]
+
+*1.* _Check-Enrollment_: Checks if the consumer’s card is enrolled in the 3D Secure 2 program. +
+*1.1* Consumer (cardholder) checkout on your payment page. +
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. They are also included in the <<Appendix_Xml, REST API payment XSD>>. +
+*1.3* {payment-gateway} checks the 3D Secure version supported by the issuer with the 3D Secure server. +
+*1.4* {payment-gateway} returns the check-enrollment response. It includes the ACS URL, the ``PAReq`` and the 3D Secure version. +
+
+*2.* _Redirect the Consumer to the ACS URL_ +
+*2.1* Send an <<3DS2_IntegrationGuide_REST_AutoSubmission, HTTPS POST request>> including the ACS URL, the ``PAReq``, ``TermUrl`` and ``MD``. +
+*2.2* The ACS URL points to the public endpoint of the {payment-provider-name} 3D Secure Router which decodes the ``PAReq``. +
+*2.3* The {payment-provider-name} 3D Secure Router returns an HTML with the scheme logo and a "processing" screen which is displayed in the consumer's browser. +
+*2.4* The {payment-provider-name} 3D Secure Router redirects the consumer to the 3DSMethodURL for device fingerprinting. +
+*2.5* The Issuer ACS gathers the information and redirects the 3D Secure method completion information to the
+{payment-provider-name} 3D Secure Router URL. +
+*2.6* The {payment-provider-name} 3D Secure Router initiates authentication with the issuer's ACS via the scheme directory server. +
+*2.7* The {payment-provider-name} 3D Secure Router posts the SSL-encrypted and digitally signed ``PARes`` (Payment Authentication Response) to the TermURL via the consumer’s browser. +
+
+*3.* _Check-Payer-Response_ _(optional) and_ _PARes_ _Verification_: Use this request to receive, analyze and store authentication values.  The check-payer-response returns the authentication values needed in the payment transaction that follows. It is executed _after_ you receive the check-enrollment response and the ``PARes``. +
+*3.1* Send a POST request with transaction type check-payer-response to {payment-gateway}. Provide the ``parent-transaction-id`` using the ``transaction-id`` from the check-enrollment response, and the ``PARes``. +
+*3.2* {payment-gateway} decodes the ``PARes``, checks the signature and retrieves the final authentication values. +
+*3.3* {payment-gateway} returns the final authentication values in the response of the check-payer-response transaction. These include the ``dsTransId``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the 3D Secure version (expected 2.1.0). +
+
+*4.* _Complete the Payment Transaction_: Proceed with the respective transaction type (e.g. authorization, purchase, authorization-only). Use the final authentication values received either from the check-enrollment response (e.g. ``PARes`` and ``parent-transaction-id``), or from step 3.3 (check-payer-response response).
+
+[#3DS2_worfklow_3DS2CF]
+=== 3D Secure 2.1 Challenge Flow
+
+image::images/16-05-appendix-f/3DSchallenge.svg[3D Secure 2 Challenge Workflow, align="center"]
+
+*1.* _Check-Enrollment_: Checks if the consumer’s card is enrolled in the 3D Secure 2 program. +
+*1.1* Consumer (cardholder) checkout on your payment page. +
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. They are also included in the <<Appendix_Xml, REST API payment XSD>>. + 
+*1.3* {payment-gateway} checks the 3D Secure version supported by the issuer with the 3D Secure server. +
+*1.4* {payment-gateway} returns the check-enrollment response. It includes the ACS URL, the ``PAReq`` and the 3D Secure version. +
+
+*2.* _Redirect the Consumer to the ACS URL_ +
+*2.1* Send an <<3DS2_IntegrationGuide_REST_AutoSubmission, HTTPS POST request>>  including the ACS URL, the ``PAReq``, ``TermUrl`` and ``MD``. +
+*2.2* The ACS URL points to the public endpoint of the {payment-provider-name} 3D Secure Router which decodes the ``PAReq``. +
+*2.3* The {payment-provider-name} 3D Secure Router returns an HTML with the scheme logo and a "processing" screen which is displayed in the consumer's browser. +
+*2.4* The {payment-provider-name} 3D Secure Router redirects the consumer to the 3DSMethodURL for device fingerprinting. +
+*2.5* The Issuer ACS gathers the information and redirects the 3D Secure method completion information to the
+{payment-provider-name} 3D Secure Router URL. +
+*2.6* The {payment-provider-name} 3D Secure Router initiates authentication with the issuer's ACS via the scheme directory server. +
+*2.7* The {payment-provider-name} 3D Secure Router redirects the consumer to the ACS. Once the consumer has been redirected, they receive an authentication prompt (either a page or an iframe). +
+*2.8* The consumer enters their data. After successful authentication, the ACS sends the challenge response to the {payment-provider-name} 3D Secure Router. +
+*2.9* The {payment-provider-name} 3D Secure Router posts the SSL-encrypted and digitally signed ``PARes`` to the ``TermURL`` via the consumer’s browser. +
+
+*3.* _Check-Payer-Response (optional) and_ _PARes_ _Verification_: Use this request to receive, analyze and store authentication values. The check-payer-response returns the authentication values needed in the payment transaction that follows. It is executed _after_ you receive the check-enrollment response and the ``PARes``. +
+*3.1* Send a POST request with transaction type check-payer-response to {payment-gateway}. Provide the ``parent-transaction-id`` using the ``transaction-id`` from the check-enrollment response, and the ``PARes``. +
+*3.2* {payment-gateway} decodes the ``PARes``, checks the signature and retrieves the final authentication values. +
+*3.3* {payment-gateway} returns the final authentication values in the response of the check-payer-response transaction. These include the ``dsTransId``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the 3D Secure version (expected 2.1.0). +
+
+*4.* _Complete the Payment Transaction_: Proceed with the respective transaction type (e.g. authorization, purchase, authorization-only). Use the final authentication values received either from the check-enrollment response (e.g. ``PARes`` and ``parent-transaction-id``), or from step 3.3 (check-payer-response response).
+
+[#3DS2_worfklow_fallback]
+=== Fallback to 3D Secure 1
+
+[#3DS2_IntegrationGuide_REST_worfklow_3DS2FBF]
+*3D Secure 2.1 Flow with Fallback to 3D Secure 1 (in case the issuer does not support 3D Secure 2)*
+
+image::images/16-05-appendix-f/3DSfallback.svg[3D Secure 2 Fallback Workflow, align="center"]
+
+*1.* _Check-Enrollment_: Checks if the consumer’s card is enrolled in the 3D Secure 2 program. +
+*1.1* Consumer (cardholder) checkout on your payment page. +
+*1.2* Initiate the payment session with {payment-gateway} using the check-enrollment transaction type. Provide additional fields for 3D Secure 2 transactions. 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. They are also included in the <<Appendix_Xml, REST API payment XSD>>. +
+*1.3* {payment-gateway} checks the 3D Secure version supported by the issuer with the 3D Secure server. If 3D Secure 2 is not supported, the 3D Secure server initiates the fallback to version 1 via the 3D Secure MPI. +
+*1.4* {payment-gateway} returns the check-enrollment response. It includes the ACS URL, the ``PAReq`` and the 3D Secure version. +
+
+*2.* _Redirect the Consumer to the ACS URL_ +
+*2.1* Send an <<3DS2_IntegrationGuide_REST_AutoSubmission, HTTPS POST request>> including the ACS URL, the ``PAReq``, ``TermUrl`` and ``MD``. +
+*2.2* The ACS URL points to the public endpoint of the Issuer ACS, which decodes the ``PAReq``. The ACS displays the authentication window for the cardholder. +
+*2.3* The consumer enters their data in the authentication window displayed by the ACS. +
+*2.4* The Issuer ACS verifies the authentication credentials and posts the SSL-encrypted and digitally signed ``PARes`` (Payment Authentication Response), as well as the ``MD`` to the ``TermURL`` via the consumer’s browser. +
+
+*3.* _Check-Payer-Response_ _(optional) and_ _PARes_ _Verification_: Use this request to receive, analyze and store authentication values. The check-payer-response returns the authentication values needed in the payment transaction that follows. It is executed _after_ you receive the check-enrollment response and the ``PARes``. +
+*3.1* Send a POST request with transaction type check-payer-response to {payment-gateway}. Provide the ``parent-transaction-id`` using the ``transaction-id`` from the check-enrollment response, and the ``PARes``. +
+*3.2* {payment-gateway} verifies the ``PARes`` with the 3D Secure MPI and receives the final authentication values. +
+*3.3* {payment-gateway} returns the final authentication values in the response of the check-payer-response transaction. These include the ``XID``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the 3D Secure version. +
+
+*4.* _Complete the Payment Transaction_: Proceed with the respective transaction type (e.g. authorization, purchase, authorization-only). Use the final authentication values received either from the check-enrollment response (e.g. ``PARes`` and ``parent-transaction-id``), or from step 3.3 (check-payer-response response).
+
+//-
