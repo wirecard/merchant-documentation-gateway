@@ -17,11 +17,11 @@ a|image::images/icons/help.png[help_icon, width=20%]
 //-
 
 a|image::images/icons/integration.png[integration_icon, width=20%]
-//- <<3DS2_IntegrationGuide, *General Integration Guide*>> +
-//- <<3DS2_IntegrationGuide_REST, *3D Secure 2 for REST API*>> +
-//- <<3DS2_Testing, *Testing*>> +
-- <<CreditCard_3DS2_Fields, *Fields*>> +
-- <<AppendixF, *Workflows*>>
+- <<3DS2_IntegrationGuide, *General Integration Guide*>> +
+* <<3DS2_IntegrationGuide_REST, *3D Secure 2 for REST API*>> +
+- <<3DS2_Workflow, *Workflows*>> +
+- <<3DS2_Testing, *Testing*>> +
+- <<CreditCard_3DS2_Fields, *Fields*>>
 
 //-
 
@@ -68,6 +68,7 @@ experience of 3D Secure 1 (3DS1):
 //adapt to an ever-changing e-commerce landscape.
 
 [#CreditCard_3DS2_Advantages]
+
 [cols="30,70"]
 |===
 | *No More Static Passwords*
@@ -114,82 +115,4 @@ American Express, UPI, Diners Club, Discover, and JCB.
 - <<CreditCard, Credit Card>>
 - <<PPv2_CC, Credit Card with {payment-page-v2-abbr}>>
 
-
-
-[#CreditCard_3DS2_Help]
-=== We Help You Transition
-
-[#CreditCard_3DS2_Help_Workflow]
-==== Workflow
-The <<AppendixF, 3D Secure 2 workflow>> remains *identical* to the 3D Secure 1 workflow.
-
-[#CreditCard_3DS2_PaymentProcessing]
-.Payment Processing
-
-3D Secure 1 and 3D Secure 2 include an additional transaction type in the transaction process: *check-enrollment.* +
-*Check-enrollment* is the first step in a 3D Secure transaction. Its purpose is to authenticate the consumer's identity and confirm the consumer's willingness to pay the amount specified in the payment transaction.
-With 3D Secure 2, the amount of data collected with *check-enrollment* is significantly higher than with 3D Secure 1.
-This allows a more comprehensive risk analysis. +
-A successful *check-enrollment* will return a ``parent-transaction-id``. Include this ``parent-transaction-id`` in the next step of the payment process.
-
-For example, you would like to continue to <<AppendixB_TransactionTypesforCreditCard, authorize>> the payment amount: +
-
-. Send a request with **check-enrollment.**
-. The **check-enrollment** response returns a ``parent-transaction-id``.
-. Send an **authorization** request including the ``parent-transaction-id``.
-
 //-
-
-//[NOTE]
-//====
-//All requests following a **check-enrollment** in the payment process:
-//
-//.. Contain the ``parent-transaction-id`` returned in the **check-enrollment** response //_OR_
-//.. Are marked as <<CreditCard_PSD2_SCA_Exemptions, out-of-scope / exempt from PSD2>>
-//====
-
-See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
-
-More <<CreditCard_3DS2_UseCases, use cases and common business scenarios>> are available below. For more details on 3D Secure 2 fields, go to our <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>.
-Need more information on transaction types? Check out <<AppendixB_TransactionTypesforCreditCard,  Transaction Types for Credit Card>>.
-
-[#CreditCard_3DS2_CheckEnrollment]
-.Check-Enrollment Amount Handling & Policies
-
-**Check-enrollment** has two functions:
-
-. Authenticate the consumer's identity.
-. Confirm the consumer's willingness to pay the amount specified in the payment transaction.
-
-//-
-
-Therefore, a **check-enrollment** request contains a ``requested-amount``. As a general rule, the amount provided in consecutive payment requests, e.g. during an **authorization,** should not exceed the amount provided in the referenced **check-enrollment** by more than what a consumer could reasonably expect. The margin of what is considered reasonable varies from card scheme to card scheme and ranges from 15-20%.
-As a merchant, you are always on the safe side when the originally ``requested-amount`` is not exceeded by 15%.
-
-[NOTE]
-====
-If you exceed the original ``requested-amount``, the transaction may be declined.
-However, not all transactions that exceed the original ``requested-amount`` will fail.
-In those cases, chargeback liability protection will not apply to the same extent as for fully authenticated amounts.
-====
-
-See the <<CreditCard_Samples_CheckEnrollment_3DS2, XML request/response samples for check-enrollment>>.
-
-[#CreditCard_3DS2_Help_Integration]
-==== Updated Integration Guides
-
-Check out our updated integration guides for {payment-page-v2-abbr}:
-
-- <<PaymentPageSolutions_PPv2_HPP_Integration, Hosted Payment Page>>
-- <<PaymentPageSolutions_PPv2_EPP_Integration, Embedded Payment Page>>
-- <<PPv2_Seamless_Integration, Seamless Mode>>
-
-//-
-
-New fields (NVP) have also been added to our Payment Page documentation:
-
-
-- <<PP_3DSecure, 3D Secure for Payment Page>>
-
-//-
-
