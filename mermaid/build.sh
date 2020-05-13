@@ -17,9 +17,14 @@ done
 echo
 echo "### SVG"
 echo
+
+# pip3 install cairosvg
+# port install cairo
+#  if utf-8 error, set locale manually: LC_ALL=C cairosvg -h
+
 for svg in *.svg; do
     echo "${svg}"
-    convert -density 1200 -resize 600x600 "${svg}" "${svg%.svg}.png" || echo "...failed"
+    LC_ALL=C cairosvg "${svg}" -f png -o "${svg%.svg}.png" || echo "...failed"
 done
 
 mv *.svg *.png ../images/
