@@ -1,0 +1,31 @@
+sequenceDiagram
+
+    participant M as Merchant
+
+    participant W as WPG
+
+    participant K as Klarna
+
+M-->>M: cancels order
+
+M->>W: sends "void-authorization" request
+
+W->>K: creates "void-authorization" transaction
+
+W-->>W: capture check
+
+    alt partial capture before
+
+        W->>K: releases remaining auth. request
+
+        K->>W: releases remaining order
+
+    else no partial capture before
+
+        W->>K: cancels authorization request
+
+        K->>W: cancels authorization
+
+    end
+
+W->>M: creates/sends response
