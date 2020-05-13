@@ -6,7 +6,7 @@
 set -euo pipefail
 
 for mmd in $(ls *.mmd | grep -v -E ".*.orig.mmd"); do
-
+    echo "$mmd"
     mmdc -i "${mmd}" -o "${mmd%.mmd}.svg"
 done
 
