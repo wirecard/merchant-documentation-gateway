@@ -11,3 +11,8 @@ for mmd in $(ls *.mmd | grep -v -E ".*.orig.mmd"); do
 done
 
 cp *.svg ../images/
+
+for svg in *.svg; do
+    svg2png "${svg}" "${svg%.svg}.png"
+done
+cp *.png ../images/
