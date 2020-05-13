@@ -13,13 +13,13 @@ for mmd in $(ls *.mmd | grep -v -E ".*.orig.mmd"); do
     mmdc -i "${mmd}" -o "${mmd%.mmd}.svg"
 done
 
-cp *.svg ../images/
 
 echo
 echo "### SVG"
 echo
 for svg in *.svg; do
     echo "${svg}"
-    svg2png "${svg}" "${svg%.svg}.png" || echo "...failed"
+    convert -density 1200 -resize 600x600 "${svg}" "${svg%.svg}.png" || echo "...failed"
 done
-cp *.png ../images/
+
+mv *.svg *.png ../images/
