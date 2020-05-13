@@ -18,13 +18,21 @@ echo
 echo "### SVG"
 echo
 
+# for API*svg
 # pip3 install cairosvg
 # port install cairo
 #  if utf-8 error, set locale manually: LC_ALL=C cairosvg -h
 
+# npm install svgexport
+
 for svg in *.svg; do
     echo "${svg}"
     LC_ALL=C cairosvg "${svg}" -f png -o "${svg%.svg}.png" || echo "...failed"
+done
+
+for svg in API*.svg; do
+    echo "${svg}"
+    svgexport "${svg}" "${svg%.svg}.png" || echo "...failed"
 done
 
 mv *.svg *.png ../images/
