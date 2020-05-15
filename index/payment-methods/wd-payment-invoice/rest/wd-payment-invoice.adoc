@@ -1,0 +1,848 @@
+[#API_PaymentInvoice]
+== REST API & {payment-page-v1}
+_{payment-provider-name} Payment on Invoice_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+[#API_PaymentInvoice_CountriesandCurrencies]
+=== Countries and Currencies
+[width=75%,cols="1h,3",stripes=none]
+|===
+| Countries    | DE, AT, CH +
+                 on Payment Page environment: DE only
+| Currencies   | EUR, CHF
+|===
+
+[#API_PaymentInvoice_Communication]
+==== Communication Formats
+This table illustrates how _{payment-provider-name} Payment on Invoice_ notifications are encoded and which formats and methods can be
+used for requests and responses.
+[width=75%,stripes=none]
+|===
+.2+h| Requests/Responses | Format  | XML
+                         | Methods | POST
+   h| IPN Encodement   2+| NVP (plain text)
+|===
+
+[#API_PaymentInvoice_TransactionTypes]
+=== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here, look
+at <<AppendixB,  Transaction Types>>.
+
+
+[%autowidth,stripes=none, cols="e,,"]
+|===
+|Transaction Type | Description | Link to samples
+
+|authorization    | Performs a creditworthiness check at the moment when
+                    consumer makes an order. All order items must be listed for the shopping
+                    basket. The authorization amount must match the value of the items in
+                    the basket.
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
+
+|capture-authorization | Used to capture the reserved funds at the moment
+                         when some or all goods are physically delivered to the consumer.
+                         Available only on successful ``authorization`` response which wasn't voided
+                         nor fully captured. Partial (and multiple) capture is allowed, until
+                         the authorization limit is not exceeded. Basket items only lists the
+                         items that were delivered to the consumer in this delivery, not the ones
+                         that were delivered before or are waiting to be delivered. The total
+                         amount of the capture must be the value of the items in the basket.
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
+
+|void-authorization | Used when the consumer wishes to cancel some or all
+                      (not yet shipped) items from the order. Available only for a successful
+                      ``authorization`` response which was not yet voided or captured. Partial and
+                      multiple void are allowed, until all items from the order are canceled
+                      or shipped. Basket items only list those items which are being canceled from the order.
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
+
+|refund-capture | Used when the consumer wishes to return some or all
+                  delivered goods. Available on a successful ``capture-authorization``.
+                  Partial and multiple refunds are allowed, until all delivered items have
+                  been returned. Basket items list only those items which are being returned to the merchant.
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
+
+|credit | Used when merchant wishes to grant a discount on an existing
+          order. Items from this order may already be delivered to the consumer.
+          Available on a successful ``capture-authorization``. Multiple credits are
+          allowed, but the overall sum of credits may not exceed the value of the
+          delivered goods to the consumer. The credit transaction must include a
+          basket item representing the discount. The credit transaction must refer
+          to the successful authorization transaction ID.
+                                | <<API_PaymentInvoice_Samples_GuaranteedInvoice, _{payment-provider-name} Payment on Invoice_ samples>>
+|===
+
+[NOTE]
+====
+. <<API_PaymentInvoice_BasketItemsDetails, Basket items>>  must be specified in every request.
+. The response for each ``authorization`` request returns an individual
+string (an alphanumerical code) in the
+field ``descriptor``.
+. The descriptor must be printed on all invoice documents and saved by
+the shop (used by consumers in bank transfers; German:
+"Verwendungszweck").­­
+. ``capture-authorization`` transactions have to follow a successful
+``authorization`` on the same day the goods are dispatched.
+. The period between ``authorization`` and the first
+``capture-authorization`` must be at least 4 hours.
+. Merchants can request partial ``capture-authorizations`` if the goods
+are shipped in separate shipments.
+
+//-
+====
+
+[#API_PaymentInvoice_TestCredentials]
+=== Test Credentials
+
+[%autowidth,stripes=none]
+|===
+.2+h| URLs (Endpoints)            | For transaction type ``authorization`` | `\https://{test-instance-hostname}/engine/rest/paymentmethods`
+                                  | For transaction types ``capture-authorization``, ``refund-capture``,
+                                    ``void-authorization`` and ``credit``  |``\https://{test-instance-hostname}/engine/rest/payments``
+   h| Merchant Account ID (MAID) 2+| 7d7edecb-b008-4f05-9103-308c81cf2ea2
+   h| Username                  2+| 16390-testing
+   h| Password                  2+| 3!3013=D3fD8X7
+   h| Secret Key                2+| 555d998b-15db-46a9-8f1f-d9bc3ec66b19
+|===
+
+[#API_PaymentInvoice_Workflow]
+=== Workflow
+
+[#API_PaymentInvoice_StandardProcess]
+==== Standard Process
+
+[#API_PaymentInvoice_GuaranteedInvoice]
+===== {payment-provider-name} Payment on Invoice
+
+image::images/11-11-guaranteed-invoice/guaranteed_invoice_workflow.png[{payment-provider-name} Payment on Invoice Workflow, width=950, align="center"]
+
+. Consumer adds items to shopping basket.
+. Consumer selects the payment method _{payment-provider-name} Payment on Invoice._
+. Merchant sends an ``authorization`` request including items to
+{payment-provider-name}.
+. Merchant receives an ``authorization`` response, including the
+descriptor (an alphanumerical code).
+. Merchant sends a ``capture`` request to {payment-provider-name} when the items
+are ready for delivery.
+. After a successful ``capture`` request, {payment-provider-name} or Merchant generates
+the invoice, including the descriptor (an alphanumerical code).
+. Merchant waits for the incoming payment.
+. If any payment changes are necessary, the following transaction types
+are available: ``credit``, ``refund-capture`` or ``void-authorization``.
+
+//-
+
+[#API_PaymentInvoice_ProcessChain]
+==== Process Chain
+
+Every merchant needs to follow the process chains below successfully in
+a test environment to get an approval to go live. {payment-provider-name} checks and
+approves the frontend/checkout and invoices (if generated and sent out
+by the merchant).
+
+NOTE: Please provide us with the order number and descriptor for each
+transaction.
+
+[#API_PaymentInvoice_SimpleProcessChainforGuaranteedInvoice]
+===== Simple Process Chain for {payment-provider-name} Payment on Invoice
+
+.A: Partial Cancelations
+
+. Order (2 products + shipping costs + voucher) ``authorization``
+. Partial cancellation of 1 product ``void-authorization``
+. Partial cancellation of the rest ``void-authorization``
+
+//-
+
+.B: Full Cancellation
+
+. Order (2 products + shipping costs) ``authorization``
+. Full order cancellation ``void-authorization``
+
+//-
+
+.C: Partial Deliveries
+
+. Order (3 products + shipping costs + voucher) ``authorization``
+. Partial delivery of 1 product + shipping costs + voucher ``capture-authorization``
+. Partial delivery of the rest ``capture-authorization``
+
+//-
+
+.D: Partial Cancellation & Partial Delivery
+
+. Order (2 products + shipping costs + voucher) ``authorization``
+. Partial cancellation of 1 product ``void-authorization``
+. Partial delivery of 1 product + shipping costs + voucher ``capture-authorization``
+. Invoice generation
+
+//-
+
+.E: Partial Returns
+
+. Order (2 products + shipping costs + voucher) ``authorization``
+. Complete delivery of the order ``capture-authorization``
+. Invoice generation
+. Partial return of 1 product ``refund-capture``
+. Partial return of the rest ``refund-capture``
+
+//-
+
+.F: Full Return
+
+. Order (2 products + shipping costs + voucher) ``authorization``
+. Complete delivery of the order ``capture-authorization``
+. Invoice generation
+. Full return of the order ``refund-capture``
+
+//-
+
+.G: Reduction
+
+. Order (2 products + shipping costs + voucher) ``authorization``
+. Reduction with negative amount ``credit``
+. Complete delivery of the order ``capture-authorization``
+. Invoice generation
+
+//-
+
+[#API_PaymentInvoice_ComplexProcessChainforGuaranteedInvoice]
+===== Complex Process Chain for {payment-provider-name} Payment on Invoice
+
+.X: Reduction & Adjustment Charges
+
+. Order (6 products including shipping costs) ``authorization``
+. Reduction with negative amount ``credit``
+. Partial delivery of 2 products + reduction ``capture-authorization``
+. Invoice generation
+. Adjustment charge with positive amount ``credit``
+. Partial delivery of the rest = 4 products + adjustment charge ``capture-authorization``
+. Invoice generation
+. Reduction with negative amount ``credit``
+
+//-
+
+.Y: Partial Cancellation & Partial Return
+
+. Order (6 products including shipping costs) ``authorization``
+. Partial delivery of 3 products ``capture-authorization``
+. Invoice generation
+. Partial cancellation of 1 product ``void-authorization``
+. Partial return of 2 products ``refund-capture``
+. Partial delivery of 2 products ``capture-authorization``
+. Invoice generation
+. Partial return of the rest = 3 products ``refund-capture``
+
+//-
+
+[#API_PaymentInvoice_Fields]
+=== Fields
+
+The following elements are mandatory *M*, optional *O* or conditional
+*C* for sending a request for the payment method _{payment-provider-name} Payment on Invoice_ (complete field
+list available in <<RestApi_Fields, REST API field list>>):
+
+[%autowidth,stripes=none, cols="v,,,,"]
+|===
+| Field  | Cardinality  | Datatype  | Size  | Description
+
+5+a|
+[[GuaranteedInvoice_Fields_Payment]]
+[discrete]
+==== payment
+
+|_merchant-account-id_
+|M
+|Alphanumeric
+|36
+|Unique identifier for a merchant account
+
+|_request-id_
+|M
+|Alphanumeric
+|150
+|This is the identification number of the request.
+*It has to be unique for each request.*
+
+|_transaction-type_
+|M
+|Alphanumeric
+|30
+|This is the type for a transaction: ``authorization``, ``capture``, ``void-authorization``, ``refund-capture`` and ``credit`` are supported for _{payment-provider-name} Payment on Invoice_.
+
+|_requested-amount_
+|M
+|Numeric
+|18,3
+|This is the amount of the transaction. The amount of the decimal place depends on the currency. The amount must be between a defined minimum value and a defined maximum value.
+
+|_requested-amount@currency_
+|M
+|
+|
+|This is the currency of the transaction. For Germany and Austria, only ``EUR`` is allowed. Switzerland additionally accepts ``CHF``.
+
+|_order-detail_
+|O
+|Alphanumeric
+|65535
+|Details of the order filled by the merchant.
+
+|_order-number_
+|M
+|Alphanumeric
+|64
+|The order number from the merchant.
+
+|_consumer-id_
+|O
+|Alphanumeric
+|
+|Merchant's identifier for the consumer.
+
+|_invoice-id_
+|O
+|Alphanumeric
+|
+|Merchant's invoice identifier.
+
+|_creditor-id_
+|C
+|Alphanumeric
+|
+|{payment-provider-name} Bank creditor identifier, provided by {payment-provider-name} Support
+
+|_locale_
+|O
+|Alphanumeric
+|
+|It is used to control the language of the consumer message and the correspondence to the consumer. Allowed values: ``fr``, ``en``, ``nl``, ``de``.
+If empty or with wrong value, German language is used by default. The same logic applies for Payment Page integration.
+
+5+a|
+[[GuaranteedInvoice_Fields_PaymentMethods]]
+[discrete]
+==== payment-methods
+
+|_payment-methods.payment-method@name_
+|M
+|Alphanumeric
+|15
+|The name of the Payment Method is ``ratepay-invoice``.
+
+5+a|
+[[GuaranteedInvoice_Fields_AccountHolder]]
+[discrete]
+==== account-holder
+
+|_account-holder.first-name_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.last-name_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.email_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.phone_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.date-of-birth_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.gender_
+|O
+|Token
+|
+|
+
+5+a|
+[[GuaranteedInvoice_Fields_AccountHolderAddress]]
+[discrete]
+==== account-holder.address
+
+|_account-holder.address.street1_
+|M
+|Alphanumeric
+|
+|Must include house number.
+
+|_account-holder.address.street2_
+|O
+|Alphanumeric
+|
+|
+
+|_account-holder.address.city_
+|M
+|Alphanumeric
+|
+|
+
+|_account-holder.address.state_
+|O
+|Alphanumeric
+|
+|
+
+|_account-holder.address.country_
+|M
+|Token
+|
+|
+
+|_account-holder.address.postal-code_
+|M
+|Alphanumeric
+|
+|
+
+4+a|
+[[GuaranteedInvoice_Fields_BankAccount]]
+[discrete]
+==== bank-account
+
+|Consumer's bank account details.
+
+|_bank-account.bank-name_
+|M
+|Alphanumeric
+|
+|
+
+|_bank-account.iban_
+|C
+|Alphanumeric
+|
+|Mandatory if ``account-number`` is not used
+
+|_bank-account.bic_
+|C
+|Alphanumeric
+|
+|Mandatory if ``iban`` is used
+
+|_bank-account.account-number_
+|C
+|Alphanumeric
+|
+|Mandatory if ``iban`` is not used
+
+|_bank-account.bank-code_
+|C
+|Alphanumeric
+|
+|Mandatory if ``account-number`` is used
+
+5+a|
+[[GuaranteedInvoice_Fields_OrderItems]]
+[discrete]
+==== order-items
+
+|_order-items.order-item.name_
+|M
+|Alphanumeric
+|
+|Name of the item in the basket.
+
+|_order-items.order-item.article-number_
+|M
+|Alphanumeric
+|
+|EAN or other article identifier for merchant.
+
+|_order-items.order-item.amount_
+|M
+|Number
+|
+|Item's price per unit.
+
+|_order-items.order-item.tax-rate_
+|M
+|Number
+|
+|Item's tax rate per unit.
+
+|_order-items.order-item.quantity_
+|M
+|Number
+|
+|Total count of items in the order.
+
+4+a|
+[[GuaranteedInvoice_Fields_Shipping]]
+[discrete]
+==== shipping
+
+|Shipping fields have to match the billing address (specified as <<API_PaymentInvoice_Fields_AccountHolder, account-holder>>).
+
+|_shipping/first-name_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/last-name_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/phone_
+|O
+|Alphanumeric
+|
+|
+
+4+a|
+[[GuaranteedInvoice_Fields_ShippingAaddress]]
+[discrete]
+==== shipping/address
+
+|Shipping/address fields have to match the billing address (specified as <<API_PaymentInvoice_Fields_AccountHolderAddress, account-holder.address>>).
+
+|_shipping/address/street1_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/street2_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/city_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/state_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/country_
+|O
+|Alphanumeric
+|
+|
+
+|_shipping/address/postal-code_
+|O
+|Alphanumeric
+|
+|
+5+a|
+[[GuaranteedInvoice_Fields_Device]]
+[discrete]
+==== device
+
+|_device/fingerprint_
+|C
+|Alphanumeric
+|
+|Device fingerprinting token that was used in merchant's online shop to track this transaction.
+
+*It is mandatory for ``authorization``.*
+
+5+a|
+[[GuaranteedInvoice_Fields_Mandate]]
+[discrete]
+==== mandate
+
+|_mandate.mandate-id_
+|C
+|Alphanumeric
+|
+|Mandate ID will be generated by {payment-provider-name}. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt"
+
+|===
+
+[#API_PaymentInvoice_Features]
+=== Features
+
+[#API_PaymentInvoice_Features_Bankaccountdetails]
+==== Bank Account Details
+
+consist either of
+
+- ``account-owner``, ``bank-name``, ``account-number`` and ``bank-code`` +
+or
+- ``account-owner``, ``bank-name``, ``iban`` and ``bic`` for SEPA standard.
+
+NOTE: Account holder details must
+cover ``first-name``, ``last-name``,`` email``,`` phone``, ``date-of-birth``,`` address``
+and ``gender``. An address within the account holder details must
+``include street1`` (including house number),`` city``, ``country`` and ``postal-code``.
+
+NOTE: Shipping address has to match the billing address.
+
+[#API_PaymentInvoice_BasketItemsDetails]
+==== Basket Items Details
+
+Basket items details must be sent along with every request. Content of
+the shopping basket depends on the location of the items.
+There can be 3 different locations:
+
+- the (distribution) storage of the merchant,
+- the delivery (items are „on the road"); and
+- home of the consumer.
+
+//-
+
+The shopping basket always contains the items that are being authorized
+(ordered), captured (delivered), voided (canceled), refunded (returned)
+or credited depending to the transaction type.
+
+The detailed items of the shopping basket will be stored as a part of
+payment details on provider and they can be obtained from {payment-gateway} later as part of transaction details.
+
+[cols="v,,,"]
+|===
+| Field                                   | Cardinality  Req/Resp  | Datatype     | Description
+
+| _order-items.order-item.name_           | M                      | Alphanumeric | Name of the item in the basket.
+| _order-items.order-item.article-number_ | M                      | Alphanumeric | EAN or other article identifier for merchant.
+| _order-items.order-item.amount_         | M                      | Number       | Item's price per unit.
+| _order-items.order-item.tax-rate_       | M                      | Number       | Item's tax rate per unit.
+| _order-items.order-item.quantity_       | M                      | Number       | Total count of items in the order.
+|===
+
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice]
+==== Device Fingerprint ({payment-provider-name} Payment on Invoice)
+
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_Introduction]
+===== Introduction
+
+_Device Fingerprint ({payment-provider-name} Payment on Invoice)_ is a method of fraud
+protection and able to identify technical devices. Fraudsters learn to
+exploit the weaknesses of traditional fraud prevention tools over time.
+We protect businesses from fraud and loss of revenue with innovative
+fraud prevention: by automatically linking transactions, fraud can be
+detected in real time. With our self-learning and adaptive software you
+are prepared to face new and upcoming fraud scenarios. This document
+describes the procedure of a _Device Fingerprint_ call and how to
+implement its result in the PAYMENT_QUERY operation and PAYMENT_REQUEST
+operation.
+
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_UniqueToken]
+===== Generate a Unique Token
+
+To generate a fingerprint you first need to create a unique token within
+your online shop. To ensure that the token is really unique, we suggest
+using a combination of customer id and timestamp which is encrypted,
+with MD5 for instance.
+
+.Generate a unique token (Example)
+[source,php]
+----
+$deviceIdentSId = 'WDWL';
+$timestamp = microtime();
+$customerId = $customerObject->getId();
+$deviceIdentToken = md5($customerId . "_" . $timestamp);
+----
+
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_RunJavaScript]
+===== Run JavaScript
+
+We recommend outputting the _Device Fingerprint_ JavaScript code as
+early as possible to get a sufficient latency between script call and
+end of the order.
+
+For instance when the customer entered the checkout or when the customer
+is putting a first item into the cart.
+
+Please ensure that this script is executed only one-time per session
+(per customer + checkout + device).
+
+.Output Device Fingerprint JavaScript/HTML/PHP (Example)
+[source,html,subs=attributes+]
+----
+<script language="JavaScript">
+ var di = {t:'<?php echo $deviceIdentToken ?>',v:'<?php echo $deviceIdentSId ?>',l:'Checkout'};
+ </script>
+ <script type="text/javascript" src="//d.ratepay.com/<?php echo $deviceIdentSId ?>/di.js">
+</script>
+ <noscript><link rel="stylesheet" type="text/css" href="//d.ratepay.com/di.css?t=<?php echo $deviceIdentToken ?>&v=<?php echo $deviceIdentSId ?>&l=Checkout">
+</noscript>
+<object type="application/x-shockwave-flash" data="//d.ratepay.com/<?php echo $deviceIdentSId?>/c.swf" width="0" height="0">
+<param name="movie" value="//d.ratepay.com/<?php echo $deviceIdentSId ?>/c.swf" />
+<param name="flashvars" value="t=<?php echo $deviceIdentToken ?>&v=<?php echo $deviceIdentSId?>"/><param name="AllowScriptAccess" value="always"/>
+</object>
+----
+
+[#API_PaymentInvoice_DeviceFingerprint_GuaranteedInvoice_DataTransferTo{payment-provider-name}]
+===== Data Transfer to {payment-provider-name}
+
+Please transfer the ``deviceIdentToken`` within the authorization request to
+{payment-provider-name}. You can find a corresponding XML sample for either <<API_PaymentInvoice_Samples_GuaranteedInvoice, {payment-provider-name} Payment on Invoice>> or <<API_PaymentDirectDebit_Samples_DirectDebit, {payment-provider-name} Payment Guaranteed Direct Debit>>.
+
+[#API_PaymentInvoice_RegularConsumers]
+==== Regular Consumers
+
+Regular consumers who pay their bills on time are important capital for
+each merchant. With {payment-provider-name}, merchants can use this capital as a
+payment method.
+
+To accomplish that, merchants submit a list with the order and
+payment history of their consumers to {payment-provider-name}.
+
+https://wcdwl.ratepay.com/index.php/en/overview.html[Here] you can
+find which format (and content) you need for the list and how to upload
+it.
+
+[#API_PaymentInvoice_ConsenttoGeneralTermsandConditions]
+==== Consent to General Terms and Conditions
+
+During checkout, the consumer has to agree to {payment-provider-name}'s general terms
+and conditions. They have to give their consent by ticking an
+appropriate checkbox.
+
+|===
+|Language |Check-box text |Correct links
+
+|English
+|I herewith confirm that I have read the https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy
+notice] and https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions] for {payment-provider-name} payment types and that I accept their validity.
+a|
+- https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/[privacy notice]:
+link to
+https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/
+- https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[additional terms and conditions]:
+link to
+https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/
+|Deutsch
+|Hiermit bestätige ich, dass ich die https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]
+und https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzlichen Geschäftsbedingungen] für {payment-provider-name}-Zahlarten zur Kenntnis genommen habe und mit deren Geltung einverstanden bin.
+a|
+- https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[Datenschutzhinweise]:
+link to
+https://www.wirecardbank.de/privacy-documents/datenschutzhinweis-fur-die-wirecard-zahlarten/[https://www.wirecardbank.com/privacy-documents/datenschutzhinweise-fuer-die-wirecard-zahlarten/]
+- https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[zusätzliche Geschäftsbedingungen]:
+link to
+https://www.wirecardbank.de/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/[https://www.wirecardbank.com/privacy-documents/zusatzliche-geschaftsbedingungen-fur-wirecard-zahlarten/]
+|===
+
+Make sure that the privacy notice and the additional terms and
+conditions are linked properly.
+
+[#API_PaymentInvoice_AdditionalBusinessContitions]
+===== Additional Business Conditions
+
+When consumers use _{payment-provider-name} Payment on Invoice,_
+payments with debt discharging effect can be made solely to {payment-provider-name}.
+
+[#API_PaymentInvoice_Samples]
+=== Samples
+
+Click <<GeneralPlatformFeatures_IPN_NotificationExamples, here>> for corresponding notification samples.
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice]
+==== {payment-provider-name} Payment on Invoice
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_Authorization]
+===== _authorization_
+
+.XML authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_authorization_request_success_nl.xml[]
+----
+
+.XML authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_authorization_response_success_nl.xml[]
+----
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_CaptureAuthorization]
+===== _capture-authorization_
+
+.XML capture-authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_capture-authorization_request_success_32783284.xml[]
+----
+
+.XML capture-authorization Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_capture-authorization_response_success_nl_32783284.xml[]
+----
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_Credit]
+===== _credit_
+
+.XML credit Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_credit_request_success_32783284.xml[]
+----
+
+.XML credit Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_credit_response_success_nl_32783284.xml[]
+----
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_RefundCapture]
+===== _refund-capture_
+
+.XML refund-capture Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_refund-capture_request_success_789b1a74.xml[]
+----
+
+.XML refund-capture Response (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_refund-capture_response_success_nl_789b1a74.xml[]
+----
+
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_VoidAuthorization]
+===== _void-authorization_
+
+.XML void-authorization Request (Successful)
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_void-authorization_request_success_32783284.xml[]
+----
+
+.XML void-authorization Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_void-authorization_response_success_nl_32783284.xml[]
+----
+
+[#API_PaymentInvoice_Samples_GuaranteedInvoice_DeviceIdentToken]
+===== _authorization_ Request to {payment-provider-name}
+
+.deviceIdentToken Transfer
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/ratepay-invoice_authorization_unknown_.xml[]
+----
+
+//-
