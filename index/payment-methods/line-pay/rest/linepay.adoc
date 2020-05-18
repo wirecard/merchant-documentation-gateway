@@ -1,0 +1,507 @@
+[#Linepay]
+== REST API
+
+// [#Linepay_Introduction]
+// === Introduction
+// _LINE Pay_ is a payment method used in Thailand. _LINE Pay_ allows the consumer to link his credit card to his _LINE Pay_ account and trigger a funds transfer during an online purchase. A transfer order is confirmed allowing you to instantly deliver goods and services.
+
+// _LINE Pay_ allows you to configure certain payment parameters, which fit to their sales strategy.
+
+_LINE Pay_  is a type of <<PaymentMethods_PaymentMode_Wallet, Wallet>>.
+
+[#Linepay_CountriesCurrencies]
+=== Countries and Currencies
+
+[cols="20h,80"]
+|===
+|Countries |TH
+|Currencies a|USD, JPY, TWD, THB
+
+
+|===
+
+[#Linepay_CommunicationFormats]
+=== Communication Formats
+
+This table illustrates how _LINE Pay_ notifications are encoded and which formats and methods can be used for requests and responses.
+
+[cols="20,20,60"]
+|===
+.2+| *Requests/Responses* | Format | Please <<ContactUs, contact merchant support>> for Format.
+                        | Methods | Please <<ContactUs, contact merchant support>> for Methods.
+| *IPN Encodement*     2+| Please follow the instructions given at
+<<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#Linepay_Transactions]
+=== Transactions
+
+[#Linepay_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Transaction Types>>.
+
+[cols=",,"]
+|===
+|Transaction Type |Description | Link to Sample
+
+|_check-signature_ |Validates digital signature for a _Payment Page_ transaction. | <<Linepay_Samples_checksignature, _check-signature_ sample>>
+|_pending-debit_ |A step in a group of transactions where the account holder is redirected to the provider's page. | <<Linepay_Samples_pendingdebit, _pending-debit sample>>
+|_debit_ |Moves funds from the consumer account to the merchant account. | <<Linepay_Samples_debit, _debit_ sample>>
+|_refund-debit_ |Moves funds from the merchant account to the consumer account. | <<Linepay_Samples_refunddebit, _refund-debit_ sample>>
+|_pending-authorization_ |A step in a group of transactions where the account holder is redirected to the provider's page. | <<Linepay_Samples_pendingauthorization, _pending-authorization_ sample>>
+|_authorization_ |Reserves funds from the consumer account to the merchant account. Must be followed by either _void-authorization_ or _capture-authorization_ to cancel or complete the funds transfer. | <<Linepay_Samples_authorization, _authorization_ sample>>
+|_void-authorization_ |Cancels the reservation done in authorization. | <<Linepay_Samples_voidauthorization, _void-authorization_ sample>>
+|_capture-authorization_ |Moves funds from the consumer account to the merchant account after a sucessfull authorization. | <<Linepay_Samples_captureauthorization, _capture-authorization_ sample>>
+|_refund-capture_ |Moves funds from the merchant account to the consumer account after a sucessfull authorization. | <<Linepay_Samples_refundcapture, _refund-capture_ sample>>
+
+|===
+
+//-
+
+[#Linepay_RecurringTransaction]
+==== Recurring Transaction
+
+The response and notification of recurring transactions return the RegKey of _LINE Pay_ in <<Linepay_Fields, wallet.token-id>>, which is useful for later reference. You do not need to submit it in later recurring transactions. +
+Find detailed information about <<GeneralPlatformFeatures_Transactions_Recurring, recurring transactions>>.
+
+[#Linepay_TestCredentials]
+=== Test Credentials
+
+[cols="35h,65"]
+|===
+| URLs (Endpoints) | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) |
+| Username |
+| Password |
+| Secret Key |
+|===
+
+[#Linepay_AdditionalCredentials]
+.Additional Test Credentials on _LINE Pay_ Environment
+
+[cols="15,10,10,20,40"]
+|===
+| *Channel Id* 4+| Channel Id from _LINE Pay_, unique per merchant
+| *Channel Secret Key* 4+| Channel Secret Key from _LINE Pay_, unique per merchant
+|===
+
+
+[#Linepay_Workflow]
+=== Workflow
+
+image::images/line-pay/linepay-flow.jpg[]
+
+. Consumer chooses _LINE Pay_ on your payment page
+. Consumer is re-directed and logs in to his/her _LINE Pay_ account
+. Consumer confirms the payment
+. Consumer is re-directed to your confirmation page
+
+//-
+
+In case of a successful payment, the consumer is redirected back to your website and the Wirecard Payment Processing Gateway sends you a notification of the successful transaction.
+
+If the notification is not sent, you have the possibility to send a request to <<GeneralPlatformFeatures_RetrieveTransaction_TransactionID, Retrieve Transaction by Transaction-ID>> or to <<GeneralPlatformFeatures_RetrieveTransaction_RequestID, Retrieve Transaction by Request-ID>>.
+
+With the response you can retrieve the current status of the requested transaction.
+
+image::images/line-pay/linepay-info-graphic.png[]
+
+
+[#Linepay_Fields]
+=== Fields
+
+Only ``wallet.request-token`` is a _LINE Pay_ specific field. All the other fields used for _LINE Pay_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
+
+See details for ``wallet.request-token``:
+
+// We have no wallet element in the ReST API field table!
+
+[cols="15,10,20,10,35"]
+|===
+| Field |  Data Type | Required/Optional | Size | Description
+| request-token |  String | Optional |  15  |  It belongs to the wallet element. RegKey of _LINE Pay_. This is returned for all recurring payments.
+|===
+
+
+[#Linepay_StatusCodes]
+=== Status Codes
+
+[%autowidth]
+|===
+| Status Code | Provider Code Description
+| 201.0000 | Transaction OK
+| 500.1099 | This user is not a _LINE Pay_ user. 
+| 500.1099 | The purchasing user suspended for transaction. 
+| 500.1094 | Merchant not found. 
+| 500.1094 | This Merchant cannot use _LINE Pay_. 
+| 500.1109 | Header information error. 
+| 500.1999 | Not available credit card. 
+| 500.2603 | Error in Amount (scale). 
+| 500.1059 | Account status error. 
+| 500.1053 | Insufficient balance remains. 
+| 500.1049 | Payment in progress. 
+| 500.2379 | Transaction record not found. 
+| 500.1104 | Transaction has already been made. 
+| 500.1109 | Request amount is different from real amount. 
+| 500.1109 | Preapproved payment account not available. 
+| 500.1051 | The transaction Id not eligible for Refund. 
+| 500.1086 | Omitted request payment information. 
+| 500.1062 | Exceeded the expiration for Refund. 
+| 500.1109 | Refund limit exceeded. 
+| 500.1099 | The transaction has already been refunded. 
+| 500.1088 | Payment method and password must be certificated by _LINE Pay_. 
+| 500.1109 | User’s account remains have been changed. 
+| 500.1109 | Existing same orderId. 
+| 500.1097 | Exceeded max. number of transactions (100) allowed to be retrieved. 
+| 500.3014 | Unsupported currency. 
+| 500.1057 | Status can not be processed. 
+| 500.1109 | Expired the payment date. 
+| 500.1109 | Payment amount must be greater than 0. 
+| 500.2498 | Payment amount exceeds amount requested. 
+| 500.1109 | The regKey does not exist. 
+| 500.1109 | The regKey expired. 
+| 500.1999 | This Merchant cannot use Preapproved Payment. 
+| 500.1104 | Already processing payment with regKey. 
+| 500.1104 | Duplicated the request calling API. 
+| 500.1999 | Internal request error. 
+| 500.1052 | Temporary error while making a payment with Credit Card. 
+| 500.1109 | Credit Card Payment Error. 
+| 500.1109 | Credit Card Authorization Error. 
+| 500.1160 | The payment has been declined due to suspected fraud. 
+| 500.1052 | Payment amount must be greater than 0. 
+| 500.1999 | Omitted credit card information. 
+| 500.1999 | Incorrect credit card payment information. 
+| 500.1064 | Credit card expiration date has passed. 
+| 500.1058 | Credit card has insufficient funds. 
+| 500.1105 | Maximum credit card limit exceeded. 
+| 500.1105 | One-time payment limit exceeded. 
+| 500.1065 | This card has been reported stolen. 
+| 500.1065 | This card has been suspended. 
+| 500.1059 | Invalid Card Verification Number (CVN). 
+| 500.1999 | This card is blacklisted. 
+| 500.1999 | Invalid credit card number. 
+| 500.2603 | Invalid amount. 
+| 500.1053 | The credit card payment declined. 
+| 500.1999 | Parameter error. 
+| 500.1999 | JSON data format error. 
+| 500.1999 | Internal error. 
+|===
+
+[#Linepay_Samples]
+=== Samples
+
+If you want to see corresponding notification samples, go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
+
+[#Linepay_Samples_checksignature]
+.XML _check-signature_ Request (Successful)
+
+[source,xml]
+----
+
+----
+ 
+
+
+[#Linepay_Samples_pendingdebit]
+.XML Pending-Debit Request (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+   <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+       <request-id>${unique for each request}</request-id>
+   <transaction-type>pending-debit</transaction-type>
+   <requested-amount currency="THB">2.00</requested-amount>
+   <account-holder>
+     <first-name>John</first-name>
+     <last-name>Doe</last-name>
+   </account-holder>
+   <payment-methods>
+       <payment-method name="linepay" />
+   </payment-methods>
+   <descriptor>Payment description</descriptor>
+   <cancel-redirect-url>http://someshop.com/cancel.html</cancel-redirect-url>
+   <success-redirect-url>http://someshop.com/success.html</success-redirect-url>
+</payment>
+----
+
+.XML Pending-Debit Response (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+  <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+  <transaction-id>${unique for each response}</transaction-id>
+  <request-id>${unique for each request}</request-id>
+  <transaction-type>pending-debit</transaction-type>
+  <transaction-state>success</transaction-state>
+  <completion-time-stamp>2019-02-28T08:32:00.000Z</completion-time-stamp>
+  <statuses>
+    <status code="201.0000" description="The resource was successfully created." severity="information"/>
+  </statuses>
+  <requested-amount currency="THB">2.00</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+  </account-holder>
+  <descriptor>Payment description</descriptor>
+  <payment-methods>
+    <payment-method url="https://sandbox-api-pay.line.me/linepay/v2/web/payment/wait?transactionReserveId=NDYyNTcwMTk1MzU4Mjg3MzYwMA==" name="linepay"/>
+  </payment-methods>
+  <cancel-redirect-url>http://someshop.com/cancel.html</cancel-redirect-url>
+  <success-redirect-url>http://someshop.com/success.html</success-redirect-url>
+</payment>
+----
+
+[#Linepay_Samples_pendingdebit_recurringfirst]
+.XML Pending-Debit Request Recurring First (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+ <request-id>${unique for each request}</request-id>
+ <transaction-type>pending-debit</transaction-type>
+ <requested-amount currency="THB">2.00</requested-amount>
+ <account-holder>
+   <first-name>John</first-name>
+   <last-name>Doe</last-name>
+ </account-holder> <descriptor>Payment description</descriptor>
+ <payment-methods>
+   <payment-method name="linepay"/>
+ </payment-methods>
+ <periodic>
+   <periodic-type>recurring</periodic-type>
+   <sequence-type>first</sequence-type>
+ </periodic>
+ <cancel-redirect-url>http://someshop.com/cancel.html</cancel-redirect-url>
+ <success-redirect-url>http://someshop.com/success.html</success-redirect-url>
+</payment>
+----
+
+.XML Pending-Debit Response Recurring First (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+ <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+ <transaction-id>353737bc-3f64-45b2-937c-50e30214427f</transaction-id>
+ <request-id>${unique for each request}</request-id>
+ <transaction-type>pending-debit</transaction-type>
+ <transaction-state>success</transaction-state>
+ <completion-time-stamp>2019-02-28T08:32:00.000Z</completion-time-stamp>
+ <statuses>
+   <status code="201.0000" description="The resource was successfully created." severity="information"/>
+ </statuses>
+ <requested-amount currency="THB">2.00</requested-amount>
+ <account-holder>
+   <first-name>John</first-name>
+   <last-name>Doe</last-name>
+ </account-holder>
+ <descriptor>Payment description</descriptor>
+ <payment-methods>
+   <payment-method url="https://sandbox-api-pay.line.me/linepay/v2/web/payment/wait?transactionReserveId=NDYyNTcwMTk1MzU4Mjg3MzYwMA==" name="linepay"/>
+ </payment-methods>
+ <periodic>
+   <periodic-type>recurring</periodic-type>
+   <sequence-type>first</sequence-type>
+ </periodic>
+ <cancel-redirect-url>http://someshop.com/cancel.html</cancel-redirect-url>
+ <success-redirect-url>http://someshop.com/success.html</success-redirect-url>
+</payment>
+----
+
+[#Linepay_Samples_debit_recurringrecurring]
+.XML Debit Request Recurring Recurring (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+ <request-id>${unique for each request}</request-id>
+ <transaction-type>debit</transaction-type>
+ <parent-transaction-id>353737bc-3f64-45b2-937c-50e30214427f</parent-transaction-id>
+ <payment-methods>
+   <payment-method name="linepay"/>
+ </payment-methods>
+ <periodic>
+   <periodic-type>recurring</periodic-type>
+   <sequence-type>recurring</sequence-type>
+ </periodic>
+</payment>
+----
+
+.XML Debit Response Recurring Recurring (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+ <request-id>${unique for each request}</request-id>
+ <transaction-id>cc1e43b5-d3bd-4d1b-9a43-3142bd9d7c32</transaction-id>
+ <transaction-type>debit</transaction-type>
+ <parent-transaction-id>353737bc-3f64-45b2-937c-50e30214427f</parent-transaction-id>
+ <payment-methods>
+   <payment-method name="linepay"/>
+ </payment-methods>
+ <periodic>
+   <periodic-type>recurring</periodic-type>
+   <sequence-type>recurring</sequence-type>
+ </periodic>
+ <wallet>
+   <request-token>4rVOg6Ey8beDc93</request-token>
+ </wallet>
+</payment>
+----
+
+[#Linepay_Samples_debit_recurringfinal]
+.XML Debit Request Recurring Final (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+ <request-id>${unique for each request}</request-id>
+ <transaction-type>debit</transaction-type>
+ <parent-transaction-id>353737bc-3f64-45b2-937c-50e30214427f</parent-transaction-id>
+ <payment-methods>
+   <payment-method name="linepay"/>
+ </payment-methods>
+ <periodic>
+   <periodic-type>recurring</periodic-type>
+   <sequence-type>final</sequence-type>
+ </periodic>
+</payment>
+----
+
+.XML Debit Response Recurring Recurring (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+ <merchant-account-id>d6f81c1a-ac60-4488-9716-e3ae80fe9c83</merchant-account-id>
+ <request-id>${unique for each request}</request-id>
+ <transaction-id>8f1e44b5-d3bd-4d1b-8a43-3142bd9d7ce4</transaction-id>
+ <transaction-type>debit</transaction-type>
+ <parent-transaction-id>353737bc-3f64-45b2-937c-50e30214427f</parent-transaction-id>
+ <payment-methods>
+   <payment-method name="linepay"/>
+ </payment-methods>
+ <periodic>
+   <periodic-type>recurring</periodic-type>
+   <sequence-type>final</sequence-type>
+ </periodic>
+ <wallet>
+   <request-token>4rVOg6Ey8beDc93</request-token>
+ </wallet>
+</payment>
+----
+
+[#Linepay_Samples_debit]
+.XML _debit_ Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _debit_ Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#Linepay_Samples_refunddebit]
+.XML _refund-debit_ Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _refund-debit_ Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#Linepay_Samples_pendingauthorization]
+.XML _pending-authorization_ Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _pending-authorization_ Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#Linepay_Samples_authorization]
+.XML _authorization_ Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _authorization_ Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#Linepay_Samples_voidauthorization]
+.XML _void-authorization_  Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _void-authorization_  Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#Linepay_Samples_captureauthorization]
+.XML _capture-authorization_  Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _capture-authorization_  Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#Linepay_Samples_refundcapture]
+.XML _refund-capture_  Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML _refund-capture_  Response (Successful)
+
+[source,xml]
+----
+
+----
+
+//-
