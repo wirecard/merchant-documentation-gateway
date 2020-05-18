@@ -5,7 +5,8 @@ A common business scenario would be subscription fees for video/audio streaming 
 
 You have to trigger the payment of a constant amount at regular intervals. For that purpose, you have to set up a recurring agreement:
 
-. The first payment is consumer-initiated and therefore requires Strong Customer Authentication. This first payment can also be a zero amount - no actual funds transfer, it only serves the purpose of signing the recurring agreement.
+. The first transaction is consumer-initiated and therefore requires Strong Customer Authentication. +
+This first  transaction can also be a <<API_CC_3DS2_UseCase_Recurring_Same_TrialPeriod, zero amount>> - no actual funds transfer, it only serves the purpose of signing the recurring agreement.
 . All subsequent payments are merchant-initiated transactions (MIT) that do not need SCA.
 
 //-
@@ -29,11 +30,9 @@ They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 . *Check-Enrollment* (subscription fee due at sign-up) +
 include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
 +
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. +
-// vhauss: Do we have a style convention for field elements? Here you do it like ``<periodic-type>recurring</periodic-type>`` in other sections we go like ``periodic-type`` = ``recurring``. 
-// vhauss: If we don't have a style guide for this, this should be the moment to create one. (-:
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 If the request is successful, the response contains a ``transaction-id``.
-// vhauss: The transaction response always (successful or fail) contains a ``transaction-id`` 
+
 . *Redirect the Consumer to the ACS URL* +
 include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
 . *Check-Payer-Response* (optional) +
@@ -51,25 +50,27 @@ The captured amount must not exceed the authorized amount.
 //-
 
 .For each subsequent recurring payment (merchant-initiated)
+
+**either**
 [start=6]
 . *Authorization* (subscription fee) +
 // Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
-// vhauss: every other transaction step we start with "Send a request with transaction type..." Why not here?
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
-// vhauss: see comment above: "vhauss: Do we have a style convention..."
+Send a request with transaction type ``authorization``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
-// vhauss: something to think about: this numbering can be kind of tricky. Here we use a "hard" numbering while above we use a dynamic numbering. If we insert an additional step above we have to make sure to remember this down here to adjust the number accordingly. Alternative: (see step *Authorization*).
+
 . *Capture* (subscription fee) +
-Send a request with transaction type ``capture`` or ``purchase``. +
+Send a request with transaction type ``capture``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the *last* authorization response (see step 6). +
 The ``requested-amount`` in the capture request must not exceed the authorized amount.
 
+//-
 *or*
-// vhauss: for conformity: shouldn't we add an "either" underneath the headline "For each subsequent recurring payment..." to make clear that these two blocks can be used optionally? That makes it clear from the beginning that the reader has two alternative entry points. This brings it much closer to loops in programing (e.g. "if loops").
+
 [start=6]
 . *Purchase* (subscription fee) +
 Send a request with transaction type ``purchase``. +
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
 The ``requested-amount`` in the purchase request must not exceed the authorized amount.
 
@@ -78,7 +79,6 @@ The ``requested-amount`` in the purchase request must not exceed the authorized 
 [#API_CC_3DS2_UseCase_Recurring_Same_TrialPeriod]
 === Option 2: No Payment Due at Sign-up
 
-// vhauss: all my comments above ("Option 1: Payment Due at Sign-up") apply here as well.
 For subscriptions with free trial period.
 
 A consumer places an order for a subscription for digital goods/services, e.g. a movie platform.
@@ -94,34 +94,39 @@ They are also included in the <<Appendix_Xml, REST API payment XSD>>.
 . *Check-Enrollment* (zero amount) +
 include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
 +
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 If the request is successful, the response contains a ``transaction-id``.
 . *Redirect the Consumer to the ACS URL* +
 include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
 . *Check-Payer-Response* (optional) +
 include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
 . *Authorization-only* (zero amount) +
-Send a request with transaction type authorization-only. +
+Send a request with transaction type ``authorization-only``. +
 This request serves to sign the payment agreement. +
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the check-enrollment response.
 
 //-
 .For each subsequent recurring payment (merchant-initiated)
 [start=5]
+
+*either*
+
 . *Authorization* (sucscription fee) +
 // Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
+Send a request with transaction type ``authorization``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
 . *Capture* (sucscription fee) +
 Send a request with transaction type ``capture``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization response (see step 5).
 
+//-
 *or*
 
 [start=5]
 . *Purchase* (sucscription fee) +
 Send a request with transaction type ``purchase``. +
-The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
 As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
 //-
