@@ -1,0 +1,179 @@
+
+[#PPv2_ThaiQR]
+== {payment-page-v2} 
+
+[#PPv2_ThaiQR_General]
+=== General Information
+
+
+
+[#PPv2_ThaiQR_About]
+=== About _Thai QR_
+
+[#PPv2_ThaiQR_TestCredentials]
+.Test Credentials
+
+[cols="35h,65"]
+|===
+| URL(s) Endpoints
+|``\https://{pp-test-instance-hostname}/api/payment/register``
+| Merchant Account ID (MAID)
+| 
+| Username
+| 
+| Password
+| 
+| Secret Key (used for response verification)
+| 
+|===
+
+[#PPv2_ThaiQR_TestCredentials_Additional]
+.Login Credentials
+
+[cols="15h,85"]
+|===
+| Email    | 
+| Password | 
+|===
+
+
+
+[#PPv2_ThaiQR_Countries]
+==== Countries and Currencies
+
+This table shows the _Thai QR_ payment mode and the countries and currencies which
+are relevant for _Thai QR_.
+
+[cols="20h,80"]
+|===
+| Payment Mode | 
+| Countries    | 
+| Currencies   | 
+|===
+
+[#PPv2_ThaiQR_TransactionType_debit]
+=== Transaction Type _debit_
+
+.Initial Request
+
+
+
+.Request Headers
+[cols="20h,80"]
+|===
+| Authorization | 
+| Content-Type  | 
+|===
+
+.Optional fields
+
+For a full list of optional fields you can use, see the REST API
+<<, Link to API _Thai QR_ specification>>.
+
+For a full structure of a request (optional fields included), see the
+<<, Link to _Thai QR_ JSON/NVP Field Reference>> section.
+
+.1. Create a Payment Session (Initial Request)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/.json[]
+----
+
+[cols="20e,10,10,10,5,45"]
+|===
+2+|Field (JSON) |Data Type |Mandatory/Optional |Size |Description
+
+||||||
+||||||
+||||||
+||||||
+||||||
+||||||
+||||||
+||||||
+
+|===
+
+.2. Redirect the Customer to the Payment Page (Initial Response URL)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/.json[]
+----
+
+[cols="e,,"]
+|===
+|Field (JSON) |Data Type |Description
+
+|||
+|||
+|||
+|||
+
+|===
+
+At this point, you need to redirect your customer to
+``payment-redirect-url`` (or render it in an _iframe_ depending on your
+<<PPv2, integration method>>).
+
+The customers are redirected to the payment form. There they enter their
+data and submit the form to confirm the payment. A payment can be:
+
+- ``success``ful (``transaction-state: success``),
+- ``failed`` (``transaction-state: failed``),
+- canceled. The customer canceled the payment before/after submission
+(``transaction-state: failed``).
+
+//-
+
+The transaction result is the value of ``transaction-state`` in the
+payment response. More details (including the status code) can also be
+found in the payment response in the ``statuses`` object. Canceled
+payments are returned as  _failed_, but the status description indicates it
+was canceled.
+
+In any case (unless the customer cancels the transaction on a 3rd party
+provider page), a base64 encoded response containing payment information
+is sent to the configured redirection URL. See
+<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
+for more details on redirection targets after payment & transaction status
+notifications.
+
+You can find a decoded payment response example below.
+
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/.json[]
+----
+
+[cols="30,5,5,5,55"]
+|===
+|Field (JSON) |Data Type |Description
+
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+|||
+
+|===
+
+//-

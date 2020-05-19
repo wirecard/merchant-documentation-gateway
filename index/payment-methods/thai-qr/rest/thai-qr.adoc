@@ -1,0 +1,150 @@
+[#API_ThaiQR]
+== REST API
+
+// [#API_ThaiQR_Introduction]
+// === Introduction
+
+_Thai QR_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#API_ThaiQR_CountriesCurrencies]
+=== Countries and Currencies
+
+[cols="20h,80"]
+|===
+
+|Countries | Thailand
+|Currencies a| Processing: THB +
+               Settlement: Not applicable (Processing model only)
+
+|===
+
+[#API_ThaiQR_CommunicationFormats]
+=== Communication Formats
+
+This table illustrates how _Thai QR_ notifications are encoded and which formats and methods can be used for requests and responses.
+
+[cols="20,20,60"]
+|===
+.2+| *Requests/Responses* | Format | XML, JSON
+                        | Methods | POST
+| *IPN Encodement*     2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_ThaiQR_Transactions]
+=== Transactions
+
+[#API_ThaiQR_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Transaction Types>>.
+
+[cols=",,"]
+|===
+|Transaction Type |Description | Link to Sample
+
+|_get-url_ | Retrieves the URL of Elastic Engine Payment Page with QR Code which after scanning redirects Customer to Siam Commercial Bank to process the payment. | Not available
+|_debit_ |Final transaction created after Siam Commercial Bank confirms by IPN if transaction was processed. | <<Linepay_Samples_debit, _debit_ sample>>
+
+|===
+
+//-
+
+[#API_ThaiQR_TestCredentials]
+=== Test Credentials
+
+[cols="35h,65"]
+|===
+| URLs (Endpoints) | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) | 0d99527e-0ac4-47be-978a-2c53a858b3a4
+| Username |
+| Password |
+| Secret Key |
+|===
+
+[#API_ThaiQR_AdditionalCredentials]
+.Additional Test Credentials on _Thai QR_ Environment
+
+[cols=",,"]
+|===
+| *Channel Id* | 
+| *Channel Secret Key* | 
+|===
+
+
+[#API_ThaiQR_Workflow]
+=== Workflow
+
+image::images/line-pay/linepay-flow.jpg[]
+
+. Merchant sends DEBIT request to EE to process the payment with PromptPay APM
+. EE creates GET-URL transaction and sends request to Siambank PromptPay provider to generate special QR code for processing the payment via Siam Commercial Bank
+. Siambank PromptPay provider returns message with QR code image in base64 format to EE
+. EE sends response to Merchant with both QR code in base64 format as well as URL for HPP
+. Merchant has 2 options:
+.. Merchant can redirect customer to HPP where QR code is displayed to scan QR code
+.. Or Merchant can encode QR code provided in base64 format and display it directly on his webpage
+. If merchant redirects customer to HPP to scan QR code, EE will show QR code image on HPP to customer and wait for IPN from provider
+. If merchant displays QR code directly on his webpage, customer will scan QR code on merchant’s webpage and is redirected to Siambank PromptPay to process the payment
+. Siambank PromptPay provider sends IPN message with transaction status to EE and EE creates SUCCESS DEBIT
+. Finally EE sends notification to merchant that DEBIT transaction was successfully created and processed
+
+.GETSTATUS Flow
+
+. Merchant sends request to find out status of the transaction
+. EE checks if transaction is finished and stored
+. If transaction is finished and stored, Merchant will receive response from EE with transaction status
+. If transaction is not finished and stored, EE checks if timeout is expired
+. If timeout is not expired, Merchant will receive response from EE that such transaction was not found
+. If timeout is expired, EE will create FAILED DEBIT and send notification to Merchant with transaction status
+
+[#API_ThaiQR_Expiration]
+=== QR code expiration
+
+There is no expiration for generated QR code on provider's side, but there is default timeout period (30 minutes) which is configurable globally per EE instance or can be set also for merchant - 
+
+``siambank-promptpay.connector.hpp.processing.timeoutmillis``
+
+When success IPN comes after timeout period, then failed debit is created and ERROR is logged.
+
+
+[#API_ThaiQR_Fields]
+=== Fields
+
+All fields used for _Thai QR_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
+
+[#API_ThaiQR_Samples]
+=== Samples
+
+If you want to see corresponding notification samples, go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
+
+[#API_ThaiQR_Samples_checksignature]
+.XML _get-url_ Request (Successful)
+
+[source,xml]
+----
+
+----
+ 
+.XML _get-url_ Response (Successful)
+
+[source,xml]
+----
+
+----
+
+[#API_ThaiQR_Samples_debit]
+.XML Debit Request (Successful)
+
+[source,xml]
+----
+
+----
+
+.XML Debit Response (Successful)
+
+[source,xml]
+----
+
+----
+
+//-
