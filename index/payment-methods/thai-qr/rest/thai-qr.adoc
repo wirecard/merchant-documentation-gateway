@@ -42,8 +42,8 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 |===
 |Transaction Type |Description | Link to Sample
 
-|_get-url_ | Retrieves the URL of Elastic Engine Payment Page with QR Code which after scanning redirects Customer to Siam Commercial Bank to process the payment. | Not available
-|_debit_ |Final transaction created after Siam Commercial Bank confirms by IPN if transaction was processed. | <<Linepay_Samples_debit, _debit_ sample>>
+|_get-url_ | Retrieves the URL of Elastic Engine Payment Page with QR Code which after scanning redirects consumer to Siam Commercial Bank to process the payment. | Not available
+|_debit_ |Final transaction created after Siam Commercial Bank confirms by IPN if transaction was processed. | <<API_ThaiQR_Samples_debit, _debit_ sample>>
 
 |===
 
@@ -76,35 +76,35 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 
 image::images/line-pay/linepay-flow.jpg[]
 
-. Merchant sends DEBIT request to EE to process the payment with PromptPay APM
-. EE creates GET-URL transaction and sends request to Siambank PromptPay provider to generate special QR code for processing the payment via Siam Commercial Bank
-. Siambank PromptPay provider returns message with QR code image in base64 format to EE
-. EE sends response to Merchant with both QR code in base64 format as well as URL for HPP
-. Merchant has 2 options:
-.. Merchant can redirect customer to HPP where QR code is displayed to scan QR code
-.. Or Merchant can encode QR code provided in base64 format and display it directly on his webpage
-. If merchant redirects customer to HPP to scan QR code, EE will show QR code image on HPP to customer and wait for IPN from provider
-. If merchant displays QR code directly on his webpage, customer will scan QR code on merchant’s webpage and is redirected to Siambank PromptPay to process the payment
-. Siambank PromptPay provider sends IPN message with transaction status to EE and EE creates SUCCESS DEBIT
-. Finally EE sends notification to merchant that DEBIT transaction was successfully created and processed
+. You send _debit_ request to {payment-gateway} to process the payment with _Thai QR_.
+. {payment-gateway} creates a _get-url_ transaction and sends request to Siambank _Thai QR_ provider to generate special QR code for processing the payment via Siam Commercial Bank.
+. Siambank _Thai QR_ provider returns message with QR code image in base64 format to {payment-gateway}.
+. {payment-gateway} sends response to you with both QR code in base64 format as well as URL for HPP.
+. You have two options:
+.. Either you redirect consumer to HPP where QR code is displayed to scan QR code.
+.. Or you encode QR code provided in base64 format and display it directly on his webpage.
+. If you redirect consumer to HPP to scan QR code, {payment-gateway} will show QR code image on HPP to consumer and wait for IPN from provider.
+. If you display QR code directly on his webpage, consumer will scan QR code on your webpage and is redirected to Siambank _Thai QR_ to process the payment.
+. Siambank _Thai QR_ provider sends IPN message with transaction status to {payment-gateway} and {payment-gateway} creates success _debit_.
+. Finally {payment-gateway} sends notification to you that _debit_ transaction was successfully created and processed.
 
 .GETSTATUS Flow
 
-. Merchant sends request to find out status of the transaction
-. EE checks if transaction is finished and stored
-. If transaction is finished and stored, Merchant will receive response from EE with transaction status
-. If transaction is not finished and stored, EE checks if timeout is expired
-. If timeout is not expired, Merchant will receive response from EE that such transaction was not found
-. If timeout is expired, EE will create FAILED DEBIT and send notification to Merchant with transaction status
+. You send request to find out status of the transaction.
+. {payment-gateway} checks if transaction is finished and stored.
+. If transaction is finished and stored, you receive response from {payment-gateway} with transaction status.
+. If transaction is not finished and stored, {payment-gateway} checks if timeout is expired.
+. If timeout is not expired, you receive response from {payment-gateway} that such transaction was not found.
+. If timeout is expired, {payment-gateway} will create failed _debit_ and send notification to you with transaction status.
 
 [#API_ThaiQR_Expiration]
 === QR code expiration
 
-There is no expiration for generated QR code on provider's side, but there is default timeout period (30 minutes) which is configurable globally per EE instance or can be set also for merchant - 
+There is no expiration for generated QR code on provider's side, but there is default timeout period (30 minutes) which is configurable globally per {payment-gateway} instance or you can set it - 
 
 ``siambank-promptpay.connector.hpp.processing.timeoutmillis``
 
-When success IPN comes after timeout period, then failed debit is created and ERROR is logged.
+When success IPN comes after timeout period, then failed _debit_ is created and ERROR is logged.
 
 
 [#API_ThaiQR_Fields]
@@ -133,14 +133,14 @@ If you want to see corresponding notification samples, go to <<GeneralPlatformFe
 ----
 
 [#API_ThaiQR_Samples_debit]
-.XML Debit Request (Successful)
+.XML _debit_ Request (Successful)
 
 [source,xml]
 ----
 
 ----
 
-.XML Debit Response (Successful)
+.XML _debit_ Response (Successful)
 
 [source,xml]
 ----
