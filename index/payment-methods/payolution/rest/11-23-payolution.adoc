@@ -1,17 +1,40 @@
 [#payolution]
 == REST API
-_payolution_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+_payolution_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+[#payolution_SpecificPaymentMethods]
+_payolution_  offers 4 payment methods: 
+
+* **``payolution-b2b``** +
+    ** Payment on invoice. 
+    ** For B2B transactions only.
+    ** You have to provide the company name.
+//-
+* **``payolution-elv``** +
+    ** SEPA direct debit payment. 
+    ** You need
+//-
+* **``payolution-inv``** +
+    ** Payment on invoice. 
+    ** For B2C transactions only.
+//-
+* **``payolution-inst``** +
+    ** Payment in installments. 
+    ** For B2C transactions only.
+//-
 
 [#payolution_CountriesandCurrencies]
 === Countries and Currencies
 [width=75%,cols=",,",stripes=none]
 |===
-.3+h| Countries
+.4+h| Countries
 | Invoice B2C
 | AT, DE, CH, NL
 | Invoice B2B
 | AT, DE, CH
 | Installment
+| AT, DE, CH
+| Direct Debit
 | AT, DE, CH
 h| Currencies
 2+| EUR, CHF
@@ -33,61 +56,82 @@ h|IPN Encodement
 |===
 
 [#payolution_Transactions]
-=== Transactions
+=== Transaction Types
 
-[#payolution_SpecificPaymentMethods]
-==== _payolution's_ Specific Payment Methods
-
-[%autowidth,stripes=none,cols="v,"]
-|===
-|Payment Method |Description
-
-|payolution-inv
-|Performs an invoice transaction. Used only for B2C transactions.
-|payolution-b2b
-|Performs an invoice transaction. Used only for B2B
-transactions. The company name must be provided and the consumer
-birthdate is not mandatory in this case.
-|payolution-inst
-|Performs an installment transaction. Can be used only
-for B2C transactions.
-|===
-
-[#payolution_TransactionTypes]
-==== Transaction Types
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here, look
 at <<AppendixB,  Transaction Types>>.
 
-[%autowidth,cols="v,,]
+[%autowidth,cols="m,a,""]
 |===
 | Transaction Type | Description | Link to the Samples
 
-| _authorization_
-| Performs creditworthiness check the moment the consumer places an order.
-| <<payolution_Samples_authorization, _authorization_ samples>>
-| _capture-authorization_
-| Used to capture the reserved funds the moment
-some or all goods are physically delivered to the consumer. Available
-only on successful authorization response which wasn't voided nor fully
-captured. Partial (and multiple) captures are allowed as long as the
-authorization limit is not exceeded.
-| <<payolution_Samples_captureAuthorization, _capture-authorization_ samples>>
-| _void-authorization_
-| Used when the consumer wishes to cancel some or
-all (not yet shipped) items from the order. Available only for a
-successful authorization response which has not yet been voided or
-captured. Partial and multiple voids are allowed until all ordered items
-are canceled or shipped.
-| <<payolution_Samples_voidAuthorization, _void-authorization_ samples>>
-|_refund-capture_
-| Used when the consumer wishes to return some or all
-delivered goods. Available on a successful capture-authorization.
-Partial and multiple refunds are allowed until all delivered items have
-been returned.
-| <<payolution_Samples_refundCapture, _refund-capture_ samples>>
-|===
+| authorization
+| Checks the consumer's creditworthiness when they place an order.
+| <<payolution_Samples_authorization, authorization samples>>
 
+| capture-authorization
+| Captures the funds reserved in a preceding authorization the moment
+some or all goods are physically delivered to the consumer. +
+You can only capture amounts that have been authorized successfully and neither voided nor fully captured. +
+Partial and multiple captures are allowed as long as you do not exceed authorization limit. +
+| <<payolution_Samples_captureAuthorization, capture-authorization samples>>
+
+| debit
+| Authorizes and captures a payment in one go and triggers fund transfer. +
+| <<payolution_Samples_debit, debit samples>>
+
+| void-authorization
+| Cancels a reserved order amount totally or partially if has not been captured before. +
+Once canceled, no further operations on the order are possible. +
+You can only cancel successful authorizations that have been neither voided nor
+captured. +
+Partial and multiple voids are allowed until all ordered items
+are canceled or captured. +
+Not available for payment method ``payolution-inv``.
+| <<payolution_Samples_voidAuthorization, void-authorization samples>>
+
+| refund-capture
+| Refunds a captured order amount if the consumer returns some or all delivered goods. +
+You can only refund amounts that have been captured successfully. +
+Partial and multiple refunds are allowed until the whole captured amount has been refunded (i.e. all delivered items have been returned.)
+| <<payolution_Samples_refundCapture, refund-capture samples>>
+
+| add-data
+| Adds information to a previous transaction. You can add
+
+** invoice ID
+** order ID
+** shipping company
+** tracking ID (for purchases and returns)
+** delivery date (for purchases and returns)
+** additional merchant information
+//-
+
+This is useful to 
+
+* add information that was not available at the time ot the previous transaction.
+* inform payolution about delivery date changes. This prevents from sending unjustified reminders to consumers.
+//-
+| <<payolution_Samples_addData, add-data samples>>
+
+| authorization-only
+| Checks if payolution accepts the consumer. +
+This pre-check can save you the effort of displaying installment plans to consumers who would be rejected in a payment process. 
+| <<payolution_Samples_authorizationOnly, authorization-only samples >>
+
+| adjust-authorization
+| Updates the amount of a preceding authorization. +
+You can only adjust authorizations that have not yet been captured. + 
+For ``payolution-inst``, you can only add information to a preceding authorization request. You cannot change neither amount nor number of installments.
+|
+
+| calculate
+| Returns installment plans for a specified amount.
+| <<payolution_Samples_calculate, calculate samples >>
+
+|===
+ 
 [#payolution_TestCredentials]
 === Test Credentials
 
@@ -95,11 +139,18 @@ been returned.
 [%autowidth]
 [stripes=none]
 |===
-.2+h| URLs (Endpoints)
-| For transaction type _authorization_.
+.3+h| URLs (Endpoints)
+| For transaction type ``authorization``.
 | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
-| For transaction types _capture-authorization_, _refund-capture_ and _void-authorization._
+a| For transaction types 
+
+* ``capture-authorization``
+* ``refund-capture``
+* ``void-authorization``
+//-
 | ``\https://{test-instance-hostname}/engine/rest/payments/``
+| For transaction type ``calculate``
+| ``\https://api-test.wirecard.com/engine/rest/utils/installmentcalculator``
 h| Merchant Account ID (MAID)
 2+| 2048677d-57f4-44b0-8d67-9014c6631d5f
 h| Username
@@ -129,33 +180,47 @@ BIC: INGDAT21XXX
 [#payolution_Workflow]
 === Workflow
 
+[#payolution_ELV]
+==== Direct Debit - ``payolution-elv`` (debit)
+
+. Consumer selects payment method SEPA Direct Debit (by _payolution_).
+. -> Send a ``debit`` request to WPG. +
+This request must contain ``payment-method@name`` = ``payolution-elv`` and the consumer's ``iban``.
+. WPG processes the request and forwards it to _payolution_.
+. _payolution_ runs risk checks. If the request passes, _payolution_ forwards it to the consumer's bank.
+. The consumer's bank debits the consumer's account and transfers funds to _payolution_. 
+. _payolution_ sends a response to WPG and transfers funds to merchant account.
+. WPG informs you about the transaction outcome.
+. -> Inform the consumer about the transaction outcome.
+//-
+
 [#payolution_InvoiceB2C]
-==== Invoice B2C (_authorization, capture-authorization_)
+==== Invoice B2C (authorization, capture-authorization)
 
 [NOTE]
 ====
-_payolution_ sends the _authorization_ request with the _payolution_
-specific payment method "*payolution-inv*".
+_payolution_ sends the ``authorization`` request with the _payolution_
+specific payment method ``payolution-inv``.
 
 For B2C transactions, the account holder's date of birth is mandatory.
 
-Invoice B2C captures the full amount only when *all the ordered goods*
+Invoice B2C captures the full amount only when *all ordered goods*
 are ready for delivery.
 ====
 
 image::images/11-23-payolution/payolution_InvoiceB2C_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
 
 [#payolution_InvoiceB2B]
-==== Invoice B2B (_authorization, capture-authorization_)
+==== Invoice B2B (authorization, capture-authorization)
 
 [NOTE]
 ====
 _Invoice B2B_ has the same structure as _Invoice B2C_.
 
 _Invoice B2B_ sends the _authorization_ request with the _payolution_
-specific payment method "*payolution-b2b*".
+specific payment method ``payolution-b2b``.
 
-For B2B transactions, a company name is required.
+``custom-field@field-name="company-name"`` is mandatory for B2B transactions.
 
 Invoice B2B captures the full amount only when *all ordered goods* are
 ready for delivery.
@@ -165,6 +230,19 @@ image::images/11-23-payolution/payolution_InvoiceB2B_authorization_captureAuthor
 
 [#payolution_Installment]
 ==== Installment (_authorization, capture-authorization_)
+
+
+There are two installment options:
+
+. *Async installment:* Show the installment plans to your consumer on the _payolution_ web site. You need to redirect them.
+
+. *Sync installment:* Show the installment plans to your consumer on your own shop page. Before that, you need to retreive the available installment plans with a ``claculate`` request.
+
+//-
+
+
+[#payolution_Installment_Async]
+===== Async Installment
 
 [NOTE]
 ====
@@ -176,6 +254,31 @@ authorization* response has arrived.
 ====
 
 image::images/11-23-payolution/payolution_Installment_authorization_captureAuthorization.png[payolution Installment, width=950, align="right"]
+
+
+
+[#payolution_Installment_Sync]
+===== Sync Installment
+
+. Consumer selects "Payment in Installments" (by _payolution_).
+. -> Send a ``claculate`` request to WPG.
+. WPG retrieves installment plans from _payolution_ and forwards them to you in the ``calculate`` response. +
+This ``calculate`` response also contains all available installment plans and a link to _payolution's_ terms and conditions.
+. -> On the checkout page, show the consumer
+** the available installment plans
+** the link to _payolution's_ terms and conditions. +
+. Consumer selects an installment plan and submits the payment. 
+. -> Send an ``authorization`` or ``debit`` request to WPG: +
+As ``field-value`` for ``custom-field field-name="duration"``, enter the selected number of installments. +
+If you do not provide this field, the request falls back to async installment.
+. WPG forwards the request to _payolution_.
+. _payolution_ processes the request and sends the response to WPG.
+. WPG forwards the response to you.
+. -> Inform the consumer about the transaction outcome.
+. _payolution_ pays the total order amount to the merchant account.
+. The consumer pays _payolution_ in monthly installments.
+
+
 
 [#payolution_Reversal]
 ==== Reversal (_void-authorization_)
@@ -233,46 +336,155 @@ image::images/11-23-payolution/payolution_refund_refundCapture.png[payolution Re
 === Fields
 
 The fields used for _payolution_ requests, responses and notifications
-are the same as the REST API fields. Please refer to the <<RestApi_Fields, REST API field list>>.
+are the same as the <<RestApi_Fields, REST API fields>>.
 
 Only the fields listed below have different properties, especially
 according to size.
 
 [#payolution_Fields_authorization]
-==== _authorization_
+==== authorization and debit Fields
 
-The following elements are mandatory (M), optional (O) or conditional
-\(C) for an _authorization_ request for any
-of _payolution's_ specific payment methods
-(payolution-inv, payolution-b2b and payolution-inst).
+Fields can be **M**andatory or **O**ptional in an _authorization_ request for any
+of _payolution's_ specific payment methods.
 
-[cols="v,,,,"]
-[frame=all]
-[%autowidth]
+[%autowidth,stripes=none]
+[cols="m,,,,,,a"]
 |===
-|Field |Cardinality |Datatype |Size |Description
+3+|Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Data Type |Size |Description
 
-|payment-methods/payment-method@name |M |xs:string |15 |Name of payment
-method is <payolution-inv>, <payolution-b2b> or <payolution-inst>.
-|account-holder/first-name |M |xs:string |32 |The first name of the
-account holder.
-|account-holder/last-name |M |xs:string |32 |The last name of the
-account holder.
-|account-holder/email |M |xs:string |64 |The email address of the
-account holder.
-|account-holder/date-of-birth |C |xs:string |10 |The date of birth of
-the account holder. Mandatory for B2C transactions. Optional for B2B
-transactions.
-|account-holder/phone |C |xs:string |32 |The phone number of the account
-holder. Mandatory for consumers from the Netherlands.
-|account-holder/address/street1 |M |xs:string |128 |The first line of
-the street address of the account holder.
-|account-holder/address/city |M |xs:string |32 |The city of the address
-of the account holder.
-|account-holder/address/country |M |xs:string |2 |The Country ID of the
-address of the account holder (ISO 3166-1 alpha-2).
-|account-holder/address/postal-code |M |xs:string |16 |The postal code
-or ZIP of the address of the account holder.
+| payment-methods
+2+m| payment-method@name 
+| M 
+| String 
+| 15 
+a| The name of the payment method used for the transaction.
+
+Accepted values:
+
+* ``payolution-b2b``
+* ``payolution-elv``
+* ``payolution-inst``
+* ``payolution-inv``
+
+//-
+.9+| account-holder
+2+m| first-name 
+| M 
+| String 
+| 32 
+| Consumer’s first name.
+
+2+m| last-name 
+| M 
+| String 
+| 32 
+| Consumer’s last name.
+
+2+m| email 
+| M 
+| String 
+| 64 
+| Consumer’s email address.
+
+2+| date-of-birth 
+| M/O 
+| String 
+| 10 
+| Consumer’s date of birth. +
+Mandatory for B2C transactions. +
+Optional for B2B transactions.
+
+2+| phone 
+| M/O
+| String 
+| 32 
+| Consumer’s phone number. +
+Mandatory for consumers from the Netherlands.
+
+.4+| address
+m| street1
+| M 
+| String 
+| 128 
+| First line of consumer's address.
+
+| city 
+| M 
+| String 
+| 32 
+| City of consumer's address.
+
+| country 
+| M 
+| String 
+| 2 
+| Country ID of consumer's address (ISO 3166-1 alpha-2).
+
+| postal-code 
+| M 
+| String 
+| 16 
+| Postal code or ZIP of consumer's address.
+
+.2+| bank-account
+2+m| iban
+| M/O
+| String 
+| 34 
+| Consumer's IBAN. +
+Mandatory for ``payolution-elv``.
+
+2+m| bic
+| M/O 
+| String 
+| 15 
+| Consumer's BIC. +
+Mandatory for ``payolution-elv``.
+
+m| custom-fields 
+2+m| custom-field field-name="duration"
+| M/O 
+| String 
+| 15 
+| <<payolution_Fields_Installments_months, Number of installments.>> +
+Mandatory for ``payolution-inst`` (sync installments).
+
+|===
+
+
+[#payolution_Fields_Installments]
+==== Installments Calculator Response Fields
+
+[%autowidth,stripes=none]
+[cols="m,,a"]
+|===
+2+|Field |Description
+
+2+| product-id
+| Installment plan ID.
+
+2+| name
+| Installment plan name.
+
+2+| terms
+| URL to _payolution's_ terms and conditions. 
+
+.5+| details
+m| interest-rate
+| Interest rate in percent.
+
+| setup-fee
+| Extra charges for providing the option of payment in installments.
+
+| monthly-pay
+| Amount the consumer has to pay back in monthly installments.
+
+| months
+| [[payolution_Fields_Installments_months]]Number of installments. Enter this value as ``field-value`` for ``custom-field field-name="duration"``.
+
+| total-credit-purchase-price
+| Total amount the consumer has to pay, including interest and setup-fee.
+
 |===
 
 [#payolution_Fields_CustomFieldsforB2BTransactions]
@@ -282,20 +494,34 @@ Custom fields contain company information if the consumer is a business
 consumer. For B2B transactions only the company name is mandatory. All
 other fields are optional.
 
-[cols="v,,,,"]
-[frame=all]
-[%autowidth]
+[%autowidth,stripes=none]
+[cols="m,,,,a"]
 |===
-|Field |Cardinality |Datatype |Size |Description
+|Field |<<APIRef_FieldDefs_Cardinality, M/O>> |Data Type |Size |Description
 
-|custom-field@field-name="company-name" |M |xs:string |256 |Company name
-of consumer.
-|custom-field@field-name="company-uid" |O |xs:string |256 |VAT
-identification number of consumer.
-|custom-field@field-name="company-trade-register-number" |O |xs:string
-|256 |Trade register number of consumer.
-|custom-field@field-name="company-register-key" |O |xs:string |256
-|Additional registration information about consumer.
+| custom-field@field-name="company-name" 
+| M 
+| String 
+| 256 
+| Consumer’s company name.
+
+| custom-field@field-name="company-uid" 
+| O 
+| String 
+| 256 
+| Consumer’s VAT identification number.
+
+| custom-field@field-name="company-trade-register-number" 
+| O 
+| String
+| 256 
+| Consumer’s Trade register number.
+
+| custom-field@field-name="company-register-key" 
+| O 
+| String 
+| 256
+| Additional registration information about consumer.
 |===
 
 [#payolution_AmountLimits]
@@ -407,6 +633,38 @@ include::{root}/samples/xml/payolution-inst_authorization_request_failure.xml[]
 ----
 include::{root}/samples/xml/payolution-inst_authorization_response_failure.xml[]
 ----
+
+
+[#payolution_Samples_authorizationOnly]
+==== authorization-only (for all payment methods)
+
+.XML authorization-only Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-authorization-only_request_success.xml[]
+----
+
+.XML authorization-only Response (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-authorization-only_response_success.xml[]
+----
+
+
+[#payolution_Samples_calculate]
+==== calculate (for payolution-inst)
+
+.XML calculate Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-calculate_request_success.xml[]
+----
+
+
+
 
 [#payolution_Samples_captureAuthorization]
 ==== _capture-authorization_
@@ -533,6 +791,40 @@ include::{root}/samples/xml/payolution-b2b_refund-capture_request_failure_240fa6
 [source,xml,subs=attributes+]
 ----
 include::{root}/samples/xml/payolution-b2b_refund-capture_response_failure_240fa6d8.xml[]
+----
+
+[#payolution_Samples_addData]
+==== add-data
+
+.XML add-data Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-add-data_request_success.xml[]
+----
+
+.XML add-data Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-add-data_response_success.xml[]
+----
+
+[#payolution_Samples_adjustAuthorization]
+==== adjust-authorization 
+
+.XML adjust-authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-adjust-authorization_request_success.xml[]
+----
+
+.XML adjust-authorization Request (Successful)
+
+[source,xml,subs=attributes+]
+----
+include::{root}/samples/xml/payolution-adjust-authorization_response_success.xml[]
 ----
 
 //-
