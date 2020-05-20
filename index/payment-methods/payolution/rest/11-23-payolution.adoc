@@ -58,10 +58,6 @@ h|IPN Encodement
 [#payolution_Transactions]
 === Transaction Types
 
-
-For <<Glossary_TransactionType, transaction type>> details which are not given here, look
-at <<AppendixB,  Transaction Types>>.
-
 [%autowidth,cols="m,a,""]
 |===
 | Transaction Type | Description | Link to the Samples
@@ -74,12 +70,13 @@ at <<AppendixB,  Transaction Types>>.
 | Captures the funds reserved in a preceding authorization the moment
 some or all goods are physically delivered to the consumer. +
 You can only capture amounts that have been authorized successfully and neither voided nor fully captured. +
-Partial and multiple captures are allowed as long as you do not exceed authorization limit. +
+Partial and multiple captures are allowed as long as you do not exceed the authorization limit. +
 | <<payolution_Samples_captureAuthorization, capture-authorization samples>>
 
 | debit
-| Authorizes and captures a payment in one go and triggers fund transfer. +
-| <<payolution_Samples_debit, debit samples>>
+| Authorizes and captures a payment in one go. +
+Triggers fund transfer. +
+| <<payolution_Samples_authorization, debit samples>>
 
 | void-authorization
 | Cancels a reserved order amount totally or partially if has not been captured before. +
@@ -113,6 +110,8 @@ This is useful to
 * add information that was not available at the time ot the previous transaction.
 * inform payolution about delivery date changes. This prevents from sending unjustified reminders to consumers.
 //-
+You can only add information to a successful capture-authorization transaction.
+
 | <<payolution_Samples_addData, add-data samples>>
 
 | authorization-only
@@ -122,8 +121,8 @@ This pre-check can save you the effort of displaying installment plans to consum
 
 | adjust-authorization
 | Updates the amount of a preceding authorization. +
-You can only adjust authorizations that have not yet been captured. + 
-For ``payolution-inst``, you can only add information to a preceding authorization request. You cannot change neither amount nor number of installments.
+You can only adjust authorizations that have not yet been captured. +
+For ``payolution-inst``, you can only add information to a preceding authorization request. You can change neither amount nor number of installments.
 |
 
 | calculate
@@ -144,7 +143,11 @@ For ``payolution-inst``, you can only add information to a preceding authorizati
 | ``\https://{test-instance-hostname}/engine/rest/paymentmethods/``
 a| For transaction types 
 
+* ``add-data``
+* ``adjust-authorization``
+* ``authorization-only``
 * ``capture-authorization``
+* ``debit``
 * ``refund-capture``
 * ``void-authorization``
 //-
@@ -181,7 +184,7 @@ BIC: INGDAT21XXX
 === Workflow
 
 [#payolution_ELV]
-==== Direct Debit - ``payolution-elv`` (debit)
+==== Direct Debit (``payolution-elv``) - debit Workflow
 
 . Consumer selects payment method SEPA Direct Debit (by _payolution_).
 . -> Send a ``debit`` request to WPG. +
@@ -195,7 +198,7 @@ This request must contain ``payment-method@name`` = ``payolution-elv`` and the c
 //-
 
 [#payolution_InvoiceB2C]
-==== Invoice B2C (authorization, capture-authorization)
+==== Invoice B2C (``payolution-b2c``) - authorization, capture-authorization Workflow
 
 [NOTE]
 ====
@@ -211,13 +214,13 @@ are ready for delivery.
 image::images/11-23-payolution/payolution_InvoiceB2C_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
 
 [#payolution_InvoiceB2B]
-==== Invoice B2B (authorization, capture-authorization)
+==== Invoice B2B (``payolution-b2c``) - authorization, capture-authorization Workflow
 
 [NOTE]
 ====
 _Invoice B2B_ has the same structure as _Invoice B2C_.
 
-_Invoice B2B_ sends the _authorization_ request with the _payolution_
+_Invoice B2B_ sends the ``authorization`` request with the _payolution_
 specific payment method ``payolution-b2b``.
 
 ``custom-field@field-name="company-name"`` is mandatory for B2B transactions.
@@ -229,7 +232,7 @@ ready for delivery.
 image::images/11-23-payolution/payolution_InvoiceB2B_authorization_captureAuthorization.png[payolution Invoice B2B, width=950, align="right"]
 
 [#payolution_Installment]
-==== Installment (_authorization, capture-authorization_)
+==== Installment (``payolution-inst``)
 
 
 There are two installment options:
@@ -242,14 +245,14 @@ There are two installment options:
 
 
 [#payolution_Installment_Async]
-===== Async Installment
+===== Async Installment - authorization, capture-authorization Workflow
 
 [NOTE]
 ====
-_Installment_ sends the _authorization_ request with the _payolution_
-specific payment method "*payolution-inst*".
+_Installment_ sends the ``authorization`` request with the _payolution_
+specific payment method ``payolution-inst``.
 
-_Capture-authorization_ must be triggered *immediately after the
+``capture-authorization`` must be triggered *immediately after the
 authorization* response has arrived.
 ====
 
@@ -258,7 +261,7 @@ image::images/11-23-payolution/payolution_Installment_authorization_captureAutho
 
 
 [#payolution_Installment_Sync]
-===== Sync Installment
+===== Sync Installment - authorization, debit Workflow
 
 . Consumer selects "Payment in Installments" (by _payolution_).
 . -> Send a ``claculate`` request to WPG.
@@ -278,7 +281,7 @@ If you do not provide this field, the request falls back to async installment.
 . _payolution_ pays the total order amount to the merchant account.
 . The consumer pays _payolution_ in monthly installments.
 
-
+//-
 
 [#payolution_Reversal]
 ==== Reversal (_void-authorization_)
@@ -344,7 +347,7 @@ according to size.
 [#payolution_Fields_authorization]
 ==== authorization and debit Fields
 
-Fields can be **M**andatory or **O**ptional in an _authorization_ request for any
+Fields can be **M**andatory or **O**ptional in an authorization/debit request for any
 of _payolution's_ specific payment methods.
 
 [%autowidth,stripes=none]
@@ -540,7 +543,7 @@ available to the consumer.
 Click the link to view corresponding <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
 
 [#payolution_Samples_authorization]
-==== _authorization_
+==== authorization
 
 .XML B2C Invoice authorization Request (Successful)
 
