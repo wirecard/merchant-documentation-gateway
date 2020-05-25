@@ -1,18 +1,10 @@
-//:env-nova:
-//:env-wirecard:
-
 [#RestApi_Fields]
 == Fields
 
-These fields are used with _{payment-gateway}_
-REST API. 
+These fields are used with _{payment-gateway}_ REST API. 
 They are mandatory (*M*) or optional (*O*) in a request. Fields that show only in the response are marked accordingly.
 
-ifdef::env-wirecard[]
-ifndef::env-nova[]
 Please refer to the <<Appendix_Xml, XSD>> for details about the field's value range.
-endif::[]
-endif::[]
 
 NOTE: Field values must not contain ``&``, ``<``, ``>``.
 
@@ -32,28 +24,23 @@ NOTE: Field values must not contain ``&``, ``<``, ``>``.
 
 include::{root}/include/fields/rest_cc/request/req-payment.adoc[tag=pm-base]
 
-ifdef::env-wirecard,env-nova[]
 | creditor-id
 | O
 |	String
 | 256
 |	The merchant's creditor ID  allowing the merchant to process SEPA Direct Debit transactions. +
 Allowed characters: ``[a-zA-Z]\{2,2}[0-9]\{2,2}[a-zA-Z0-9]\{3,3}[a-zA-Z0-9]\{1,28}``
-endif::[]
 
 | redirect-url 
 | M/O 
 | String 
 | 256 
 | The URL to which the consumer is redirected after completion of a payment regardless of the transaction state. This is normally a page on the merchant's website. 
-ifdef::env-wirecard,env-nova[]
-[NOTE]
+
 ``redirect-url`` is optional if the payment method is not based on a redirect (e.g. SEPA).
-endif::[]
 
 include::{root}/include/fields/api/response/res-api-payment.adoc[]
 
-//include::{root}/include/fields/rest_cc/request/req-payment-parents.adoc[]
 
 |===
 
@@ -99,18 +86,14 @@ include::{root}/include/fields/rest_cc/request/req-account-info.adoc[]
 
 * <<API_Fields_xmlelements_request_accountholder, account-holder>>.
 * <<API_Fields_xmlelements_request_shipping, shipping>>.
-ifndef::env-nova[]
 * <<API_Fields_xmlelements_request_airlineindustry, airline-industry>>. 
-endif::[]
 
 //-
 It is used to specify the consumer's address and can refer to
 
 - the consumer (for ``account-holder``). The account holder's address is used as the billing address.
 - the consumer's shipping address (for ``shipping``). For 3D Secure 2 transactions it is highly recommended to send ``shipping.address`` data in any case, as a complete set of ``shipping.address`` data reduces the likelihood of a challenge test.
-ifndef::env-nova[]
 - the ticket issuer (for ``airline-industry``).
-endif::[]
 
 //-
 Data can be provided optionally but it helps with fraud checks if ``address`` is complete.
@@ -150,7 +133,6 @@ include::{root}/include/fields/api/request/req-card.adoc[]
 
 :!listname:
 
-ifndef::env-nova[]
 [#API_Fields_xmlelements_cardEMV]
 ==== card.card-emv
 
@@ -170,8 +152,6 @@ include::{root}/include/fields/api/request/req-card-emv.adoc[tags="**;!responseH
 // ==== card.card-raw
 
 // include::{root}/include/fields/rest_cc/request/req-card-raw.adoc[]
-
-endif::[]
 
 
 [#API_Fields_xmlelements_request_cardtoken]
@@ -227,8 +207,6 @@ include::{root}/include/fields/rest_cc/request/req-device.adoc[]
 
 // include::{root}/include/fields/api/request/req-device-SDK.adoc[]
 
-
-ifndef::env-nova[]
 // [#API_Fields_xmlelements_card_encryptionContext]
 // ==== encryption-context
 
@@ -249,8 +227,6 @@ include::{root}/include/fields/rest_cc/request/req-iso.adoc[]
 
 |===
 
-endif::[]
-
 
 [#API_Fields_xmlelements_request_mandate]
 ==== mandate
@@ -262,7 +238,7 @@ include::{root}/include/fields/api/request/req-mandate.adoc[]
 ==== notifications.notification
 
 [%autowidth]
-[cols="m,,,,a"]
+[cols=",,,,a"]
 |===
 | Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
@@ -280,7 +256,7 @@ include::{root}/include/fields/api/request/req-orderItem.adoc[]
 ==== payment-methods.payment-method
 
 [%autowidth]
-[cols="m,,,,a"]
+[cols=",,,,a"]
 |===
 | Field | <<APIRef_FieldDefs_Cardinality, M/O>> | Datatype | Size | Description
 
@@ -348,12 +324,31 @@ include::{root}/include/fields/rest_cc/request/req-shipping.adoc[]
 
 :!listname:
 
-ifndef::env-nova[]
+
+[#API_Fields_xmlelements_request_submerchantinfo]
+==== sub-merchant-info
+
+:listname: API_Fields_xmlelements
+
+include::{root}/include/field-list-headers/rest_cc/request/req-sub-merchant-info.adoc[]
+
+:!listname:
+
+[%autowidth,cols="m,,,,a"]
+|===
+| Field | <<APIRef_FieldDefs_Cardinality, M/O>> | <<APIRef_FieldDefs_DataTypes, Data Type>> | Size | Description
+
+include::{root}/include/fields/rest_cc/request/req-sub-merchant-info.adoc[]
+
+|===
+
+//-
+
+
 [#API_Fields_xmlelements_request_surcharge]
 ==== surcharge
 
 include::{root}/include/fields/api/response/res-surcharge.adoc[]
-endif::[]
 
 
 [#API_Fields_xmlelements_status]
@@ -372,17 +367,13 @@ include::{root}/include/fields/api/response/res-status.adoc[]
 
 include::{root}/include/fields/rest_cc/request/req-three-d.adoc[tag=pm-base]
 
-ifndef::env-nova[]
 | liability-shift-indicator
 | Response only
 | String 
 | 2048 
 | Liability shift can be enabled for 3D Secure consumers.
-endif::[]
 |===
 
-
-ifndef::env-nova[]
 
 [#API_Fields_xmlelements_request_airlineindustry]
 ==== airline-industry
@@ -612,10 +603,7 @@ Accepted values: +
 | cash-advances	| O	| money	| 14	| This is the total amount of advance payments received before/during the lodging.
 |===
 
-endif::[]
 
-
-ifndef::env-nova[]
 [#API_Fields_xmlelements_request_response_avs]
 ==== avs
 
@@ -632,8 +620,6 @@ include::{root}/include/fields/rest_cc/response/res-avs.adoc[]
 |===
 
 <<FraudPrevention_AVS_WirecardResponseCodes, -> Complete list of {payment-provider-name} result codes and messages>>.
-
-endif::[]
 
 
 include::{root}/index/api-reference/21-field-definitions.adoc[leveloffset=+1]

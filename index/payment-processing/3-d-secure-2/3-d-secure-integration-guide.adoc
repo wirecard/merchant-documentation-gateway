@@ -1,0 +1,75 @@
+[#3DS2_IntegrationGuide]
+== General Integration Guide
+
+Processing 3D Secure 2 transactions differs from standard payment processing. 
+
+To enable 3D Secure 2,
+
+- include two additional transaction types in the payment flow: 
+    * <<3DS2_checkenrollment, check-enrollment>>
+    * <<3DS2_checkpayer, check-payer-response (optional)>>
+- include <<CreditCard_3DS2_Fields, 3D-Secure-2-specific fields>> in the initial payment request.
+
+//-
+
+[NOTE] 
+====
+*Switching From 3D Secure 1 to 3D Secure 2* +
+The <<3DS2_Workflow, 3D Secure 2 workflow>> remains identical to the 3D Secure 1 workflow. If you already have an existing 3D Secure 1 integration and want to migrate to 3D Secure 2, simply include additional 3D-Secure-2-specific fields in the initial payment request.  +
+
+As the new 3D Secure 2 protocol will shortly replace 3D Secure 1, we strongly recommend you to implement 3D Secure 2 as soon as possible.
+====
+
+[#3DS2_checkenrollment]
+[discrete]
+=== Check-Enrollment
+
+
+Checks if the consumer's card is enrolled in the 3D Secure 2 program. Check-enrollment has two functions:
+
+- Authenticate the consumer's identity.
+- Confirm the consumer's willingness to pay the amount specified in the payment transaction.
+
+//-
+
+Therefore, a  check-enrollment request needs to contain a ``requested-amount``. As a general rule, the amount provided in consecutive payment requests, e.g. during an authorization, should not exceed the amount provided in the referenced check-enrollment by more than what a consumer could reasonably expect. The margin of what is considered reasonable varies from card scheme to card scheme and ranges from 15-20%.
+As a merchant, you are always on the safe side when the originally ``requested-amount`` is not exceeded by 15%.
+
+[NOTE]
+====
+If you exceed the originally ``requested-amount``, the transaction may be declined.
+However, not all transactions that exceed the originally ``requested-amount`` will fail.
+In those cases, chargeback liability protection will not apply to the same extent as for fully authenticated amounts.
+==== 
+
+With 3D Secure 2 the amount of data collected during the check-enrollment is significantly higher than with 3D Secure 1. This allows a more comprehensive risk analysis. 
+
+[#3DS2_checkpayer]
+[discrete]
+=== Check-Payer-Response (optional)
+
+This request is used to receive, analyze and store authentication values. The check-payer-response returns the authentication values needed in the payment transaction that follows. These include the ``dsTransId``, ``CAAV/AVV``, ``ECI``, ``authenticationStatus`` and the 3D Secure version (expected 2.1.0). +
+
+
+Executing the check-payer-response is optional. Use it only in case you have initiated the check-enrollment through the {payment-gateway}. If the check-payer-response is not executed, use instead the ``PARes`` received via ``TermURL`` to access the authentication values needed in the payment transaction that follows.
+
+
+[#3DS2_3DSecureFields]
+[discrete]
+=== 3D-Secure-2-Specific Fields
+
+To process 3D Secure 2 transactions, include 3D-Secure-2-specific fields in the initial payment request. 
+
+For 3D Secure 2, more 3D-Secure-specific fields have to be included than for 3D Secure 1.  3D-Secure-2-specific fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 Fields>> section. 
+
+====
+Check out how to implement 3D Secure 2 for different integration options:
+
+- <<3DS2_IntegrationGuide_REST, REST API>>
+- <<PPv2_CC_3DSecure, {payment-page-v2-abbr}>>
+- <<PP_3DSecure, {payment-page-v1-abbr}>>
+
+//-
+====
+
+//-
