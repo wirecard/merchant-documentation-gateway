@@ -1,0 +1,187 @@
+[#API_PromptPay]
+== REST API
+
+// [#API_PromptPay_Introduction]
+// === Introduction
+
+_Prompt Pay_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+
+[#API_PromptPay_CountriesCurrencies]
+=== Countries and Currencies
+
+[cols="20h,80"]
+|===
+
+|Countries | Thailand
+|Currencies | THB 
+
+|===
+
+[#API_PromptPay_CommunicationFormats]
+=== Communication Formats
+
+This table illustrates how _Prompt Pay_ notifications are encoded and which formats and methods can be used for requests and responses.
+
+[cols="20,20,60"]
+|===
+.2+| *Requests/Responses* | Format | XML, JSON
+                        | Methods | POST, GET for <<API_PromptPay_Workflow_GetStatus, GETSTATUS>>
+| *IPN Encodement*     2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+|===
+
+[#API_PromptPay_Transactions]
+=== Transactions
+
+[#API_PromptPay_TransactionTypes]
+==== Transaction Types
+
+For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Transaction Types>>.
+
+[cols=",,"]
+|===
+|Transaction Type |Description | Link to Sample
+
+|_debit_ |Transaction created after Siam Commercial Bank _Prompt Pay_ confirms by IPN if transaction was processed. | <<API_PromptPay_Samples_debit, _debit_ sample>>
+
+|===
+
+//-
+
+[#API_PromptPay_TestCredentials]
+=== Test Credentials
+
+[cols="35h,65"]
+|===
+| URLs (Endpoints) | ``\https://api-test.wirecard.com/engine/rest/paymentmethods/``
+| Merchant Account ID (MAID) | 0d99527e-0ac4-47be-978a-2c53a858b3a4
+| Username | Siambank-Test
+| Password | -6-567Y_m2nDZ3
+|===
+
+[#API_PromptPay_AdditionalCredentials]
+.Additional Test Credentials on _Prompt Pay_ Environment
+
+[cols=",,"]
+|===
+| *Channel Id* | 
+| *Channel Secret Key* | 
+|===
+
+
+[#API_PromptPay_Workflow]
+=== Workflow
+
+// image::images/thai-qr/.jpg[]
+
+. You send _debit_ request to {payment-gateway} to process the payment with _Prompt Pay_.
+. {payment-gateway} creates a _get-url_ transaction and sends request to Siam Commercial Bank _Prompt Pay_ provider to generate special QR code for processing the payment via Siam Commercial Bank _Prompt Pay_.
+. Siam Commercial Bank _Prompt Pay_ provider returns message with QR code image in base64 format to {payment-gateway}.
+. {payment-gateway} sends response to you with both QR code in base64 format as well as URL for HPP.
+. You have two options:
+.. Either you redirect consumer to HPP where QR code is displayed to scan QR code.
+.. Or you encode QR code provided in base64 format and display it directly on his webpage.
+. If you redirect consumer to HPP to scan QR code, {payment-gateway} will show QR code image on HPP to consumer and wait for IPN from provider.
+. If you display QR code directly on his webpage, consumer will scan QR code on your webpage and is redirected to Siam Commercial Bank _Prompt Pay_ to process the payment.
+. Siam Commercial Bank _Prompt Pay_ provider sends IPN message with transaction status to {payment-gateway} and {payment-gateway} creates success _debit_.
+. Finally {payment-gateway} sends notification to you that _debit_ transaction was successfully created and processed.
+
+[#API_PromptPay_Workflow_GetStatus]
+.GETSTATUS Flow
+
+. You send request to find out status of the transaction.
+. {payment-gateway} checks if transaction is finished and stored.
+. If transaction is finished and stored, you receive response from {payment-gateway} with transaction status.
+. If transaction is not finished and stored, {payment-gateway} checks if timeout is expired.
+. If timeout is not expired, you receive response from {payment-gateway} that such transaction was not found.
+. If timeout is expired, {payment-gateway} will create failed _debit_ and send notification to you with transaction status.
+
+[#API_PromptPay_Expiration]
+=== QR code expiration
+
+There is no expiration for generated QR code on provider's side, but there is default timeout period (30 minutes) which is configurable globally per {payment-gateway} instance or you can set it - 
+
+``siambank-promptpay.connector.hpp.processing.timeoutmillis``
+
+When success IPN comes after timeout period, then failed _debit_ is created and ERROR is logged.
+
+
+[#API_PromptPay_Fields]
+=== Fields
+
+// Mandatory fields
+
+// Request:
+// <merchant-account-id>
+// <request-id>
+// <transaction-type>
+// <requested-amount currency>
+// <order-number>     - this field is mandatory only if in Merchant configuration there is parameter siambank-promptpay.use.order.number set to TRUE
+// <payment-method name>
+
+// Response:
+// <merchant-account-id>
+// <transaction-id>
+// <request-id>
+// <transaction-type>
+// <transaction-state>
+// <completion-time-stamp>
+// <status code>
+// <requested-amount currency>
+// <payment-method url>
+// <qr-code>
+
+All fields used for _Prompt Pay_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
+
+[#API_PromptPay_Samples]
+=== Samples
+
+If you want to see corresponding notification samples, go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
+
+[#API_PromptPay_Samples_debit]
+.XML _debit_ Request (Successful)
+
+[source,xml]
+----
+<payment xmlns="http://www.elastic-payments.com/schema/payment">
+  <merchant-account-id>251bee76-abfb-449d-8e7a-7fdac04bfc87</merchant-account-id>
+  <request-id>5c92081c-1abe-40bb-af47-0000000000001</request-id>
+  <transaction-type>debit</transaction-type>
+  <requested-amount currency="THB">1000.1</requested-amount>
+  <account-holder>
+    <first-name>John</first-name>
+    <last-name>Doe</last-name>
+  </account-holder>
+  <payment-methods>
+    <payment-method name="scb-promptpay"/>
+  </payment-methods>
+</payment>
+----
+
+.XML _debit_ Response (Successful)
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<payment xmlns="http://www.elastic-payments.com/schema/payment" xmlns:ns2="http://www.elastic-payments.com/schema/epa/transaction">
+    <merchant-account-id>251bee76-abfb-449d-8e7a-7fdac04bfc87</merchant-account-id>
+    <transaction-id>d6a9d9e2-5cb7-43cb-b146-8fc309fa71c7</transaction-id>
+    <request-id>5c92081c-1abe-40bb-af47-0000000000001</request-id>
+    <transaction-type>debit</transaction-type>
+    <transaction-state>success</transaction-state>
+    <completion-time-stamp>2019-04-02T13:19:18.000+02:00</completion-time-stamp>
+    <statuses>
+        <status code="201.0000" description="The resource was successfully created." severity="information"/>
+    </statuses>
+    <requested-amount currency="THB">1000.1</requested-amount>
+    <account-holder>
+        <first-name>John</first-name>
+        <last-name>Doe</last-name>
+    </account-holder>
+    <payment-methods>
+        <payment-method url="http://localhost:8080/engine/hpp/processing?request_time_stamp=20190402111918&amp;request_id=5c92081c-1abe-40bb-af47-0000000000001&amp;merchant_account_id=251bee76-abfb-449d-8e7a-7fdac04bfc87&amp;request_signature=010cd56e063a605f3aafbef5f4d7d36ef33eba89fb3f72819506ff30fa778d2d&amp;payment_method=scb-promptpay&amp;timeout=1500000&amp;mode=qr" name="scb-promptpay"/>
+    </payment-methods>
+    <qr-code>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</qr-code>
+</payment>
+----
+
+//-
