@@ -73,41 +73,45 @@ image::images/prompt-pay/prompt-pay_transaction-flow.jpg[]
 .Consumer scans QR code on {payment-provider-name} Hosted Payment Page
 
 . You send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
-. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_ to generate a special QR code for processing the payment via _SCB Prompt Pay_.
-. _SCB Prompt Pay_ returns a message with the QR code image in base64 format to {payment-gateway}.
-. {payment-gateway} sends you the response as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``).
-. This URL redirects the consumer to the {payment-provider-name} HPP which displays the QR code. 
+. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
+. _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
+. _SCB Prompt Pay_ sends a response containing the base64-encoded QR code to {payment-gateway}.
+. {payment-gateway} sends you the QR code as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``) and base64-encoded in the field ``qr-code``.
+. Use the ``payment-method url`` and redirect the consumer to the {payment-provider-name} HPP which displays the QR code. 
 . the consumer scans the QR code and processes the payment.
 . _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}
 . {payment-gateway} creates a success _debit_.
-. {payment-gateway} sends the IPN to you that the _debit_ transaction was successfully created and processed.
+. {payment-gateway} sends you the _debit_ IPN indicating that the transaction was successfully created and processed.
 
 .Consumer scans QR code on your web site
 
 . You send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
-. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_ to generate special QR code for processing the payment via _SCB Prompt Pay_.
-. _SCB Prompt Pay_ returns a message with the QR code image in base64 format to {payment-gateway}.
-. {payment-gateway} sends you the response QR code in base64 format (field ``qr-code``).
-. Encode the value in ``qr-code`` in base64 format and display it directly on the consumer's checkout page.
+. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
+. _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
+. _SCB Prompt Pay_ returns a message with the QR code in base64 format to {payment-gateway}.
+. {payment-gateway} sends you the QR code as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``) and base64-encoded in the field ``qr-code``.
+. Decode the ``qr-code`` value and display the QR code directly on the consumer's checkout page.
 . the consumer scans the QR code. 
 . redirect the consumer to _SCB Prompt Pay_ to process the payment.
 . _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}
 . {payment-gateway} creates a success _debit_.
-. {payment-gateway} sends the IPN to you that the _debit_ transaction was successfully created and processed.
+. {payment-gateway} sends you the _debit_ IPN indicating that the transaction was successfully created and processed.
 
 [#API_PromptPay_Workflow_GetStatus]
 .GETSTATUS Flow
 
-NOTE: GETSTATUS can only be performed *before* {payment-gateway} sends the IPN.
+Use GETSTATUS to find out the status of the transaction.
+
+NOTE: GETSTATUS can only be performed *before* {payment-gateway} sends the IPN. 
 
 image::images/prompt-pay/prompt-pay_get-status-flow.jpg[]
 
-. You send a request to find out the status of the transaction.
+. Send a request. The request must contain the ``transaction-id`` of the transaction you want to query. 
 . {payment-gateway} checks if transaction is finished and stored.
-. If transaction is finished and stored, you receive response from {payment-gateway} with transaction status.
-. If transaction is not finished and stored, {payment-gateway} checks if timeout is expired.
-. If timeout is not expired, you receive response from {payment-gateway} that such transaction was not found.
-. If timeout is expired, {payment-gateway} creates a failed _debit_ and sends you an IPN which contains the transaction status.
+. If transaction is finished and stored, you receive a response from {payment-gateway} with the transaction status.
+. If transaction is not finished and stored, {payment-gateway} checks if timeout has expired.
+. If timeout has not expired, you receive response from {payment-gateway} that such a transaction was not found.
+. If timeout has expired, {payment-gateway} creates a failed _debit_ and sends you an IPN which contains the transaction status.
 
 [#API_PromptPay_Expiration]
 === QR code expiration
