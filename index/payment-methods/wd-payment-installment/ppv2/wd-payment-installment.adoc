@@ -1,0 +1,484 @@
+:payment-method-name: {payment-provider-name} Payment in Installments
+
+[#PPv2_PaymentInstallment]
+== {payment-page-v2}
+
+_{payment-method-name}_ allows the consumer to pay directly from their bank account while providing the option for payment in a customized number of installments. The invoicing, direct debit, collection process (dunning), as well as the calculation of possible installments, is handled by {payment-provider-name}. _{payment-method-name}_ ensures that merchants receive the payment amount from {payment-provider-name} prior to settlement with consumers.
+
+_{payment-method-name}_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+
+.Countries and Currencies
+[cols="20h,80"]
+|===
+|Countries    
+|Germany
+
+|Currencies   
+|EUR
+|===
+
+[#PPv2_PaymentInstallment_GeneralInformation]
+=== General Information
+
+include::{root}/include/ppv2-general-information.adoc[]
+
+Below, we provide samples for the available transaction type <<PPv2_PaymentInstallment_TransactionType_authorization, authorization>>, including field lists with short descriptions.
+
+include::{root}/include/ppv2-general-information-2.adoc[]
+
+[#PPv2_PaymentInstallment_TransactionType_authorization]
+=== Transaction Type _authorization_
+
+An _authorization_ reserves the specified amount from the account holder’s bank account for a later transfer.
+
+[#PPv2_PaymentInstallment_TestCredentials]
+=== Test Credentials
+
+[cols="20h,80"]
+|===
+|URL (Endpoint)
+|``\https://{pp-test-endpoint}``
+
+|Merchant Account ID (MAID)
+a|9df7b8a6-546a-4e01-9fe5-ccc3ae54b23e
+
+|Username
+a|16390-testing
+
+|Password
+a|3!3013=D3fD8X7
+
+|Secret Key (used for response verification)
+a|09df96e0-6364-472c-a26a-4be32bfe1902
+|===
+
+[#PPv2_PaymentInstallment_TestCredentials_Additional]
+.Additional Test Credentials 
+
+[cols="20h,80"]
+|===
+|IBAN
+|DE42512308000000060004
+
+|BIC 
+|WIREDEMMXXX
+|===
+
+[#PPv2_PaymentInstallment_Samples]
+=== Sample Workflow
+
+====
+*For a successful transaction:*
+
+. Create a payment session (initial request).
++
+NOTE: Set the ``country`` field to ``DE``, as _{payment-method-name}_ is currently available for Germany only.
+
+. Redirect the consumer to the payment page (initial response URL).
+. Highly recommended: Parse and process the payment response.
+
+//-
+====
+
+We provide JSON examples for each step of this process. You can find them below.
+
+.Request Headers
+[cols="20h,80"]
+|===
+|Authorization
+|"Authorization"="Basic" + base64 (“username:password”). Use username and password as given in your {payment-provider-name} contract to base64-encode the authorization.
+|Content-Type
+|application/json
+|===
+
+
+[#PPv2_PaymentInstallment_TransactionType_debitauth_Create]
+.1. Create a Payment Session (Initial Request)
+
+You can use the following sample for transaction type _authorization_. Please enter ``authorization`` for ``transaction-type``. 
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2_GuaranteedInstallment_TransactionTypeAuthorization_1CreateAPaymentSessionInitialRequest.json[]
+----
+
+[%autowidth, cols="m,,,,,,,"]
+|===
+4+|Field (JSON) |Data Type |Cardinality |Size |Description
+
+3+|merchant-account-id
+m|value
+|String
+|Mandatory
+|36
+|A unique identifier assigned to every merchant account (by {payment-provider-name}).
+
+4+|request-id
+|String
+|Mandatory
+|150
+|A unique identifier assigned to every request (by merchant). Used when searching for or referencing it later. ``{{$guid}}`` serves as a placeholder for a random ``request-id``. +
+Allowed characters: +
+a - z +
+0 - 9 +
+-_
+
+4+|transaction-type
+|String
+|Mandatory
+|36
+a|The requested transaction type. Available transaction type for _{payment-method-name}:_
+
+- ``authorization``
+//-
+
+.2+|requested-amount
+3+m|currency
+|String
+|Mandatory
+|3
+|The currency of the requested/contested transaction amount. For _{payment-method-name}_ payments, the currency must be set to ``EUR``. +
+Format: 3-character abbreviation according to ISO 4217.
+
+3+m|value
+|Numeric
+|Mandatory
+|18
+|The full amount that is requested/contested in a transaction. 2 decimal places allowed. +
+Use `.` (decimal point) as the separator.
+
+.10+m|account-holder
+.5+m|address
+2+m|street1
+|String
+|Optional
+|128
+|The first line of the street address of the consumer.
+
+2+m|state
+|String
+|Optional
+|32
+|The state or province of the address of the consumer.
+
+2+m|country
+|Token
+|Optional
+|3
+|The country ID of the address of the consumer.
+
+2+m|city
+|String
+|Optional
+|32
+|The city of the address of the consumer.
+
+2+m|postal-code
+|String
+|Optional
+|16
+|The postal code or ZIP of the address of the consumer.
+
+3+m|first-name
+|String
+|Mandatory 
+|32
+|The first name of the consumer.
+
+3+m|last-name
+|String
+|Mandatory 
+|32
+|The last name of the consumer.
+
+3+m|email
+|String
+|Mandatory 
+|64
+|The email address of the consumer.
+
+3+m|phone
+|String
+|Mandatory 
+|32
+|The phone number of the consumer.
+
+3+m|date-of-birth
+|String
+|Mandatory 
+|n/a
+|The date of birth of the consumer.
+
+4+|ip-address
+|String
+|Optional
+|45
+a|The internet protocol address of the consumer as recorded by the entity receiving the transaction attempt from the consumer. 
+
+4+|order-number
+|String
+|Mandatory 
+|64
+a|Merchant-side order number. +
+Allowed characters: [a-zA-Z0-9+]
+
+.7+|order-items
+.7+m|order-item
+2+m|name
+|Alphanumeric
+|Mandatory 
+|
+a|Name of the item in the basket.
+
+2+m|description
+|String 
+|Mandatory
+|
+a|Description of the item in the basket.
+
+2+m|article-number
+|String
+|Mandatory
+|
+a|EAN or other article identifier for merchant.
+
+.2+m|amount
+m|value
+|Numeric
+|Mandatory
+|
+|The item price per unit.
+
+m|currency
+|String
+|Mandatory
+|3
+|The currency of the item price per unit.
+
+2+m|tax-rate
+|Numeric
+|Mandatory
+|
+a|The item tax rate per unit.
+
+2+m|quantity
+|Numeric
+|Mandatory
+|
+a|The total count of items in the order.
+
+4+|locale
+|String
+|Optional
+|6
+|A 2-letter code which indicates what language the payment page is rendered in (ISO 639-1).
+
+4+|country
+|String
+|Optional
+|3
+|The country ID of the consumer. This field must be set to DE. If no value is entered, the field defaults to DE.
+
+4+|success-redirect-url
+|String
+|Mandatory
+|256
+|The URL to which the consumer is redirected after a successful payment, e.g. ``\https://{pp-redirect-url-success}``.
+
+4+|cancel-redirect-url
+|String
+|Mandatory
+|256
+|The URL to which the consumer is redirected after having canceled a payment, e.g. ``\https://{pp-redirect-url-cancel}``.
+
+4+|fail-redirect-url
+|String
+|Mandatory
+|256
+|The URL to which the consumer is redirected after an unsuccessful payment, e.g. ``\https://{pp-redirect-url-error}``.
+
+|payment-methods
+m|payment-method
+2+m|name
+|String
+|Optional
+|15
+|The name of the payment method used.
+
+.2+|mandate
+3+m|mandate-id
+|String
+|Optional
+|35
+|Mandate ID is generated by {payment-provider-name}. Please use the following statement as placeholder: "Wird nach Kaufabschluss übermittelt".
+
+3+m|signed-date
+|String
+|Optional
+|19
+|The date the mandate was signed.
+
+4+|creditor-id
+|String
+|Optional
+|256
+|The creditor ID of the merchant.
+|===
+
+[#PPv2_PaymentInstallment_TransactionType_debitauth_Redirect]
+.2. Redirect the Consumer to the Payment Page (Sample Response URL)
+
+[source,json,subs=attributes+]
+----
+{
+"payment-redirect-url": "https://{pp-test-instance-hostname}/?wPaymentToken=rhNg8LV9jfUk1Xtq7NEGU1QI2em4YuA-zyPrxmHNdY0"
+}
+----
+
+[%autowidth, cols="m,,"]
+|===
+| Field (JSON) | Data Type | Description
+
+|payment-redirect-url 
+|String 
+|The URL which redirects to the payment
+form. Sent as a response to the initial request.
+|===
+
+include::{root}/include/ppv2-redirect-instructions.adoc[]
+
+.For _{payment-method-name}_, the payment page displays a form where the consumer can select the preferred installment plan.
+
+.. The consumer clicks *Pay Now* on the payment page. + 
+The payment form opens.
+
+.. The consumer selects _{payment-method-name}._ +
+An installment calculator is displayed.
+
+.. The consumer selects one of the available installment plans (number of installments (monthly rates) and the preferred payment day). The installment plan is automatically calculated according to the total sum.
++
+WARNING: The minimum amount required for a payment in installments is 60 EUR.
++
+.. After selecting the installment plan, the consumer needs to enter their personal data, shipping and bank information (IBAN and BIC), and send the payment. +
+The payment is confirmed.
++
+NOTE: You are not required to create a request for this step as the installment calculation is performed automatically.
+
+//-
+[#PPv2_PaymentInstallment_TransactionType_debitauth_DecodedResponse]
+.3. Parse and Process the Payment Response (Decoded Payment Response)
+
+[source,json,subs=attributes+]
+----
+include::{root}/samples/json/PPv2_GuaranteedInstallment_TransactionTypeAuthorization_3DecodedPaymentResponse.json[]
+----
+
+[%autowidth]
+|===
+4+|Field (JSON) |Data Type |Description
+
+.2+m|bank-account
+3+m|bic
+|String
+|The bank identifier code (BIC) of the account holder (consumer).
+Allowed characters and format: ``([a-zA-Z]{4}[a-zA-Z]{2}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})``.
+
+3+m|iban
+|String
+|The international bank account number (IBAN) of the account holder (consumer). 
+Allowed characters and format: ``[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}``.
+
+.2+m|custom-fields
+.2+m|custom-field
+2+m|field-name
+|String
+|The merchant-defined name of the custom field.
+
+2+m|field-value
+|String
+|The merchant-defined name of the custom field.
+
+4+m|transaction-id
+|String
+|A unique identifier assigned to every transaction. Used when searching for or referencing it later.
+
+4+m|transaction-state
+|Token
+a|The current transaction state. +
+Possible values:
+
+- ``in-progress``
+- ``success``
+- ``failed``
+//-
+
+Typically, a transaction starts with state ``in-progress`` and finishes with state either ``success`` or ``failed``. This information is returned in the response only.
+
+4+m|completion-time-stamp
+|Timestamp
+|The UTC/ISO time-stamp documents the time & date when the transaction was executed.
+Format: ``YYYY-MM-DDThh:mm:ssZ`` (ISO).
+
+.4+m|statuses
+.4+m|status
+2+m|description
+|String
+|Text used to describe the transaction status. This information is returned in the response only.
+
+2+m|severity
+|Token
+a|The definition of the status message. +
+Possible values:
+
+- ``information``
+- ``warning``
+- ``error``
+
+2+m|code
+|String
+|Status code of the status message.
+
+2+m|provider-transaction-id
+|String
+|A unique transaction identifier generated by the provider.
+
+m|account-holder
+3+m|account-info
+|
+|The value of account-info depends on the payment method.
+Empty when the account-info field is not used in the request.
+
+m|payment-methods
+m|payment-method
+2+m|payload
+|String
+|The value of ``payload`` depends on the payment method.
+Always empty for _{payment-method-name}._
+
+4+m|api-id
+|Token
+|Identifier of the currently used API.
+
+m|device
+3+m|fingerprint
+|String
+|A device fingerprint is information about a remote computing device, collected by the merchant for identification purposes. Fingerprints can be used to fully or partially identify individual users or devices even when cookies are turned off.
+
+4+m|descriptor
+|String
+|The description of the transaction displayed on the account holder’s statement. In the case of a credit card statement, it can be dynamically set per transaction. It is only supported by some acquirers.
+|===
+
+[#PPv2_PaymentInstallment_PostProcessing]
+=== Post-Processing Operations 
+
+include::{root}/include/ppv2-post-processing-operation.adoc[]
+
+
+[#PPv2_PaymentInstallment_JSONFields]
+=== JSON/NVP Field Reference
+include::{root}/include/ppv2-apm-optional-fields.adoc[]
+
+[#PPv2_PaymentInstallment_JSONNVPReference]
+include::{root}/include/ppv2-apm-json-nvp-reference.adoc[]
+
