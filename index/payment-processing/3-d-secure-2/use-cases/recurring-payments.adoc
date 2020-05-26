@@ -1,0 +1,132 @@
+[#API_CC_3DS2_UseCase_Recurring_Same]
+== Recurring Payments - Same Amount
+
+A common business scenario would be subscription fees for video/audio streaming services or for software-as-a-service solutions.
+
+You have to trigger the payment of a constant amount at regular intervals. For that purpose, you have to set up a recurring agreement:
+
+. The first transaction is consumer-initiated and therefore requires Strong Customer Authentication. +
+This first  transaction can also be a <<API_CC_3DS2_UseCase_Recurring_Same_TrialPeriod, zero amount>> - no actual funds transfer, it only serves the purpose of signing the recurring agreement.
+. All subsequent payments are merchant-initiated transactions (MIT) that do not need SCA.
+
+//-
+
+WARNING: When setting up the recurring payment plan you have to inform your consumer about the conditions of the agreement in explicit terms.
+
+[#API_CC_3DS2_UseCase_Recurring_Same_NoTrialPeriod]
+=== Option 1: Payment Due at Sign-up
+For subscriptions without free trial period.
+
+A consumer places an order for a subscription for digital goods/services, e.g. a movie platform.
+The subscription comes without an evaluation period. The subscription fee must be paid from the very beginning.
+
+pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/recurring-payments_same-amount_due-at-signup.postman_collection.json" target="_blank" rel="noreferrer noopener" download>Download a Postman collection for this use case here.</a>]
+
+The 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+
+.Setting up the agreement (consumer-initiated)
+
+. *Check-Enrollment* (subscription fee due at sign-up) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+If the request is successful, the response contains a ``transaction-id``.
+
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
+. *Check-Payer-Response* (optional) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
+// vhauss: here we need to modify the include file: I'd move the info box (the explanation, why the Check-Payer-Response is optional) right underneath the headline. With this order we help the reader to understand that this transaction can only be used if the check-enrollment was performed by WPG. Otherwise we leave him/her quite stunned (reading that it's optional) because this transaction contains crucial information.
+. *Authorization* (subscription fee due at sign-up) +
+Send a request with transaction type ``authorization``. +
+The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the check-enrollment response.
+. *Capture* (subscription fee due at sign-up) +
+Send a request with transaction type ``capture``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization response. +
+The captured amount must not exceed the authorized amount.
+
+//-
+
+.For each subsequent recurring payment (merchant-initiated)
+
+**either**
+[start=6]
+. *Authorization* (subscription fee) +
+// Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
+Send a request with transaction type ``authorization``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
+
+. *Capture* (subscription fee) +
+Send a request with transaction type ``capture``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the *last* authorization response (see step 6). +
+The ``requested-amount`` in the capture request must not exceed the authorized amount.
+
+//-
+*or*
+
+[start=6]
+. *Purchase* (subscription fee) +
+Send a request with transaction type ``purchase``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the *first* authorization response (see step 4).
+The ``requested-amount`` in the purchase request must not exceed the authorized amount.
+
+//-
+
+[#API_CC_3DS2_UseCase_Recurring_Same_TrialPeriod]
+=== Option 2: No Payment Due at Sign-up
+
+For subscriptions with free trial period.
+
+A consumer places an order for a subscription for digital goods/services, e.g. a movie platform.
+The subscription comes with an evaluation period which is free of charge.
+
+pass:[<a href="resources/3-d-secure-2/usecase_pm-collection/recurring-payments_same-amount_not-due-at-signup.postman_collection.json" target="_blank" rel="noreferrer noopener" download>Download a Postman collection for this use case here.</a>]
+
+The 3D Secure 2 fields can be found in the <<CreditCard_3DS2_Fields, 3D Secure 2 field table>>. +
+They are also included in the <<Appendix_Xml, REST API payment XSD>>.
+
+.Setting up the agreement (consumer-initiated)
+
+. *Check-Enrollment* (zero amount) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-enrollment.adoc[]
++
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+If the request is successful, the response contains a ``transaction-id``.
+. *Redirect the Consumer to the ACS URL* +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-acs-url-redirect.adoc[]
+. *Check-Payer-Response* (optional) +
+include::{root}/include/3-d-secure/3-d-secure-2-authentication-transactions-check-payer-response.adoc[]
+. *Authorization-only* (zero amount) +
+Send a request with transaction type ``authorization-only``. +
+This request serves to sign the payment agreement. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the check-enrollment response.
+
+//-
+.For each subsequent recurring payment (merchant-initiated)
+[start=5]
+
+*either*
+
+. *Authorization* (sucscription fee) +
+// Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. +
+Send a request with transaction type ``authorization``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
+. *Capture* (sucscription fee) +
+Send a request with transaction type ``capture``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization response (see step 5).
+
+//-
+*or*
+
+[start=5]
+. *Purchase* (sucscription fee) +
+Send a request with transaction type ``purchase``. +
+The request must contain ``periodic-type`` = ``recurring`` and ``sequence-type`` = ``first``. +
+As ``parent-transaction-id``, enter the ``transaction-id`` from the authorization-only response (see step 4).
+//-

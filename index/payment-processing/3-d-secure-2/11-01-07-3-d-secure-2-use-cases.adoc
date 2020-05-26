@@ -91,45 +91,8 @@ _Whenever a remaining part of the order is ready to ship_
 
 //-
 
-'''
-[#CreditCard_3DS2_UseCase_Recurring_Same]
-=== Recurring Payments - Same Amount (Merchant-Initiated Transaction)
+include::{root}/index/payment-processing/3-d-secure-2/use-cases/recurring-payments.adoc[leveloffset=+1]
 
-Recurring transactions are processed at regular intervals, with the same, recurring amount. When you set up a recurring _merchant-initiated transaction_ (MIT) agreement, the first transaction requires _Strong Customer Authentication_ (one-time only).
-A common business scenario would be subscription fees for a software-as-a-service (SaaS) solution, or for video streaming services.
-
-WARNING: Consumers must be clearly informed about the terms of the agreement when setting up the recurring payment plan.
-
-.Option 1: Amount due at sign-up (no trial period)
-
-_Setting up the agreement (consumer-initiated)_
-
-. *Check-enrollment* (amount due at sign-up): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization* (amount due at sign-up): Send a request with transaction type ``authorization``. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment._
-. *Capture* (amount due at sign-up): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
-+
-_Recurring payment (MIT)_
-+
-. *Authorization* (recurring amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the *first* _authorization_ response in the ``parent-transaction-id`` field (see step 2).
-. *Capture* (recurring amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the *second* _authorization_ response in the ``parent-transaction-id`` field.
-
-//-
-
-.Option 2: No amount due at sign-up (with trial period)
-
-_Setting up the agreement (consumer-initiated)_
-
-. *Check-enrollment* (zero amount): This is the initial request and initiates the payment session. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. If the request is successful, the response contains a _transaction-id._
-. *Authorization-only* (zero amount): Send a second request with transaction type ``authorization-only``. This request serves to sign the payment agreement. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>first</sequence-type>``. Include the ``transaction-id`` from the _check-enrollment_ response in the ``parent-transaction-id`` field.
-+
-_Per recurring payment (MIT)_
-+
-. *Authorization* (recurring amount) as _merchant-initiated transaction_ (MIT): Merchant-initiated transactions are out of scope of SCA (Strong Customer Authentication); therefore, ``check-enrollment`` is not required prior to this request. The request must contain ``<periodic-type>recurring</periodic-type>`` and ``<sequence-type>recurring</sequence-type>``. Include the ``transaction-id`` from the _authorization-only_ response in the ``parent-transaction-id`` field (see step 2).
-. *Capture* (recurring amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
-
-//-
-
-'''
 [#CreditCard_3DS2_UseCase_Recurring_Variable]
 === Recurring Payments - Variable Amount (MIT Unscheduled Credential on File - UCOF)
 
