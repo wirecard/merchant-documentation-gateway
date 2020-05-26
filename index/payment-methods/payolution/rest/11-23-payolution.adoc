@@ -200,46 +200,45 @@ This request must contain ``payment-method@name`` = ``payolution-elv`` and the c
 [#payolution_InvoiceB2C]
 ==== Invoice B2C (``payolution-b2c``) - authorization, capture-authorization Workflow
 
-[NOTE]
-====
-_payolution_ sends the ``authorization`` request with the _payolution_
-specific payment method ``payolution-inv``.
-
-For B2C transactions, the account holder's date of birth is mandatory.
-
-Invoice B2C captures the full amount only when *all ordered goods*
-are ready for delivery.
-====
+. Consumer selects payment method Invoice (by _payolution_).
+. -> Send an ``authorization`` request to WPG. +
+This request must contain ``payment-method@name`` = ``payolution-b2c`` and the consumer's ``date-of-birth``.
+. WPG processes the request and forwards it to _payolution_.
+. _payolution_ runs risk checks and sends a response to WPG.
+. WPG forwards the response to you.
+. -> Send a ``capture`` request to WPG. +
+As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding ``authorization`` response. +
+You can
+.. capture the total authorized amount once all items are ready for delivery.
+.. capture a partial amount if only a part of the order is ready for delivery. +
+Multiple captures are possible.
+. WPG processes the request and forwards it to _payolution_.
+. _payolution_ captures the requested amount and sends a response to WPG.
+. WPG processes the response informs you about the transaction outcome.
+. -> Generate the invoice and send it to ``invoices-<merchant name>@payolution.com``.
+. -> Inform the consumer about the transaction outcome.
 
 image::images/11-23-payolution/payolution_InvoiceB2C_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
 
+Instead of sending a sequence of ``authorization`` and ``capture-authorization``, you can also send a single ``debit`` request.
+
 [#payolution_InvoiceB2B]
-==== Invoice B2B (``payolution-b2c``) - authorization, capture-authorization Workflow
+==== Invoice B2B (``payolution-b2b``) - authorization, capture-authorization Workflow
 
-[NOTE]
-====
-_Invoice B2B_ has the same structure as _Invoice B2C_.
+The _Invoice B2B_ workflow is the same as the _Invoice B2C_ workflow. +
+Instead of ``date-of-birth``, the field ``custom-field@field-name="company-name"`` is mandatory in an ``authorization`` or ``debit`` request.
 
-_Invoice B2B_ sends the ``authorization`` request with the _payolution_
-specific payment method ``payolution-b2b``.
-
-``custom-field@field-name="company-name"`` is mandatory for B2B transactions.
-
-Invoice B2B captures the full amount only when *all ordered goods* are
-ready for delivery.
-====
 
 image::images/11-23-payolution/payolution_InvoiceB2B_authorization_captureAuthorization.png[payolution Invoice B2B, width=950, align="right"]
 
 [#payolution_Installment]
 ==== Installment (``payolution-inst``)
 
-
 There are two installment options:
 
-. *Async installment:* Show the installment plans to your consumer on the _payolution_ web site. You need to redirect them.
+. <<payolution_Installment_Async, *Async installment:*>> Show the installment plans to your consumer on the _payolution_ web site. You need to redirect them.
 
-. *Sync installment:* Show the installment plans to your consumer on your own shop page. Before that, you need to retreive the available installment plans with a ``claculate`` request.
+. <<payolution_Installment_Sync, *Sync installment:*>> Show the installment plans to your consumer on your own shop page. Before that, you need to retreive the available installment plans with a ``claculate`` request.
 
 //-
 
@@ -247,18 +246,12 @@ There are two installment options:
 [#payolution_Installment_Async]
 ===== Async Installment - authorization, capture-authorization Workflow
 
-[NOTE]
-====
-_Installment_ sends the ``authorization`` request with the _payolution_
-specific payment method ``payolution-inst``.
-
-``capture-authorization`` must be triggered *immediately after the
+NOTE: You have to trigger a ``capture-authorization`` *immediately after the
 authorization* response has arrived.
-====
 
 image::images/11-23-payolution/payolution_Installment_authorization_captureAuthorization.png[payolution Installment, width=950, align="right"]
 
-
+Instead of sending a sequence of ``authorization`` and ``capture-authorization``, you can also send a single ``debit`` request.
 
 [#payolution_Installment_Sync]
 ===== Sync Installment - authorization, debit Workflow
