@@ -1,10 +1,7 @@
 [#API_PromptPay]
 == REST API
 
-// [#API_PromptPay_Introduction]
-// === Introduction
-
-Siam Commercial Bank _Prompt Pay_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+_Siam Commercial Bank Prompt Pay_ (_SCB Prompt Pay_) is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
 
 [#API_PromptPay_CountriesCurrencies]
 === Countries and Currencies
@@ -20,13 +17,13 @@ Siam Commercial Bank _Prompt Pay_ is a type of <<PaymentMethods_PaymentMode_Onli
 [#API_PromptPay_CommunicationFormats]
 === Communication Formats
 
-This table illustrates how Siam Commercial Bank _Prompt Pay_ notifications are encoded and which formats and methods can be used for requests and responses.
+This table illustrates how _SCB Prompt Pay_ notifications are encoded and which formats and methods can be used for requests and responses.
 
 [cols="20,20,60"]
 |===
-.2+| *Requests/Responses* | Format | XML, JSON
+.2+h| Requests/Responses | Format | XML, JSON
                         | Methods | POST, GET for <<API_PromptPay_Workflow_GetStatus, GETSTATUS>>
-| *IPN Encodement*     2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
+h| IPN Encodement     2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
 [#API_PromptPay_Transactions]
@@ -41,7 +38,7 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 |===
 |Transaction Type |Description | Link to Sample
 
-|_debit_ |Transaction created after Siam Commercial Bank _Prompt Pay_ confirms by IPN if transaction was processed. | <<API_PromptPay_Samples_debit, _debit_ sample>>
+|_debit_ |Transaction created after _SCB Prompt Pay_ confirms by IPN if transaction was processed. | <<API_PromptPay_Samples_debit, _debit_ sample>>
 
 |===
 
@@ -64,31 +61,39 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 
 image::images/prompt-pay/prompt-pay_transaction-flow.jpg[]
 
-. You send _debit_ request to {payment-gateway} to process the payment with Siam Commercial Bank _Prompt Pay_.
-. {payment-gateway} creates a _get-url_ transaction and sends request to Siam Commercial Bank _Prompt Pay_ to generate special QR code for processing the payment via Siam Commercial Bank _Prompt Pay_.
-. Siam Commercial Bank _Prompt Pay_ returns message with QR code image in base64 format to {payment-gateway}.
-. {payment-gateway} sends response to you with both QR code in base64 format (field ``qr-code``) as well as URL for HPP (field ``payment-method url``).
-. Now you have two options: You either direct the consumer to {payment-gateway} Hosted Payment Page (HPP) to scan the QR code or you create the QR code on your own web site.
-+
-[cols="h,,,"]
-|===
-| QR Code Creator > h| Processing Element > h| Presentation of QR Code > h| Final Step
-| {payment-gateway} | payment-method url | {payment-gateway} HPP | wait for IPN from Siam Commercial Bank _Prompt Pay_
-| Your web page | qr-code | Your web page | redirect consumer to Siam Commercial Bank _Prompt Pay_ to process the payment
-|===
-+
-.. If you want to use our {payment-gateway} solution, 
-... use the ``payment-method url``. This URL redirects the consumer to the HPP which displays the QR code. 
-... the consumer scans the QR code from the HPP.
-... wait for IPN from Siam Commercial Bank _Prompt Pay_.
-.. If you want to create the QR code on your own web site, 
-... use the QR code provided in the field ``qr-code``. 
-... Encode it in base64 format and display it directly on the consumer's checkout page.
-... the consumer scans QR code on your webpage. 
-... redirect the consumer to Siam Commercial Bank _Prompt Pay_ to process the payment.
-. Siam Commercial Bank _Prompt Pay_ sends IPN message with transaction status to {payment-gateway}
+// +
+// [cols="h,,,"]
+// |===
+// | QR Code Creator > h| Processing Element > h| Presentation of QR Code > h| Final Step
+// | {payment-gateway} | payment-method url | {payment-provider-name} HPP | wait for IPN from _SCB Prompt Pay_
+// | Your web site | qr-code | Your web site | redirect consumer to _SCB Prompt Pay_ to process the payment
+// |===
+// +
+
+.Consumer scans QR code on {payment-provider-name} Hosted Payment Page
+
+. You send _debit_ request to {payment-gateway} to process the payment with _SCB Prompt Pay_.
+. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_ to generate a special QR code for processing the payment via _SCB Prompt Pay_.
+. _SCB Prompt Pay_ returns message with QR code image in base64 format to {payment-gateway}.
+. {payment-gateway} sends you the response as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``).
+. This URL redirects the consumer to the {payment-provider-name} HPP which displays the QR code. 
+. the consumer scans the QR code and processes the payment.
+. _SCB Prompt Pay_ sends IPN message with transaction status to {payment-gateway}
 . {payment-gateway} creates success _debit_.
-. Finally {payment-gateway} sends notification to you that _debit_ transaction was successfully created and processed.
+. {payment-gateway} sends notification to you that _debit_ transaction was successfully created and processed.
+
+.Consumer scans QR code on your web site
+
+. You send _debit_ request to {payment-gateway} to process the payment with _SCB Prompt Pay_.
+. {payment-gateway} creates a _get-url_ transaction and sends request to _SCB Prompt Pay_ to generate special QR code for processing the payment via _SCB Prompt Pay_.
+. _SCB Prompt Pay_ returns message with QR code image in base64 format to {payment-gateway}.
+. {payment-gateway} sends you the response QR code in base64 format (field ``qr-code``).
+. Encode the value in ``qr-code`` in base64 format and display it directly on the consumer's checkout page.
+. the consumer scans QR code. 
+. redirect the consumer to _SCB Prompt Pay_ to process the payment.
+. _SCB Prompt Pay_ sends IPN message with transaction status to {payment-gateway}
+. {payment-gateway} creates success _debit_.
+. {payment-gateway} sends notification to you that _debit_ transaction was successfully created and processed.
 
 [#API_PromptPay_Workflow_GetStatus]
 .GETSTATUS Flow
@@ -139,7 +144,7 @@ When a success IPN comes after that timeout period, then {payment-gateway} creat
 // <payment-method url>
 // <qr-code>
 
-All fields used for Siam Commercial Bank _Prompt Pay_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
+All fields used for _SCB Prompt Pay_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
 
 [#API_PromptPay_Samples]
 === Samples
