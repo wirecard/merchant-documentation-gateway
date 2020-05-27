@@ -64,7 +64,7 @@ image::images/prompt-pay/prompt-pay_transaction-flow.jpg[]
 // +
 // [cols="h,,,"]
 // |===
-// | QR Code Creator > h| Processing Element > h| Presentation of QR Code > h| Final Step
+// | QR Code Presenter > h| Processing Element > h| Presentation of QR Code > h| Final Step
 // | {payment-gateway} | payment-method url | {payment-provider-name} HPP | wait for IPN from _SCB Prompt Pay_
 // | Your web site | qr-code | Your web site | redirect consumer to _SCB Prompt Pay_ to process the payment
 // |===
@@ -72,45 +72,54 @@ image::images/prompt-pay/prompt-pay_transaction-flow.jpg[]
 
 .Consumer scans QR code on {payment-provider-name} Hosted Payment Page
 
-. You send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
+. Send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
 . {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
 . _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
 . _SCB Prompt Pay_ sends a response containing the QR code information to {payment-gateway}.
 . {payment-gateway} sends you the QR code information 
 .. as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``). 
 .. base64-encoded in the field ``qr-code``.
-. Use the ``payment-method url`` and redirect the consumer to the {payment-provider-name} HPP which displays the QR code. 
-. the consumer scans the QR code and processes the payment.
+. *If you want the consumer to scan the QR code on {payment-provider-name} Hosted Payment Page:*
+.. Use the ``payment-method url`` and redirect the consumer to the {payment-provider-name} HPP which displays the QR code. 
+.. let the consumer scan the QR code and processes the payment.
+.. wait for the _debit_ IPN with the transaction status (see step 9).
+
+[start=6]
+. *If you want the consumer to scan the QR code on your web site:*
+.. Decode the ``qr-code`` value and display the QR code directly on your web site to the consumer.
+.. let the consumer scan the QR code. 
+.. redirect the consumer to _SCB Prompt Pay_ to process the payment.
 . _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}.
 . {payment-gateway} creates a success _debit_.
-. {payment-gateway} sends you the _debit_ IPN indicating that the transaction was successfully created and processed.
+. {payment-gateway} sends you a _debit_ IPN indicating that the transaction was successfully created and processed.
 
-.Consumer scans QR code on your web site
+// .Consumer scans QR code on your web site
 
-. You send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
-. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
-. _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
-. _SCB Prompt Pay_ sends a response containing the QR code information to {payment-gateway}.
-. {payment-gateway} sends you the QR code information 
-.. as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``). 
-.. base64-encoded in the field ``qr-code``.
-. Decode the ``qr-code`` value and display the QR code directly on your web site to the consumer.
-. the consumer scans the QR code. 
-. redirect the consumer to _SCB Prompt Pay_ to process the payment.
-. _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}.
-. {payment-gateway} creates a success _debit_.
-. {payment-gateway} sends you the _debit_ IPN indicating that the transaction was successfully created and processed.
+// . You send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
+// . {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
+// . _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
+// . _SCB Prompt Pay_ sends a response containing the QR code information to {payment-gateway}.
+// . {payment-gateway} sends you the QR code information 
+// .. as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``). 
+// .. base64-encoded in the field ``qr-code``.
+// . Decode the ``qr-code`` value and display the QR code directly on your web site to the consumer.
+// . the consumer scans the QR code. 
+// . redirect the consumer to _SCB Prompt Pay_ to process the payment.
+// . _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}.
+// . {payment-gateway} creates a success _debit_.
+// . {payment-gateway} sends you the _debit_ IPN indicating that the transaction was successfully created and processed.
 
 [#API_PromptPay_Workflow_GetStatus]
-.GETSTATUS Flow
+.GetStatus Flow
 
-Use GETSTATUS to find out the status of the transaction.
+Use GetStatus to find out the status of the transaction.
 
-NOTE: GETSTATUS can only be performed *before* {payment-gateway} sends the IPN. 
+NOTE: GetStatus can only be performed *before* {payment-gateway} sends the _debit_ IPN. 
 
 image::images/prompt-pay/prompt-pay_get-status-flow.jpg[]
 
 . Send a request. The request must contain the ``transaction-id`` of the transaction you want to query. 
+// what type of request needs to be sent?
 . {payment-gateway} checks if transaction is finished and stored.
 . If transaction is finished and stored, you receive a response from {payment-gateway} with the transaction status.
 . If transaction is not finished and stored, {payment-gateway} checks if timeout has expired.
@@ -120,7 +129,7 @@ image::images/prompt-pay/prompt-pay_get-status-flow.jpg[]
 [#API_PromptPay_Expiration]
 === QR code expiration
 
-A generated QR code does not expire on Siam Commercial Bank _Prompt Pay's_ side. There is a default timeout period (30 minutes) which is configurable globally per {payment-gateway} instance or you can set it - 
+A generated QR code does not expire on _SCB Prompt Pay's_ side. There is a default timeout period (30 minutes) which is configurable globally per {payment-gateway} instance or you can set it - 
 
 ``siambank-promptpay.connector.hpp.processing.timeoutmillis``
 
