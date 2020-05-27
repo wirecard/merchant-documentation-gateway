@@ -1,5 +1,5 @@
 [#Linepay]
-== REST API
+== REST API and {payment-page-v1}
 
 // [#Linepay_Introduction]
 // === Introduction
@@ -47,6 +47,7 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 
 |_check-signature_ | Validates digital signature for a {payment-page-v1} transaction. | No sample provided, as {payment-page-v1-abbr} generates this transaction automatically.
 |_pending-debit_ |A step in a group of transactions where the account holder is redirected to the provider's page. | <<Linepay_Samples_pendingdebit, _pending-debit_ sample>>
+// provider = line pay
 |_debit_ |Moves funds from the consumer account to the merchant account. | <<Linepay_Samples_debit, _debit_ sample>>
 |_refund-debit_ |Moves funds from the merchant account to the consumer account. | <<Linepay_Samples_refunddebit, _refund-debit_ sample>>
 |_pending-authorization_ |A step in a group of transactions where the account holder is redirected to the provider's page. | <<Linepay_Samples_pendingauthorization, _pending-authorization_ sample>>
@@ -68,7 +69,10 @@ Find detailed information about <<GeneralPlatformFeatures_Transactions_Recurring
 [#Linepay_TestCredentials]
 === Test Credentials
 
-The test credentials for _LINE Pay_ are region specific. <<ContactUs, Contact merchant support>> for test credentials (endpoint, MAID, Username and Password) taylored to your needs.
+The test credentials for _LINE Pay_ are region specific. <<ContactUs, Contact merchant support>> for test credentials (endpoint, MAID, username and password) taylored to your needs.
+
+// Is merchant support able to set up test merchants? > Kim
+
 
 [#Linepay_Workflow]
 === Workflow
@@ -79,6 +83,13 @@ image::images/line-pay/linepay-info-graphic.png[]
 . Consumer is re-directed and logs in to his/her _LINE Pay_ account
 . Consumer confirms the payment
 . Consumer is re-directed to your confirmation page
+
+. Consumer selects _Line Pay_ on your checkout page.
+. You redirect the consumer to _line Pay_.
+. Consumer logs in to his/her _LINE Pay_ account.
+. You send a _pending-debit_ (or _pending-authorization_) to WPG.
+. WPG reserves the payment until consumer finishes the payment process.
+. WPG sends a _debit_ (or _authorization_) IPN to you.
 
 //-
 
@@ -172,6 +183,9 @@ See details for ``wallet.request-token``:
 === Samples
 
 If you want to see corresponding notification samples, go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
+
+// How do we handle the MAID when we have flexible Test Credentials?
+// Explicit MAID is not needed. It is reflected in CannelID and channelSecret
 
 [#Linepay_Samples_pendingdebit]
 .XML _pending-debit_ Request (Successful)
