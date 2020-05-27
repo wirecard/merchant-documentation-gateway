@@ -1,0 +1,49 @@
+sequenceDiagram
+
+    participant C as Consumer
+
+    participant M as Merchant
+
+    participant W as WPG
+
+    participant K as Klarna
+
+C->>M: proceeds to checkout
+
+M->>W: sends "authorization" request
+
+W->>K: sends "check-signature" and "get-url"
+
+K->>W: creates and sends session token
+
+W->>K: creates and sends "pending-authorization"
+
+K-->>K: performs basic risk check
+
+K->>W: sends basic risk check result
+
+W-->>W: updates "pending-authorization"
+
+    alt basic risk check ok/fail
+
+        W->>M: "authorization" response
+
+    else advanced risk check required
+
+        W->>M: "pending-authorization" response
+
+    end
+
+M->>C: redirects to payment status page
+
+    alt advanced risk check required
+
+       K-->>K: performs advanced risk check
+
+       K->>W: sends risk check result notification
+
+       W->>M: processes notification and sends response
+
+       M->>C: redirects to payment status page
+
+    end
