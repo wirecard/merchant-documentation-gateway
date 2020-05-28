@@ -4,53 +4,44 @@
 [#PPv2_SEPADirectDebit_General]
 === General Information
 
-This is a reference page for _SEPA Direct Debit_. Here you find all the information
-necessary for integrating this payment method into your Hosted and Embedded Payment Page.
+This is a reference page for _SEPA Direct Debit_. Here you find all the information necessary for integrating this payment method into your Hosted and Embedded Payment Page.
 
 .Are you unfamiliar with {payment-page-v2} ({payment-page-v2-abbr})?
 
-NOTE: Visit one of the integration guides
-(<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>,
-<<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and
-a step-by-step guide before continuing.
+NOTE: Visit one of the integration guides (<<PaymentPageSolutions_PPv2_HPP_Integration, Hosted>>, <<PaymentPageSolutions_PPv2_EPP_Integration, Embedded>>) for a quick explanation and a step-by-step guide before continuing.
 
 All <<PPv2, {payment-page-v2-abbr}>> integrations share a
 <<PPSolutions_PPv2_Workflow, common process flow>> for creating payments.
 
-Below, you find example requests for the available transaction type <<PPv2_SEPADirectDebit_TransactionType_debit, _debit_>>,
-including field lists with short descriptions.
+Below, you find example requests for the available transaction type <<PPv2_SEPADirectDebit_TransactionType_debit, _debit_>>, including field lists with short descriptions.
 
-These requests are designed for the testing environment and do not
-use real information.
+These requests are designed for the testing environment and do not use real information.
 
-NOTE: For production, you need to use production credentials. For details
-contact <<ContactUs, merchant support>>.
+NOTE: For production, you need to use production credentials. For details contact <<ContactUs, merchant support>>.
 
 All given requests return successful responses.
 
-For more details on the ``redirect-url``, see the 
-<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
-section.
+For more details on the ``redirect-url``, see the  <<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>> section.
 
-For response verification examples, see
-the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
+For response verification examples, see the <<PPSolutions_PPv2_PPv2Security, {payment-page-v2-abbr} Security>> section.
 
 
 [#PPv2_SEPADirectDebit_About]
 === About _SEPA Direct Debit_
 
-The Single Euro
-Payments Area (SEPA) is an initiative of the European banking industry
-that makes electronic payments across the euro area as easy as domestic
-payments within one country. The payments are processed under the same
-basic conditions, rights, and obligations regardless of their location.
+The Single Euro Payments Area (SEPA) is an initiative of the European banking industry that makes electronic payments across the euro area as easy as domestic payments within one country. The payments are processed under the same basic conditions, rights, and obligations regardless of their location.
 
-SEPA Direct Debit is a payment method which authorizes a transaction
-before it transfers money from the consumer account to the merchant.
+SEPA Direct Debit is a payment method which authorizes a transaction before it transfers money from the consumer account to you.
 
 
 [#PPv2_SEPADirectDebit_TestCredentials]
 === Test Credentials
+
+[NOTE]
+====
+The {payment-provider-name} test environment is not connected to SEPA. We cannot validate SEPA specific data such as IBAN, BIC, Creditor ID, etc. It is only possible to check whether the *structure of a request* is valid. In the test environment you can only simulate a 'success' or 'cancel' scenario. You cannot simulate a 'fail' scenario.
+====
+
 Test credentials for the transaction type <<PPv2_SEPADirectDebit_TransactionType_debit, _debit_>>.
 
 [cols="35h,65"]
@@ -70,14 +61,10 @@ Test credentials for the transaction type <<PPv2_SEPADirectDebit_TransactionType
 | Creditor ID           | DE98ZZZ09999999999
 |===
 
-image::images/03-01-04-10-sepa-direct-debit/sepadirectdebit_testing.jpg[SEPA Direct Debit testing]
-
-
 [#PPv2_SEPADirectDebit_TransactionType_debit]
 === Transaction Type _debit_
 
-A _debit_ transaction charges the specified amount from the account
-holder's bank account and marks it for immediate transfer.
+A _debit_ transaction charges the specified amount from the account holder's bank account and marks it for immediate transfer.
 
 For a successful _debit_ transaction:
 
@@ -87,15 +74,16 @@ For a successful _debit_ transaction:
 
 //-
 
-We provide ready-made JSON examples for each step of this process. You
-find them below.
+We provide ready-made JSON examples for each step of this process. You find them below.
 
 <<PPv2_SEPADirectDebit_TestCredentials, Endpoint>> for _SEPA Direct Debit_ transactions.
 
 .Initial Request
 
-The initial request creates the payment session. If it is
-successful, you receive a URL as a response which redirects to the payment form.
+The initial request creates the payment session. If it is successful, you receive a URL as a response which redirects to the payment form.
+
+.Payment form after redirect
+image::images/03-01-04-10-sepa-direct-debit/sepadirectdebit_testing.jpg[SEPA Direct Debit testing]
 
 .Request Headers
 [cols="20h,80"]
@@ -106,11 +94,9 @@ successful, you receive a URL as a response which redirects to the payment form.
 
 .Optional fields
 
-For a full list of optional fields you can use, see the REST API
-<<SEPADirectDebit, _SEPA Direct Debit_ specification>>.
+For a full list of optional fields you can use, see the REST API <<SEPADirectDebit, _SEPA Direct Debit_ specification>>.
 
-For a full structure of a request (optional fields included), see the
-<<PPv2_SEPADirectDebit_JSON_NVPFields, JSON/NVP Field Reference>> section at the bottom.
+For a full structure of a request (optional fields included), see the <<PPv2_SEPADirectDebit_JSON_NVPFields, JSON/NVP Field Reference>> section at the bottom.
 
 
 .1. Create a Payment Session (Initial Request)
@@ -150,35 +136,7 @@ Format: 3-character abbreviation according to ISO 4217.
 
 .2. Redirect the Customer to the Payment Page (Initial Response URL)
 
-At this point, you need to redirect your consumer to
-``payment-redirect-url`` (or render it in an _iframe_ depending on your
-<<PPv2, integration method>>).
-
-Consumers are redirected to the payment form. There they enter their
-data and submit the form to confirm the payment. A payment can be:
-
-- successful (``transaction-state: success``),
-- failed (``transaction-state: failed``),
-- canceled. The consumer canceled the payment before/after submission
-(``transaction-state: failed``).
-
-//-
-
-The transaction result is the value of ``transaction-state`` in the
-payment response. More details (including the status code) can also be
-found in the payment response in the ``statuses`` object. Canceled
-payments are returned as _failed_, but the
-``status description`` indicates it was canceled.
-
-In any case (unless the consumer cancels the transaction on a 3rd party
-provider page), a base64-encoded response containing payment information
-is sent to the configured redirection URL. See
-<<PPSolutions_PPv2_ConfigureRedirects, Configuring Redirects and IPNs for {payment-page-v2-abbr}>>
-for more details on redirection targets after payment and transaction status
-notifications.
-
-You can find a decoded payment response example below.
-
+include::{root}/include/ppv2-redirect-instructions.adoc[]
 
 .3. Parse and Process the Payment Response (Decoded Payment Response)
 
