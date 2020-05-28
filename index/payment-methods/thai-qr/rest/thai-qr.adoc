@@ -1,9 +1,9 @@
-[#API_PromptPay]
+[#API_ThaiQR]
 == REST API
 
-_Siam Commercial Bank Prompt Pay_ (_SCB Prompt Pay_) is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
+_Thai QR Payment_ is a type of <<PaymentMethods_PaymentMode_OnlineBankTransfer, Online Bank Transfer>>.
 
-[#API_PromptPay_CountriesCurrencies]
+[#API_ThaiQR_CountriesCurrencies]
 === Countries and Currencies
 
 [cols="20h,80"]
@@ -14,22 +14,22 @@ _Siam Commercial Bank Prompt Pay_ (_SCB Prompt Pay_) is a type of <<PaymentMetho
 
 |===
 
-[#API_PromptPay_CommunicationFormats]
+[#API_ThaiQR_CommunicationFormats]
 === Communication Formats
 
-This table illustrates how _SCB Prompt Pay_ notifications are encoded and which formats and methods can be used for requests and responses.
+This table illustrates how _Thai QR Payment_ notifications are encoded and which formats and methods can be used for requests and responses.
 
 [cols="20,20,60"]
 |===
 .2+h| Requests/Responses | Format | XML, JSON
-                        | Methods | POST, GET for <<API_PromptPay_Workflow_GetStatus, GETSTATUS>>
+                        | Methods | POST, GET for <<API_ThaiQR_Workflow_GetStatus, GetStatus>>
 h| IPN Encodement     2+| Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
-[#API_PromptPay_Transactions]
+[#API_ThaiQR_Transactions]
 === Transactions
 
-[#API_PromptPay_TransactionTypes]
+[#API_ThaiQR_TransactionTypes]
 ==== Transaction Types
 
 For <<Glossary_TransactionType, transaction type>> details which are not given here look at <<AppendixB, Transaction Types>>.
@@ -38,13 +38,13 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 |===
 |Transaction Type |Description | Link to Sample
 
-|_debit_ |Transaction created after _SCB Prompt Pay_ confirms by IPN if transaction was processed. | <<API_PromptPay_Samples_debit, _debit_ sample>>
+|_debit_ |Transaction created after _Thai QR Payment_ confirms by IPN if transaction was processed. | <<API_ThaiQR_Samples_debit, _debit_ sample>>
 
 |===
 
 //-
 
-[#API_PromptPay_TestCredentials]
+[#API_ThaiQR_TestCredentials]
 === Test Credentials
 
 [cols="35h,65"]
@@ -56,7 +56,7 @@ For <<Glossary_TransactionType, transaction type>> details which are not given h
 |===
 
 
-[#API_PromptPay_Workflow]
+[#API_ThaiQR_Workflow]
 === Workflow
 
 image::images/prompt-pay/prompt-pay_transaction-flow.jpg[]
@@ -65,49 +65,49 @@ image::images/prompt-pay/prompt-pay_transaction-flow.jpg[]
 // [cols="h,,,"]
 // |===
 // | QR Code Presenter > h| Processing Element > h| Presentation of QR Code > h| Final Step
-// | {payment-gateway} | payment-method url | {payment-provider-name} HPP | wait for IPN from _SCB Prompt Pay_
-// | Your web site | qr-code | Your web site | redirect consumer to _SCB Prompt Pay_ to process the payment
+// | {payment-gateway} | payment-method url | {payment-provider-name} HPP | wait for IPN from _Thai QR Payment_
+// | Your web site | qr-code | Your web site | redirect consumer to _Thai QR Payment_ to process the payment
 // |===
 // +
 
-. Send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
-. {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
-. _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
-. _SCB Prompt Pay_ sends a response containing the QR code information to {payment-gateway}.
+. Send a _debit_ request to the {payment-gateway} to process the payment with _Thai QR Payment_.
+. {payment-gateway} creates a _get-url_ transaction and sends a request to _Thai QR Payment_. 
+. _Thai QR Payment_ generates a special QR code for processing the payment via _Thai QR Payment_.
+. _Thai QR Payment_ sends a response containing the QR code information to {payment-gateway}.
 . {payment-gateway} sends you the QR code information 
 .. as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``). 
 .. base64-encoded in the field ``qr-code``.
 . *If you want the consumer to scan the QR code on {payment-provider-name} HPP:*
 .. Use the ``payment-method url`` and redirect the consumer to the {payment-provider-name} HPP which displays the QR code. 
-.. let the consumer scan the QR code image and processes the payment with _SCB Prompt Pay_.
+.. let the consumer scan the QR code image and processes the payment with _Thai QR Payment_.
 .. wait for the _debit_ IPN with the transaction status (see step 9).
 
 [start=6]
 . *If you want the consumer to scan the QR code on your web site:*
 .. Decode the ``qr-code`` value and display the QR code image directly on your web site to the consumer.
 .. let the consumer scan the QR code. 
-.. redirect the consumer to _SCB Prompt Pay_ to process the payment.
-. _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}.
+.. redirect the consumer to _Thai QR Payment_ to process the payment.
+. _Thai QR Payment_ sends the IPN with the transaction status to {payment-gateway}.
 . {payment-gateway} creates a success _debit_.
 . {payment-gateway} sends you a _debit_ IPN indicating that the transaction was successfully created and processed.
 
 // .Consumer scans QR code on your web site
 
-// . You send a _debit_ request to the {payment-gateway} to process the payment with _SCB Prompt Pay_.
-// . {payment-gateway} creates a _get-url_ transaction and sends a request to _SCB Prompt Pay_. 
-// . _SCB Prompt Pay_ generates a special QR code for processing the payment via _SCB Prompt Pay_.
-// . _SCB Prompt Pay_ sends a response containing the QR code information to {payment-gateway}.
+// . You send a _debit_ request to the {payment-gateway} to process the payment with _Thai QR Payment_.
+// . {payment-gateway} creates a _get-url_ transaction and sends a request to _Thai QR Payment_. 
+// . _Thai QR Payment_ generates a special QR code for processing the payment via _Thai QR Payment_.
+// . _Thai QR Payment_ sends a response containing the QR code information to {payment-gateway}.
 // . {payment-gateway} sends you the QR code information 
 // .. as URL for {payment-provider-name} Hosted Payment Page (HPP) (field ``payment-method url``). 
 // .. base64-encoded in the field ``qr-code``.
 // . Decode the ``qr-code`` value and display the QR code directly on your web site to the consumer.
 // . the consumer scans the QR code. 
-// . redirect the consumer to _SCB Prompt Pay_ to process the payment.
-// . _SCB Prompt Pay_ sends the IPN with the transaction status to {payment-gateway}.
+// . redirect the consumer to _Thai QR Payment_ to process the payment.
+// . _Thai QR Payment_ sends the IPN with the transaction status to {payment-gateway}.
 // . {payment-gateway} creates a success _debit_.
 // . {payment-gateway} sends you the _debit_ IPN indicating that the transaction was successfully created and processed.
 
-[#API_PromptPay_Workflow_GetStatus]
+[#API_ThaiQR_Workflow_GetStatus]
 .GetStatus Flow
 
 Use GetStatus to find out the status of the transaction.
@@ -124,17 +124,17 @@ image::images/prompt-pay/prompt-pay_get-status-flow.jpg[]
 . If timeout has not expired, you receive response from {payment-gateway} that such a transaction was not found.
 . If timeout has expired, {payment-gateway} creates a failed _debit_ and sends you an IPN which contains the transaction status.
 
-[#API_PromptPay_Expiration]
+[#API_ThaiQR_Expiration]
 === QR code expiration
 
-A generated QR code does not expire on _SCB Prompt Pay's_ side. There is a default timeout period (30 minutes) which is configurable globally per {payment-gateway} instance or you can set it - 
+A generated QR code does not expire on _Thai QR Payment's_ side. There is a default timeout period (30 minutes) which is configurable globally per {payment-gateway} instance or you can set it - 
 
 ``siambank-promptpay.connector.hpp.processing.timeoutmillis``
 
 When a success IPN comes after that timeout period, then {payment-gateway} creates a failed _debit_ and logs an ERROR.
 
 
-[#API_PromptPay_Fields]
+[#API_ThaiQR_Fields]
 === Fields
 
 // Mandatory fields
@@ -159,14 +159,14 @@ When a success IPN comes after that timeout period, then {payment-gateway} creat
 // <payment-method url>
 // <qr-code>
 
-All fields used for _SCB Prompt Pay_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
+All fields used for _Thai QR Payment_ are the same as the <<RestApi_Fields, ReST API Fields>>. Please refer to the API field list. 
 
-[#API_PromptPay_Samples]
+[#API_ThaiQR_Samples]
 === Samples
 
 If you want to see corresponding notification samples, go to <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
 
-[#API_PromptPay_Samples_debit]
+[#API_ThaiQR_Samples_debit]
 .XML _debit_ Request (Successful)
 
 [source,xml]
