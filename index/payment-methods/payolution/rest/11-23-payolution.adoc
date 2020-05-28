@@ -195,36 +195,36 @@ image::images/11-23-payolution/payolution_elv_debit.png[payolution direct debit,
 . Consumer selects payment method SEPA Direct Debit (by _payolution_).
 . -> Send a ``debit`` request to __{payment-gateway}_ ({payment-gateway-abbr})_  . +
 This request must contain ``payment-method@name`` = ``payolution-elv`` and the consumer's ``iban`` and ``bic``.
-. _{payment-gateway-abbr}_   processes the request and forwards it to _payolution_.
+. _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
 . _payolution_ runs risk checks. If the request passes, _payolution_ forwards it to the consumer's bank.
 . The consumer's bank debits the consumer's account and transfers funds to _payolution_. 
-. _payolution_ sends a response to _{payment-gateway-abbr}_   and transfers funds to merchant account.
-. _{payment-gateway-abbr}_   informs you about the transaction outcome.
+. _payolution_ sends a response to _{payment-gateway-abbr}_ and transfers funds to merchant account.
+. _{payment-gateway-abbr}_ informs you about the transaction outcome.
 . -> Inform the consumer about the transaction outcome.
 //-
 
 [#payolution_InvoiceB2C]
 ==== Invoice B2C (``payolution-b2c``) - authorization, capture-authorization Workflow
 
+image::images/11-23-payolution/payolution_inv_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
+
 . Consumer selects payment method Invoice (by _payolution_).
-. -> Send an ``authorization`` request to _{payment-gateway-abbr}_  . +
+. -> Send an ``authorization`` request to _{payment-gateway-abbr}_ . +
 This request must contain ``payment-method@name`` = ``payolution-b2c`` and the consumer's ``date-of-birth``.
-. _{payment-gateway-abbr}_   processes the request and forwards it to _payolution_.
-. _payolution_ runs risk checks and sends a response to _{payment-gateway-abbr}_  .
-. _{payment-gateway-abbr}_   forwards the response to you.
-. -> Send a ``capture`` request to _{payment-gateway-abbr}_  . +
+. _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
+. _payolution_ runs risk checks and sends a response to _{payment-gateway-abbr}_ .
+. _{payment-gateway-abbr}_ forwards the response to you.
+. -> Send a ``capture`` request to _{payment-gateway-abbr}_ . +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding ``authorization`` response. +
 You can
 .. capture the total authorized amount once all items are ready for delivery.
 .. capture a partial amount if only a part of the order is ready for delivery. +
 Multiple captures are possible.
-. _{payment-gateway-abbr}_   processes the request and forwards it to _payolution_.
-. _payolution_ captures the requested amount and sends a response to _{payment-gateway-abbr}_  .
-. _{payment-gateway-abbr}_   processes the response informs you about the transaction outcome.
+. _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
+. _payolution_ captures the requested amount and sends a response to _{payment-gateway-abbr}_ .
+. _{payment-gateway-abbr}_ processes the response informs you about the transaction outcome.
 . -> Generate the invoice and send it to ``invoices-<merchant name>@payolution.com``.
 . -> Inform the consumer about the transaction outcome.
-
-image::images/11-23-payolution/payolution_inv_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
 
 Instead of sending a sequence of ``authorization`` and ``capture-authorization``, you can also send a single ``debit`` request.
 
@@ -264,19 +264,19 @@ Instead of sending a sequence of ``authorization`` and ``capture-authorization``
 ===== Sync Installment - authorization, debit Workflow
 
 . Consumer selects "Payment in Installments" (by _payolution_).
-. -> Send a ``claculate`` request to _{payment-gateway-abbr}_  .
-. _{payment-gateway-abbr}_   retrieves installment plans from _payolution_ and forwards them to you in the ``calculate`` response. +
+. -> Send a ``claculate`` request to _{payment-gateway-abbr}_ .
+. _{payment-gateway-abbr}_ retrieves installment plans from _payolution_ and forwards them to you in the ``calculate`` response. +
 This ``calculate`` response also contains all available installment plans and a link to _payolution's_ terms and conditions.
 . -> On the checkout page, show the consumer
 ** the available installment plans.
 ** the link to _payolution's_ terms and conditions. +
 . Consumer selects an installment plan and submits the payment. 
-. -> Send an ``authorization`` or ``debit`` request to _{payment-gateway-abbr}_  : +
+. -> Send an ``authorization`` or ``debit`` request to _{payment-gateway-abbr}_ : +
 As ``field-value`` for ``custom-field field-name="duration"``, enter the selected number of installments (``calculate`` response, field ``months``). +
 If you do not provide this field, the request falls back to <<payolution_Installment_Async, async installment>>.
-. _{payment-gateway-abbr}_   forwards the request to _payolution_.
-. _payolution_ processes the request and sends the response to _{payment-gateway-abbr}_  .
-. _{payment-gateway-abbr}_   forwards the response to you.
+. _{payment-gateway-abbr}_ forwards the request to _payolution_.
+. _payolution_ processes the request and sends the response to _{payment-gateway-abbr}_ .
+. _{payment-gateway-abbr}_ forwards the response to you.
 . -> Inform the consumer about the transaction outcome.
 . For ``debit`` requests and captured ``authorization`` requests: +
 ** _payolution_ pays the total order amount to the merchant account.
@@ -297,11 +297,11 @@ image::images/11-23-payolution/payolution_reversal_voidAuthorization.png[payolut
 
 . -> Send a ``void-authorization`` request. +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding authorization that is to be canceled.
-. _{payment-gateway-abbr}_   checks if parts of this order have already been captured:
-  ** If yes: _{payment-gateway-abbr}_   sends a _void-authorization_ request to _payolution_. 
-  ** If no: _{payment-gateway-abbr}_   rejects the _void-authorization_ request. 
-. _payolution_ approves or rejects the void request and returns the result.
-. _{payment-gateway-abbr}_   sends you the _void-authorization_ response which contains the status code.
+. _{payment-gateway-abbr}_ checks if parts of this order have already been captured:
+  ** If yes: _{payment-gateway-abbr}_ sends a void-authorization request to _payolution_. 
+  ** If no: _{payment-gateway-abbr}_ rejects the void-authorization request. 
+. _payolution_ approves or rejects the request and returns the result.
+. _{payment-gateway-abbr}_ sends you the void-authorization response which contains the status code.
 . -> Process the ``void-authorization`` response.
 
 [#payolution_Refund]
@@ -315,16 +315,16 @@ You need to send a refund-capture request to refund amounts
 
 The refund workflow applies to invoice, installment and direct debit transactions.
 
-. -> Send a _refund-capture_ request. +
-As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding _capture-authorization_ response. +
+. -> Send a ``refund-capture`` request. +
+As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding capture-authorization response. +
 
  ** As ``requested-amount``, enter the amount to be refunded.
- ** If the _refund-capture_ request does not contain ``requested-amount``, _{payment-gateway-abbr}_   refunds the total order amount of the preceding _capture-authorization_ transaction.
+ ** If the ``refund-capture`` request does not contain ``requested-amount``, _{payment-gateway-abbr}_ refunds the total order amount of the preceding ``capture-authorization`` transaction.
 
-. _{payment-gateway-abbr}_   forwards the request to _payolution_. 
+. _{payment-gateway-abbr}_ forwards the request to _payolution_. 
 . _payolution_ returns the refund result.
-. _{payment-gateway-abbr}_   sends you the _refund-capture_ response which contains the status code.
-. -> Process the _refund-capture_ response. If you have not refunded the total captured amount, 
+. _{payment-gateway-abbr}_ sends you the ``refund-capture`` response which contains the status code.
+. -> Process the refund-capture response. If you have not refunded the total captured amount, 
 
 image::images/11-23-payolution/payolution_refund_refundCapture.png[payolution Refund, width=950, align="right"]
 
@@ -664,7 +664,7 @@ include::{root}/samples/xml/payolution-calculate_request_success.xml[]
 
 
 [#payolution_Samples_captureAuthorization]
-==== _capture-authorization_
+==== capture-authorization
 
 .XML B2C Invoice capture-authorization Request (Successful)
 
@@ -760,7 +760,7 @@ include::{root}/samples/xml/payolution-b2b_void-authorization_response_failure_7
 ----
 
 [#payolution_Samples_refundCapture]
-==== _refund-capture_
+==== refund-capture
 
 .XML B2B Invoice refund-capture Request (Successful)
 
