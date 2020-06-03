@@ -209,19 +209,19 @@ This request must contain ``payment-method@name`` = ``payolution-elv`` and the c
 image::images/11-23-payolution/payolution_inv_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
 
 . Consumer selects payment method Invoice (by _payolution_).
-. -> Send an ``authorization`` request to _{payment-gateway-abbr}_ . +
+. -> Send an ``authorization`` request to _{payment-gateway-abbr}_. +
 This request must contain ``payment-method@name`` = ``payolution-b2c`` and the consumer's ``date-of-birth``.
 . _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
-. _payolution_ runs risk checks and sends a response to _{payment-gateway-abbr}_ .
+. _payolution_ runs risk checks and sends a response to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ forwards the response to you.
-. -> Send a ``capture`` request to _{payment-gateway-abbr}_ . +
+. -> Send a ``capture`` request to _{payment-gateway-abbr}_. +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding ``authorization`` response. +
 You can
 .. capture the total authorized amount once all items are ready for delivery.
 .. capture a partial amount if only a part of the order is ready for delivery. +
 Multiple captures are possible.
 . _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
-. _payolution_ captures the requested amount and sends a response to _{payment-gateway-abbr}_ .
+. _payolution_ captures the requested amount and sends a response to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ processes the response informs you about the transaction outcome.
 . -> Generate the invoice and send it to ``invoices-<merchant name>@payolution.com``.
 . -> Inform the consumer about the transaction outcome.
@@ -264,18 +264,18 @@ Instead of sending a sequence of ``authorization`` and ``capture-authorization``
 ===== Sync Installment - authorization, debit Workflow
 
 . Consumer selects "Payment in Installments" (by _payolution_).
-. -> Send a ``claculate`` request to _{payment-gateway-abbr}_ .
+. -> Send a ``claculate`` request to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ retrieves installment plans from _payolution_ and forwards them to you in the ``calculate`` response. +
 This ``calculate`` response also contains all available installment plans and a link to _payolution's_ terms and conditions.
 . -> On the checkout page, show the consumer
 ** the available installment plans.
 ** the link to _payolution's_ terms and conditions. +
 . Consumer selects an installment plan and submits the payment. 
-. -> Send an ``authorization`` or ``debit`` request to _{payment-gateway-abbr}_ : +
+. -> Send an ``authorization`` or ``debit`` request to _{payment-gateway-abbr}_: +
 As ``field-value`` for ``custom-field field-name="duration"``, enter the selected number of installments (``calculate`` response, field ``months``). +
 If you do not provide this field, the request falls back to <<payolution_Installment_Async, async installment>>.
 . _{payment-gateway-abbr}_ forwards the request to _payolution_.
-. _payolution_ processes the request and sends the response to _{payment-gateway-abbr}_ .
+. _payolution_ processes the request and sends the response to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ forwards the response to you.
 . -> Inform the consumer about the transaction outcome.
 . For ``debit`` requests and captured ``authorization`` requests: +
@@ -287,13 +287,15 @@ If you do not provide this field, the request falls back to <<payolution_Install
 [#payolution_Reversal]
 ==== void-authorization
 
+Use this transaction type if ordered items are not avialable and cannot be shipped.
+
 void-authorization cancels an authorized order and blocks it from future
 captures. You can only void the authorized total amount that has not yet been captured. Partial void-authorizations are not possible.
 
 The void-authorization workflow applies to invoice and direct debit transactions.
 As installment authorizations should be captured immediately after authorization, they cannot be voided.
 
-image::images/11-23-payolution/payolution_reversal_voidAuthorization.png[payolution Reversal, width=950, align="right"]
+image::images/11-23-payolution/payolution_voidAuthorization.png[payolution Reversal, width=950]
 
 . -> Send a ``void-authorization`` request. +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding authorization that is to be canceled.
