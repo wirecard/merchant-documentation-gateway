@@ -1,9 +1,9 @@
-[#payolution]
+[#PaysavePayLater]
 == REST API
-_payolution_ is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
+_Paysafe Pay Later™_ (formerly known as _payolution_) is a type of <<PaymentMethods_PaymentMode_OfflineBankTransfer, Offline Bank Transfer>>.
 
-[#payolution_SpecificPaymentMethods]
-_payolution_  offers 4 payment methods: 
+[#PaysavePayLater_SpecificPaymentMethods]
+_Paysafe Pay Later™_ offers 4 payment methods: 
 
 * **``payolution-b2b``** +
     ** Payment on invoice. 
@@ -24,7 +24,7 @@ _payolution_  offers 4 payment methods:
     ** For B2C transactions only.
 //-
 
-[#payolution_CountriesandCurrencies]
+[#PaysavePayLater_CountriesandCurrencies]
 === Countries and Currencies
 [width=75%,cols=",,",stripes=none]
 |===
@@ -41,9 +41,9 @@ h| Currencies
 2+| EUR, CHF
 |===
 
-[#payolution_CommunicationFormats]
+[#PaysavePayLater_CommunicationFormats]
 === Communication Formats
-This table illustrates how _payolution_ notifications are encoded and
+This table illustrates how _Paysafe Pay Later™_ notifications are encoded and
 which formats and methods can be used for requests and responses.
 [width=75%,stripes=none,cols=",,"]
 |===
@@ -56,7 +56,7 @@ h|IPN Encodement
 2+|Please follow the instructions given at <<GeneralPlatformFeatures_IPN, Instant Payment Notification>> to set up IPN.
 |===
 
-[#payolution_Transactions]
+[#PaysavePayLater_Transactions]
 === Transaction Types
 
 [%autowidth,cols="m,a,""]
@@ -65,19 +65,19 @@ h|IPN Encodement
 
 | authorization
 | Checks the consumer's creditworthiness when they place an order.
-| <<payolution_Samples_authorization, authorization samples>>
+| <<PaysavePayLater_Samples_authorization, authorization samples>>
 
 | capture-authorization
 | Captures the funds reserved in a preceding authorization the moment
 some or all goods are physically delivered to the consumer. +
 You can only capture amounts that have been authorized successfully and neither voided nor fully captured. +
 Partial and multiple captures are allowed as long as you do not exceed the authorization limit. 
-| <<payolution_Samples_captureAuthorization, capture-authorization samples>>
+| <<PaysavePayLater_Samples_captureAuthorization, capture-authorization samples>>
 
 | debit
 | Authorizes and captures a payment in one go. +
 Triggers fund transfer. +
-| <<payolution_Samples_authorization, debit samples>>
+| <<PaysavePayLater_Samples_authorization, debit samples>>
 
 | void-authorization
 | Cancels a reserved order amount totally or partially if has not been captured before. +
@@ -87,13 +87,13 @@ captured. +
 Partial and multiple voids are allowed until all ordered items
 are canceled or captured. +
 Not available for payment method ``payolution-inv``.
-| <<payolution_Samples_voidAuthorization, void-authorization samples>>
+| <<PaysavePayLater_Samples_voidAuthorization, void-authorization samples>>
 
 | refund-capture
 | Refunds a captured order amount if the consumer returns some or all delivered goods. +
 You can only refund amounts that have been captured successfully. +
 Partial and multiple refunds are allowed until the whole captured amount has been refunded (i.e. all delivered items have been returned.)
-| <<payolution_Samples_refundCapture, refund-capture samples>>
+| <<PaysavePayLater_Samples_refundCapture, refund-capture samples>>
 
 | add-data
 | Adds information to a previous transaction. You can add
@@ -109,30 +109,30 @@ Partial and multiple refunds are allowed until the whole captured amount has bee
 This is useful to 
 
 * add information that was not available at the time ot the previous transaction.
-* inform payolution about delivery date changes. This prevents from sending unjustified reminders to consumers.
+* inform Paysafe Pay Later™ about delivery date changes. This prevents from sending unjustified reminders to consumers.
 //-
 You can only add information to a successful capture-authorization transaction.
 
-| <<payolution_Samples_addData, add-data samples>>
+| <<PaysavePayLater_Samples_addData, add-data samples>>
 
 | authorization-only
-| Checks if payolution accepts the consumer. +
+| Checks if _Paysafe Pay Later™_ accepts the consumer. +
 This pre-check can save you the effort of displaying installment plans to consumers who would be rejected in a payment process. 
-| <<payolution_Samples_authorizationOnly, authorization-only samples >>
+| <<PaysavePayLater_Samples_authorizationOnly, authorization-only samples >>
 
 | adjust-authorization
 | Updates the amount of a preceding authorization. +
 You can only adjust authorizations that have not yet been captured. +
-For ``payolution-inst``, you can only add information to a preceding authorization request. You can change neither amount nor number of installments.
+For ``_Paysafe Pay Later™_-inst``, you can only add information to a preceding authorization request. You can change neither amount nor number of installments.
 |
 
 | calculate
 | Returns installment plans for a specified amount.
-| <<payolution_Samples_calculate, calculate samples >>
+| <<PaysavePayLater_Samples_calculate, calculate samples >>
 
 |===
  
-[#payolution_TestCredentials]
+[#PaysavePayLater_TestCredentials]
 === Test Credentials
 
 [cols=",,"]
@@ -168,7 +168,7 @@ h| Secret Key
 2+| 74bd2f0c-6d1b-4e9a-b278-abc34b83ab9f
 |===
 
-.Additional Test Credentials on _payolution_ Environment
+.Additional Test Credentials on _Paysafe Pay Later™_ Environment
 
 [%autowidth, cols= "h,"]
 |===
@@ -184,35 +184,35 @@ BIC: INGDAT21XXX
 |Installment not supported for consumers from the Netherlands.
 |===
 
-[#payolution_Workflow]
+[#PaysavePayLater_Workflow]
 === Workflow
 
-[#payolution_ELV]
+[#PaysavePayLater_ELV]
 ==== Direct Debit (``payolution-elv``) - debit Workflow
 
 image::images/11-23-payolution/payolution_elv_debit.png[payolution direct debit, width=950]
 
-. Consumer selects payment method SEPA Direct Debit (by _payolution_).
+. Consumer selects payment method SEPA Direct Debit (by _Paysafe Pay Later™_).
 . -> Send a ``debit`` request to __{payment-gateway}_ ({payment-gateway-abbr})_  . +
 This request must contain ``payment-method@name`` = ``payolution-elv`` and the consumer's ``iban`` and ``bic``.
-. _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
-. _payolution_ runs risk checks. If the request passes, _payolution_ forwards it to the consumer's bank.
-. The consumer's bank debits the consumer's account and transfers funds to _payolution_. 
-. _payolution_ sends a response to _{payment-gateway-abbr}_ and transfers funds to merchant account.
+. _{payment-gateway-abbr}_ processes the request and forwards it to _Paysafe Pay Later™_.
+. _Paysafe Pay Later™_ runs risk checks. If the request passes, _Paysafe Pay Later™_ forwards it to the consumer's bank.
+. The consumer's bank debits the consumer's account and transfers funds to _Paysafe Pay Later™_. 
+. _Paysafe Pay Later™_ sends a response to _{payment-gateway-abbr}_ and transfers funds to merchant account.
 . _{payment-gateway-abbr}_ informs you about the transaction outcome.
 . -> Inform the consumer about the transaction outcome.
 //-
 
-[#payolution_InvoiceB2C]
+[#PaysavePayLater_InvoiceB2C]
 ==== Invoice B2C (``payolution-b2c``) - authorization, capture-authorization Workflow
 
-image::images/11-23-payolution/payolution_inv_authorization_captureAuthorization.png[payolution Invoice B2C, width=950, align="right"]
+image::images/11-23-payolution/payolution_inv_authorization_captureAuthorization.png[_Paysafe Pay Later™_ Invoice B2C, width=950]
 
-. Consumer selects payment method Invoice (by _payolution_).
+. Consumer selects payment method Invoice (by _Paysafe Pay Later™_).
 . -> Send an ``authorization`` request to _{payment-gateway-abbr}_. +
 This request must contain ``payment-method@name`` = ``payolution-b2c`` and the consumer's ``date-of-birth``.
-. _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
-. _payolution_ runs risk checks and sends a response to _{payment-gateway-abbr}_.
+. _{payment-gateway-abbr}_ processes the request and forwards it to _Paysafe Pay Later™_.
+. _Paysafe Pay Later™_ runs risk checks and sends a response to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ forwards the response to you.
 . -> Send a ``capture`` request to _{payment-gateway-abbr}_. +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding ``authorization`` response. +
@@ -220,37 +220,37 @@ You can
 .. capture the total authorized amount once all items are ready for delivery.
 .. capture a partial amount if only a part of the order is ready for delivery. +
 Multiple captures are possible.
-. _{payment-gateway-abbr}_ processes the request and forwards it to _payolution_.
-. _payolution_ captures the requested amount and sends a response to _{payment-gateway-abbr}_.
+. _{payment-gateway-abbr}_ processes the request and forwards it to _Paysafe Pay Later™_.
+. _Paysafe Pay Later™_ captures the requested amount and sends a response to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ processes the response informs you about the transaction outcome.
 . -> Generate the invoice and send it to ``invoices-<merchant name>@payolution.com``.
 . -> Inform the consumer about the transaction outcome.
 
 Instead of sending a sequence of ``authorization`` and ``capture-authorization``, you can also send a single ``debit`` request.
 
-[#payolution_InvoiceB2B]
+[#PaysavePayLater_InvoiceB2B]
 ==== Invoice B2B (``payolution-b2b``) - authorization, capture-authorization Workflow
 
 The _Invoice B2B_ workflow is the same as the _Invoice B2C_ workflow. +
 Instead of ``date-of-birth``, the field ``custom-field@field-name="company-name"`` is mandatory in an ``authorization`` or ``debit`` request.
 
-image::images/11-23-payolution/payolution_b2b_authorization_captureAuthorization.png[payolution Invoice B2B, width=950, align="right"]
+image::images/11-23-payolution/payolution_b2b_authorization_captureAuthorization.png[_Paysafe Pay Later™_ Invoice B2B, width=950]
 
 Instead of sending a sequence of ``authorization`` and ``capture-authorization``, you can also send a single ``debit`` request.
 
-[#payolution_Installment]
+[#PaysavePayLater_Installment]
 ==== Installment (``payolution-inst``)
 
 There are two installment options:
 
-. <<payolution_Installment_Async, *Async installment:*>> Show the installment plans to your consumer on the _payolution_ web site. You need to redirect them.
+. <<PaysavePayLater_Installment_Async, *Async installment:*>> Show the installment plans to your consumer on the _Paysafe Pay Later™_ web site. You need to redirect them.
 
-. <<payolution_Installment_Sync, *Sync installment:*>> Show the installment plans to your consumer on your own shop page. Before that, you need to retreive the available installment plans with a ``claculate`` request.
+. <<PaysavePayLater_Installment_Sync, *Sync installment:*>> Show the installment plans to your consumer on your own shop page. Before that, you need to retreive the available installment plans with a ``claculate`` request.
 
 //-
 
 
-[#payolution_Installment_Async]
+[#PaysavePayLater_Installment_Async]
 ===== Async Installment - authorization, capture-authorization Workflow
 
 NOTE: You have to trigger a ``capture-authorization`` *immediately after the
@@ -260,31 +260,31 @@ image::images/11-23-payolution/payolution_Installment_authorization_captureAutho
 
 Instead of sending a sequence of ``authorization`` and ``capture-authorization``, you can also send a single ``debit`` request.
 
-[#payolution_Installment_Sync]
+[#PaysavePayLater_Installment_Sync]
 ===== Sync Installment - authorization, debit Workflow
 
-. Consumer selects "Payment in Installments" (by _payolution_).
+. Consumer selects "Payment in Installments" (by _Paysafe Pay Later™_).
 . -> Send a ``claculate`` request to _{payment-gateway-abbr}_.
-. _{payment-gateway-abbr}_ retrieves installment plans from _payolution_ and forwards them to you in the ``calculate`` response. +
-This ``calculate`` response also contains all available installment plans and a link to _payolution's_ terms and conditions.
+. _{payment-gateway-abbr}_ retrieves installment plans from _Paysafe Pay Later™_ and forwards them to you in the ``calculate`` response. +
+This ``calculate`` response also contains all available installment plans and a link to the _Paysafe Pay Later™_ terms and conditions.
 . -> On the checkout page, show the consumer
 ** the available installment plans.
-** the link to _payolution's_ terms and conditions. +
+** the link to the _Paysafe Pay Later™_ terms and conditions. +
 . Consumer selects an installment plan and submits the payment. 
 . -> Send an ``authorization`` or ``debit`` request to _{payment-gateway-abbr}_: +
 As ``field-value`` for ``custom-field field-name="duration"``, enter the selected number of installments (``calculate`` response, field ``months``). +
-If you do not provide this field, the request falls back to <<payolution_Installment_Async, async installment>>.
-. _{payment-gateway-abbr}_ forwards the request to _payolution_.
-. _payolution_ processes the request and sends the response to _{payment-gateway-abbr}_.
+If you do not provide this field, the request falls back to <<PaysavePayLater_Installment_Async, async installment>>.
+. _{payment-gateway-abbr}_ forwards the request to _Paysafe Pay Later™_.
+. _Paysafe Pay Later™_ processes the request and sends the response to _{payment-gateway-abbr}_.
 . _{payment-gateway-abbr}_ forwards the response to you.
 . -> Inform the consumer about the transaction outcome.
 . For ``debit`` requests and captured ``authorization`` requests: +
-** _payolution_ pays the total order amount to the merchant account.
-** The consumer pays _payolution_ in monthly installments.
+** _Paysafe Pay Later™_ pays the total order amount to the merchant account.
+** The consumer pays _Paysafe Pay Later™_ in monthly installments.
 
 //-
 
-[#payolution_Reversal]
+[#PaysavePayLater_Reversal]
 ==== void-authorization
 
 Use this transaction type if ordered items are not avialable and cannot be shipped.
@@ -295,18 +295,18 @@ captures. You can only void the authorized total amount that has not yet been ca
 The void-authorization workflow applies to invoice and direct debit transactions.
 As installment authorizations should be captured immediately after authorization, they cannot be voided.
 
-image::images/11-23-payolution/payolution_voidAuthorization.png[payolution Reversal, width=950]
+image::images/11-23-payolution/payolution_voidAuthorization.png[_Paysafe Pay Later™_ Reversal, width=950]
 
 . -> Send a ``void-authorization`` request. +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding authorization that is to be canceled.
 . _{payment-gateway-abbr}_ checks if parts of this order have already been captured:
-  ** If yes: _{payment-gateway-abbr}_ sends a void-authorization request to _payolution_. 
+  ** If yes: _{payment-gateway-abbr}_ sends a void-authorization request to _Paysafe Pay Later™_. 
   ** If no: _{payment-gateway-abbr}_ rejects the void-authorization request. 
-. _payolution_ approves or rejects the request and returns the result.
+. _Paysafe Pay Later™_ approves or rejects the request and returns the result.
 . _{payment-gateway-abbr}_ sends you the void-authorization response which contains the status code.
 . -> Process the ``void-authorization`` response.
 
-[#payolution_Refund]
+[#PaysavePayLater_Refund]
 ==== refund-capture
 
 You need to send a refund-capture request to refund amounts
@@ -317,7 +317,7 @@ You need to send a refund-capture request to refund amounts
 
 The refund workflow applies to invoice, installment and direct debit transactions.
 
-image::images/11-23-payolution/payolution_refundCapture.png[payolution Refund, width=950, align="right"]
+image::images/11-23-payolution/payolution_refundCapture.png[_Paysafe Pay Later™_ Refund, width=950]
 
 . -> Send a ``refund-capture`` request. +
 As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding capture-authorization response. +
@@ -325,13 +325,13 @@ As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding capt
  ** As ``requested-amount``, enter the amount to be refunded.
  ** If the ``refund-capture`` request does not contain ``requested-amount``, _{payment-gateway-abbr}_ refunds the total order amount of the preceding ``capture-authorization`` transaction.
 
-. _{payment-gateway-abbr}_ forwards the request to _payolution_. 
-. _payolution_ returns the refund result.
+. _{payment-gateway-abbr}_ forwards the request to _Paysafe Pay Later™_. 
+. _Paysafe Pay Later™_ returns the refund result.
 . _{payment-gateway-abbr}_ sends you the ``refund-capture`` response which contains the status code.
 . -> Process the ``refund-capture`` response. If you have not refunded the total captured amount, you can send further ``refund-capture`` requests.
 
 
-// [tikz,payolution_workflow_refundCapture,svg,subs=attributes+]
+// [tikz,PaysafePayLater_workflow_refundCapture,svg,subs=attributes+]
 // ----
 // % Document Header
 // \documentclass[tikz,border=12pt,12pt]{standalone}
@@ -356,8 +356,8 @@ As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding capt
 // \node[icon] (icon2) at (22,3.5) {\includegraphics[width=.1\textwidth] {paymentgateway.png}};
 // \draw[aidline] (22, 0.9) -- (22,-7.35);
 
-// % Stage "payolution"
-// \node[participant] at (33,2) {Payolution};
+// % Stage "Paysafe Pay Later™"
+// \node[participant] at (33,2) {Paysafe Pay Later™};
 // \node[icon] (icon3) at (33,3.5) {\includegraphics[width=.1\textwidth] {paymentprovider.png}};
 // \draw[aidline] (33, 0.9) -- (33,-7.35);
 
@@ -392,20 +392,20 @@ As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding capt
 // ----
 
 
-[#payolution_Fields]
+[#PaysavePayLater_Fields]
 === Fields
 
-The fields used for _payolution_ requests, responses and notifications
+The fields used for _Paysafe Pay Later™_ requests, responses and notifications
 are the same as the <<RestApi_Fields, REST API fields>>.
 
 Only the fields listed below have different properties, especially
 according to size.
 
-[#payolution_Fields_authorization]
+[#PaysavePayLater_Fields_authorization]
 ==== authorization and debit Fields
 
 Fields can be **M**andatory or **O**ptional in an authorization/debit request for any
-of _payolution's_ specific payment methods.
+of the _Paysafe Pay Later™_ specific payment methods.
 
 [%autowidth,stripes=none]
 [cols="m,,,,,,a"]
@@ -506,13 +506,13 @@ m| custom-fields
 | M/O 
 | String 
 | 15 
-| <<payolution_Fields_Installments_months, Number of installments.>> +
+| <<PaysavePayLater_Fields_Installments_months, Number of installments.>> +
 Mandatory for ``payolution-inst`` (sync installments).
 
 |===
 
 
-[#payolution_Fields_Installments]
+[#PaysavePayLater_Fields_Installments]
 ==== Installments Calculator Response Fields
 
 [%autowidth,stripes=none]
@@ -527,7 +527,7 @@ Mandatory for ``payolution-inst`` (sync installments).
 | Installment plan name.
 
 2+| terms
-| URL to _payolution's_ terms and conditions. 
+| URL to the _Paysafe Pay Later™_ terms and conditions. 
 
 .5+| details
 m| interest-rate
@@ -540,7 +540,7 @@ m| interest-rate
 | Amount the consumer has to pay back in monthly installments.
 
 | months
-| [[payolution_Fields_Installments_months]]Number of installments. +
+| [[PaysafePayLater_Fields_Installments_months]]Number of installments. +
 In your ``authorization`` or ``debit`` request, enter this value as ``field-value`` for ``custom-field field-name="duration"``.
 
 | total-credit-purchase-price
@@ -548,7 +548,7 @@ In your ``authorization`` or ``debit`` request, enter this value as ``field-valu
 
 |===
 
-[#payolution_Fields_CustomFieldsforB2BTransactions]
+[#PaysavePayLater_Fields_CustomFieldsforB2BTransactions]
 ==== Custom Fields for B2B Transactions
 
 Custom fields contain company information if the consumer is a business
@@ -585,19 +585,19 @@ other fields are optional.
 | Additional registration information about consumer.
 |===
 
-[#payolution_AmountLimits]
+[#PaysavePayLater_AmountLimits]
 === Amount Limits
 
 
-The order amount must be within the limits you contracted with _payolution_. The limits are set individually for each of
-<<payolution_SpecificPaymentMethods, _payolution's_ specific payment method>>. If the order amount is not within the defined limits, the respective payment method is not available to the consumer.
+The order amount must be within the limits you contracted with _Paysafe Pay Later™_. The limits are set individually for each of the 
+<<PaysavePayLater_SpecificPaymentMethods, _Paysafe Pay Later™_ specific payment method>>. If the order amount is not within the defined limits, the respective payment method is not available to the consumer.
 
-[#payolution_Samples]
+[#PaysavePayLater_Samples]
 === Samples
 
 Click the link to view corresponding <<GeneralPlatformFeatures_IPN_NotificationExamples, Notification Examples>>.
 
-[#payolution_Samples_authorization]
+[#PaysavePayLater_Samples_authorization]
 ==== authorization
 
 .XML B2C Invoice authorization Request (Successful)
@@ -630,7 +630,7 @@ include::{root}/samples/xml/payolution-inv_authorization_response_failure.xml[]
 
 ***
 
-[#payolution_Samples_B2BInvoiceAuthorization]
+[#PaysavePayLater_Samples_B2BInvoiceAuthorization]
 
 .XML B2B Invoice authorization Request (Successful)
 
@@ -662,7 +662,7 @@ include::{root}/samples/xml/payolution-b2b_authorization_response_failure.xml[]
 
 ***
 
-[#payolution_Samples_InstallmentAuthorization]
+[#PaysavePayLater_Samples_InstallmentAuthorization]
 
 .XML Installment authorization Request (Successful)
 
@@ -693,7 +693,7 @@ include::{root}/samples/xml/payolution-inst_authorization_response_failure.xml[]
 ----
 
 
-[#payolution_Samples_authorizationOnly]
+[#PaysavePayLater_Samples_authorizationOnly]
 ==== authorization-only (for all payment methods)
 
 .XML authorization-only Request (Successful)
@@ -711,7 +711,7 @@ include::{root}/samples/xml/payolution-authorization-only_response_success.xml[]
 ----
 
 
-[#payolution_Samples_calculate]
+[#PaysavePayLater_Samples_calculate]
 ==== calculate (for payolution-inst)
 
 .XML calculate Request (Successful)
@@ -724,7 +724,7 @@ include::{root}/samples/xml/payolution-calculate_request_success.xml[]
 
 
 
-[#payolution_Samples_captureAuthorization]
+[#PaysavePayLater_Samples_captureAuthorization]
 ==== capture-authorization
 
 .XML B2C Invoice capture-authorization Request (Successful)
@@ -789,7 +789,7 @@ include::{root}/samples/xml/payolution-b2b_capture-authorization_request_failure
 include::{root}/samples/xml/payolution-b2b_capture-authorization_response_failure_df706683.xml[]
 ----
 
-[#payolution_Samples_voidAuthorization]
+[#PaysavePayLater_Samples_voidAuthorization]
 ==== _void-authorization_
 
 .XML B2B Invoice void-authorization Request (Successful)
@@ -820,7 +820,7 @@ include::{root}/samples/xml/payolution-b2b_void-authorization_request_failure_73
 include::{root}/samples/xml/payolution-b2b_void-authorization_response_failure_7311ed4a.xml[]
 ----
 
-[#payolution_Samples_refundCapture]
+[#PaysavePayLater_Samples_refundCapture]
 ==== refund-capture
 
 .XML B2B Invoice refund-capture Request (Successful)
@@ -851,7 +851,7 @@ include::{root}/samples/xml/payolution-b2b_refund-capture_request_failure_240fa6
 include::{root}/samples/xml/payolution-b2b_refund-capture_response_failure_240fa6d8.xml[]
 ----
 
-[#payolution_Samples_addData]
+[#PaysavePayLater_Samples_addData]
 ==== add-data
 
 .XML add-data Request (Successful)
@@ -868,7 +868,7 @@ include::{root}/samples/xml/payolution-add-data_request_success.xml[]
 include::{root}/samples/xml/payolution-add-data_response_success.xml[]
 ----
 
-[#payolution_Samples_adjustAuthorization]
+[#PaysavePayLater_Samples_adjustAuthorization]
 ==== adjust-authorization 
 
 .XML adjust-authorization Request (Successful)
