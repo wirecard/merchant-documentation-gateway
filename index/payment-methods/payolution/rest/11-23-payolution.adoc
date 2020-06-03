@@ -12,7 +12,7 @@ _payolution_  offers 4 payment methods:
 //-
 * **``payolution-elv``** +
     ** SEPA direct debit payment. 
-    ** You need to provide IBAN (and BIC) of the consumer.
+    ** You have to provide IBAN (and BIC) of the consumer.
 //-
 * **``payolution-inv``** +
     ** Payment on invoice. 
@@ -324,9 +324,72 @@ As ``parent-transaction-id``, enter the ``transaction-id`` of the preceding capt
 . _{payment-gateway-abbr}_ forwards the request to _payolution_. 
 . _payolution_ returns the refund result.
 . _{payment-gateway-abbr}_ sends you the ``refund-capture`` response which contains the status code.
-. -> Process the refund-capture response. If you have not refunded the total captured amount, 
+. -> Process the ``refund-capture`` response. If you have not refunded the total captured amount, you can send further ``refund-capture`` requests.
 
-image::images/11-23-payolution/payolution_refund_refundCapture.png[payolution Refund, width=950, align="right"]
+
+[tikz,payolution_workflow_refundCapture,svg,subs=attributes+]
+----
+% Document Header
+\documentclass[tikz,border=12pt,12pt]{standalone}
+\hyphenpenalty=10000
+\input{style/new_sequence.tikz}
+\input{vars/shortcuts.tex}
+\begin{document}
+\begin{tikzpicture}
+
+% Stage "consumer"
+\node[participant] at (0,2) {Consumer};
+\node[icon] (icon0) at (0,3.5) {\includegraphics[width=.1\textwidth] {consumer.png}};
+\draw[aidline] (0, 0.9) -- (0,-7.35);
+
+% Stage "merchant"
+\node[participant] at (11,2) {Merchant};
+\node[icon] (icon1) at (11,3.5) {\includegraphics[width=.1\textwidth] {merchant.png}};
+\draw[aidline] (11, 0.9) -- (11,-7.35);
+
+% Stage "payment"
+\node[participant] at (22,2) {Payment Gateway};
+\node[icon] (icon2) at (22,3.5) {\includegraphics[width=.1\textwidth] {paymentgateway.png}};
+\draw[aidline] (22, 0.9) -- (22,-7.35);
+
+% Stage "payolution"
+\node[participant] at (33,2) {Payolution};
+\node[icon] (icon3) at (33,3.5) {\includegraphics[width=.1\textwidth] {paymentprovider.png}};
+\draw[aidline] (33, 0.9) -- (33,-7.35);
+
+% Boxes
+\draw[box, nightblue] (0,0.5) -- (0,-0.5);
+\draw[box, nightblue] (11,0.1) -- (11,-1.35);
+\draw[box, nightblue] (22,-1.15) -- (22,-2.6);
+\draw[box, nightblue] (33,-2.4) -- (33,-5.3);
+\draw[box, nightblue] (22,-5.1) -- (22,-6.55);
+\draw[box, nightblue] (11,-5.95) -- (11,-6.95);
+
+% Flows
+% Flow "1 Returns some or all order items"
+\draw[solidarrow]
+(0.21,0) -- node[txt, midway,above] {1 Returns some or all order items} (10.79,0);
+% Flow "2 Sends refund-capture request with amount (returned items)"
+\draw[solidarrow]
+(11.21,-1.25) -- node[txt, midway,above] {2 Sends refund-capture request \\with amount (returned items)} (21.79,-1.25);
+% Flow "3 Processes and validates transaction and forwards refund-capture request"
+\draw[solidarrow]
+(22.21,-2.5) -- node[txt, midway,above] {3 Processes and validates transaction \\and forwards refund-capture request} (32.79,-2.5);
+% Flow "4 Processes request and sends response"
+\draw[solidarrow]
+(32.79,-5.2) -- node[txt, midway,above] {4 Processes request \\and sends response} (22.21,-5.2);
+% Flow "5 Processes and forwards response\\(in case of changes: void-authorization and refund-capture)"
+\draw[solidarrow]
+(21.79,-6.45) -- node[txt, midway,above] {5 Processes and forwards response} (11.21,-6.45);
+
+% Document Footer
+\end{tikzpicture}
+\end{document}
+----
+
+image::images/11-23-payolution/payolution_refundCapture.png[payolution Refund, width=950, align="right"]
+
+
 
 [#payolution_Fields]
 === Fields
@@ -524,12 +587,9 @@ other fields are optional.
 [#payolution_AmountLimits]
 === Amount Limits
 
-The order amount must be within the limits agreed upon in the contract
-closed with _payolution_. The limits are set individually for each of
-_payolution's_ specific payment method (payolution-inv, payolution-b2b
-and payolution-inst). If the order amount is not within the defined
-limits, the payment options Installment and Invoice should not be
-available to the consumer.
+
+The order amount must be within the limits you contracted with _payolution_. The limits are set individually for each of
+<<payolution_SpecificPaymentMethods, _payolution's_ specific payment method>>. If the order amount is not within the defined limits, the respective payment method is not available to the consumer.
 
 [#payolution_Samples]
 === Samples
