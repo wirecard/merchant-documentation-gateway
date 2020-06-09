@@ -32,34 +32,7 @@ Otherwise, the authorization cannot be captured automatically.
 [#KlarnaV2_TransactionTypes_authorization_Workflow]
 ===== _authorization_/_pending-authorization_ Workflow
 
-[mermaid,Klarnav2_workflow_authorization,svg,subs=attributes+]
-----
-sequenceDiagram
-    participant C as Consumer
-    participant M as Merchant
-    participant W as WPG
-    participant K as Klarna
-C->>M: proceeds to checkout
-M->>W: sends "authorization" request
-W->>K: sends "check-signature" and "get-url"
-K->>W: creates and sends session token
-W->>K: creates and sends "pending-authorization"
-K-->>K: performs basic risk check
-K->>W: sends basic risk check result
-W-->>W: updates "pending-authorization"
-    alt basic risk check ok/fail
-        W->>M: "authorization" response
-    else advanced risk check required
-        W->>M: "pending-authorization" response
-    end
-M->>C: redirects to payment status page
-    alt advanced risk check required
-       K-->>K: performs advanced risk check
-       K->>W: sends risk check result notification
-       W->>M: processes notification and sends response
-       M->>C: redirects to payment status page
-    end
-----
+image::images/Klarnav2_workflow_authorization.svg[]
 
 . Consumer checks out products.
 . -> Send an _authorization_ request to _{payment-gateway}_. This request must contain order data (e.g. amount, order number, order items) and consumer data (e.g. name, billing/shipping address).
