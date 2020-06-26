@@ -173,17 +173,18 @@ _Per UCOF payment (MIT)_
 
 The consumer interacts with an agent that is selling another merchant's product or service. Payments are triggered by merchants. One example for this would be an online travel agency.
 
-WARNING: Agents must clearly inform consumers that their cards will be charged by merchants, and not them.
+WARNING: Agents must clearly inform consumers that their cards will be charged by merchants and not by agents.
 
-[#CreditCard_3DS2_UseCase_AgentModel_tx]
-==== For a successful transaction:
+You are an agent with {payment-provider-name}.
 
-.Option 1: You are an agent with {payment-provider-name}
+.For a successful transaction:
 
-_The agent initiates the payment session_:
+_Initiate the payment session_:
 
-. *Check-enrollment* (full amount): This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``, and the ``three-d/pareq``. The _PAReq_ is the digitally signed, base64-encoded authentication request message created by _{payment-gateway}._ It contains the results of the 3D Secure versioning request that is used to initiate _AReq_ as part of the HTTPS POST redirect to the ACS URL. The agent uses the PAReq for a HTTPS POST redirect to the ACS URL, which is part of a standard 3D Secure process. The HTTPS POST redirect returns the PARes as part of the response.
-. *Check-payer-response*: This request serves to provide the authentication values needed later on in the _authorization._ The _check-payer-response_ is executed after the _check-enrollment_ response and the PARes have been received. The _check-payer-response_ must contain the following fields
+. *Check-Enrollment* (full amount) +
+This is the initial request and initiates the payment session. If the request is successful, the response contains a ``transaction-id``, and the ``three-d/pareq``. The _PAReq_ is the digitally signed, base64-encoded authentication request message created by _{payment-gateway}._ It contains the results of the 3D Secure versioning request that is used to initiate _AReq_ as part of the HTTPS POST redirect to the ACS URL. The agent uses the PAReq for a HTTPS POST redirect to the ACS URL, which is part of a standard 3D Secure process. The HTTPS POST redirect returns the PARes as part of the response.
+. *Check-Payer-Response* +
+This request serves to provide the authentication values needed later on in the _authorization._ The _check-payer-response_ is executed after the _check-enrollment_ response and the PARes have been received. The _check-payer-response_ must contain the following fields
  - ``three-d/pares``: This is the digitally signed, base64-encoded authentication response message containing ARes/CRes received from the issuer.
  - ``parent-transaction-id``: Use the value returned in the ``transaction-id`` field of the _check-enrollment_ response.
 The _check-payer-response_ includes the ``three-d/cardholder-authentication-value``.
@@ -197,24 +198,9 @@ Provide the final authentication values for the merchant. These values include:
  - ``three-d/cardholder-authentication-status``
 
 //-
-
-
-.Option 2: You are a merchant with {payment-provider-name}
-
-As a merchant you receive the following authentication values from your external 3D Secure provider (e.g. the agent):
-
- - ``three-d/cardholder-authentication-value`` (Mandatory)
- - ``three-d/eci`` (Mandatory)
- - ``three-d/ds-transaction-id`` (Mandatory)
- - ``three-d/version`` (Mandatory)
- - ``three-d/cardholder-authentication-status`` (Optional)
-
-_Merchant (when ready to ship / deliver)..._
-
-. *Authorization* (full amount): Include the authentication values provided by the external 3D Secure provider.
-. *Capture* (full amount): Send a request with transaction type ``capture``. Include the ``transaction-id`` from the _authorization_ response in the ``parent-transaction-id`` field.
-
-//-
+ 
+'''
+include::{root}/index/payment-processing/3-d-secure-2/use-cases/external-three-d-secure-providers.adoc[leveloffset=+1]
 
 '''
 
