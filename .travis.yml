@@ -13,7 +13,7 @@ env:
   matrix:
     - PARTNER=WD
     - PARTNER=PO
-    - PARTNER=MS
+    # - PARTNER=MS
 before_script:
 - sha1sum --version
 - INIT_DIR=$(pwd)
@@ -41,121 +41,54 @@ script:
 # - echo "TRAVIS_ENVSET_FILE=${TRAVIS_ENVSET_FILE}"
 - if [[ -f "${TRAVIS_ENVSET_FILE}" ]]; then export DEPLOY_${PARTNER}=TRUE; fi
 - if [[ -f "${TRAVIS_ENVSET_FILE}_nova" ]]; then export DEPLOY_${PARTNER}_NOVA=TRUE; fi
-# before_deploy:
-# - echo "in before_deploy section beginning " ${DEPLOY_PO}
+before_deploy: 
+  - pip install --user awscli
+  - export AWS_ACCESS_KEY_ID=$S3ACCESSID
+  - export AWS_SECRET_ACCESS_KEY=$S3ACCESSKEY
 deploy:
 - provider: s3
   access_key_id: $S3ACCESSID
   secret_access_key: $S3ACCESSKEY
-  bucket: wirecard-docs-internal
+  bucket: n-bckt
   region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/WD/html
-  on:
-    branch: staging
-    condition: $DEPLOY_WD = TRUE
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: wirecard-docs
-  region: eu-central-1
-  skip_cleanup: false
-  local-dir: /tmp/build/WD/html
-  on:
-    branch: master
-    condition: $DEPLOY_WD = TRUE
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: wirecard-docs-internal
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/WD/html
-  upload-dir: $TRAVIS_BRANCH
-  on:
-    all_branches: true
-    condition: $DEPLOY_WD = TRUE
-
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: n-bckt-internal
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/WD/NOVA/html
-  upload-dir: $TRAVIS_BRANCH
-  on:
-    all_branches: true
-    condition: $DEPLOY_WD_NOVA = TRUE
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: n-bckt-internal
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/WD/NOVA/html
-  on:
-    branch: staging
-    condition: $DEPLOY_WD_NOVA = TRUE
-
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: p-bckt-internal
-  region: eu-central-1
-  skip_cleanup: true
   local-dir: /tmp/build/PO/html
   on:
-    branch: staging
+    branch: DEPLOY_PO
     condition: $DEPLOY_PO = TRUE
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: p-bckt
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/PO/html
-  on:
-    branch: master
-    condition: $DEPLOY_PO = TRUE
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: p-bckt-internal
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/PO/html
-  upload-dir: $TRAVIS_BRANCH
-  on:
-    all_branches: true
-    condition: $DEPLOY_PO = TRUE
+#- provider: s3
+#  access_key_id: $S3ACCESSID
+#  secret_access_key: $S3ACCESSKEY
+#  bucket: p-bckt-internal
+#  region: eu-central-1
+#  local-dir: /tmp/build/PO/html
+#  upload-dir: $TRAVIS_BRANCH
+#  on:
+#    all_branches: true
+#    condition: $DEPLOY_PO = TRUE
 
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: m-bckt-internal
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/MS/html
-  on:
-    branch: staging
-    condition: $DEPLOY_MS = TRUE
-- provider: s3
-  access_key_id: $S3ACCESSID
-  secret_access_key: $S3ACCESSKEY
-  bucket: m-bckt
-  region: eu-central-1
-  skip_cleanup: true
-  local-dir: /tmp/build/MS/html
-  on:
-    branch: master
-    condition: $DEPLOY_MS = TRUE
+#- provider: s3
+#  access_key_id: $S3ACCESSID
+#  secret_access_key: $S3ACCESSKEY
+#  bucket: m-bckt-internal
+#  region: eu-central-1
+#  local-dir: /tmp/build/MS/html
+#  on:
+#    branch: staging
+#    condition: $DEPLOY_MS = TRUE
+#- provider: s3
+#  access_key_id: $S3ACCESSID
+#  secret_access_key: $S3ACCESSKEY
+#  bucket: m-bckt
+#  region: eu-central-1
+#  local-dir: /tmp/build/MS/html
+#  on:
+#    branch: master
+#    condition: $DEPLOY_MS = TRUE
 # - provider: s3
 #   access_key_id: $S3ACCESSID
 #   secret_access_key: $S3ACCESSKEY
 #   bucket: m-bckt-internal
 #   region: eu-central-1
-#   skip_cleanup: true
 #   local-dir: /tmp/build/MS/html
 #   upload-dir: $TRAVIS_BRANCH
 #   on:
